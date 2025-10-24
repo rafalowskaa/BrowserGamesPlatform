@@ -1,8 +1,8 @@
 ﻿@{
-    ViewData["Title"] = "BGP – Platforma gier przeglądarkowych";
+    ViewData["Title"] = L["Home_Title"].Value;
 }
 <section class="hero">
-    <h1>Browser Games Platform</h1>
-    <p>Katalog gier HTML5. Upload, oceny, rankingi, tryby Single/Multi, API do wyników.</p>
-    <a class="btn-primary" asp-controller="Games" asp-action="Index">Przeglądaj gry</a>
+    <h1>@L["Home_HeroTitle"]</h1>
+    <p>@L["Home_HeroDescription"]</p>
+    <a class="btn-primary" asp-controller="Games" asp-action="Index">@L["Home_BrowseButton"]</a>
 </section>

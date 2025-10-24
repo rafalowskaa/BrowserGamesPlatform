@@ -1,25 +1,25 @@
 ﻿@model Bgp.Web.Controllers.LoginVm
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = L["Auth_Login_Title"].Value;
 }
 <section class="auth">
     <div class="auth-card">
-        <h1>Game Platform</h1>
+        <h1>@L["Auth_Login_Heading"]</h1
         <form asp-action="Login" method="post">
             <input type="hidden" asp-for="ReturnUrl" />
-            <label>Login or Email</label>
+             <label>@L["Auth_Login_LoginOrEmail"]</label>
             <input asp-for="LoginOrEmail" autocomplete="username" />
             <span asp-validation-for="LoginOrEmail" class="val"></span>
 
-            <label>Password</label>
+            <label>@L["Auth_Login_Password"]</label>
             <input asp-for="Password" type="password" autocomplete="current-password" />
             <span asp-validation-for="Password" class="val"></span>
 
-            <label class="check"><input asp-for="RememberMe" /> Remember me</label>
+            <label class="check"><input asp-for="RememberMe" /> @L["Auth_Login_RememberMe"]</label>
 
             <div class="auth-actions">
-                <a class="btn-outline" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">Register</a>
-                <button class="btn-primary" type="submit">Login</button>
+                <a class="btn-outline" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">@L["Auth_Login_RegisterLink"]</a>
+                <button class="btn-primary" type="submit">@L["Auth_Login_LoginButton"]</button>
             </div>
         </form>
     </div>

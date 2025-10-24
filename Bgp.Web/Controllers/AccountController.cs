@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Bgp.Infrastructure.Identity;
+using Bgp.Web.Resources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 
 namespace Bgp.Web.Controllers;
 
@@ -10,11 +12,13 @@ public class AccountController : Controller
 {
     private readonly SignInManager<ApplicationUser> _signIn;
     private readonly UserManager<ApplicationUser> _users;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
-    public AccountController(SignInManager<ApplicationUser> signIn, UserManager<ApplicationUser> users)
+    public AccountController(SignInManager<ApplicationUser> signIn, UserManager<ApplicationUser> users, IStringLocalizer<SharedResource> localizer)
     {
         _signIn = signIn;
         _users = users;
+        _localizer = localizer;
     }
 
     [AllowAnonymous]
@@ -26,7 +30,7 @@ public class AccountController : Controller
         if (!ModelState.IsValid) return View(vm);
         var res = await _signIn.PasswordSignInAsync(vm.LoginOrEmail, vm.Password, vm.RememberMe, lockoutOnFailure: true);
         if (res.Succeeded) return LocalRedirect(vm.ReturnUrl ?? "/");
-        ModelState.AddModelError("", "Invalid credentials.");
+        ModelState.AddModelError("", _localizer["Account_InvalidCredentials"]);
         return View(vm);
     }
 
@@ -77,7 +81,7 @@ public class RegisterVm
 {
     [Required] public string Login { get; set; } = string.Empty;
     [Required, EmailAddress] public string Email { get; set; } = string.Empty;
-    [Required, MinLength(6)] public string Password { get; set; } = string.Empty;
+    [Required, MinLength(8)] public string Password { get; set; } = string.Empty;
     [Compare(nameof(Password))] public string ConfirmPassword { get; set; } = string.Empty;
     public string? ReturnUrl { get; set; }
 }

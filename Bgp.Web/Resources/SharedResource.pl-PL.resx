@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<resheader name="resmimetype">
+		<value>text/microsoft-resx</value>
+	</resheader>
+	<resheader name="version">
+		<value>2.0</value>
+	</resheader>
+	<resheader name="reader">
+		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+	</resheader>
+	<resheader name="writer">
+		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+	</resheader>
+	<data name="Navigation_Home" xml:space="preserve">
+    <value>Strona główna</value>
+  </data>
+	<data name="Navigation_Games" xml:space="preserve">
+    <value>Gry</value>
+  </data>
+	<data name="Navigation_Api" xml:space="preserve">
+    <value>API</value>
+  </data>
+	<data name="Navigation_Login" xml:space="preserve">
+    <value>Zaloguj</value>
+  </data>
+	<data name="Navigation_Register" xml:space="preserve">
+    <value>Rejestracja</value>
+  </data>
+	<data name="Navigation_Logout" xml:space="preserve">
+    <value>Wyloguj</value>
+  </data>
+	<data name="Navigation_ChatToggleTitle" xml:space="preserve">
+    <value>Otwórz czat</value>
+  </data>
+	<data name="Language_Polish" xml:space="preserve">
+    <value>Polski</value>
+  </data>
+	<data name="Language_English" xml:space="preserve">
+    <value>Angielski</value>
+  </data>
+	<data name="Home_Title" xml:space="preserve">
+    <value>BGP – Platforma gier przeglądarkowych</value>
+  </data>
+	<data name="Home_HeroTitle" xml:space="preserve">
+    <value>Browser Games Platform</value>
+  </data>
+	<data name="Home_HeroDescription" xml:space="preserve">
+    <value>Katalog gier HTML5. Upload, oceny, rankingi, tryby Single/Multi, API do wyników.</value>
+  </data>
+	<data name="Home_BrowseButton" xml:space="preserve">
+    <value>Przeglądaj gry</value>
+  </data>
+	<data name="Games_Index_Title" xml:space="preserve">
+    <value>Katalog gier</value>
+  </data>
+	<data name="Games_Index_Heading" xml:space="preserve">
+    <value>Katalog gier</value>
+  </data>
+	<data name="Games_Index_Rating" xml:space="preserve">
+    <value>Ocena</value>
+  </data>
+	<data name="Details_NoBuild" xml:space="preserve">
+    <value>Brak opublikowanej wersji gry.</value>
+  </data>
+	<data name="Details_LeaderboardTitle" xml:space="preserve">
+    <value>Ranking (Top 20)</value>
+  </data>
+	<data name="Details_LeaderboardLoading" xml:space="preserve">
+    <value>Ładowanie…</value>
+  </data>
+	<data name="Details_LeaderboardError" xml:space="preserve">
+    <value>Błąd</value>
+  </data>
+	<data name="Auth_Login_Title" xml:space="preserve">
+    <value>Logowanie</value>
+  </data>
+	<data name="Auth_Login_Heading" xml:space="preserve">
+    <value>Platforma gier</value>
+  </data>
+	<data name="Auth_Login_LoginOrEmail" xml:space="preserve">
+    <value>Login lub e-mail</value>
+  </data>
+	<data name="Auth_Login_Password" xml:space="preserve">
+    <value>Hasło</value>
+  </data>
+	<data name="Auth_Login_RememberMe" xml:space="preserve">
+    <value>Zapamiętaj mnie</value>
+  </data>
+	<data name="Auth_Login_RegisterLink" xml:space="preserve">
+    <value>Rejestracja</value>
+  </data>
+	<data name="Auth_Login_LoginButton" xml:space="preserve">
+    <value>Zaloguj</value>
+  </data>
+	<data name="Auth_Register_Title" xml:space="preserve">
+    <value>Rejestracja</value>
+  </data>
+	<data name="Auth_Register_Heading" xml:space="preserve">
+    <value>Nowe konto</value>
+  </data>
+	<data name="Auth_Register_Login" xml:space="preserve">
+    <value>Login</value>
+  </data>
+	<data name="Auth_Register_Email" xml:space="preserve">
+    <value>E-mail</value>
+  </data>
+	<data name="Auth_Register_Password" xml:space="preserve">
+    <value>Hasło</value>
+  </data>
+	<data name="Auth_Register_ConfirmPassword" xml:space="preserve">
+    <value>Potwierdź hasło</value>
+  </data>
+	<data name="Auth_Register_Back" xml:space="preserve">
+    <value>Powrót</value>
+  </data>
+	<data name="Auth_Register_Create" xml:space="preserve">
+    <value>Utwórz konto</value>
+  </data>
+	<data name="Footer_Legal" xml:space="preserve">
+    <value>© {0} Browser Games Platform</value>
+  </data>
+	<data name="Account_InvalidCredentials" xml:space="preserve">
+    <value>Nieprawidłowe dane logowania.</value>
+  </data>
+	<data name="Chat_Title" xml:space="preserve">
+    <value>Czat</value>
+  </data>
+	<data name="Chat_Close" xml:space="preserve">
+    <value>Zamknij</value>
+  </data>
+	<data name="Chat_SearchPlaceholder" xml:space="preserve">
+    <value>Szukaj gracza...</value>
+  </data>
+	<data name="Chat_Friends" xml:space="preserve">
+    <value>Znajomi</value>
+  </data>
+	<data name="Chat_Invites" xml:space="preserve">
+    <value>Zaproszenia</value>
+  </data>
+	<data name="Chat_WriteMessage" xml:space="preserve">
+    <value>Napisz wiadomość...</value>
+  </data>
+	<data name="Chat_Send" xml:space="preserve">
+    <value>Wyślij</value>
+  </data>
+	<data name="Chat_Open" xml:space="preserve">
+    <value>Otwórz czat</value>
+  </data>
+	<data name="Admin_Reports_Title" xml:space="preserve">
+    <value>Zgłoszenia</value>
+  </data>
+	<data name="Admin_Reports_Heading" xml:space="preserve">
+    <value>Zgłoszenia</value>
+  </data>
+	<data name="Admin_Reports_Date" xml:space="preserve">
+    <value>Data</value>
+  </data>
+	<data name="Admin_Reports_Reporter" xml:space="preserve">
+    <value>Zgłaszający</value>
+  </data>
+	<data name="Admin_Reports_Target" xml:space="preserve">
+    <value>Oskarżony</value>
+  </data>
+	<data name="Admin_Reports_Category" xml:space="preserve">
+    <value>Kategoria</value>
+  </data>
+	<data name="Admin_Reports_Description" xml:space="preserve">
+    <value>Opis</value>
+  </data>
+	<data name="Admin_Reports_Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+	<data name="Privacy_Title" xml:space="preserve">
+    <value>Polityka prywatności</value>
+  </data>
+	<data name="Privacy_Description" xml:space="preserve">
+    <value>Użyj tej strony, aby opisać politykę prywatności swojej witryny.</value>
+  </data>
+</root>

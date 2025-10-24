@@ -1,17 +1,17 @@
 ﻿@model IEnumerable<Bgp.Domain.Entities.Report>
 @{
-    ViewData["Title"] = "Zgłoszenia";
+    ViewData["Title"] = L["Admin_Reports_Title"].Value;
 }
-<h2>Zgłoszenia</h2>
+<h2>@L["Admin_Reports_Heading"]</h2>
 <table class="panel">
     <thead>
         <tr>
-            <th>Data</th>
-            <th>Zgłaszający</th>
-            <th>Oskarżony</th>
-            <th>Kategoria</th>
-            <th>Opis</th>
-            <th>Status</th>
+            <th>@L["Admin_Reports_Date"]</th>
+            <th>@L["Admin_Reports_Reporter"]</th>
+            <th>@L["Admin_Reports_Target"]</th>
+            <th>@L["Admin_Reports_Category"]</th>
+            <th>@L["Admin_Reports_Description"]</th>
+            <th>@L["Admin_Reports_Status"]</th>
         </tr>
     </thead>
     <tbody>

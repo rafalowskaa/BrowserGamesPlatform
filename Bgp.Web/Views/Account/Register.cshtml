@@ -1,31 +1,31 @@
 ﻿@model Bgp.Web.Controllers.RegisterVm
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = L["Auth_Register_Title"].Value;
 }
 <section class="auth">
     <div class="auth-card">
-        <h1>New account</h1>
+        <h1>@L["Auth_Register_Heading"]</h1>
         <form asp-action="Register" method="post">
             <input type="hidden" asp-for="ReturnUrl" />
-            <label>Login</label>
+            <label>@L["Auth_Register_Login"]</label>
             <input asp-for="Login" autocomplete="username" />
             <span asp-validation-for="Login" class="val"></span>
 
-            <label>E-mail</label>
+            <label>@L["Auth_Register_Email"]</label>
             <input asp-for="Email" type="email" autocomplete="email" />
             <span asp-validation-for="Email" class="val"></span>
 
-            <label>Password</label>
+            <label>@L["Auth_Register_Password"]</label>
             <input asp-for="Password" type="password" autocomplete="new-password" />
             <span asp-validation-for="Password" class="val"></span>
 
-            <label>Confirm password</label>
+            <label>@L["Auth_Register_ConfirmPassword"]</label>
             <input asp-for="ConfirmPassword" type="password" autocomplete="new-password" />
             <span asp-validation-for="ConfirmPassword" class="val"></span>
 
             <div class="auth-actions">
-                <a class="btn-outline" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Back</a>
-                <button class="btn-primary" type="submit">Create account</button>
+                <a class="btn-outline" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">@L["Auth_Register_Back"]</a>
+                <button class="btn-primary" type="submit">@L["Auth_Register_Create"]</button>
             </div>
         </form>
     </div>

@@ -4,11 +4,11 @@
 @inject UserManager<ApplicationUser> UserManager
 @{
     Layout = null;
-    var title = ViewData["Title"] as string ?? "Browser Games Platform";
+    var title = ViewData["Title"]?.ToString() ?? L["Home_Title"].Value;
     var ret = Context.Request.Path + Context.Request.QueryString;
 }
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,23 +19,32 @@
     <header class="bg-gradient">
         <div class="container nav">
             <a class="brand" asp-controller="Home" asp-action="Index">BGP</a>
-            <nav>
-                <a asp-controller="Games" asp-action="Index">Gry</a>
-                <a href="/swagger">API</a>
-                <a asp-controller="Language" asp-action="Set" asp-route-culture="pl-PL" asp-route-returnUrl="@ret" title="Polski">🇵🇱</a>
-                <a asp-controller="Language" asp-action="Set" asp-route-culture="en-US" asp-route-returnUrl="@ret" title="English">🇬🇧</a>
+            <nav class="nav-main">
+                <div class="nav-tabs">
+                    <a class="nav-tab" asp-controller="Home" asp-action="Index">@L["Navigation_Home"]</a>
+                    <a class="nav-tab" asp-controller="Games" asp-action="Index">@L["Navigation_Games"]</a>
+                    <a class="nav-tab" href="/swagger">@L["Navigation_Api"]</a>
+                </div>
+                <div class="nav-actions">
+                    <a class="lang-toggle" asp-controller="Language" asp-action="Set" asp-route-culture="pl-PL" asp-route-returnUrl="@ret" title="@L["Language_Polish"]">
+                        <img src="~/img/flags/pl.svg" alt="@L["Language_Polish"]" />
+                    </a>
+                    <a class="lang-toggle" asp-controller="Language" asp-action="Set" asp-route-culture="en-US" asp-route-returnUrl="@ret" title="@L["Language_English"]">
+                        <img src="~/img/flags/en.svg" alt="@L["Language_English"]" />
+                    </a>
 
-                @if (SignInManager.IsSignedIn(User))
-                {
-                    <form class="inline" asp-controller="Account" asp-action="Logout" method="post">
-                        <button class="btn-link" type="submit">Wyloguj</button>
-                    </form>
-                }
-                else
-                {
-                    <a asp-controller="Account" asp-action="Login">Zaloguj</a>
-                    <a asp-controller="Account" asp-action="Register">Rejestracja</a>
-                }
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <form class="inline" asp-controller="Account" asp-action="Logout" method="post">
+                            <button class="btn-link" type="submit">@L["Navigation_Logout"]</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login">@L["Navigation_Login"]</a>
+                        <a asp-controller="Account" asp-action="Register">@L["Navigation_Register"]</a>
+                    }
+                </div>
             </nav>
         </div>
     </header>
@@ -48,7 +57,7 @@
     @await Html.PartialAsync("_ChatSidebar")
 
     <footer class="container footer">
-        <span>© @DateTime.UtcNow.Year Browser Games Platform</span>
+        <span>@string.Format(L["Footer_Legal"].Value, DateTime.UtcNow.Year)</span>
     </footer>
 
     <!-- SignalR + Chat -->

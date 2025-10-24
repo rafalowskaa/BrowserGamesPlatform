@@ -22,8 +22,10 @@ public static class InfrastructureServiceCollectionExtensions
 
         services.AddIdentity<ApplicationUser, IdentityRole>(o =>
         {
-            o.Password.RequiredLength = 6;
+            o.Password.RequiredLength = 8;
             o.Password.RequireNonAlphanumeric = false;
+            o.Password.RequireUppercase = false;
+            o.Password.RequireDigit = false;
             o.User.RequireUniqueEmail = true;
         })
         .AddEntityFrameworkStores<AppDbContext>()

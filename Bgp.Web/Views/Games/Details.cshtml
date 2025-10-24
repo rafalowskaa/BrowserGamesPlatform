@@ -14,21 +14,22 @@
 }
 else
 {
-    <div class="alert">Brak opublikowanej wersji gry.</div>
+    <div class="alert">@L["Details_NoBuild"]</div>
 }
 
 <section class="panel">
-    <h3>Ranking (Top 20)</h3>
-    <div id="leaderboard">Ładowanie…</div>
+    <h3>@L["Details_LeaderboardTitle"]</h3>
+    <div id="leaderboard">@L["Details_LeaderboardLoading"]</div>
 </section>
 
 @section Scripts {
     <script>
+        const leaderboardErrorText = @System.Text.Json.JsonSerializer.Serialize(L["Details_LeaderboardError"].Value);
         (async () => {
             const r = await fetch(`/api/games/@Model.Id/leaderboard?top=20`);
-            if (!r.ok) { document.getElementById('leaderboard').innerText = 'Błąd'; return; }
+            if (!r.ok) { document.getElementById('leaderboard').innerText = leaderboardErrorText; return; }
             const data = await r.json();
-            const html = ['<ol>'].concat(data.map(x => `<li>${x.userName} — ${x.bestScore}</li>`)).concat(['</ol>']).join('');
+            const html = ['<ol>'].concat(data.map(x => `<li>${x.userName} &mdash; ${x.bestScore}</li>`)).concat(['</ol>']).join('');
             document.getElementById('leaderboard').innerHTML = html;
         })();
     </script>
