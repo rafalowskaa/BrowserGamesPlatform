@@ -1,0 +1,15 @@
+﻿@model IEnumerable<dynamic>
+@{
+    ViewData["Title"] = "Katalog gier";
+}
+<h2>Katalog gier</h2>
+<div class="grid">
+    @foreach (var g in Model)
+    {
+        <article class="card">
+            <img src="@(g.CoverImagePath ?? "/img/placeholder.png")" alt="cover" />
+            <h3><a asp-controller="Games" asp-action="Details" asp-route-slug="@g.Slug">@g.Title</a></h3>
+            <p>Ocena: @($"{g.Avg:0.0}")</p>
+        </article>
+    }
+</div>

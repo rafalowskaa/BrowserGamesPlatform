@@ -1,0 +1,35 @@
+﻿@model Bgp.Domain.Entities.Game
+@{
+    ViewData["Title"] = Model.Title;
+    var playUrl = ViewBag.PlayUrl as string;
+}
+<h2>@Model.Title</h2>
+<p>@Model.Description</p>
+
+@if (playUrl is not null)
+{
+    <div class="player">
+        <iframe src="@playUrl" title="game" loading="lazy"></iframe>
+    </div>
+}
+else
+{
+    <div class="alert">Brak opublikowanej wersji gry.</div>
+}
+
+<section class="panel">
+    <h3>Ranking (Top 20)</h3>
+    <div id="leaderboard">Ładowanie…</div>
+</section>
+
+@section Scripts {
+    <script>
+        (async () => {
+            const r = await fetch(`/api/games/@Model.Id/leaderboard?top=20`);
+            if (!r.ok) { document.getElementById('leaderboard').innerText = 'Błąd'; return; }
+            const data = await r.json();
+            const html = ['<ol>'].concat(data.map(x => `<li>${x.userName} — ${x.bestScore}</li>`)).concat(['</ol>']).join('');
+            document.getElementById('leaderboard').innerHTML = html;
+        })();
+    </script>
+}
