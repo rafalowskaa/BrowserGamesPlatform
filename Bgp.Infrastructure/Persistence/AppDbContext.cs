@@ -16,6 +16,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<MatchSession> MatchSessions => Set<MatchSession>();
     public DbSet<Notification> Notifications => Set<Notification>();
 
+    // NOWE:
+    public DbSet<Friendship> Friendships => Set<Friendship>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<Report> Reports => Set<Report>();
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         base.OnModelCreating(b);
@@ -38,7 +43,21 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(x => x.Game).WithMany(g => g.Scores)
             .HasForeignKey(x => x.GameId);
 
-        b.Entity<Score>().HasIndex(x => new { x.GameId, x.UserId });
-        b.Entity<MatchSession>().HasIndex(x => new { x.GameId, x.UserId });
+        b.Entity(typeof(Score)).HasIndex(nameof(Score.GameId), nameof(Score.UserId));
+        b.Entity(typeof(MatchSession)).HasIndex(nameof(MatchSession.GameId), nameof(MatchSession.UserId));
+
+        // --- Friends / Chat / Reports ---
+        b.Entity<Friendship>()
+            .HasIndex(x => new { x.RequesterId, x.AddresseeId })
+            .IsUnique();
+
+        b.Entity<ChatMessage>()
+            .Property(x => x.Content).HasMaxLength(2000);
+
+        b.Entity<ChatMessage>()
+            .HasIndex(x => new { x.SenderId, x.ReceiverId, x.SentAtUtc });
+
+        b.Entity<Report>()
+            .HasIndex(x => x.CreatedAtUtc);
     }
 }

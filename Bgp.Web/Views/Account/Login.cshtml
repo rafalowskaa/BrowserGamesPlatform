@@ -1,0 +1,27 @@
+﻿@model Bgp.Web.Controllers.LoginVm
+@{
+    ViewData["Title"] = "Login";
+}
+<section class="auth">
+    <div class="auth-card">
+        <h1>Game Platform</h1>
+        <form asp-action="Login" method="post">
+            <input type="hidden" asp-for="ReturnUrl" />
+            <label>Login or Email</label>
+            <input asp-for="LoginOrEmail" autocomplete="username" />
+            <span asp-validation-for="LoginOrEmail" class="val"></span>
+
+            <label>Password</label>
+            <input asp-for="Password" type="password" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="val"></span>
+
+            <label class="check"><input asp-for="RememberMe" /> Remember me</label>
+
+            <div class="auth-actions">
+                <a class="btn-outline" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">Register</a>
+                <button class="btn-primary" type="submit">Login</button>
+            </div>
+        </form>
+    </div>
+    <div class="auth-sideimg"></div>
+</section>

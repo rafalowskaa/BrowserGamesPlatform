@@ -1,9 +1,13 @@
+using System.Globalization;
 using System.Text;
 using Bgp.Infrastructure.Extensions;
 using Bgp.Infrastructure.Persistence;
+using Bgp.Web.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,13 +18,13 @@ builder.Services.AddRazorPages();
 // Infrastruktura (EF, Identity, us³ugi)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// CORS dla gier (jeœli hostowane na innych domenach)
+// CORS
 builder.Services.AddCors(o =>
 {
     o.AddPolicy("Games", p => p.AllowAnyHeader().AllowAnyMethod().AllowCredentials().SetIsOriginAllowed(_ => true));
 });
 
-// JWT dla API (opcjonalnie; UI u¿ywa cookies/Identity)
+// JWT dla API (opcjonalnie)
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "dev-key-change-me";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "Bgp";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "BgpAudience";
@@ -28,7 +32,7 @@ var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "BgpAudience";
 builder.Services.AddAuthentication()
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
     {
-        o.TokenValidationParameters = new TokenValidationParameters
+        o.TokenValidationParameters = new()
         {
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
@@ -39,14 +43,29 @@ builder.Services.AddAuthentication()
         };
     });
 
+// Swagger
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "BGP API", Version = "v1" });
 });
 
+// SignalR (czat)
+builder.Services.AddSignalR();
+
+// Lokalizacja (PL/EN)
+builder.Services.AddLocalization(o => o.ResourcesPath = "Resources");
+var supportedCultures = new[] { new CultureInfo("pl-PL"), new CultureInfo("en-US") };
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new RequestCulture("pl-PL");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
+});
+
 var app = builder.Build();
 
-// Migracje + seeding (dev)
+// Migracje + seeding
 await AppDbInitializer.MigrateAndSeedAsync(app.Services);
 
 if (!app.Environment.IsDevelopment())
@@ -57,7 +76,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 
 app.UseCors("Games");
@@ -65,14 +83,20 @@ app.UseCors("Games");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Swagger (równie¿ przydatny dla zespo³u)
+// Lokalizacja – musi byæ po Routing, przed Endpointami
+var locOpts = app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>();
+app.UseRequestLocalization(locOpts.Value);
+
+// Swagger
 app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BGP API v1");
-});
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BGP API v1"));
 
 app.MapRazorPages();
+
+// Hubs
+app.MapHub<ChatHub>("/hubs/chat");
+
+// MVC
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

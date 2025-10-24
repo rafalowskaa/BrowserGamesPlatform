@@ -32,4 +32,24 @@ public class AdminController : ControllerBase
             .ToListAsync();
         return Ok(games);
     }
+
+    [HttpGet("reports")]
+    public async Task<ActionResult<object>> Reports()
+    {
+        var list = await _db.Reports
+            .OrderByDescending(r => r.CreatedAtUtc)
+            .Select(r => new { r.Id, r.ReporterUserId, r.TargetUserId, r.Category, r.Status, r.CreatedAtUtc, r.Description })
+            .ToListAsync();
+        return Ok(list);
+    }
+
+    [HttpPost("reports/{id:guid}/status")]
+    public async Task<IActionResult> UpdateReportStatus(Guid id, [FromBody] Bgp.Application.Dtos.UpdateReportStatusDto dto)
+    {
+        var r = await _db.Reports.FindAsync(id);
+        if (r is null) return NotFound();
+        r.Status = dto.Status;
+        await _db.SaveChangesAsync();
+        return Ok();
+    }
 }

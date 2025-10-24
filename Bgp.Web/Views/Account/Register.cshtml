@@ -1,0 +1,33 @@
+﻿@model Bgp.Web.Controllers.RegisterVm
+@{
+    ViewData["Title"] = "Register";
+}
+<section class="auth">
+    <div class="auth-card">
+        <h1>New account</h1>
+        <form asp-action="Register" method="post">
+            <input type="hidden" asp-for="ReturnUrl" />
+            <label>Login</label>
+            <input asp-for="Login" autocomplete="username" />
+            <span asp-validation-for="Login" class="val"></span>
+
+            <label>E-mail</label>
+            <input asp-for="Email" type="email" autocomplete="email" />
+            <span asp-validation-for="Email" class="val"></span>
+
+            <label>Password</label>
+            <input asp-for="Password" type="password" autocomplete="new-password" />
+            <span asp-validation-for="Password" class="val"></span>
+
+            <label>Confirm password</label>
+            <input asp-for="ConfirmPassword" type="password" autocomplete="new-password" />
+            <span asp-validation-for="ConfirmPassword" class="val"></span>
+
+            <div class="auth-actions">
+                <a class="btn-outline" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Back</a>
+                <button class="btn-primary" type="submit">Create account</button>
+            </div>
+        </form>
+    </div>
+    <div class="auth-sideimg"></div>
+</section>

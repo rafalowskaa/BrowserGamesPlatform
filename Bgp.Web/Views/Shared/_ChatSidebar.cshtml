@@ -1,0 +1,31 @@
+﻿@* Prosty panel czatu wysuwany z prawej *@
+<aside id="chatSidebar" class="chat-sidebar">
+    <div class="chat-header">
+        <strong>Chat</strong>
+        <button id="chatClose" class="btn-icon" title="Close">✕</button>
+    </div>
+    <div class="chat-search">
+        <input id="chatSearch" placeholder="Szukaj gracza..." />
+    </div>
+
+    <div class="chat-content">
+        <div class="chat-lists">
+            <h4>Znajomi</h4>
+            <ul id="friendsList" class="list"></ul>
+
+            <h4>Zaproszenia</h4>
+            <ul id="requestsList" class="list"></ul>
+        </div>
+
+        <div class="chat-thread">
+            <div id="threadHeader" class="thread-header"></div>
+            <div id="threadBody" class="thread-body"></div>
+            <div class="thread-input">
+                <input id="msgInput" placeholder="Napisz wiadomość..." />
+                <button id="msgSend" class="btn-primary">Wyślij</button>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<button id="chatToggle" class="chat-toggle" title="Otwórz czat">💬</button>

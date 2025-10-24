@@ -1,0 +1,30 @@
+﻿@model IEnumerable<Bgp.Domain.Entities.Report>
+@{
+    ViewData["Title"] = "Zgłoszenia";
+}
+<h2>Zgłoszenia</h2>
+<table class="panel">
+    <thead>
+        <tr>
+            <th>Data</th>
+            <th>Zgłaszający</th>
+            <th>Oskarżony</th>
+            <th>Kategoria</th>
+            <th>Opis</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.CreatedAtUtc.ToLocalTime()</td>
+                <td>@r.ReporterUserId</td>
+                <td>@r.TargetUserId</td>
+                <td>@r.Category</td>
+                <td>@r.Description</td>
+                <td>@r.Status</td>
+            </tr>
+        }
+    </tbody>
+</table>
