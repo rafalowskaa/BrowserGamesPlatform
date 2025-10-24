@@ -1,11 +1,15 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using Bgp.Infrastructure.Identity
+@using Bgp.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject IStringLocalizer<SharedResource> L
 @{
     Layout = null;
     var title = ViewData["Title"]?.ToString() ?? L["Home_Title"].Value;
     var ret = Context.Request.Path + Context.Request.QueryString;
+    var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name;
 }
 <!DOCTYPE html>
 <html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name">
@@ -41,13 +45,11 @@
                     }
 
                     <div class="language-switcher">
-                        <a class="lang-toggle" asp-controller="Language" asp-action="Set" asp-route-culture="pl-PL" asp-route-returnUrl="@ret" title="@L["Language_Polish"].Value">
+                        <a class="lang-toggle@(currentCulture == "pl-PL" ? " active" : string.Empty)" asp-controller="Language" asp-action="Set" asp-route-culture="pl-PL" asp-route-returnUrl="@ret" title="@L["Language_Polish"].Value">
                             <img src="~/img/flags/flag_pl.png" alt="@L["Language_Polish"].Value" />
-                            <span class="lang-label">@L["Language_Polish"].Value</span>
                         </a>
-                        <a class="lang-toggle" asp-controller="Language" asp-action="Set" asp-route-culture="en-US" asp-route-returnUrl="@ret" title="@L["Language_English"].Value">
+                        <a class="lang-toggle@(currentCulture == "en-US" ? " active" : string.Empty)" asp-controller="Language" asp-action="Set" asp-route-culture="en-US" asp-route-returnUrl="@ret" title="@L["Language_English"].Value">
                             <img src="~/img/flags/flag_gb.png" alt="@L["Language_English"].Value" />
-                            <span class="lang-label">@L["Language_English"].Value</span>
                         </a>
                     </div>
                     

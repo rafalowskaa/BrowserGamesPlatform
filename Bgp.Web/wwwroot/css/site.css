@@ -100,13 +100,21 @@ body {
 
 .lang-toggle {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 8px;
-    border: 1px solid rgba(255,255,255,.4);
+    padding: 4px;
+    border: 1px solid rgba(255,255,255,.35);
     border-radius: 6px;
     text-decoration: none;
+    transition: border-color .2s ease, background-color .2s ease;
 }
+
+    .lang-toggle:hover {
+        border-color: rgba(255,255,255,.65);
+    }
+
+    .lang-toggle.active {
+        border-color: #fff;
+        background-color: rgba(255,255,255,.15);
+    }
 
     .lang-toggle img {
         width: 28px;
@@ -117,15 +125,9 @@ body {
 
 .language-switcher {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    align-items: flex-end;
-}
-
-.lang-label {
-    font-size: 12px;
-    color: #fff;
-    letter-spacing: .4px;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
 }
 
 
