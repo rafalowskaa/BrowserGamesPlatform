@@ -1,0 +1,30 @@
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.rsuser
+*.suo
+[Dd]ebug*/
+[Rr]elease*/
+x64/
+x86/
+[Aa]rtifacts/
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+BuildLog.*
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
+*.pubxml.user
+*.publishsettings
+**/appsettings.Development.json
+**/appsettings.Local.json
+secrets.json
+.env
+.env.*
+node_modules/
+# (opcjonalnie) ignoruj uploady gier:
+# Bgp.Web/wwwroot/games/
