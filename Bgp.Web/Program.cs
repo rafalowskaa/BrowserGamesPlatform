@@ -12,6 +12,9 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Lokalizacja (PL/EN)
+builder.Services.AddLocalization(o => o.ResourcesPath = "Resources");
+
 // MVC + Razor Pages (Identity UI)
 builder.Services.AddControllersWithViews()
     .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
@@ -57,8 +60,7 @@ builder.Services.AddSwaggerGen(c =>
 // SignalR (czat)
 builder.Services.AddSignalR();
 
-// Lokalizacja (PL/EN)
-builder.Services.AddLocalization(o => o.ResourcesPath = "Resources");
+
 var supportedCultures = new[] { new CultureInfo("pl-PL"), new CultureInfo("en-US") };
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
@@ -88,7 +90,7 @@ app.UseCors("Games");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Lokalizacja – musi byæ po Routing, przed Endpointami
+
 var locOpts = app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>();
 app.UseRequestLocalization(locOpts.Value);
 

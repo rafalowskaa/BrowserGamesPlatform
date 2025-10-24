@@ -75,6 +75,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    margin-left: auto;
 }
 
     .nav-actions form {
@@ -98,19 +99,35 @@ body {
         }
 
 .lang-toggle {
-    display: inline-flex;
-    width: 28px;
-    height: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
     border: 1px solid rgba(255,255,255,.4);
-    border-radius: 4px;
-    overflow: hidden;
+    border-radius: 6px;
+    text-decoration: none;
 }
 
     .lang-toggle img {
-        width: 100%;
-        height: 100%;
+        width: 28px;
+        height: 20px;
         display: block;
+        border-radius: 3px;
     }
+
+.language-switcher {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+}
+
+.lang-label {
+    font-size: 12px;
+    color: #fff;
+    letter-spacing: .4px;
+}
+
 
 .brand {
     font-weight: 700;
