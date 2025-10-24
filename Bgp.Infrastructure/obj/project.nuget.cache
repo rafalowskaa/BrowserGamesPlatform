@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "2dFhTk7io0E=",
-  "success": true,
+  "dgSpecHash": "0VdH/YqMnhE=",
+  "success": false,
   "projectFilePath": "C:\\Users\\nrafa\\source\\repos\\BrowserGamesPlatform\\Bgp.Infrastructure\\Bgp.Infrastructure.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\nrafa\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\nrafa\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
     "C:\\Users\\nrafa\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
+    "C:\\Users\\nrafa\\.nuget\\packages\\microsoft.aspnetcore.identity.entityframeworkcore\\9.0.10\\microsoft.aspnetcore.identity.entityframeworkcore.9.0.10.nupkg.sha512",
     "C:\\Users\\nrafa\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\7.0.0\\microsoft.bcl.asyncinterfaces.7.0.0.nupkg.sha512",
     "C:\\Users\\nrafa\\.nuget\\packages\\microsoft.build.framework\\17.8.3\\microsoft.build.framework.17.8.3.nupkg.sha512",
     "C:\\Users\\nrafa\\.nuget\\packages\\microsoft.build.locator\\1.7.8\\microsoft.build.locator.1.7.8.nupkg.sha512",
@@ -83,5 +84,17 @@
     "C:\\Users\\nrafa\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512",
     "C:\\Users\\nrafa\\.nuget\\packages\\system.windows.extensions\\6.0.0\\system.windows.extensions.6.0.0.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1202",
+      "level": "Error",
+      "message": "Pakiet Microsoft.AspNetCore.Identity.EntityFrameworkCore 9.0.10 nie jest zgodny z elementem net8.0 (.NETCoreApp,Version=v8.0). Pakiet Microsoft.AspNetCore.Identity.EntityFrameworkCore 9.0.10 obsługuje: net9.0 (.NETCoreApp,Version=v9.0)",
+      "projectPath": "C:\\Users\\nrafa\\source\\repos\\BrowserGamesPlatform\\Bgp.Infrastructure\\Bgp.Infrastructure.csproj",
+      "filePath": "C:\\Users\\nrafa\\source\\repos\\BrowserGamesPlatform\\Bgp.Infrastructure\\Bgp.Infrastructure.csproj",
+      "libraryId": "Microsoft.AspNetCore.Identity.EntityFrameworkCore",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }

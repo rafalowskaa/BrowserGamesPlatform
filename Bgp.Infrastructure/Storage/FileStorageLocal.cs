@@ -1,6 +1,6 @@
 ﻿using System.IO.Compression;
 using Bgp.Application.Interfaces;
-using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Bgp.Infrastructure.Storage;
