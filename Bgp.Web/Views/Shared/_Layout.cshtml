@@ -27,10 +27,10 @@
                 </div>
                 <div class="nav-actions">
                     <a class="lang-toggle" asp-controller="Language" asp-action="Set" asp-route-culture="pl-PL" asp-route-returnUrl="@ret" title="@L["Language_Polish"]">
-                        <img src="~/img/flags/pl.svg" alt="@L["Language_Polish"]" />
+                        <img src="~/img/flags/flag_pl.png" alt="@L["Language_Polish"]" />
                     </a>
                     <a class="lang-toggle" asp-controller="Language" asp-action="Set" asp-route-culture="en-US" asp-route-returnUrl="@ret" title="@L["Language_English"]">
-                        <img src="~/img/flags/en.svg" alt="@L["Language_English"]" />
+                        <img src="~/img/flags/flag_gb.png" alt="@L["Language_English"]" />
                     </a>
 
                     @if (SignInManager.IsSignedIn(User))

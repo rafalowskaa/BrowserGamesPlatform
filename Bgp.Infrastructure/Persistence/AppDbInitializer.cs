@@ -23,8 +23,9 @@ public static class AppDbInitializer
 
         // Konto admina DEV (zmień hasło przed wdrożeniem!)
         var adminUserName = "admin";
+        var adminEmail = "admin@bgp.local";
         var admin = await userMgr.FindByNameAsync(adminUserName) ?? await userMgr.FindByEmailAsync(adminEmail);
-        var admin = await userMgr.FindByEmailAsync(adminEmail);
+        
         if (admin is null)
         {
             admin = new ApplicationUser
