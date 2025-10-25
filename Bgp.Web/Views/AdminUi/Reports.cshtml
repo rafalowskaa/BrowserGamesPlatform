@@ -57,8 +57,8 @@
                 <option value="">@L["Admin_Reports_Status_All"].Value</option>
                 @foreach (var status in statuses)
                 {
-                    var selected = Model.StatusFilter == status ? "selected" : string.Empty;
-                    <option value="@status" @selected>@GetStatusLabel(status)</option>
+                    var selectedValue = Model.StatusFilter == status ? "selected" : null;
+                    <option value="@status" selected="@selectedValue">@GetStatusLabel(status)</option>
                 }
             </select>
         </label>
@@ -111,8 +111,8 @@
                                 <select name="status">
                                     @foreach (var status in statuses)
                                     {
-                                        var selected = report.Status == status ? "selected" : string.Empty;
-                                        <option value="@status" @selected>@GetStatusLabel(status)</option>
+                                            var selectedValue = report.Status == status ? "selected" : null;
+                                            <option value="@status" selected="@selectedValue">@GetStatusLabel(status)</option>
                                     }
                                 </select>
                                 <button type="submit" class="btn-primary btn-compact">@L["Admin_Reports_Update_Button"].Value</button>

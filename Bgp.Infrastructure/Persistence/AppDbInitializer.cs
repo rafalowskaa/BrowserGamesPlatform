@@ -29,7 +29,7 @@ public static class AppDbInitializer
         var adminEmail = "admin@bgp.local";
         var admin = await userMgr.FindByNameAsync(adminUserName) ?? await userMgr.FindByEmailAsync(adminEmail);
 
-        const string adminPassword = "admin";
+        const string adminPassword = "admin123";
 
         if (admin is null)
         {
