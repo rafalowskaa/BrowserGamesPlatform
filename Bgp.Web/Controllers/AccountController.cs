@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
+using Bgp.Web.Helpers;
 
 namespace Bgp.Web.Controllers;
 
@@ -91,7 +92,7 @@ public class AccountController : Controller
         {
             UserName = vm.Login,
             Email = vm.Email,
-            DisplayName = vm.Login,
+            DisplayName = DisplayNameFormatter.Format(vm.Login),
             EmailConfirmed = true // DEV: w produkcji – wysyłka maila weryfikacyjnego
         };
 

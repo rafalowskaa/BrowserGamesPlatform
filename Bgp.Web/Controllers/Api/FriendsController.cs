@@ -6,6 +6,7 @@ using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Bgp.Web.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace Bgp.Web.Controllers.Api;
@@ -32,27 +33,39 @@ public class FriendsController : ControllerBase
 
         var friendIds = accepted.Select(a => a.RequesterId == uid ? a.AddresseeId : a.RequesterId).Distinct().ToList();
 
-        var users = await _db.Users.Where(u => friendIds.Contains(u.Id))
-            .Select(u => new FriendDto(u.Id, u.DisplayName ?? u.Email ?? u.UserName ?? u.Id, FriendshipStatus.Accepted, false))
+        var acceptedUsersRaw = await _db.Users.Where(u => friendIds.Contains(u.Id))
+            .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
             .ToListAsync();
+
+        var users = acceptedUsersRaw
+            .Select(u => new FriendDto(u.Id, DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id), FriendshipStatus.Accepted, false))
+            .ToList();
 
         var outgoing = await _db.Friendships
             .Where(f => f.RequesterId == uid && f.Status == FriendshipStatus.Pending)
             .Select(f => f.AddresseeId)
             .ToListAsync();
 
-        var outgoingUsers = await _db.Users.Where(u => outgoing.Contains(u.Id))
-            .Select(u => new FriendDto(u.Id, u.DisplayName ?? u.Email ?? u.UserName ?? u.Id, FriendshipStatus.Pending, true))
+        var outgoingUsersRaw = await _db.Users.Where(u => outgoing.Contains(u.Id))
+            .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
             .ToListAsync();
+
+        var outgoingUsers = outgoingUsersRaw
+            .Select(u => new FriendDto(u.Id, DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id), FriendshipStatus.Pending, true))
+            .ToList();
 
         var incoming = await _db.Friendships
             .Where(f => f.AddresseeId == uid && f.Status == FriendshipStatus.Pending)
             .Select(f => f.RequesterId)
             .ToListAsync();
 
-        var incomingUsers = await _db.Users.Where(u => incoming.Contains(u.Id))
-            .Select(u => new FriendDto(u.Id, u.DisplayName ?? u.Email ?? u.UserName ?? u.Id, FriendshipStatus.Pending, false))
+        var incomingUsersRaw = await _db.Users.Where(u => incoming.Contains(u.Id))
+            .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
             .ToListAsync();
+
+        var incomingUsers = incomingUsersRaw
+            .Select(u => new FriendDto(u.Id, DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id), FriendshipStatus.Pending, false))
+            .ToList();
 
         return Ok(users.Concat(outgoingUsers).Concat(incomingUsers));
     }
@@ -81,15 +94,18 @@ public class FriendsController : ControllerBase
             .Where(u => EF.Functions.Like(u.DisplayName ?? u.Email ?? u.UserName ?? string.Empty, $"%{term}%"))
             .OrderBy(u => u.DisplayName ?? u.Email ?? u.UserName ?? u.Id)
             .Take(12)
+            .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName, u.AvatarUrl })
+            .ToListAsync();
+
+        var formattedResults = results
             .Select(u => new
             {
                 u.Id,
-                Name = u.DisplayName ?? u.Email ?? u.UserName ?? u.Id,
+                Name = DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
                 u.AvatarUrl
-            })
-            .ToListAsync();
+            });
 
-        return Ok(results);
+        return Ok(formattedResults);
     }
 
     [HttpPost("send")]

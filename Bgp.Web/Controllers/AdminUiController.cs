@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Bgp.Web.Helpers;
 using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Identity;
 using Bgp.Infrastructure.Persistence;
@@ -52,16 +53,28 @@ public class AdminUiController : Controller
                 .Select(ur => ur.UserId)
                 .ToListAsync()).ToHashSet();
 
-        var users = await query
+        var userRows = await query
             .OrderByDescending(u => u.CreatedAtUtc)
+            .Select(u => new
+            {
+                u.Id,
+                u.DisplayName,
+                u.Email,
+                u.UserName,
+                u.CreatedAtUtc,
+                u.IsBlocked
+            })
+            .ToListAsync();
+
+        var users = userRows
             .Select(u => new AdminUserRowViewModel(
                 u.Id,
-                u.DisplayName ?? u.Email ?? u.UserName ?? u.Id,
+                DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
                 u.Email ?? string.Empty,
                 u.CreatedAtUtc,
                 u.IsBlocked,
                 adminIds.Contains(u.Id)))
-            .ToListAsync();
+            .ToList();
 
         var vm = new AdminUsersViewModel
         {
@@ -103,7 +116,7 @@ public class AdminUiController : Controller
             user.EmailConfirmed = true;
         }
 
-        user.DisplayName = input.DisplayName.Trim();
+        user.DisplayName = DisplayNameFormatter.Format(input.DisplayName.Trim());
 
         var result = await _users.UpdateAsync(user);
         if (!result.Succeeded)
@@ -253,9 +266,9 @@ public class AdminUiController : Controller
         var ownerIds = gamesList.Select(g => g.CreatedByUserId).Distinct().ToList();
         var owners = await _db.Users.AsNoTracking()
             .Where(u => ownerIds.Contains(u.Id))
-            .Select(u => new { u.Id, Name = u.DisplayName ?? u.Email ?? u.UserName ?? u.Id })
+            .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
             .ToListAsync();
-        var ownerMap = owners.ToDictionary(o => o.Id, o => o.Name);
+        var ownerMap = owners.ToDictionary(o => o.Id, o => DisplayNameFormatter.Format(o.DisplayName, o.Email, o.UserName, o.Id));
 
         var vm = new AdminGamesViewModel
         {
@@ -263,7 +276,7 @@ public class AdminUiController : Controller
                 g.Id,
                 g.Title,
                 g.Slug,
-                ownerMap.GetValueOrDefault(g.CreatedByUserId, g.CreatedByUserId),
+                ownerMap.GetValueOrDefault(g.CreatedByUserId, g.CreatedByUserId.ToUpperInvariant()),
                 g.CreatedAtUtc,
                 g.ApprovalStatus,
                 g.ModerationNotes)).ToList(),

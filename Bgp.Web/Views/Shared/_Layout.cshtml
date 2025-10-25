@@ -14,9 +14,13 @@
     if (SignInManager.IsSignedIn(User))
     {
         var currentUser = await UserManager.GetUserAsync(User);
-        displayName = currentUser?.DisplayName ?? currentUser?.Email ?? currentUser?.UserName ?? User.Identity?.Name;
+        displayName = DisplayNameFormatter.Format(currentUser?.DisplayName, currentUser?.Email, currentUser?.UserName, User.Identity?.Name);
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            displayName = User.Identity?.Name?.ToUpperInvariant();
+        }
     }
-    displayName ??= User.Identity?.Name;
+    displayName ??= User.Identity?.Name?.ToUpperInvariant();
 }
 <!DOCTYPE html>
 <html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name">

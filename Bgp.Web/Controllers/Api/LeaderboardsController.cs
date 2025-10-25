@@ -2,6 +2,7 @@
 using Bgp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Bgp.Web.Helpers;
 
 namespace Bgp.Web.Controllers.Api;
 
@@ -28,9 +29,14 @@ public class LeaderboardsController : ControllerBase
         // mapowanie UserId -> DisplayName/Email
         var users = await _db.Users
             .Where(u => rows.Select(r => r.UserId).Contains(u.Id))
-            .ToDictionaryAsync(u => u.Id, u => u.DisplayName ?? u.Email ?? u.UserName ?? u.Id);
+            .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
+            .ToListAsync();
 
-        var result = rows.Select(r => new LeaderboardRowDto(users.GetValueOrDefault(r.UserId, r.UserId), r.Best));
+        var nameLookup = users.ToDictionary(
+            u => u.Id,
+            u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id));
+
+        var result = rows.Select(r => new LeaderboardRowDto(nameLookup.GetValueOrDefault(r.UserId, r.UserId.ToUpperInvariant()), r.Best));
         return Ok(result);
     }
 }

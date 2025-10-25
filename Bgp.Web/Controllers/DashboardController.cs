@@ -17,6 +17,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using Bgp.Web.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -25,7 +26,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Bgp.Web.Controllers;
 
@@ -108,7 +108,7 @@ public class DashboardController : Controller
             return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
         }
 
-        user.DisplayName = input.DisplayName.Trim();
+        user.DisplayName = DisplayNameFormatter.Format(input.DisplayName.Trim());
         user.FirstName = string.IsNullOrWhiteSpace(input.FirstName) ? null : input.FirstName.Trim();
         user.LastName = string.IsNullOrWhiteSpace(input.LastName) ? null : input.LastName.Trim();
 
@@ -117,7 +117,7 @@ public class DashboardController : Controller
             var birthDate = input.BirthDate.Value.Date;
             if (birthDate > DateTime.UtcNow.Date)
             {
-                ModelState.AddModelError(nameof(input.BirthDate), _localizer["Dashboard_Profile_BirthDate_FutureError"].Value);
+                ModelState.AddModelError(nameof(input.BirthDate), Localize("Dashboard_Profile_BirthDate_FutureError"));
                 return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
             }
 
@@ -147,7 +147,7 @@ public class DashboardController : Controller
             var processed = await TryProcessAndSaveAvatarAsync(input.Avatar, filePath);
             if (!processed)
             {
-                ModelState.AddModelError(nameof(input.Avatar), _localizer["Dashboard_Profile_Avatar_ProcessingError"].Value);
+                ModelState.AddModelError(nameof(input.Avatar), Localize("Dashboard_Profile_Avatar_ProcessingError"));
                 return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
             }
 
@@ -179,13 +179,16 @@ public class DashboardController : Controller
             using var image = await Image.LoadAsync<Rgba32>(sourceStream);
             using var outputStream = new MemoryStream();
 
-            var encoder = new JpegEncoder();
+            
             var quality = 90;
 
             while (true)
             {
                 outputStream.SetLength(0);
-                encoder.Quality = quality;
+                var encoder = new JpegEncoder
+                {
+                    Quality = quality
+                };
                 await image.SaveAsync(outputStream, encoder);
 
                 if (outputStream.Length <= MaxAvatarBytes)
@@ -505,7 +508,7 @@ public class DashboardController : Controller
         var friends = await _db.Friendships
             .AsNoTracking()
             .Where(f => f.Status == FriendshipStatus.Accepted && (f.RequesterId == user.Id || f.AddresseeId == user.Id))
-            .Select(f => new
+            .Select(u => new { u.Id, u.DisplayName, u.AvatarUrl, u.Email, u.UserName })
             {
                 FriendId = f.RequesterId == user.Id ? f.AddresseeId : f.RequesterId,
                 f.CreatedAtUtc
@@ -522,20 +525,28 @@ public class DashboardController : Controller
 
         var friendLookup = friendProfiles.ToDictionary(f => f.Id, f => f);
 
-        var unknownFriend = _localizer["Dashboard_Friends_Unknown"].Value;
+        var unknownFriend = Localize("Dashboard_Friends_Unknown");
 
         var friendVms = friends
             .Select(f =>
             {
                 friendLookup.TryGetValue(f.FriendId, out var profile);
+                var displayName = profile is not null
+                    ? DisplayNameFormatter.Format(profile.DisplayName, profile.Email, profile.UserName)
+                    : string.Empty;
+
+                if (string.IsNullOrWhiteSpace(displayName))
+                {
+                    displayName = unknownFriend;
+                }
                 return new FriendViewModel
                 {
-                    DisplayName = profile?.DisplayName ?? unknownFriend,
+                    DisplayName = displayName,
                     AvatarUrl = profile?.AvatarUrl,
                     Since = f.CreatedAtUtc
                 };
             })
-            .OrderBy(f => f.DisplayName)
+            .OrderBy(f => f.DisplayName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
 
         var stats = new DashboardStatsViewModel
@@ -656,9 +667,11 @@ public class DashboardController : Controller
 
         var visibilityOptions = BuildVisibilityOptions();
 
+        var formattedDisplayName = DisplayNameFormatter.Format(user);
+
         var profile = new ProfileSectionViewModel
         {
-            DisplayName = user.DisplayName ?? user.Email ?? user.UserName ?? string.Empty,
+            DisplayName = formattedDisplayName,
             FirstName = user.FirstName,
             LastName = user.LastName,
             BirthDate = user.BirthDate,
@@ -704,7 +717,7 @@ public class DashboardController : Controller
         if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.DisplayName), out var displayNameState) &&
             !string.IsNullOrWhiteSpace(displayNameState.AttemptedValue))
         {
-            vm.Profile.DisplayName = displayNameState.AttemptedValue!;
+            vm.Profile.DisplayName = DisplayNameFormatter.Format(displayNameState.AttemptedValue);
         }
 
         if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.FirstName), out var firstNameState))
@@ -1057,17 +1070,17 @@ public class DashboardController : Controller
             new SelectListItem
             {
                 Value = ((int)ProfileVisibility.Everyone).ToString(CultureInfo.InvariantCulture),
-                Text = _localizer["Dashboard_Profile_Visibility_Everyone"].Value
+                Text = Localize("Dashboard_Profile_Visibility_Everyone")
             },
             new SelectListItem
             {
                 Value = ((int)ProfileVisibility.Friends).ToString(CultureInfo.InvariantCulture),
-                Text = _localizer["Dashboard_Profile_Visibility_Friends"].Value
+                Text = Localize("Dashboard_Profile_Visibility_Friends")
             },
             new SelectListItem
             {
                 Value = ((int)ProfileVisibility.OwnerOnly).ToString(CultureInfo.InvariantCulture),
-                Text = _localizer["Dashboard_Profile_Visibility_Owner"].Value
+                Text = Localize("Dashboard_Profile_Visibility_Owner")
             }
         };
 
@@ -1079,44 +1092,79 @@ public class DashboardController : Controller
 
         if (IsBirthdayToday(user.BirthDate))
         {
+            var birthdayName = DisplayNameFormatter.Format(user);
+            if (string.IsNullOrWhiteSpace(birthdayName))
+            {
+                birthdayName = Localize("Dashboard_Profile_Highlight_Birthday_Default");
+            }
             highlights.Add(new ProfileHighlightViewModel(
-                _localizer["Dashboard_Profile_Highlight_Birthday_Title"].Value,
-                string.Format(_localizer["Dashboard_Profile_Highlight_Birthday_Body"].Value, user.DisplayName ?? user.Email ?? user.UserName ?? _localizer["Dashboard_Profile_Highlight_Birthday_Default"].Value)));
+                Localize("Dashboard_Profile_Highlight_Birthday_Title"),
+                string.Format(Localize("Dashboard_Profile_Highlight_Birthday_Body"), birthdayName)));
         }
 
         if (rank.NextDisplayName is not null && rank.XpRequiredForNext > 0)
         {
             highlights.Add(new ProfileHighlightViewModel(
-                _localizer["Dashboard_Profile_Highlight_NextRank_Title"].Value,
-                string.Format(_localizer["Dashboard_Profile_Highlight_NextRank_Body"].Value, rank.NextDisplayName, rank.XpRequiredForNext)));
+                Localize("Dashboard_Profile_Highlight_NextRank_Title"),
+                string.Format(Localize("Dashboard_Profile_Highlight_NextRank_Body"), rank.NextDisplayName, rank.XpRequiredForNext)));
         }
         else
         {
             highlights.Add(new ProfileHighlightViewModel(
-                _localizer["Dashboard_Profile_Highlight_MaxRank_Title"].Value,
-                _localizer["Dashboard_Profile_Highlight_MaxRank_Body"].Value));
+                Localize("Dashboard_Profile_Highlight_MaxRank_Title"),
+                Localize("Dashboard_Profile_Highlight_MaxRank_Body")));
         }
 
         if (bestGame is not null)
         {
             highlights.Add(new ProfileHighlightViewModel(
-                _localizer["Dashboard_Profile_Highlight_BestGame_Title"].Value,
-                string.Format(_localizer["Dashboard_Profile_Highlight_BestGame_Body"].Value, bestGame.Title, bestGame.AverageScore.ToString("0.##", CultureInfo.CurrentCulture))));
+               Localize("Dashboard_Profile_Highlight_BestGame_Title"),
+                string.Format(Localize("Dashboard_Profile_Highlight_BestGame_Body"), bestGame.Title, bestGame.AverageScore.ToString("0.##", CultureInfo.CurrentCulture))));
         }
         else
         {
             highlights.Add(new ProfileHighlightViewModel(
-                _localizer["Dashboard_Profile_Highlight_NoBestGame_Title"].Value,
-                _localizer["Dashboard_Profile_Highlight_NoBestGame_Body"].Value));
+                Localize("Dashboard_Profile_Highlight_NoBestGame_Title"),
+                Localize("Dashboard_Profile_Highlight_NoBestGame_Body")));
         }
 
         var tipIndex = GetTipIndex(user.Id);
         var tip = ProfileTips[tipIndex];
         highlights.Add(new ProfileHighlightViewModel(
-            _localizer[tip.TitleKey].Value,
-            _localizer[tip.BodyKey].Value));
+            Localize(tip.TitleKey),
+            Localize(tip.BodyKey)));
 
         return highlights;
+    }
+
+    private string Localize(string key, string? fallback = null)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return string.Empty;
+        }
+
+        var localized = _localizer[key];
+        if (!localized.ResourceNotFound && !string.IsNullOrWhiteSpace(localized.Value))
+        {
+            return localized.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(fallback))
+        {
+            return fallback;
+        }
+
+        var friendly = Regex.Replace(key, "([a-z])([A-Z])", "$1 $2");
+        friendly = friendly.Replace('_', ' ');
+        friendly = Regex.Replace(friendly, "\\s+", " ").Trim();
+
+        if (string.IsNullOrWhiteSpace(friendly))
+        {
+            return key;
+        }
+
+        return CultureInfo.CurrentUICulture.TextInfo.ToTitleCase(friendly.ToLower(CultureInfo.CurrentUICulture));
     }
 
     private static int GetTipIndex(string? userId)

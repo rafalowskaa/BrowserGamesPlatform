@@ -2,6 +2,7 @@
 using Bgp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Bgp.Web.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace Bgp.Web.Hubs;
@@ -57,13 +58,22 @@ public class ChatHub : Hub
         var sender = await _db.Users.FindAsync(UserId);
         var receiver = await _db.Users.FindAsync(toUserId);
 
+        var senderName = DisplayNameFormatter.Format(sender);
+        if (string.IsNullOrWhiteSpace(senderName))
+        {
+            senderName = "Me";
+        }
+
+        var receiverName = DisplayNameFormatter.Format(receiver);
+
+
         var dto = new
         {
             id = m.Id,
             senderId = m.SenderId,
             receiverId = m.ReceiverId,
-            senderName = sender?.DisplayName ?? sender?.Email ?? "Me",
-            receiverName = receiver?.DisplayName ?? receiver?.Email ?? "",
+            senderName,
+            receiverName = string.IsNullOrWhiteSpace(receiverName) ? string.Empty : receiverName,
             content = m.Content,
             sentAtUtc = m.SentAtUtc
         };

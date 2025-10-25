@@ -2,6 +2,7 @@
 using Bgp.Application.Dtos;
 using Bgp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
+using Bgp.Web.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,12 +34,17 @@ public class ChatController : ControllerBase
 
         var users = await _db.Users
             .Where(u => u.Id == uid || u.Id == otherUserId)
-            .ToDictionaryAsync(u => u.Id, u => u.DisplayName ?? u.Email ?? u.UserName ?? u.Id);
+            .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
+            .ToListAsync();
+
+        var nameLookup = users.ToDictionary(
+            u => u.Id,
+            u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id));
 
         var dto = msgs.Select(m => new ChatMessageDto(
             m.Id, m.SenderId, m.ReceiverId,
-            users.GetValueOrDefault(m.SenderId, m.SenderId),
-            users.GetValueOrDefault(m.ReceiverId, m.ReceiverId),
+            nameLookup.GetValueOrDefault(m.SenderId, m.SenderId.ToUpperInvariant()),
+            nameLookup.GetValueOrDefault(m.ReceiverId, m.ReceiverId.ToUpperInvariant()),
             m.Content, m.SentAtUtc, m.SenderId == uid));
 
         return Ok(dto);
