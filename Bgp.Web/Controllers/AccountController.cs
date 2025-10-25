@@ -24,12 +24,31 @@ public class AccountController : Controller
     [AllowAnonymous]
     public IActionResult Login(string? returnUrl = null) => View(new LoginVm { ReturnUrl = returnUrl });
 
-    [HttpPost, AllowAnonymous]
+    [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginVm vm)
     {
         if (!ModelState.IsValid) return View(vm);
-        var res = await _signIn.PasswordSignInAsync(vm.LoginOrEmail, vm.Password, vm.RememberMe, lockoutOnFailure: true);
-        if (res.Succeeded) return LocalRedirect(vm.ReturnUrl ?? "/");
+        var userName = vm.LoginOrEmail;
+        if (vm.LoginOrEmail.Contains('@'))
+        {
+            var byEmail = await _users.FindByEmailAsync(vm.LoginOrEmail);
+            if (byEmail is not null)
+            {
+                userName = byEmail.UserName ?? byEmail.Email ?? vm.LoginOrEmail;
+            }
+        }
+
+        var res = await _signIn.PasswordSignInAsync(userName, vm.Password, vm.RememberMe, lockoutOnFailure: true);
+        if (res.Succeeded)
+        {
+            var target = vm.ReturnUrl;
+            if (string.IsNullOrWhiteSpace(target))
+            {
+                target = Url.Action("Index", "Dashboard") ?? "/";
+            }
+
+            return LocalRedirect(target);
+        }
         ModelState.AddModelError("", _localizer["Account_InvalidCredentials"]);
         return View(vm);
     }
@@ -37,7 +56,7 @@ public class AccountController : Controller
     [AllowAnonymous]
     public IActionResult Register(string? returnUrl = null) => View(new RegisterVm { ReturnUrl = returnUrl });
 
-    [HttpPost, AllowAnonymous]
+    [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterVm vm)
     {
         if (!ModelState.IsValid) return View(vm);
@@ -57,11 +76,24 @@ public class AccountController : Controller
             return View(vm);
         }
 
+        var roleResult = await _users.AddToRoleAsync(user, "User");
+        if (!roleResult.Succeeded)
+        {
+            foreach (var e in roleResult.Errors) ModelState.AddModelError("", e.Description);
+            return View(vm);
+        }
+
         await _signIn.SignInAsync(user, isPersistent: false);
-        return LocalRedirect(vm.ReturnUrl ?? "/");
+        var target = vm.ReturnUrl;
+        if (string.IsNullOrWhiteSpace(target))
+        {
+            target = Url.Action("Index", "Dashboard") ?? "/";
+        }
+
+        return LocalRedirect(target);
     }
 
-    [HttpPost]
+    [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout(string? returnUrl = "/")
     {
         await _signIn.SignOutAsync();

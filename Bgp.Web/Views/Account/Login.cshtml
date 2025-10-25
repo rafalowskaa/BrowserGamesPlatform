@@ -4,22 +4,23 @@
 }
 <section class="auth">
     <div class="auth-card">
-        <h1>@L["Auth_Login_Heading"]</h1
+        <h1>@L["Auth_Login_Heading"].Value</h1>
+        <div asp-validation-summary="ModelOnly" class="val-summary"></div>
         <form asp-action="Login" method="post">
             <input type="hidden" asp-for="ReturnUrl" />
-             <label>@L["Auth_Login_LoginOrEmail"]</label>
+            <label>@L["Auth_Login_LoginOrEmail"].Value</label>
             <input asp-for="LoginOrEmail" autocomplete="username" />
             <span asp-validation-for="LoginOrEmail" class="val"></span>
 
-            <label>@L["Auth_Login_Password"]</label>
+            <label>@L["Auth_Login_Password"].Value</label>
             <input asp-for="Password" type="password" autocomplete="current-password" />
             <span asp-validation-for="Password" class="val"></span>
 
-            <label class="check"><input asp-for="RememberMe" /> @L["Auth_Login_RememberMe"]</label>
+            <label class="check"><input asp-for="RememberMe" /> @L["Auth_Login_RememberMe"].Value</label>
 
             <div class="auth-actions">
-                <a class="btn-outline" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">@L["Auth_Login_RegisterLink"]</a>
-                <button class="btn-primary" type="submit">@L["Auth_Login_LoginButton"]</button>
+                <a class="btn-outline" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">@L["Auth_Login_RegisterLink"].Value</a>
+                <button class="btn-primary" type="submit">@L["Auth_Login_LoginButton"].Value</button>
             </div>
         </form>
     </div>

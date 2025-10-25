@@ -1,6 +1,7 @@
 ﻿using Bgp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Bgp.Web.Controllers;
 
@@ -9,6 +10,7 @@ public class GamesController : Controller
     private readonly AppDbContext _db;
     public GamesController(AppDbContext db) => _db = db;
 
+    [AllowAnonymous]
     public async Task<IActionResult> Index()
     {
         var list = await _db.Games
@@ -27,6 +29,7 @@ public class GamesController : Controller
         return View(list);
     }
 
+    [Authorize]
     public async Task<IActionResult> Details(string slug)
     {
         var g = await _db.Games

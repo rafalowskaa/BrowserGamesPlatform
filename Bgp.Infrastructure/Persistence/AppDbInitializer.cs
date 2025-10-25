@@ -21,6 +21,9 @@ public static class AppDbInitializer
         if (!await roleMgr.RoleExistsAsync("Admin"))
             await roleMgr.CreateAsync(new IdentityRole("Admin"));
 
+        if (!await roleMgr.RoleExistsAsync("User"))
+            await roleMgr.CreateAsync(new IdentityRole("User"));
+
         // Konto admina DEV (zmień hasło przed wdrożeniem!)
         var adminUserName = "admin";
         var adminEmail = "admin@bgp.local";
@@ -35,8 +38,7 @@ public static class AppDbInitializer
                 EmailConfirmed = true,
                 DisplayName = "Admin"
             };
-            await userMgr.CreateAsync(admin, "Passw0rd!");
-            var result = await userMgr.CreateAsync(admin, "admin");
+            var result = await userMgr.CreateAsync(admin, "Passw0rd!");
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
@@ -48,15 +50,10 @@ public static class AppDbInitializer
         {
             await userMgr.AddToRoleAsync(admin, "Admin");
         }
-        var hasPassword = await userMgr.HasPasswordAsync(admin);
-        if (!hasPassword)
+
+        if (!await userMgr.IsInRoleAsync(admin, "User"))
         {
-            await userMgr.AddPasswordAsync(admin, "admin");
-        }
-        else if (!await userMgr.CheckPasswordAsync(admin, "admin"))
-        {
-            await userMgr.RemovePasswordAsync(admin);
-            await userMgr.AddPasswordAsync(admin, "admin");
+            await userMgr.AddToRoleAsync(admin, "User");
         }
     }
 }

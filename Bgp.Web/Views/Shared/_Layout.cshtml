@@ -10,6 +10,13 @@
     var title = ViewData["Title"]?.ToString() ?? L["Home_Title"].Value;
     var ret = Context.Request.Path + Context.Request.QueryString;
     var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name;
+    string? displayName = null;
+    if (SignInManager.IsSignedIn(User))
+    {
+        var currentUser = await UserManager.GetUserAsync(User);
+        displayName = currentUser?.DisplayName ?? currentUser?.Email ?? currentUser?.UserName ?? User.Identity?.Name;
+    }
+    displayName ??= User.Identity?.Name;
 }
 <!DOCTYPE html>
 <html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name">
@@ -25,15 +32,27 @@
             <a class="brand" asp-controller="Home" asp-action="Index">BGP</a>
             <nav class="nav-main">
                 <div class="nav-tabs">
-                    <a class="nav-tab" asp-controller="Home" asp-action="Index">@L["Navigation_Home"].Value</a>
-                    <a class="nav-tab" asp-controller="Games" asp-action="Index">@L["Navigation_Games"].Value</a>
-                    <a class="nav-tab" href="/swagger">@L["Navigation_Api"].Value</a>
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <a class="nav-tab" asp-controller="Dashboard" asp-action="Index">@L["Navigation_Dashboard"].Value</a>
+                        <a class="nav-tab" asp-controller="Games" asp-action="Index">@L["Navigation_Games"].Value</a>
+                        <a class="nav-tab" href="/swagger">@L["Navigation_Api"].Value</a>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a class="nav-tab" asp-controller="AdminUi" asp-action="Reports">@L["Navigation_Admin"].Value</a>
+                        }
+                    }
+                    else
+                    {
+                        <a class="nav-tab" asp-controller="Games" asp-action="Index">@L["Navigation_Games"].Value</a>
+                    }
                 </div>
                 <div class="nav-actions">
                     
 
                     @if (SignInManager.IsSignedIn(User))
                     {
+                        <span class="user-greeting">@displayName</span>
                         <form class="inline" asp-controller="Account" asp-action="Logout" method="post">
                             <button class="btn-link" type="submit">@L["Navigation_Logout"].Value</button>
                         </form>
