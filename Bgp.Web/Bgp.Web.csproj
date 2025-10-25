@@ -19,12 +19,15 @@
 	<ItemGroup>
 		<EmbeddedResource Update="Resources/SharedResource.resx">
 			<LogicalName>Bgp.Web.Resources.SharedResource.resources</LogicalName>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</EmbeddedResource>
 		<EmbeddedResource Update="Resources/SharedResource.en-US.resx">
 			<LogicalName>Bgp.Web.Resources.SharedResource.en-US.resources</LogicalName>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</EmbeddedResource>
 		<EmbeddedResource Update="Resources/SharedResource.pl-PL.resx">
 			<LogicalName>Bgp.Web.Resources.SharedResource.pl-PL.resources</LogicalName>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</EmbeddedResource>
 	</ItemGroup>
 	

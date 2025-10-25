@@ -180,4 +180,142 @@
 	<data name="Privacy_Description" xml:space="preserve">
     <value>Use this page to detail your site's privacy policy.</value>
   </data>
+	<data name="Navigation_Admin" xml:space="preserve">
+    <value>Admin</value>
+  </data>
+	<data name="Navigation_Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+	<data name="Dashboard_Title" xml:space="preserve">
+    <value>Player hub</value>
+  </data>
+	<data name="Dashboard_Profile_Tab" xml:space="preserve">
+    <value>Profile</value>
+  </data>
+	<data name="Dashboard_Security_Tab" xml:space="preserve">
+    <value>Security</value>
+  </data>
+	<data name="Dashboard_Stats_Tab" xml:space="preserve">
+    <value>Statistics</value>
+  </data>
+	<data name="Dashboard_Games_Tab" xml:space="preserve">
+    <value>My games</value>
+  </data>
+	<data name="Dashboard_Friends_Tab" xml:space="preserve">
+    <value>Friends</value>
+  </data>
+	<data name="Dashboard_Success_Profile" xml:space="preserve">
+    <value>Profile updated successfully.</value>
+  </data>
+	<data name="Dashboard_Success_Email" xml:space="preserve">
+    <value>E-mail updated successfully.</value>
+  </data>
+	<data name="Dashboard_Success_Password" xml:space="preserve">
+    <value>Password updated successfully.</value>
+  </data>
+	<data name="Dashboard_Success_Game" xml:space="preserve">
+    <value>Game submitted successfully.</value>
+  </data>
+	<data name="Dashboard_Profile_Info" xml:space="preserve">
+    <value>Update how other players see you on the platform.</value>
+  </data>
+	<data name="Dashboard_Profile_DisplayName" xml:space="preserve">
+    <value>Display name</value>
+  </data>
+	<data name="Dashboard_Profile_Avatar" xml:space="preserve">
+    <value>Avatar</value>
+  </data>
+	<data name="Dashboard_Profile_CurrentAvatar" xml:space="preserve">
+    <value>Current avatar:</value>
+  </data>
+	<data name="Dashboard_Profile_NoAvatar" xml:space="preserve">
+    <value>No avatar uploaded</value>
+  </data>
+	<data name="Dashboard_Profile_Save" xml:space="preserve">
+    <value>Save profile</value>
+  </data>
+	<data name="Dashboard_Security_EmailSection" xml:space="preserve">
+    <value>Change e-mail</value>
+  </data>
+	<data name="Dashboard_Security_Email" xml:space="preserve">
+    <value>New e-mail</value>
+  </data>
+	<data name="Dashboard_Security_EmailPassword" xml:space="preserve">
+    <value>Confirm with password</value>
+  </data>
+	<data name="Dashboard_Security_SaveEmail" xml:space="preserve">
+    <value>Update e-mail</value>
+  </data>
+	<data name="Dashboard_Security_PasswordSection" xml:space="preserve">
+    <value>Change password</value>
+  </data>
+	<data name="Dashboard_Security_CurrentPassword" xml:space="preserve">
+    <value>Current password</value>
+  </data>
+	<data name="Dashboard_Security_NewPassword" xml:space="preserve">
+    <value>New password</value>
+  </data>
+	<data name="Dashboard_Security_ConfirmPassword" xml:space="preserve">
+    <value>Confirm new password</value>
+  </data>
+	<data name="Dashboard_Security_ChangePassword" xml:space="preserve">
+    <value>Update password</value>
+  </data>
+	<data name="Dashboard_Stats_UploadedGames" xml:space="preserve">
+    <value>Games uploaded</value>
+  </data>
+	<data name="Dashboard_Stats_TotalScores" xml:space="preserve">
+    <value>Scores submitted</value>
+  </data>
+	<data name="Dashboard_Stats_TotalReviews" xml:space="preserve">
+    <value>Reviews written</value>
+  </data>
+	<data name="Dashboard_Stats_Friends" xml:space="preserve">
+    <value>Friends</value>
+  </data>
+	<data name="Dashboard_Games_CreateHeading" xml:space="preserve">
+    <value>Add a new game</value>
+  </data>
+	<data name="Dashboard_Games_Title" xml:space="preserve">
+    <value>Title</value>
+  </data>
+	<data name="Dashboard_Games_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+	<data name="Dashboard_Games_Cover" xml:space="preserve">
+    <value>Cover image</value>
+  </data>
+	<data name="Dashboard_Games_Submit" xml:space="preserve">
+    <value>Publish game</value>
+  </data>
+	<data name="Dashboard_Games_ListHeading" xml:space="preserve">
+    <value>Your games</value>
+  </data>
+	<data name="Dashboard_Games_Rating" xml:space="preserve">
+    <value>Rating</value>
+  </data>
+	<data name="Dashboard_Games_Empty" xml:space="preserve">
+    <value>No games uploaded yet.</value>
+  </data>
+	<data name="Dashboard_Friends_ListHeading" xml:space="preserve">
+    <value>Your friends</value>
+  </data>
+	<data name="Dashboard_Friends_Since" xml:space="preserve">
+    <value>Friends since {0}</value>
+  </data>
+	<data name="Dashboard_Friends_Empty" xml:space="preserve">
+    <value>You don't have any friends yet.</value>
+  </data>
+	<data name="Dashboard_Overview_Tab" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+	<data name="Dashboard_Overview_Heading" xml:space="preserve">
+    <value>Latest games</value>
+  </data>
+	<data name="Dashboard_Overview_Description" xml:space="preserve">
+    <value>Browse everything available on the platform.</value>
+  </data>
+	<data name="Dashboard_Friends_Unknown" xml:space="preserve">
+    <value>Unknown player</value>
+  </data>
 </root>

@@ -38,13 +38,7 @@ var jwtKey = builder.Configuration["Jwt:Key"] ?? "dev-key-change-me";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "Bgp";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "BgpAudience";
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
-})
-    .AddCookie(IdentityConstants.ApplicationScheme)
-    .AddCookie(IdentityConstants.ExternalScheme)
+builder.Services.AddAuthentication()
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
     {
         o.TokenValidationParameters = new()
