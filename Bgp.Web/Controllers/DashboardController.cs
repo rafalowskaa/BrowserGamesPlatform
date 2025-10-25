@@ -505,32 +505,33 @@ public class DashboardController : Controller
                 g.ModerationNotes))
             .ToListAsync();
 
-        var friends = await _db.Friendships
+        var friendships = await _db.Friendships
             .AsNoTracking()
             .Where(f => f.Status == FriendshipStatus.Accepted && (f.RequesterId == user.Id || f.AddresseeId == user.Id))
-            .Select(u => new { u.Id, u.DisplayName, u.AvatarUrl, u.Email, u.UserName })
+            .Select(f => new
             {
                 FriendId = f.RequesterId == user.Id ? f.AddresseeId : f.RequesterId,
                 f.CreatedAtUtc
             })
             .ToListAsync();
 
-        var friendIds = friends.Select(f => f.FriendId).ToList();
+        var friendIds = friendships
+            .Select(f => f.FriendId)
+            .Distinct()
+            .ToList();
 
         var friendProfiles = await _db.Users
             .AsNoTracking()
             .Where(u => friendIds.Contains(u.Id))
-            .Select(u => new { u.Id, u.DisplayName, u.AvatarUrl })
-            .ToListAsync();
-
-        var friendLookup = friendProfiles.ToDictionary(f => f.Id, f => f);
+            .Select(u => new { u.Id, u.DisplayName, u.AvatarUrl, u.Email, u.UserName })
+            .ToDictionaryAsync(u => u.Id);
 
         var unknownFriend = Localize("Dashboard_Friends_Unknown");
 
-        var friendVms = friends
+        var friendVms = friendships
             .Select(f =>
             {
-                friendLookup.TryGetValue(f.FriendId, out var profile);
+                friendProfiles.TryGetValue(f.FriendId, out var profile);
                 var displayName = profile is not null
                     ? DisplayNameFormatter.Format(profile.DisplayName, profile.Email, profile.UserName)
                     : string.Empty;
