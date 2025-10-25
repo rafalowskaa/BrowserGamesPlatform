@@ -1,4 +1,4 @@
-﻿namespace Bgp.Web;
+﻿namespace Bgp.Web.Resources;
 
 /// <summary>
 /// Marker class for shared localization resources.
