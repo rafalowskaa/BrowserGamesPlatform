@@ -11,4 +11,6 @@ public class ApplicationUser : IdentityUser
 
     [MaxLength(512)]
     public string? AvatarUrl { get; set; }
+
+    public bool IsBlocked { get; set; }
 }

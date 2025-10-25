@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using Bgp.Domain.Enums;
 using Microsoft.AspNetCore.Http;
 
 namespace Bgp.Web.Models;
@@ -14,13 +16,18 @@ public class DashboardViewModel
     public IReadOnlyList<FriendViewModel> Friends { get; init; } = Array.Empty<FriendViewModel>();
 }
 
-public record GameSummaryViewModel(Guid Id, string Title, string Slug, string? CoverImagePath, double AverageRating);
+public record GameSummaryViewModel(Guid Id, string Title, string Slug, string? CoverImagePath, double AverageRating, GameApprovalStatus ApprovalStatus, DateTime CreatedAtUtc, string? ModerationNotes);
 
 public class ProfileSectionViewModel
 {
     public string DisplayName { get; set; } = string.Empty;
     public string? AvatarUrl { get; set; }
     public string Email { get; set; } = string.Empty;
+    public string RankName { get; set; } = string.Empty;
+    public int RankLevel { get; set; }
+    public int ExperiencePoints { get; set; }
+    public int ExperienceToNextLevel { get; set; }
+    public int CurrentLevelThreshold { get; set; }
 }
 
 public class SecuritySectionViewModel
@@ -45,6 +52,12 @@ public class CreateGameFormViewModel
     public string? Description { get; set; }
 
     public IFormFile? CoverImage { get; set; }
+
+    [Required, MaxLength(32)]
+    public string Version { get; set; } = "1.0.0";
+
+    [Required]
+    public IFormFile? Package { get; set; }
 }
 
 public class FriendViewModel

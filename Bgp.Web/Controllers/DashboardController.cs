@@ -8,6 +8,7 @@ using Bgp.Infrastructure.Identity;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Models;
 using Bgp.Web.Resources;
+using System.IO.Compression;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -29,6 +30,7 @@ public class DashboardController : Controller
     private readonly IStringLocalizer<SharedResource> _localizer;
 
     private static readonly Regex SlugRegex = new("[^a-z0-9-]", RegexOptions.Compiled);
+    private static readonly Regex VersionSanitizer = new("[^a-zA-Z0-9._-]", RegexOptions.Compiled);
 
     public DashboardController(
         UserManager<ApplicationUser> users,
@@ -220,6 +222,13 @@ public class DashboardController : Controller
 
         var slug = await GenerateUniqueSlugAsync(input.Title);
         string? coverPath = null;
+        var version = string.IsNullOrWhiteSpace(input.Version) ? "1.0.0" : input.Version.Trim();
+        version = VersionSanitizer.Replace(version, "-");
+        if (string.IsNullOrWhiteSpace(version))
+        {
+            ModelState.AddModelError(nameof(input.Version), "Invalid version name.");
+            return await ReturnDashboardWithErrorsAsync(user, "games");
+        }
 
         if (input.CoverImage is not null && input.CoverImage.Length > 0)
         {
@@ -247,6 +256,72 @@ public class DashboardController : Controller
             coverPath = $"/uploads/covers/{fileName}";
         }
 
+        if (input.Package is null || input.Package.Length == 0)
+        {
+            ModelState.AddModelError(nameof(input.Package), "Package is required.");
+            return await ReturnDashboardWithErrorsAsync(user, "games");
+        }
+
+        var packageExt = Path.GetExtension(input.Package.FileName).ToLowerInvariant();
+        if (packageExt != ".zip")
+        {
+            ModelState.AddModelError(nameof(input.Package), "Expected .zip archive exported from Unity WebGL build.");
+            return await ReturnDashboardWithErrorsAsync(user, "games");
+        }
+
+        var targetRoot = Path.Combine(_env.WebRootPath, "games", slug, version);
+        if (Directory.Exists(targetRoot))
+        {
+            Directory.Delete(targetRoot, recursive: true);
+        }
+        Directory.CreateDirectory(targetRoot);
+
+        try
+        {
+            await using var packageStream = input.Package.OpenReadStream();
+            using var archive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: false);
+
+            foreach (var entry in archive.Entries)
+            {
+                var destinationPath = Path.Combine(targetRoot, entry.FullName);
+                var normalizedPath = Path.GetFullPath(destinationPath);
+                if (!normalizedPath.StartsWith(targetRoot, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException("Invalid path in archive.");
+                }
+
+                if (string.IsNullOrEmpty(entry.Name))
+                {
+                    Directory.CreateDirectory(normalizedPath);
+                    continue;
+                }
+
+                Directory.CreateDirectory(Path.GetDirectoryName(normalizedPath)!);
+                await using var entryStream = entry.Open();
+                await using var fileStream = System.IO.File.Create(normalizedPath);
+                await entryStream.CopyToAsync(fileStream);
+            }
+        }
+        catch (InvalidDataException)
+        {
+            ModelState.AddModelError(nameof(input.Package), "Uploaded archive is invalid or corrupted.");
+            if (Directory.Exists(targetRoot))
+            {
+                Directory.Delete(targetRoot, true);
+            }
+            return await ReturnDashboardWithErrorsAsync(user, "games");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to extract package for user {UserId}", user.Id);
+            ModelState.AddModelError(nameof(input.Package), "Failed to extract uploaded package.");
+            if (Directory.Exists(targetRoot))
+            {
+                Directory.Delete(targetRoot, true);
+            }
+            return await ReturnDashboardWithErrorsAsync(user, "games");
+        }
+
         var game = new Game
         {
             Title = input.Title.Trim(),
@@ -254,11 +329,20 @@ public class DashboardController : Controller
             Description = input.Description?.Trim(),
             CoverImagePath = coverPath,
             CreatedByUserId = user.Id,
-            IsPublished = true,
+            ApprovalStatus = GameApprovalStatus.Pending,
             Modes = GameMode.Singleplayer
         };
 
+        var versionEntity = new GameVersion
+        {
+            Game = game,
+            Version = version,
+            ContentPath = $"/games/{slug}/{version}",
+            PublishedAtUtc = DateTime.UtcNow
+        };
+
         await _db.Games.AddAsync(game);
+        await _db.GameVersions.AddAsync(versionEntity);
         await _db.SaveChangesAsync();
 
         _logger.LogInformation("User {UserId} created a new game {GameId}.", user.Id, game.Id);
@@ -270,13 +354,17 @@ public class DashboardController : Controller
     {
         var games = await _db.Games
             .AsNoTracking()
+            .Where(g => g.ApprovalStatus == GameApprovalStatus.Approved)
             .OrderByDescending(g => g.CreatedAtUtc)
             .Select(g => new GameSummaryViewModel(
                 g.Id,
                 g.Title,
                 g.Slug,
                 g.CoverImagePath,
-                g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0.0))
+                g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0.0,
+                g.ApprovalStatus,
+                g.CreatedAtUtc,
+                g.ModerationNotes))
             .ToListAsync();
 
         var myGames = await _db.Games
@@ -288,7 +376,10 @@ public class DashboardController : Controller
                 g.Title,
                 g.Slug,
                 g.CoverImagePath,
-                g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0.0))
+                g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0.0,
+                g.ApprovalStatus,
+                g.CreatedAtUtc,
+                g.ModerationNotes))
             .ToListAsync();
 
         var friends = await _db.Friendships
@@ -335,6 +426,9 @@ public class DashboardController : Controller
             FriendsCount = friendVms.Count
         };
 
+
+        var rank = CalculateRank(stats);
+
         return new DashboardViewModel
         {
             Games = games,
@@ -343,7 +437,12 @@ public class DashboardController : Controller
             {
                 DisplayName = user.DisplayName ?? user.Email ?? user.UserName ?? string.Empty,
                 AvatarUrl = user.AvatarUrl,
-                Email = user.Email ?? string.Empty
+                Email = user.Email ?? string.Empty,
+                RankName = rank.Name,
+                RankLevel = rank.Level,
+                ExperiencePoints = rank.Xp,
+                ExperienceToNextLevel = rank.XpToNextLevel,
+                CurrentLevelThreshold = rank.CurrentThreshold
             },
             Security = new SecuritySectionViewModel
             {
@@ -383,6 +482,12 @@ public class DashboardController : Controller
             vm.NewGame.Description = descriptionState.AttemptedValue;
         }
 
+        if (ModelState.TryGetValue(nameof(CreateGameFormViewModel.Version), out var versionState) &&
+            !string.IsNullOrWhiteSpace(versionState.AttemptedValue))
+        {
+            vm.NewGame.Version = versionState.AttemptedValue!;
+        }
+
         return View("Index", vm);
     }
 
@@ -409,5 +514,34 @@ public class DashboardController : Controller
         slug = Regex.Replace(slug, "-+", "-");
         slug = slug.Trim('-');
         return string.IsNullOrWhiteSpace(slug) ? Guid.NewGuid().ToString("n") : slug;
+    }
+
+    private static (string Name, int Level, int Xp, int XpToNextLevel, int CurrentThreshold) CalculateRank(DashboardStatsViewModel stats)
+    {
+        var xp = stats.UploadedGames * 120 + stats.TotalScores * 30 + stats.TotalReviews * 45 + stats.FriendsCount * 25;
+
+        var thresholds = new (int Threshold, string Name)[]
+        {
+            (0, "Nowicjusz"),
+            (250, "Entuzjasta"),
+            (600, "Weteran"),
+            (1200, "Arcymistrz")
+        };
+
+        var current = thresholds[0];
+        int? next = null;
+        for (var i = 0; i < thresholds.Length; i++)
+        {
+            if (xp >= thresholds[i].Threshold)
+            {
+                current = thresholds[i];
+                next = i + 1 < thresholds.Length ? thresholds[i + 1].Threshold : null;
+            }
+        }
+
+        var level = Array.IndexOf(thresholds, current) + 1;
+        var xpToNext = next.HasValue ? Math.Max(0, next.Value - xp) : 0;
+
+        return (current.Name, level, xp, xpToNext, current.Threshold);
     }
 }

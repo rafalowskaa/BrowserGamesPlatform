@@ -1,4 +1,5 @@
-﻿using Bgp.Infrastructure.Persistence;
+﻿using System.Linq;
+using Bgp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,7 @@ public class AdminController : ControllerBase
     {
         var users = await _db.Users
             .OrderByDescending(u => u.CreatedAtUtc)
-            .Select(u => new { u.Id, u.Email, u.DisplayName, u.CreatedAtUtc })
+            .Select(u => new { u.Id, u.Email, u.DisplayName, u.CreatedAtUtc, u.IsBlocked })
             .ToListAsync();
         return Ok(users);
     }
@@ -28,7 +29,7 @@ public class AdminController : ControllerBase
     {
         var games = await _db.Games
             .OrderByDescending(g => g.CreatedAtUtc)
-            .Select(g => new { g.Id, g.Title, g.Slug, g.IsPublished, g.CreatedAtUtc })
+            .Select(g => new { g.Id, g.Title, g.Slug, g.ApprovalStatus, g.CreatedAtUtc })
             .ToListAsync();
         return Ok(games);
     }

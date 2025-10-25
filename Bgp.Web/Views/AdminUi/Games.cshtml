@@ -1,0 +1,111 @@
+﻿@using System.Linq
+@using Bgp.Domain.Enums
+@model AdminGamesViewModel
+@{
+    ViewData["Title"] = L["Admin_Games_Title"].Value;
+    var filterValue = Model.Filter?.ToString();
+    var statuses = Enum.GetValues<GameApprovalStatus>();
+}
+
+<section class="admin-section">
+    <nav class="admin-nav">
+        <a class="admin-nav__item" asp-action="Users">@L["Admin_Nav_Users"].Value</a>
+        <a class="admin-nav__item active" asp-action="Games">@L["Admin_Nav_Games"].Value</a>
+        <a class="admin-nav__item" asp-action="Reports">@L["Admin_Nav_Reports"].Value</a>
+    </nav>
+
+    <header class="admin-header">
+        <div>
+            <h1>@L["Admin_Games_Title"].Value</h1>
+            <p>@L["Admin_Games_Subtitle"].Value</p>
+        </div>
+        <form method="get" class="admin-filter">
+            <label>
+                <span>@L["Admin_Games_Filter_Label"].Value</span>
+                <select name="status">
+                    <option value="">@L["Admin_Games_Filter_All"].Value</option>
+                    @foreach (var status in statuses)
+                    {
+                        var selected = filterValue == status.ToString() ? "selected" : null;
+                        <option value="@status" selected="@selected">@L[$"Dashboard_Games_Status_{status}"].Value</option>
+                    }
+                </select>
+            </label>
+            <button class="btn-primary btn-compact" type="submit">@L["Admin_Games_Filter_Apply"].Value</button>
+        </form>
+    </header>
+
+    @if (!string.IsNullOrEmpty(Model.SuccessKey))
+    {
+        <div class="alert success">@L[Model.SuccessKey].Value</div>
+    }
+    else if (!string.IsNullOrEmpty(Model.ErrorKey))
+    {
+        <div class="alert error">@L[Model.ErrorKey].Value</div>
+    }
+
+    <div class="table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>@L["Dashboard_Games_Title"].Value</th>
+                    <th>@L["Admin_Games_Table_Owner"].Value</th>
+                    <th>@L["Dashboard_Games_Submitted"].Value</th>
+                    <th>@L["Dashboard_Games_Status"].Value</th>
+                    <th>@L["Admin_Games_Table_Actions"].Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Games.Any())
+                {
+                    foreach (var game in Model.Games)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@game.Title</strong>
+                                <div class="game-meta">@game.Slug</div>
+                                @if (!string.IsNullOrWhiteSpace(game.ModerationNotes))
+                                {
+                                    <div class="game-note">@game.ModerationNotes</div>
+                                }
+                            </td>
+                            <td>@game.Owner</td>
+                            <td>@game.CreatedAtUtc.ToLocalTime().ToString("g")</td>
+                            <td><span class="status-pill @($"status-{game.Status.ToString().ToLowerInvariant()}")">@L[$"Dashboard_Games_Status_{game.Status}"].Value</span></td>
+                            <td>
+                                <div class="admin-actions vertical">
+                                    @if (game.Status != GameApprovalStatus.Approved)
+                                    {
+                                        <form asp-action="ApproveGame" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@game.Id" />
+                                            <button class="btn-primary btn-small" type="submit">@L["Admin_Games_Approve"].Value</button>
+                                        </form>
+                                    }
+                                    @if (game.Status != GameApprovalStatus.Rejected)
+                                    {
+                                        <details>
+                                            <summary>@L["Admin_Games_Reject"].Value</summary>
+                                            <form asp-action="RejectGame" method="post" class="admin-inline-form">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="Id" value="@game.Id" />
+                                                <textarea name="Notes" maxlength="500" placeholder="@L["Admin_Games_Reject_Notes"].Value"></textarea>
+                                                <button class="btn-danger btn-small" type="submit">@L["Admin_Games_Reject_Submit"].Value</button>
+                                            </form>
+                                        </details>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="empty">@L["Admin_Games_Empty"].Value</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

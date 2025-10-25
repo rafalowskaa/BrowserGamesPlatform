@@ -1,4 +1,7 @@
-﻿@model DashboardViewModel
+﻿@using System.Linq
+@using System.Text.Json
+@using Bgp.Domain.Enums
+@model DashboardViewModel
 @{
     ViewData["Title"] = L["Dashboard_Title"].Value;
     var activeTab = (ViewData["ActiveTab"] as string ?? "overview").ToLowerInvariant();
@@ -11,104 +14,144 @@
         "GameCreated" => L["Dashboard_Success_Game"].Value,
         _ => null
     };
+    var xp = Model.Profile.ExperiencePoints;
+    var xpIntoLevel = Math.Max(0, xp - Model.Profile.CurrentLevelThreshold);
+    var xpWindow = Math.Max(1, xpIntoLevel + Math.Max(0, Model.Profile.ExperienceToNextLevel));
+    var progress = Math.Clamp((int)Math.Round((double)xpIntoLevel / xpWindow * 100), 0, 100);
+    var nextRankText = Model.Profile.ExperienceToNextLevel <= 0
+        ? L["Dashboard_Profile_RankMax"].Value
+        : string.Format(L["Dashboard_Profile_RankProgress"].Value, Model.Profile.ExperienceToNextLevel);
+
+    string StatusClass(GameApprovalStatus status) => status switch
+    {
+        GameApprovalStatus.Approved => "status-approved",
+        GameApprovalStatus.Rejected => "status-rejected",
+        _ => "status-pending"
+    };
+    string StatusLabel(GameApprovalStatus status) => status switch
+    {
+        GameApprovalStatus.Approved => L["Dashboard_Games_Status_Approved"].Value,
+        GameApprovalStatus.Rejected => L["Dashboard_Games_Status_Rejected"].Value,
+        _ => L["Dashboard_Games_Status_Pending"].Value
+    };
 }
 
 <section class="dashboard">
-    <h1>@L["Dashboard_Title"].Value</h1>
+    <header class="dashboard-header">
+        <div>
+            <h1>@L["Dashboard_Title"].Value</h1>
+            <p>@L["Dashboard_Overview_Description"].Value</p>
+        </div>
+    </header>
+
+    <nav class="dashboard-nav">
+        <a class="dashboard-nav__item@(activeTab == "overview" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="overview">@L["Dashboard_Overview_Tab"].Value</a>
+        <a class="dashboard-nav__item@(activeTab == "profile" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="profile">@L["Dashboard_Profile_Tab"].Value</a>
+        <a class="dashboard-nav__item@(activeTab == "stats" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="stats">@L["Dashboard_Stats_Tab"].Value</a>
+        <a class="dashboard-nav__item@(activeTab == "games" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="games">@L["Dashboard_Games_AddTab"].Value</a>
+        <a class="dashboard-nav__item@(activeTab == "friends" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="friends">@L["Dashboard_Friends_Tab"].Value</a>
+    </nav>
 
     @if (!string.IsNullOrEmpty(successMessage))
     {
         <div class="alert success">@successMessage</div>
     }
 
-    <nav class="dashboard-nav">
-        <a class="dashboard-nav__item@(activeTab == "overview" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="overview">@L["Dashboard_Overview_Tab"].Value</a>
-        <a class="dashboard-nav__item@(activeTab == "profile" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="profile">@L["Dashboard_Profile_Tab"].Value</a>
-        <a class="dashboard-nav__item@(activeTab == "security" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="security">@L["Dashboard_Security_Tab"].Value</a>
-        <a class="dashboard-nav__item@(activeTab == "stats" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="stats">@L["Dashboard_Stats_Tab"].Value</a>
-        <a class="dashboard-nav__item@(activeTab == "games" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="games">@L["Dashboard_Games_Tab"].Value</a>
-        <a class="dashboard-nav__item@(activeTab == "friends" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="friends">@L["Dashboard_Friends_Tab"].Value</a>
-    </nav>
-
     @switch (activeTab)
     {
         case "profile":
-            <section class="dashboard-panel">
-                <h2>@L["Dashboard_Profile_Tab"].Value</h2>
-                <p>@L["Dashboard_Profile_Info"].Value</p>
-
-                <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data" class="form-vertical">
-                    @Html.AntiForgeryToken()
-                    @Html.ValidationSummary(true, null, new { @class = "val-summary" })
-                    <label for="DisplayName">@L["Dashboard_Profile_DisplayName"].Value</label>
-                    <input id="DisplayName" name="DisplayName" value="@Model.Profile.DisplayName" maxlength="120" />
-                    @Html.ValidationMessage("DisplayName", null, new { @class = "val" })
-
-                    <label for="Avatar">@L["Dashboard_Profile_Avatar"].Value</label>
-                    <input id="Avatar" type="file" name="Avatar" accept="image/*" />
-                    @Html.ValidationMessage("Avatar", null, new { @class = "val" })
-
-                    <div class="profile-current">
-                        <span>@L["Dashboard_Profile_CurrentAvatar"].Value</span>
+            <section class="dashboard-panel profile-panel">
+                <header class="profile-summary">
+                    <div class="profile-summary__avatar">
                         @if (!string.IsNullOrEmpty(Model.Profile.AvatarUrl))
                         {
-                            <img src="@Model.Profile.AvatarUrl" alt="avatar" class="avatar-preview" />
+                            <img src="@Model.Profile.AvatarUrl" alt="avatar" class="avatar-large" />
                         }
                         else
                         {
-                            <span class="placeholder">@L["Dashboard_Profile_NoAvatar"].Value</span>
+                            <span class="avatar-large placeholder">@L["Dashboard_Profile_NoAvatar"].Value</span>
                         }
                     </div>
 
-                    <button class="btn-primary" type="submit">@L["Dashboard_Profile_Save"].Value</button>
-                </form>
-            </section>
-            break;
-        case "security":
-            <section class="dashboard-panel">
-                <h2>@L["Dashboard_Security_Tab"].Value</h2>
+                    <div class="profile-summary__details">
+                        <h2 class="profile-summary__name">@Model.Profile.DisplayName</h2>
+                        <p class="profile-summary__email">@Model.Profile.Email</p>
+                        <div class="profile-summary__rank">
+                            <span class="rank-badge">@Model.Profile.RankName</span>
+                            <div class="rank-progress">
+                                <div class="rank-progress__bar" style="width:@progress%"></div>
+                            </div>
+                            <small>@nextRankText</small>
+                        </div>
+                        <p class="profile-summary__xp">@string.Format(L["Dashboard_Profile_RankXp"].Value, Model.Profile.ExperiencePoints)</p>
+                    </div>
+                </header>
 
-                <div class="two-column">
-                    <form asp-action="UpdateEmail" method="post" class="form-vertical">
-                        @Html.AntiForgeryToken()
-                        @Html.ValidationSummary(true, null, new { @class = "val-summary" })
-                        <h3>@L["Dashboard_Security_EmailSection"].Value</h3>
-                        <label for="Email">@L["Dashboard_Security_Email"].Value</label>
-                        <input id="Email" name="Email" type="email" value="@Model.Security.Email" autocomplete="email" />
-                        @Html.ValidationMessage("Email", null, new { @class = "val" })
+                <div class="profile-actions">
+                    <article class="profile-card">
+                        <h3>@L["Dashboard_Profile_UpdateTitle"].Value</h3>
+                        <p>@L["Dashboard_Profile_UpdateDescription"].Value</p>
+                        <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data" class="form-stacked">
+                            @Html.AntiForgeryToken()
+                            @Html.ValidationSummary(true, null, new { @class = "val-summary" })
+                            <label for="DisplayName">@L["Dashboard_Profile_DisplayName"].Value</label>
+                            <input id="DisplayName" name="DisplayName" value="@Model.Profile.DisplayName" maxlength="120" />
+                            @Html.ValidationMessage("DisplayName", null, new { @class = "val" })
 
-                        <label for="EmailPassword">@L["Dashboard_Security_EmailPassword"].Value</label>
-                        <input id="EmailPassword" name="Password" type="password" autocomplete="current-password" />
-                        @Html.ValidationMessage("Password", null, new { @class = "val" })
+                            <label for="Avatar">@L["Dashboard_Profile_Avatar"].Value</label>
+                            <input id="Avatar" type="file" name="Avatar" accept="image/*" />
+                            @Html.ValidationMessage("Avatar", null, new { @class = "val" })
 
-                        <button class="btn-primary" type="submit">@L["Dashboard_Security_SaveEmail"].Value</button>
-                    </form>
+                            <button class="btn-primary" type="submit">@L["Dashboard_Profile_Save"].Value</button>
+                        </form>
+                    </article>
 
-                    <form asp-action="ChangePassword" method="post" class="form-vertical">
-                        @Html.AntiForgeryToken()
-                        @Html.ValidationSummary(true, null, new { @class = "val-summary" })
-                        <h3>@L["Dashboard_Security_PasswordSection"].Value</h3>
-                        <label for="CurrentPassword">@L["Dashboard_Security_CurrentPassword"].Value</label>
-                        <input id="CurrentPassword" name="CurrentPassword" type="password" autocomplete="current-password" />
-                        @Html.ValidationMessage("CurrentPassword", null, new { @class = "val" })
+                    <article class="profile-card">
+                        <h3>@L["Dashboard_Profile_EmailTitle"].Value</h3>
+                        <p>@string.Format(L["Dashboard_Profile_EmailDescription"].Value, Model.Security.Email)</p>
+                        <form asp-action="UpdateEmail" method="post" class="form-stacked">
+                            @Html.AntiForgeryToken()
+                            @Html.ValidationSummary(true, null, new { @class = "val-summary" })
+                            <label for="Email">@L["Dashboard_Security_Email"].Value</label>
+                            <input id="Email" name="Email" type="email" value="@Model.Security.Email" autocomplete="email" />
+                            @Html.ValidationMessage("Email", null, new { @class = "val" })
 
-                        <label for="NewPassword">@L["Dashboard_Security_NewPassword"].Value</label>
-                        <input id="NewPassword" name="NewPassword" type="password" autocomplete="new-password" />
-                        @Html.ValidationMessage("NewPassword", null, new { @class = "val" })
+                            <label for="EmailPassword">@L["Dashboard_Security_EmailPassword"].Value</label>
+                            <input id="EmailPassword" name="Password" type="password" autocomplete="current-password" />
+                            @Html.ValidationMessage("Password", null, new { @class = "val" })
 
-                        <label for="ConfirmPassword">@L["Dashboard_Security_ConfirmPassword"].Value</label>
-                        <input id="ConfirmPassword" name="ConfirmPassword" type="password" autocomplete="new-password" />
-                        @Html.ValidationMessage("ConfirmPassword", null, new { @class = "val" })
+                            <button class="btn-primary" type="submit">@L["Dashboard_Security_SaveEmail"].Value</button>
+                        </form>
+                    </article>
 
-                        <button class="btn-primary" type="submit">@L["Dashboard_Security_ChangePassword"].Value</button>
-                    </form>
+                    <article class="profile-card">
+                        <h3>@L["Dashboard_Profile_PasswordTitle"].Value</h3>
+                        <p>@L["Dashboard_Profile_PasswordDescription"].Value</p>
+                        <form asp-action="ChangePassword" method="post" class="form-stacked">
+                            @Html.AntiForgeryToken()
+                            @Html.ValidationSummary(true, null, new { @class = "val-summary" })
+                            <label for="CurrentPassword">@L["Dashboard_Security_CurrentPassword"].Value</label>
+                            <input id="CurrentPassword" name="CurrentPassword" type="password" autocomplete="current-password" />
+                            @Html.ValidationMessage("CurrentPassword", null, new { @class = "val" })
+
+                            <label for="NewPassword">@L["Dashboard_Security_NewPassword"].Value</label>
+                            <input id="NewPassword" name="NewPassword" type="password" autocomplete="new-password" />
+                            @Html.ValidationMessage("NewPassword", null, new { @class = "val" })
+
+                            <label for="ConfirmPassword">@L["Dashboard_Security_ConfirmPassword"].Value</label>
+                            <input id="ConfirmPassword" name="ConfirmPassword" type="password" autocomplete="new-password" />
+                            @Html.ValidationMessage("ConfirmPassword", null, new { @class = "val" })
+
+                            <button class="btn-primary" type="submit">@L["Dashboard_Security_ChangePassword"].Value</button>
+                        </form>
+                    </article>
                 </div>
             </section>
             break;
         case "stats":
             <section class="dashboard-panel">
                 <h2>@L["Dashboard_Stats_Tab"].Value</h2>
-                <ul class="stats-list">
+                <ul class="stats-list compact">
                     <li><span>@L["Dashboard_Stats_UploadedGames"].Value</span><strong>@Model.Stats.UploadedGames</strong></li>
                     <li><span>@L["Dashboard_Stats_TotalScores"].Value</span><strong>@Model.Stats.TotalScores</strong></li>
                     <li><span>@L["Dashboard_Stats_TotalReviews"].Value</span><strong>@Model.Stats.TotalReviews</strong></li>
@@ -117,22 +160,41 @@
             </section>
             break;
         case "games":
-            <section class="dashboard-panel">
-                <h2>@L["Dashboard_Games_CreateHeading"].Value</h2>
-                <form asp-action="CreateGame" method="post" enctype="multipart/form-data" class="form-vertical">
+            <section class="dashboard-panel games-panel">
+                <header class="panel-header">
+                    <div>
+                        <h2>@L["Dashboard_Games_AddTitle"].Value</h2>
+                        <p>@L["Dashboard_Games_AddDescription"].Value</p>
+                    </div>
+                    <aside class="panel-note">@L["Dashboard_Games_VerificationNotice"].Value</aside>
+                </header>
+
+                <form asp-action="CreateGame" method="post" enctype="multipart/form-data" class="form-stacked">
                     @Html.AntiForgeryToken()
                     @Html.ValidationSummary(true, null, new { @class = "val-summary" })
-                    <label for="GameTitle">@L["Dashboard_Games_Title"].Value</label>
-                    <input id="GameTitle" name="Title" value="@Model.NewGame.Title" maxlength="120" />
-                    @Html.ValidationMessage("Title", null, new { @class = "val" })
 
-                    <label for="GameDescription">@L["Dashboard_Games_Description"].Value</label>
-                    <textarea id="GameDescription" name="Description" maxlength="2000">@(Model.NewGame.Description ?? string.Empty)</textarea>
-                    @Html.ValidationMessage("Description", null, new { @class = "val" })
 
-                    <label for="GameCover">@L["Dashboard_Games_Cover"].Value</label>
-                    <input id="GameCover" type="file" name="CoverImage" accept="image/*" />
-                    @Html.ValidationMessage("CoverImage", null, new { @class = "val" })
+                    <div class="form-grid">
+                        <label for="GameTitle">@L["Dashboard_Games_Title"].Value</label>
+                        <input id="GameTitle" name="Title" value="@Model.NewGame.Title" maxlength="120" />
+                        @Html.ValidationMessage("Title", null, new { @class = "val" })
+
+                        <label for="GameDescription">@L["Dashboard_Games_Description"].Value</label>
+                        <textarea id="GameDescription" name="Description" maxlength="2000">@(Model.NewGame.Description ?? string.Empty)</textarea>
+                        @Html.ValidationMessage("Description", null, new { @class = "val" })
+
+                        <label for="GameCover">@L["Dashboard_Games_Cover"].Value</label>
+                        <input id="GameCover" type="file" name="CoverImage" accept="image/*" />
+                        @Html.ValidationMessage("CoverImage", null, new { @class = "val" })
+
+                        <label for="GameVersion">@L["Dashboard_Games_Version"].Value</label>
+                        <input id="GameVersion" name="Version" value="@Model.NewGame.Version" maxlength="32" />
+                        @Html.ValidationMessage("Version", null, new { @class = "val" })
+
+                        <label for="GamePackage">@L["Dashboard_Games_Package"].Value</label>
+                        <input id="GamePackage" type="file" name="Package" accept=".zip" />
+                        @Html.ValidationMessage("Package", null, new { @class = "val" })
+                    </div>
 
                     <button class="btn-primary" type="submit">@L["Dashboard_Games_Submit"].Value</button>
                 </form>
@@ -140,15 +202,37 @@
                 <h3>@L["Dashboard_Games_ListHeading"].Value</h3>
                 @if (Model.MyGames.Any())
                 {
-                    <div class="grid">
-                        @foreach (var game in Model.MyGames)
-                        {
-                            <article class="card">
-                                <img src="@(game.CoverImagePath ?? "/img/placeholder.png")" alt="cover" />
-                                <h4>@game.Title</h4>
-                                <p>@L["Dashboard_Games_Rating"].Value: @($"{game.AverageRating:0.0}")</p>
-                            </article>
-                        }
+
+                    <div class="table-wrapper">
+                        <table class="admin-table compact">
+                            <thead>
+                                <tr>
+                                    <th>@L["Dashboard_Games_Title"].Value</th>
+                                    <th>@L["Dashboard_Games_Status"].Value</th>
+                                    <th>@L["Dashboard_Games_Submitted"].Value</th>
+                                    <th>@L["Dashboard_Games_Rating"].Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var game in Model.MyGames)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@game.Title</strong>
+                                            <div class="game-meta">@game.Slug</div>
+                                            @if (game.ModerationNotes is not null && game.ApprovalStatus == GameApprovalStatus.Rejected)
+                                            {
+                                                <div class="game-note">@game.ModerationNotes</div>
+                                            }
+                                        </td>
+                                        <td><span class="status-pill @StatusClass(game.ApprovalStatus)">@StatusLabel(game.ApprovalStatus)</span></td>
+                                        <td>@game.CreatedAtUtc.ToLocalTime().ToString("g")</td>
+                                        <td>@string.Format("{0:0.0}", game.AverageRating)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
                     </div>
                 }
                 else
@@ -158,51 +242,70 @@
             </section>
             break;
         case "friends":
-            <section class="dashboard-panel">
-                <h2>@L["Dashboard_Friends_ListHeading"].Value</h2>
-                @if (Model.Friends.Any())
-                {
-                    <ul class="friends-list">
-                        @foreach (var friend in Model.Friends)
-                        {
-                            <li>
-                                @if (!string.IsNullOrEmpty(friend.AvatarUrl))
-                                {
-                                    <img src="@friend.AvatarUrl" alt="avatar" class="avatar-small" />
-                                }
-                                else
-                                {
-                                    <span class="avatar-small placeholder"></span>
-                                }
-                                <div class="friend-meta">
-                                    <span class="friend-name">@friend.DisplayName</span>
-                                    <span class="friend-since">@string.Format(L["Dashboard_Friends_Since"].Value, friend.Since.ToLocalTime().ToString("d"))</span>
-                                </div>
-                            </li>
-                        }
-                    </ul>
+
+            <section class="dashboard-panel friends-panel">
+                <div class="friends-grid">
+                    <article class="friends-card">
+                        <h3>@L["Dashboard_Friends_SearchHeading"].Value</h3>
+                        <p>@L["Dashboard_Friends_SearchDescription"].Value</p>
+                        <div class="friends-search">
+                            <input type="search" id="friendSearch" placeholder="@L["Dashboard_Friends_SearchPlaceholder"].Value" />
+                            <button id="friendSearchBtn" class="btn-primary" type="button">@L["Dashboard_Friends_SearchButton"].Value</button>
+                        </div>
+                        <ul id="friendSearchResults" class="friends-list muted"></ul>
+                        <p id="friendSearchEmpty" class="empty">@L["Dashboard_Friends_SearchEmpty"].Value</p>
+                    </article>
+                    <article class="friends-card">
+                        <h3>@L["Dashboard_Friends_CurrentHeading"].Value</h3>
+                        <ul id="friendsAccepted" class="friends-list"></ul>
+                        <p id="friendsAcceptedEmpty" class="empty">@L["Dashboard_Friends_Empty"].Value</p>
+                    </article>
+                    <article class="friends-card">
+                        <h3>@L["Dashboard_Friends_IncomingHeading"].Value</h3>
+                        <ul id="friendsIncoming" class="friends-list"></ul>
+                        <p id="friendsIncomingEmpty" class="empty">@L["Dashboard_Friends_NoIncoming"].Value</p>
+                    </article>
+                    <article class="friends-card">
+                        <h3>@L["Dashboard_Friends_OutgoingHeading"].Value</h3>
+                        <ul id="friendsOutgoing" class="friends-list"></ul>
+                        <p id="friendsOutgoingEmpty" class="empty">@L["Dashboard_Friends_NoOutgoing"].Value</p>
+                    </article>
+                </div>
+                @{
+                    var friendStrings = new
+                    {
+                        add = L["Dashboard_Friends_Add"].Value,
+                        cancel = L["Dashboard_Friends_Cancel"].Value,
+                        accept = L["Dashboard_Friends_Accept"].Value,
+                        decline = L["Dashboard_Friends_Decline"].Value,
+                        chat = L["Dashboard_Friends_Chat"].Value,
+                        invite = L["Dashboard_Friends_InviteToGame"].Value,
+                        inviteMessage = L["Dashboard_Friends_InviteMessage"].Value,
+                        remove = L["Dashboard_Friends_Remove"].Value
+                    };
+
                 }
-                else
-                {
-                    <p class="empty">@L["Dashboard_Friends_Empty"].Value</p>
-                }
+                <script type="application/json" id="friendStrings">@Html.Raw(JsonSerializer.Serialize(friendStrings))</script>
             </section>
             break;
         default:
             <section class="dashboard-panel">
                 <h2>@L["Dashboard_Overview_Heading"].Value</h2>
-                <p>@L["Dashboard_Overview_Description"].Value</p>
+                <p>@L["Dashboard_Overview_Subheading"].Value</p>
                 <div class="grid">
                     @foreach (var game in Model.Games)
                     {
                         <article class="card">
                             <img src="@(game.CoverImagePath ?? "/img/placeholder.png")" alt="cover" />
                             <h3><a asp-controller="Games" asp-action="Details" asp-route-slug="@game.Slug">@game.Title</a></h3>
-                            <p>@L["Dashboard_Games_Rating"].Value: @($"{game.AverageRating:0.0}")</p>
+                            <p>@string.Format(L["Dashboard_Games_Rating"].Value, $"{game.AverageRating:0.0}")</p>
                         </article>
                     }
                 </div>
             </section>
+            @section Scripts {
+                <script src="~/js/dashboard.js" asp-append-version="true"></script>
+            }
             break;
     }
 </section>

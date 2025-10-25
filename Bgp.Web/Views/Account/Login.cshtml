@@ -37,6 +37,6 @@
 
             <button class="btn-primary" type="submit">@L["Auth_Login_LoginButton"].Value</button>
         </form>
-        <p class="auth-card__hint">@L["Auth_Login_AdminHint"].Value</p>
+        <p class="auth-card__hint">@Html.Raw(string.Format(L["Auth_Login_PolicyHint"].Value, Url.Action("Policy", "Home")))</p>
     </div>
 </section>

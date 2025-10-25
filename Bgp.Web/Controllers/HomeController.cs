@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Bgp.Web.Controllers;
 
@@ -13,4 +14,7 @@ public class HomeController : Controller
 
         return RedirectToAction("Index", "Games");
     }
+
+    [AllowAnonymous]
+    public IActionResult Policy() => View();
 }

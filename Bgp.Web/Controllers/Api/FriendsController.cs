@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Linq;
+using System.Security.Claims;
 using Bgp.Application.Dtos;
 using Bgp.Domain.Entities;
 using Bgp.Domain.Enums;
@@ -23,7 +24,7 @@ public class FriendsController : ControllerBase
     public async Task<ActionResult<IEnumerable<FriendDto>>> Get()
     {
         var uid = UserId!;
-        // Przyjaźnie zaakceptowane
+
         var accepted = await _db.Friendships
             .Where(f => (f.RequesterId == uid || f.AddresseeId == uid) && f.Status == FriendshipStatus.Accepted)
             .Select(f => new { f.RequesterId, f.AddresseeId })
@@ -35,7 +36,6 @@ public class FriendsController : ControllerBase
             .Select(u => new FriendDto(u.Id, u.DisplayName ?? u.Email ?? u.UserName ?? u.Id, FriendshipStatus.Accepted, false))
             .ToListAsync();
 
-        // Zaproszenia wysłane przeze mnie (pending)
         var outgoing = await _db.Friendships
             .Where(f => f.RequesterId == uid && f.Status == FriendshipStatus.Pending)
             .Select(f => f.AddresseeId)
@@ -45,7 +45,6 @@ public class FriendsController : ControllerBase
             .Select(u => new FriendDto(u.Id, u.DisplayName ?? u.Email ?? u.UserName ?? u.Id, FriendshipStatus.Pending, true))
             .ToListAsync();
 
-        // Zaproszenia do mnie (pending)
         var incoming = await _db.Friendships
             .Where(f => f.AddresseeId == uid && f.Status == FriendshipStatus.Pending)
             .Select(f => f.RequesterId)
@@ -56,6 +55,41 @@ public class FriendsController : ControllerBase
             .ToListAsync();
 
         return Ok(users.Concat(outgoingUsers).Concat(incomingUsers));
+    }
+
+    [HttpGet("search")]
+    public async Task<ActionResult<IEnumerable<object>>> Search([FromQuery] string q)
+    {
+        var uid = UserId!;
+        if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 2)
+        {
+            return Ok(Array.Empty<object>());
+        }
+
+        var term = q.Trim();
+
+        var excludedIds = await _db.Friendships
+            .Where(f => f.RequesterId == uid || f.AddresseeId == uid)
+            .Select(f => f.RequesterId == uid ? f.AddresseeId : f.RequesterId)
+            .ToListAsync();
+        excludedIds.Add(uid);
+
+        var results = await _db.Users
+            .AsNoTracking()
+            .Where(u => !u.IsBlocked)
+            .Where(u => !excludedIds.Contains(u.Id))
+            .Where(u => EF.Functions.Like(u.DisplayName ?? u.Email ?? u.UserName ?? string.Empty, $"%{term}%"))
+            .OrderBy(u => u.DisplayName ?? u.Email ?? u.UserName ?? u.Id)
+            .Take(12)
+            .Select(u => new
+            {
+                u.Id,
+                Name = u.DisplayName ?? u.Email ?? u.UserName ?? u.Id,
+                u.AvatarUrl
+            })
+            .ToListAsync();
+
+        return Ok(results);
     }
 
     [HttpPost("send")]
@@ -134,7 +168,7 @@ public class FriendsController : ControllerBase
             (f.RequesterId == userId && f.AddresseeId == uid));
 
         if (fr is null) return NotFound();
-        // po odblokowaniu usuwamy relację (można od nowa dodać)
+
         _db.Friendships.Remove(fr);
         await _db.SaveChangesAsync();
         return Ok();

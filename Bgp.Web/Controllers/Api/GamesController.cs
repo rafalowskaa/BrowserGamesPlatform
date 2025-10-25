@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Bgp.Application.Dtos;
+using System.Linq;
 using Bgp.Application.Interfaces;
 using Bgp.Domain.Entities;
 using Bgp.Domain.Enums;
@@ -28,7 +29,8 @@ public class GamesController : ControllerBase
     {
         var query = _db.Games
             .Include(g => g.Reviews)
-            .AsNoTracking();
+            .AsNoTracking()
+            .Where(g => g.ApprovalStatus == GameApprovalStatus.Approved);
 
         if (!string.IsNullOrWhiteSpace(q))
             query = query.Where(g => g.Title.Contains(q));
@@ -51,7 +53,7 @@ public class GamesController : ControllerBase
             .Include(x => x.Versions)
             .Include(x => x.Reviews)
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Slug == slug);
+            .FirstOrDefaultAsync(x => x.Slug == slug && x.ApprovalStatus == GameApprovalStatus.Approved);
 
         if (g is null) return NotFound();
 
@@ -96,7 +98,7 @@ public class GamesController : ControllerBase
             Modes = dto.Modes == GameMode.None ? GameMode.Singleplayer : dto.Modes,
             CoverImagePath = coverPath,
             CreatedByUserId = userId,
-            IsPublished = true
+            ApprovalStatus = GameApprovalStatus.Pending
         };
 
         _db.Games.Add(game);

@@ -1,5 +1,6 @@
 ﻿using Bgp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 
@@ -15,6 +16,7 @@ public class GamesController : Controller
     {
         var list = await _db.Games
             .AsNoTracking()
+            .Where(g => g.ApprovalStatus == Domain.Enums.GameApprovalStatus.Approved)
             .OrderByDescending(g => g.CreatedAtUtc)
             .Select(g => new
             {
@@ -34,7 +36,7 @@ public class GamesController : Controller
     {
         var g = await _db.Games
             .Include(x => x.Versions)
-            .FirstOrDefaultAsync(x => x.Slug == slug);
+            .FirstOrDefaultAsync(x => x.Slug == slug && x.ApprovalStatus == Domain.Enums.GameApprovalStatus.Approved);
 
         if (g is null) return NotFound();
 

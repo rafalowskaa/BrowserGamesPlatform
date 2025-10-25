@@ -628,8 +628,9 @@
     </data>
 
 
-
-
+	<data name="Account_Blocked" xml:space="preserve">
+        <value>Twoje konto zostało zablokowane. Skontaktuj się z administratorem.</value>
+    </data>
 	<data name="Chat_Title" xml:space="preserve">
         
         
@@ -1849,4 +1850,292 @@
 	<data name="Auth_Register_FormSubtitle" xml:space="preserve">
         <value>Podaj kilka informacji i zacznij eksplorować.</value>
     </data>
+	<data name="Dashboard_Games_AddTab" xml:space="preserve">
+    <value>Dodaj grę</value>
+  </data>
+	<data name="Dashboard_Games_AddTitle" xml:space="preserve">
+    <value>Dodaj nową grę</value>
+  </data>
+	<data name="Dashboard_Games_AddDescription" xml:space="preserve">
+    <value>Dodaj krótki opis, okładkę oraz paczkę WebGL (.zip) ze swojego projektu Unity.</value>
+  </data>
+	<data name="Dashboard_Games_VerificationNotice" xml:space="preserve">
+    <value>Każde zgłoszenie musi zostać zatwierdzone przez administratora zanim pojawi się w katalogu.</value>
+  </data>
+	<data name="Dashboard_Games_Version" xml:space="preserve">
+    <value>Numer wersji</value>
+  </data>
+	<data name="Dashboard_Games_Package" xml:space="preserve">
+    <value>Paczka WebGL (.zip)</value>
+  </data>
+	<data name="Dashboard_Games_Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+	<data name="Dashboard_Games_Submitted" xml:space="preserve">
+    <value>Zgłoszono</value>
+  </data>
+	<data name="Dashboard_Games_Status_Pending" xml:space="preserve">
+    <value>Oczekuje na weryfikację</value>
+  </data>
+	<data name="Dashboard_Games_Status_Approved" xml:space="preserve">
+    <value>Zatwierdzono</value>
+  </data>
+	<data name="Dashboard_Games_Status_Rejected" xml:space="preserve">
+    <value>Odrzucono</value>
+  </data>
+	<data name="Dashboard_Profile_RankProgress" xml:space="preserve">
+    <value>Do kolejnego poziomu: {0} XP</value>
+  </data>
+	<data name="Dashboard_Profile_RankMax" xml:space="preserve">
+    <value>Osiągnięto najwyższą rangę</value>
+  </data>
+	<data name="Dashboard_Profile_UpdateTitle" xml:space="preserve">
+    <value>Widoczność profilu</value>
+  </data>
+	<data name="Dashboard_Profile_UpdateDescription" xml:space="preserve">
+    <value>Zadecyduj jak inni gracze widzą Cię na platformie.</value>
+  </data>
+	<data name="Dashboard_Profile_EmailTitle" xml:space="preserve">
+    <value>Zmień adres e-mail</value>
+  </data>
+	<data name="Dashboard_Profile_EmailDescription" xml:space="preserve">
+    <value>Aktualny e-mail: {0}</value>
+  </data>
+	<data name="Dashboard_Profile_PasswordTitle" xml:space="preserve">
+    <value>Zmień hasło</value>
+  </data>
+	<data name="Dashboard_Profile_PasswordDescription" xml:space="preserve">
+    <value>Dbaj o silne i unikalne hasło, aby chronić swoje konto.</value>
+  </data>
+	<data name="Dashboard_Friends_SearchHeading" xml:space="preserve">
+    <value>Wyszukaj graczy</value>
+  </data>
+	<data name="Dashboard_Friends_SearchDescription" xml:space="preserve">
+    <value>Wpisz nazwę lub e-mail i wyślij zaproszenie.</value>
+  </data>
+	<data name="Dashboard_Friends_SearchPlaceholder" xml:space="preserve">
+    <value>Zacznij wpisywać pseudonim…</value>
+  </data>
+	<data name="Dashboard_Friends_SearchButton" xml:space="preserve">
+    <value>Szukaj</value>
+  </data>
+	<data name="Dashboard_Friends_SearchEmpty" xml:space="preserve">
+    <value>Nie znaleziono graczy spełniających kryteria.</value>
+  </data>
+	<data name="Dashboard_Friends_CurrentHeading" xml:space="preserve">
+    <value>Twoi znajomi</value>
+  </data>
+	<data name="Dashboard_Friends_IncomingHeading" xml:space="preserve">
+    <value>Otrzymane zaproszenia</value>
+  </data>
+	<data name="Dashboard_Friends_OutgoingHeading" xml:space="preserve">
+    <value>Wysłane zaproszenia</value>
+  </data>
+	<data name="Dashboard_Friends_NoIncoming" xml:space="preserve">
+    <value>Brak oczekujących zaproszeń.</value>
+  </data>
+	<data name="Dashboard_Friends_NoOutgoing" xml:space="preserve">
+    <value>Nie wysłałeś jeszcze żadnych zaproszeń.</value>
+  </data>
+	<data name="Dashboard_Friends_Add" xml:space="preserve">
+    <value>Dodaj</value>
+  </data>
+	<data name="Dashboard_Friends_Accept" xml:space="preserve">
+    <value>Akceptuj</value>
+  </data>
+	<data name="Dashboard_Friends_Decline" xml:space="preserve">
+    <value>Odrzuć</value>
+  </data>
+	<data name="Dashboard_Friends_Cancel" xml:space="preserve">
+    <value>Anuluj</value>
+  </data>
+	<data name="Dashboard_Friends_Remove" xml:space="preserve">
+    <value>Usuń</value>
+  </data>
+	<data name="Dashboard_Friends_InviteToGame" xml:space="preserve">
+    <value>Zaproś do gry</value>
+  </data>
+	<data name="Dashboard_Friends_InviteMessage" xml:space="preserve">
+    <value>Zagrajmy razem!</value>
+  </data>
+	<data name="Admin_Nav_Users" xml:space="preserve">
+    <value>Użytkownicy</value>
+  </data>
+	<data name="Admin_Nav_Games" xml:space="preserve">
+    <value>Gry</value>
+  </data>
+	<data name="Admin_Nav_Reports" xml:space="preserve">
+    <value>Zgłoszenia</value>
+  </data>
+	<data name="Admin_Users_Title" xml:space="preserve">
+    <value>Zarządzanie użytkownikami</value>
+  </data>
+	<data name="Admin_Users_Subtitle" xml:space="preserve">
+    <value>Przeglądaj społeczność, aktualizuj dane i reaguj na naruszenia.</value>
+  </data>
+	<data name="Admin_Users_SearchPlaceholder" xml:space="preserve">
+    <value>Szukaj po nazwie lub e-mailu</value>
+  </data>
+	<data name="Admin_Users_SearchButton" xml:space="preserve">
+    <value>Szukaj</value>
+  </data>
+	<data name="Admin_Users_Table_Name" xml:space="preserve">
+    <value>Nazwa wyświetlana</value>
+  </data>
+	<data name="Admin_Users_Table_Email" xml:space="preserve">
+    <value>E-mail</value>
+  </data>
+	<data name="Admin_Users_Table_Created" xml:space="preserve">
+    <value>Data rejestracji</value>
+  </data>
+	<data name="Admin_Users_Table_Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+	<data name="Admin_Users_Table_Actions" xml:space="preserve">
+    <value>Akcje</value>
+  </data>
+	<data name="Admin_Users_Save" xml:space="preserve">
+    <value>Zapisz</value>
+  </data>
+	<data name="Admin_Users_Status_Active" xml:space="preserve">
+    <value>Aktywny</value>
+  </data>
+	<data name="Admin_Users_Status_Blocked" xml:space="preserve">
+    <value>Zablokowany</value>
+  </data>
+	<data name="Admin_Users_AdminBadge" xml:space="preserve">
+    <value>Administrator</value>
+  </data>
+	<data name="Admin_Users_Block" xml:space="preserve">
+    <value>Zablokuj</value>
+  </data>
+	<data name="Admin_Users_Unblock" xml:space="preserve">
+    <value>Odblokuj</value>
+  </data>
+	<data name="Admin_Users_Delete" xml:space="preserve">
+    <value>Usuń</value>
+  </data>
+	<data name="Admin_Users_Delete_Confirm" xml:space="preserve">
+    <value>Na pewno chcesz usunąć tego użytkownika? Operacji nie można cofnąć.</value>
+  </data>
+	<data name="Admin_Users_AdminProtected" xml:space="preserve">
+    <value>Konta administracyjne są chronione.</value>
+  </data>
+	<data name="Admin_Users_Empty" xml:space="preserve">
+    <value>Brak użytkowników spełniających warunki.</value>
+  </data>
+	<data name="Admin_Users_Validation" xml:space="preserve">
+    <value>Podaj poprawne dane użytkownika.</value>
+  </data>
+	<data name="Admin_Users_NotFound" xml:space="preserve">
+    <value>Wybrany użytkownik już nie istnieje.</value>
+  </data>
+	<data name="Admin_Users_Update_Error" xml:space="preserve">
+    <value>Nie udało się zaktualizować użytkownika.</value>
+  </data>
+	<data name="Admin_Users_Update_Success" xml:space="preserve">
+    <value>Dane użytkownika zapisane.</value>
+  </data>
+	<data name="Admin_Users_Block_Success" xml:space="preserve">
+    <value>Użytkownik został zablokowany.</value>
+  </data>
+	<data name="Admin_Users_Unblock_Success" xml:space="preserve">
+    <value>Użytkownik został odblokowany.</value>
+  </data>
+	<data name="Admin_Users_Delete_Success" xml:space="preserve">
+    <value>Użytkownik został usunięty.</value>
+  </data>
+	<data name="Admin_Users_Delete_Error" xml:space="preserve">
+    <value>Nie udało się usunąć użytkownika.</value>
+  </data>
+	<data name="Admin_Users_CannotBlockAdmin" xml:space="preserve">
+    <value>Nie możesz zablokować administratora.</value>
+  </data>
+	<data name="Admin_Users_CannotBlockSelf" xml:space="preserve">
+    <value>Nie możesz zablokować własnego konta.</value>
+  </data>
+	<data name="Admin_Users_CannotDeleteAdmin" xml:space="preserve">
+    <value>Nie możesz usunąć administratora.</value>
+  </data>
+	<data name="Admin_Games_Title" xml:space="preserve">
+    <value>Weryfikacja gier</value>
+  </data>
+	<data name="Admin_Games_Subtitle" xml:space="preserve">
+    <value>Sprawdzaj nowe gry i decyduj czy trafią do katalogu.</value>
+  </data>
+	<data name="Admin_Games_Filter_Label" xml:space="preserve">
+    <value>Status</value>
+  </data>
+	<data name="Admin_Games_Filter_All" xml:space="preserve">
+    <value>Wszystkie</value>
+  </data>
+	<data name="Admin_Games_Filter_Apply" xml:space="preserve">
+    <value>Zastosuj</value>
+  </data>
+	<data name="Admin_Games_Table_Owner" xml:space="preserve">
+    <value>Autor</value>
+  </data>
+	<data name="Admin_Games_Table_Actions" xml:space="preserve">
+    <value>Moderacja</value>
+  </data>
+	<data name="Admin_Games_Approve" xml:space="preserve">
+    <value>Zatwierdź</value>
+  </data>
+	<data name="Admin_Games_Reject" xml:space="preserve">
+    <value>Odrzuć</value>
+  </data>
+	<data name="Admin_Games_Reject_Notes" xml:space="preserve">
+    <value>Powód (opcjonalnie)</value>
+  </data>
+	<data name="Admin_Games_Reject_Submit" xml:space="preserve">
+    <value>Wyślij decyzję</value>
+  </data>
+	<data name="Admin_Games_Empty" xml:space="preserve">
+    <value>Brak gier wymagających decyzji.</value>
+  </data>
+	<data name="Admin_Games_NotFound" xml:space="preserve">
+    <value>Nie znaleziono gry.</value>
+  </data>
+	<data name="Admin_Games_Approve_Success" xml:space="preserve">
+    <value>Gra została zatwierdzona.</value>
+  </data>
+	<data name="Admin_Games_Reject_Success" xml:space="preserve">
+    <value>Gra została odrzucona.</value>
+  </data>
+	<data name="Admin_Games_Validation" xml:space="preserve">
+    <value>Podaj powód krótszy niż 500 znaków.</value>
+  </data>
+	<data name="Policy_Title" xml:space="preserve">
+    <value>Polityka platformy</value>
+  </data>
+	<data name="Policy_Intro" xml:space="preserve">
+    <value>Chcemy, aby Browser Games Platform była bezpiecznym i inspirującym miejscem. Poniżej znajdziesz zasady, które nam w tym pomagają.</value>
+  </data>
+	<data name="Policy_Section_Data" xml:space="preserve">
+    <value>Jakie dane przetwarzamy?</value>
+  </data>
+	<data name="Policy_Point_Profile" xml:space="preserve">
+    <value>Dane profilu takie jak pseudonim, avatar i adres e-mail.</value>
+  </data>
+	<data name="Policy_Point_Content" xml:space="preserve">
+    <value>Gry, zrzuty ekranu i inne materiały, które publikujesz.</value>
+  </data>
+	<data name="Policy_Point_Security" xml:space="preserve">
+    <value>Informacje bezpieczeństwa pozwalające wykrywać nadużycia i spam.</value>
+  </data>
+	<data name="Policy_Section_Moderation" xml:space="preserve">
+    <value>Moderacja i weryfikacja</value>
+  </data>
+	<data name="Policy_Text_Moderation" xml:space="preserve">
+    <value>Każda nowa gra trafia do administratora. Odrzucamy treści naruszające prawo, zawierające złośliwe oprogramowanie lub łamiące prawa autorskie.</value>
+  </data>
+	<data name="Policy_Section_Contact" xml:space="preserve">
+    <value>Potrzebujesz pomocy?</value>
+  </data>
+	<data name="Policy_Text_Contact" xml:space="preserve">
+    <value>Skontaktuj się z nami pod adresem support@browsergames.local, jeśli zauważysz nieprawidłowości.</value>
+  </data>
+	<data name="Auth_Login_PolicyHint" xml:space="preserve">
+    <value>Logując się akceptujesz naszą <a href="{0}">politykę platformy</a>.</value>
+  </data>
 </root>

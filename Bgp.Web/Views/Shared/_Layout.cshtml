@@ -39,7 +39,7 @@
                         <a class="nav-tab" href="/swagger">@L["Navigation_Api"].Value</a>
                         @if (User.IsInRole("Admin"))
                         {
-                            <a class="nav-tab" asp-controller="AdminUi" asp-action="Reports">@L["Navigation_Admin"].Value</a>
+                            <a class="nav-tab" asp-controller="AdminUi" asp-action="Users">@L["Navigation_Admin"].Value</a>
                         }
                     }
                     else

@@ -132,6 +132,18 @@
         try { await connection.start(); } catch { /* ignore */ }
     }
 
+    // expose helpers for dashboard actions
+    window.bgpChat = {
+        open: openChat,
+        openWithMessage: async (userId, displayName, message) => {
+            await openChat(userId, displayName);
+            if (message) {
+                msgInput.value = message;
+                msgInput.focus();
+            }
+        }
+    };
+
     // start
     loadFriends();
     startSignalR();

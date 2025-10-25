@@ -1,7 +1,6 @@
 ﻿using Bgp.Domain.Abstractions;
 using Bgp.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace Bgp.Domain.Entities;
 
@@ -26,7 +25,12 @@ public class Game : IAggregateRoot
     [Required]
     public string CreatedByUserId { get; set; } = string.Empty;
 
-    public bool IsPublished { get; set; } = true;
+    public GameApprovalStatus ApprovalStatus { get; set; } = GameApprovalStatus.Pending;
+
+    [MaxLength(500)]
+    public string? ModerationNotes { get; set; }
+
+    public DateTime? ApprovedAtUtc { get; set; }
 
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAtUtc { get; set; }

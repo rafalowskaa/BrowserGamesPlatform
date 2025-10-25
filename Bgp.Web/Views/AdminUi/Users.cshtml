@@ -1,0 +1,129 @@
+﻿@using System.Linq
+@using System.Security.Claims
+@model AdminUsersViewModel
+@{
+    ViewData["Title"] = L["Admin_Users_Title"].Value;
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+
+<section class="admin-section">
+    <nav class="admin-nav">
+        <a class="admin-nav__item active" asp-action="Users">@L["Admin_Nav_Users"].Value</a>
+        <a class="admin-nav__item" asp-action="Games">@L["Admin_Nav_Games"].Value</a>
+        <a class="admin-nav__item" asp-action="Reports">@L["Admin_Nav_Reports"].Value</a>
+    </nav>
+
+    <header class="admin-header">
+        <div>
+            <h1>@L["Admin_Users_Title"].Value</h1>
+            <p>@L["Admin_Users_Subtitle"].Value</p>
+        </div>
+        <form method="get" class="admin-search">
+            <input type="search" name="search" value="@Model.Search" placeholder="@L["Admin_Users_SearchPlaceholder"].Value" />
+            <button class="btn-primary btn-compact" type="submit">@L["Admin_Users_SearchButton"].Value</button>
+        </form>
+    </header>
+
+    @if (!string.IsNullOrEmpty(Model.SuccessKey))
+    {
+        <div class="alert success">@L[Model.SuccessKey].Value</div>
+    }
+    else if (!string.IsNullOrEmpty(Model.ErrorKey))
+    {
+        <div class="alert error">@L[Model.ErrorKey].Value</div>
+    }
+
+    <div class="table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>@L["Admin_Users_Table_Name"].Value</th>
+                    <th>@L["Admin_Users_Table_Email"].Value</th>
+                    <th>@L["Admin_Users_Table_Created"].Value</th>
+                    <th>@L["Admin_Users_Table_Status"].Value</th>
+                    <th class="min">@L["Admin_Users_Table_Actions"].Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Users.Any())
+                {
+                    foreach (var user in Model.Users)
+                    {
+                        var isCurrent = string.Equals(user.Id, currentUserId, StringComparison.Ordinal);
+                        <tr>
+                            <td>
+                                <form asp-action="UpdateUser" method="post" class="admin-inline-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="Id" value="@user.Id" />
+                                    <input type="hidden" name="Email" value="@user.Email" />
+                                    <input type="text" name="DisplayName" value="@user.DisplayName" maxlength="120" />
+                                    <button class="btn-primary btn-small" type="submit">@L["Admin_Users_Save"].Value</button>
+                                </form>
+                            </td>
+                            <td>
+                                <form asp-action="UpdateUser" method="post" class="admin-inline-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="Id" value="@user.Id" />
+                                    <input type="hidden" name="DisplayName" value="@user.DisplayName" />
+                                    <input type="email" name="Email" value="@user.Email" />
+                                    <button class="btn-primary btn-small" type="submit">@L["Admin_Users_Save"].Value</button>
+                                </form>
+                            </td>
+                            <td>@user.CreatedAtUtc.ToLocalTime().ToString("g")</td>
+                            <td>
+                                <span class="status-pill @(user.IsBlocked ? "status-rejected" : "status-approved")">
+                                    @(user.IsBlocked? L["Admin_Users_Status_Blocked"].Value : L["Admin_Users_Status_Active"].Value)
+                                </span>
+                                @if (user.IsAdmin)
+                                {
+                                    <span class="badge subtle">@L["Admin_Users_AdminBadge"].Value</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="admin-actions">
+                                    @if (!user.IsAdmin)
+                                    {
+                                        if (user.IsBlocked)
+                                        {
+                                            <form asp-action="UnblockUser" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@user.Id" />
+                                                <button class="btn-ghost btn-small" type="submit">@L["Admin_Users_Unblock"].Value</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <form asp-action="BlockUser" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@user.Id" />
+                                                <button class="btn-ghost btn-small" type="submit">@L["Admin_Users_Block"].Value</button>
+                                            </form>
+                                        }
+                                        if (!isCurrent)
+                                        {
+                                            <form asp-action="DeleteUser" method="post" onsubmit="return confirm('@L["Admin_Users_Delete_Confirm"].Value');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@user.Id" />
+                                                <button class="btn-danger btn-small" type="submit">@L["Admin_Users_Delete"].Value</button>
+                                            </form>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="muted">@L["Admin_Users_AdminProtected"].Value</span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="empty">@L["Admin_Users_Empty"].Value</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

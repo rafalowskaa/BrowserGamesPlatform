@@ -37,14 +37,24 @@ public class AccountController : Controller
             return View(vm);
         }
 
+        ApplicationUser? signInUser = null;
         var userName = identifier;
         if (identifier.Contains('@'))
         {
             var byEmail = await _users.FindByEmailAsync(identifier);
             if (byEmail is not null)
             {
+                signInUser = byEmail;
                 userName = byEmail.UserName ?? byEmail.Email ?? identifier;
             }
+        }
+
+        signInUser ??= await _users.FindByNameAsync(userName);
+
+        if (signInUser is not null && signInUser.IsBlocked)
+        {
+            ModelState.AddModelError(string.Empty, _localizer["Account_Blocked"]);
+            return View(vm);
         }
 
         var res = await _signIn.PasswordSignInAsync(userName, vm.Password, vm.RememberMe, lockoutOnFailure: true);
