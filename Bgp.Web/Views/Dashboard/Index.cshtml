@@ -58,9 +58,19 @@
             includeProfileScripts = true;
             var selectedProfilePanel = (ViewData["ProfilePanel"] as string ?? "info").ToLowerInvariant();
             <section class="dashboard-panel profile-panel">
+                @{
+                    var rank = Model.Profile.Rank;
+                    var nextAccentColor = rank.NextAccentColor ?? rank.AccentColor;
+                    var nextAccentHighlight = rank.NextAccentHighlightColor ?? rank.AccentHighlightColor;
+                    var nextAccentGlow = rank.NextAccentGlowColor ?? rank.AccentGlowColor;
+                }
                 <div class="profile-hero">
-                    <div class="profile-hero__trophy profile-hero__trophy--left">
-                        <span>@Model.Profile.Rank.DisplayName</span>
+                    <div class="profile-hero__trophy profile-hero__trophy--left" style="--trophy-color:@rank.AccentColor; --trophy-highlight:@rank.AccentHighlightColor; --trophy-glow:@rank.AccentGlowColor;">
+                        @if (!string.IsNullOrEmpty(rank.TrophyImage))
+                        {
+                            <img src="@rank.TrophyImage" alt="@rank.DisplayName" class="profile-hero__trophy-image" />
+                        }
+                        <span>@rank.DisplayName</span>
                     </div>
                     <div class="profile-hero__center">
                         <div class="profile-avatar-frame">
@@ -73,12 +83,17 @@
                                 <span class="profile-avatar-frame__placeholder">@L["Dashboard_Profile_NoAvatar"].Value</span>
                             }
                         </div>
-                        <h2 class="profile-hero__name">@Model.Profile.DisplayName</h2>
+                        <div class="profile-hero__identity">
+                            <h2 class="profile-hero__name">@Model.Profile.DisplayName</h2>
+                            <span class="profile-hero__rank-badge" style="--rank-color:@rank.AccentColor; --rank-highlight:@rank.AccentHighlightColor; --rank-glow:@rank.AccentGlowColor;">
+                                <span>@rank.DisplayName</span>
+                            </span>
+                        </div>
                         @if (Model.Profile.IsBirthdayToday)
                         {
                              <span class="profile-hero__birthday">@L["Dashboard_Profile_Birthday_Today"].Value</span>
                         }
-                    <div class="profile-progress">
+                        <div class="profile-progress" style="--rank-accent:@rank.AccentColor; --rank-highlight:@rank.AccentHighlightColor; --rank-glow:@rank.AccentGlowColor;">
                             <div class="profile-progress__track">
                                 <div class="profile-progress__fill" style="width:@Model.Profile.Rank.ProgressPercent%"></div>
                             </div>
@@ -90,8 +105,16 @@
                         </div>
                         
                     </div>
-                    <div class="profile-hero__trophy profile-hero__trophy--right">
-                        <span>@(Model.Profile.Rank.NextDisplayName ?? L["Dashboard_Profile_Rank_Max"].Value)</span>
+                    <div class="profile-hero__trophy profile-hero__trophy--right" style="--trophy-color:@nextAccentColor; --trophy-highlight:@nextAccentHighlight; --trophy-glow:@nextAccentGlow;">
+                        @if (!string.IsNullOrEmpty(rank.NextTrophyImage))
+                        {
+                            <img src="@rank.NextTrophyImage" alt="@(rank.NextDisplayName ?? L["Dashboard_Profile_Rank_Max"].Value)" class="profile-hero__trophy-image" />
+                        }
+                        else if (!string.IsNullOrEmpty(rank.TrophyImage))
+                        {
+                            <img src="@rank.TrophyImage" alt="@rank.DisplayName" class="profile-hero__trophy-image profile-hero__trophy-image--muted" />
+                        }
+                        <span>@(rank.NextDisplayName ?? L["Dashboard_Profile_Rank_Max"].Value)</span>
                     </div>
                 </div>
 

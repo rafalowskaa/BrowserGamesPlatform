@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Text;
 using Bgp.Domain.Entities;
 using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Identity;
@@ -45,6 +46,9 @@ public class DashboardController : Controller
 
     private readonly record struct RankStage(string Tier, string? Division, int Threshold);
     private static readonly IReadOnlyList<RankStage> RankTable = BuildRankTable();
+    private readonly record struct TrophyVisual(string ImagePath, string BaseColor, string HighlightColor);
+    private static readonly TrophyVisual DefaultTrophyVisual = new("/img/trophies/silver.png", "#94a3b8", "#e2e8f0");
+    private static readonly IReadOnlyDictionary<string, TrophyVisual> TrophyVisuals = BuildTrophyVisuals();
 
     public DashboardController(
         UserManager<ApplicationUser> users,
@@ -469,6 +473,81 @@ public class DashboardController : Controller
             FriendsCount = friendVms.Count
         };
 
+        var userScoreGroups = await _db.Scores
+            .AsNoTracking()
+            .Where(s => s.UserId == user.Id)
+            .GroupBy(s => s.GameId)
+            .Select(g => new
+            {
+                GameId = g.Key,
+                PlayCount = g.Count(),
+                BestScore = g.Max(x => x.Value),
+                LastPlayedAt = g.Max(x => x.SubmittedAtUtc)
+            })
+            .ToListAsync();
+
+        if (userScoreGroups.Count > 0)
+        {
+            var gameIds = userScoreGroups.Select(g => g.GameId).ToArray();
+
+            var gameTitles = await _db.Games
+                .AsNoTracking()
+                .Where(g => gameIds.Contains(g.Id))
+                .Select(g => new { g.Id, g.Title })
+                .ToDictionaryAsync(g => g.Id, g => g.Title);
+
+            var bestScores = await _db.Scores
+                .AsNoTracking()
+                .Where(s => gameIds.Contains(s.GameId))
+                .GroupBy(s => new { s.GameId, s.UserId })
+                .Select(g => new
+                {
+                    g.Key.GameId,
+                    g.Key.UserId,
+                    BestScore = g.Max(x => x.Value)
+                })
+                .ToListAsync();
+
+            var performances = new List<GamePerformanceStat>(userScoreGroups.Count);
+
+            foreach (var userGame in userScoreGroups)
+            {
+                var scoreboard = bestScores
+                    .Where(bs => bs.GameId == userGame.GameId)
+                    .OrderByDescending(bs => bs.BestScore)
+                    .ToList();
+
+                var totalPlayers = Math.Max(1, scoreboard.Count);
+                var rankPosition = scoreboard.FindIndex(bs => bs.UserId == user.Id) + 1;
+                if (rankPosition <= 0)
+                {
+                    rankPosition = totalPlayers;
+                }
+
+                var title = gameTitles.TryGetValue(userGame.GameId, out var name) ? name ?? string.Empty : string.Empty;
+
+                performances.Add(new GamePerformanceStat(
+                    userGame.GameId,
+                    title,
+                    userGame.PlayCount,
+                    userGame.BestScore,
+                    rankPosition,
+                    totalPlayers,
+                    userGame.LastPlayedAt));
+            }
+
+            if (performances.Count > 0)
+            {
+                stats.GamePerformances = performances;
+                stats.LastScoreSubmittedAt = performances.Max(p => p.LastPlayedAt);
+            }
+        }
+
+        if (stats.LastScoreSubmittedAt is null && userScoreGroups.Count > 0)
+        {
+            stats.LastScoreSubmittedAt = userScoreGroups.Max(g => g.LastPlayedAt);
+        }
+
         var rank = CalculateRank(stats);
 
         var bestGameProjection = await _db.Scores
@@ -668,22 +747,182 @@ public class DashboardController : Controller
             }
         }
 
-        AddTier("Żelazo", 120, "IV", "III", "II", "I");
-        AddTier("Brąz", 140, "IV", "III", "II", "I");
-        AddTier("Srebro", 160, "IV", "III", "II", "I");
-        AddTier("Złoto", 180, "IV", "III", "II", "I");
-        AddTier("Platyna", 210, "IV", "III", "II", "I");
-        AddTier("Szmaragd", 240, "IV", "III", "II", "I");
-        AddTier("Diament", 280, "IV", "III", "II", "I");
-        AddTier("Mistrz", 320);
-        AddTier("Arcymistrz", 360);
+        AddTier("Drewno", 90, "IV", "III", "II", "I");
+        AddTier("Brąz", 130, "IV", "III", "II", "I");
+        AddTier("Srebro", 170, "IV", "III", "II", "I");
+        AddTier("Złoto", 220, "IV", "III", "II", "I");
+        AddTier("Platyna", 270, "IV", "III", "II", "I");
+        AddTier("Szmaragd", 330, "IV", "III", "II", "I");
+        AddTier("Diament", 400, "IV", "III", "II", "I");
+        AddTier("Mistrz", 520);
+        AddTier("Arcymistrz", 650);
         AddTier("Pretendent", 0);
 
         return stages;
     }
 
-    private static int CalculateTotalExperience(DashboardStatsViewModel stats) =>
-        stats.UploadedGames * 120 + stats.TotalScores * 30 + stats.TotalReviews * 45 + stats.FriendsCount * 25;
+    private static ProfileRankViewModel PopulateRankVisuals(ProfileRankViewModel rank)
+    {
+        var current = ResolveTrophyVisual(rank.Tier);
+        rank.AccentColor = current.BaseColor;
+        rank.AccentHighlightColor = current.HighlightColor;
+        rank.AccentGlowColor = HexToRgba(current.HighlightColor, 0.45d);
+        rank.TrophyImage = current.ImagePath;
+
+        if (!string.IsNullOrWhiteSpace(rank.NextTier))
+        {
+            var next = ResolveTrophyVisual(rank.NextTier);
+            rank.NextAccentColor = next.BaseColor;
+            rank.NextAccentHighlightColor = next.HighlightColor;
+            rank.NextAccentGlowColor = HexToRgba(next.HighlightColor, 0.45d);
+            rank.NextTrophyImage = next.ImagePath;
+        }
+        else
+        {
+            rank.NextTrophyImage = null;
+            rank.NextAccentColor = null;
+            rank.NextAccentHighlightColor = null;
+            rank.NextAccentGlowColor = null;
+        }
+
+        return rank;
+    }
+
+    private static TrophyVisual ResolveTrophyVisual(string? tier)
+    {
+        if (string.IsNullOrWhiteSpace(tier))
+        {
+            return DefaultTrophyVisual;
+        }
+
+        var key = NormalizeTierKey(tier);
+        return TrophyVisuals.TryGetValue(key, out var visual) ? visual : DefaultTrophyVisual;
+    }
+
+    private static IReadOnlyDictionary<string, TrophyVisual> BuildTrophyVisuals()
+    {
+        var visuals = new Dictionary<string, TrophyVisual>
+        {
+            ["drewno"] = new("/img/trophies/wood.png", "#b45309", "#f59e0b"),
+            ["braz"] = new("/img/trophies/bronze.png", "#cd7f32", "#f97316"),
+            ["srebro"] = new("/img/trophies/silver.png", "#94a3b8", "#e2e8f0"),
+            ["zloto"] = new("/img/trophies/gold.png", "#f59e0b", "#fde68a"),
+            ["platyna"] = new("/img/trophies/platinum.png", "#38bdf8", "#5eead4"),
+            ["szmaragd"] = new("/img/trophies/emerald.png", "#10b981", "#34d399"),
+            ["diament"] = new("/img/trophies/diamond.png", "#60a5fa", "#a855f7"),
+            ["mistrz"] = new("/img/trophies/master.png", "#a855f7", "#f472b6"),
+            ["arcymistrz"] = new("/img/trophies/grandmaster.png", "#f97316", "#fb7185"),
+            ["pretendent"] = new("/img/trophies/challenger.png", "#facc15", "#fbbf24")
+        };
+
+        visuals["wood"] = visuals["drewno"];
+        visuals["zelazo"] = visuals["drewno"];
+        visuals["iron"] = visuals["drewno"];
+        visuals["bronze"] = visuals["braz"];
+        visuals["silver"] = visuals["srebro"];
+        visuals["gold"] = visuals["zloto"];
+        visuals["platinum"] = visuals["platyna"];
+        visuals["emerald"] = visuals["szmaragd"];
+        visuals["diamond"] = visuals["diament"];
+        visuals["master"] = visuals["mistrz"];
+        visuals["grandmaster"] = visuals["arcymistrz"];
+        visuals["challenger"] = visuals["pretendent"];
+
+        return visuals;
+    }
+
+    private static string NormalizeTierKey(string value)
+    {
+        var normalized = value.Normalize(NormalizationForm.FormD);
+        var builder = new StringBuilder(normalized.Length);
+
+        foreach (var ch in normalized)
+        {
+            var category = CharUnicodeInfo.GetUnicodeCategory(ch);
+            if (category == UnicodeCategory.NonSpacingMark)
+            {
+                continue;
+            }
+
+            if (!char.IsWhiteSpace(ch))
+            {
+                builder.Append(char.ToLowerInvariant(ch));
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    private static string HexToRgba(string hex, double alpha)
+    {
+        if (string.IsNullOrWhiteSpace(hex))
+        {
+            return $"rgba(148, 163, 184, {alpha.ToString(CultureInfo.InvariantCulture)})";
+        }
+
+        var sanitized = hex.TrimStart('#');
+        if (sanitized.Length == 3)
+        {
+            sanitized = string.Concat(sanitized.Select(c => new string(c, 2)));
+        }
+
+        if (sanitized.Length != 6)
+        {
+            return $"rgba(148, 163, 184, {alpha.ToString(CultureInfo.InvariantCulture)})";
+        }
+
+        var r = int.Parse(sanitized[..2], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+        var g = int.Parse(sanitized.Substring(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+        var b = int.Parse(sanitized.Substring(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+
+        return $"rgba({r}, {g}, {b}, {alpha.ToString(CultureInfo.InvariantCulture)})";
+    }
+
+    private static int CalculateTotalExperience(DashboardStatsViewModel stats)
+    {
+        var xpFromGames = 0d;
+
+        foreach (var game in stats.GamePerformances)
+        {
+            var participants = Math.Max(1, game.TotalPlayers);
+            var percentile = participants == 1
+                ? 1d
+                : 1d - (game.RankPosition - 1d) / participants;
+
+            var volumeBoost = Math.Clamp(Math.Log10(game.TotalMatches + 1d) + 0.2d, 0.55d, 1.6d);
+            var skillMultiplier = 0.55d + percentile * 0.45d;
+
+            xpFromGames += 85d * skillMultiplier * volumeBoost;
+        }
+
+        var engagementXp = stats.UploadedGames * 140 + stats.TotalReviews * 30 + stats.FriendsCount * 15;
+        var activityXp = Math.Min(stats.TotalScores * 6, 360);
+
+        var totalXp = xpFromGames + engagementXp + activityXp;
+
+        if (stats.LastScoreSubmittedAt is DateTime lastPlayed)
+        {
+            var inactivityDays = (DateTime.UtcNow - lastPlayed).TotalDays;
+            if (inactivityDays > 5)
+            {
+                var penalty = Math.Min(totalXp * 0.4d, ((inactivityDays - 5d) / 4d) * 60d);
+                totalXp -= penalty;
+            }
+        }
+        else if (totalXp > 0)
+        {
+            totalXp *= 0.6d;
+        }
+
+        if (stats.GamePerformances.Count == 0)
+        {
+            totalXp -= 120d;
+        }
+
+        totalXp = Math.Max(0d, totalXp);
+
+        return (int)Math.Round(totalXp);
+    }
 
     private static ProfileRankViewModel CalculateRank(DashboardStatsViewModel stats)
     {
@@ -711,7 +950,7 @@ public class DashboardController : Controller
         var xpToNext = nextStage is null ? 0 : Math.Max(0, nextThreshold - xp);
         var progress = nextStage is null ? 100 : Math.Clamp((int)Math.Round((double)xpIntoCurrent / window * 100), 0, 100);
 
-        return new ProfileRankViewModel
+        var rank = new ProfileRankViewModel
         {
             Tier = currentStage.Tier,
             Division = currentStage.Division,
@@ -724,6 +963,7 @@ public class DashboardController : Controller
             XpRequiredForNext = xpToNext,
             ProgressPercent = progress
         };
+        return PopulateRankVisuals(rank);
     }
 
     private static bool IsBirthdayToday(DateTime? birthDate)

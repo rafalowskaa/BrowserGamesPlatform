@@ -52,6 +52,14 @@ public class ProfileRankViewModel
     public int XpIntoCurrent { get; set; }
     public int XpRequiredForNext { get; set; }
     public int ProgressPercent { get; set; }
+    public string AccentColor { get; set; } = "#38bdf8";
+    public string AccentHighlightColor { get; set; } = "#a855f7";
+    public string AccentGlowColor { get; set; } = "rgba(56,189,248,0.45)";
+    public string? TrophyImage { get; set; }
+    public string? NextTrophyImage { get; set; }
+    public string? NextAccentColor { get; set; }
+    public string? NextAccentHighlightColor { get; set; }
+    public string? NextAccentGlowColor { get; set; }
 
     public string DisplayName => string.IsNullOrWhiteSpace(Division) ? Tier : $"{Tier} {Division}";
     public string? NextDisplayName => NextTier is null && NextDivision is null
@@ -81,7 +89,18 @@ public class DashboardStatsViewModel
     public int TotalScores { get; set; }
     public int TotalReviews { get; set; }
     public int FriendsCount { get; set; }
+    public IReadOnlyList<GamePerformanceStat> GamePerformances { get; set; } = Array.Empty<GamePerformanceStat>();
+    public DateTime? LastScoreSubmittedAt { get; set; }
 }
+
+public record GamePerformanceStat(
+    Guid GameId,
+    string Title,
+    int TotalMatches,
+    double BestScore,
+    int RankPosition,
+    int TotalPlayers,
+    DateTime LastPlayedAt);
 
 public class CreateGameFormViewModel
 {
