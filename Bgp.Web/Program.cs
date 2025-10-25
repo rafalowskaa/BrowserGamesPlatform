@@ -3,10 +3,13 @@ using System.Text;
 using Bgp.Infrastructure.Extensions;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Hubs;
+using Bgp.Web.Localization;
+using Bgp.Web.Resources;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -15,6 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Lokalizacja (PL/EN)
 builder.Services.AddLocalization(o => o.ResourcesPath = "Resources");
+builder.Services.AddSingleton<IStringLocalizer<SharedResource>>(_ => SharedResourceLocalizer.Create());
 
 // MVC + Razor Pages (Identity UI)
 builder.Services.AddControllersWithViews()
