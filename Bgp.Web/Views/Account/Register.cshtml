@@ -2,33 +2,46 @@
 @{
     ViewData["Title"] = L["Auth_Register_Title"].Value;
 }
-<section class="auth">
-    <div class="auth-card">
+<section class="auth auth--register">
+    <div class="auth-hero">
+        <span class="eyebrow">@L["Auth_Register_Eyebrow"].Value</span>
         <h1>@L["Auth_Register_Heading"].Value</h1>
+        <p class="auth-hero__lead">@L["Auth_Register_Tagline"].Value</p>
+        <ul class="auth-hero__features">
+            <li>@L["Auth_Register_Feature_Create"].Value</li>
+            <li>@L["Auth_Register_Feature_Share"].Value</li>
+            <li>@L["Auth_Register_Feature_Grow"].Value</li>
+        </ul>
+        <div class="auth-hero__cta">
+            <span>@L["Auth_Register_HaveAccount"].Value</span>
+            <a class="btn-outline" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">@L["Auth_Register_Back"].Value</a>
+        </div>
+    </div>
+    <div class="auth-card">
+        <div class="auth-card__header">
+            <h2>@L["Auth_Register_FormTitle"].Value</h2>
+            <p>@L["Auth_Register_FormSubtitle"].Value</p>
+        </div>
         <div asp-validation-summary="ModelOnly" class="val-summary"></div>
-        <form asp-action="Register" method="post">
+        <form asp-action="Register" method="post" class="form-vertical">
             <input type="hidden" asp-for="ReturnUrl" />
-            <label>@L["Auth_Register_Login"].Value</label>
-            <input asp-for="Login" autocomplete="username" />
+            <label for="RegisterLogin">@L["Auth_Register_Login"].Value</label>
+            <input asp-for="Login" id="RegisterLogin" autocomplete="username" />
             <span asp-validation-for="Login" class="val"></span>
 
-            <label>@L["Auth_Register_Email"].Value</label>
-            <input asp-for="Email" type="email" autocomplete="email" />
+            <label for="RegisterEmail">@L["Auth_Register_Email"].Value</label>
+            <input asp-for="Email" id="RegisterEmail" type="email" autocomplete="email" />
             <span asp-validation-for="Email" class="val"></span>
 
-            <label>@L["Auth_Register_Password"].Value</label>
-            <input asp-for="Password" type="password" autocomplete="new-password" />
+            <label for="RegisterPassword">@L["Auth_Register_Password"].Value</label>
+            <input asp-for="Password" id="RegisterPassword" type="password" autocomplete="new-password" />
             <span asp-validation-for="Password" class="val"></span>
 
-            <label>@L["Auth_Register_ConfirmPassword"].Value</label>
-            <input asp-for="ConfirmPassword" type="password" autocomplete="new-password" />
+            <label for="RegisterConfirm">@L["Auth_Register_ConfirmPassword"].Value</label>
+            <input asp-for="ConfirmPassword" id="RegisterConfirm" type="password" autocomplete="new-password" />
             <span asp-validation-for="ConfirmPassword" class="val"></span>
 
-            <div class="auth-actions">
-                <a class="btn-outline" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">@L["Auth_Register_Back"].Value</a>
-                <button class="btn-primary" type="submit">@L["Auth_Register_Create"].Value</button>
-            </div>
+            <button class="btn-primary" type="submit">@L["Auth_Register_Create"].Value</button>
         </form>
     </div>
-    <div class="auth-sideimg"></div>
 </section>

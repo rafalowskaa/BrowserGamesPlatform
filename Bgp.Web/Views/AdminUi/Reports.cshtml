@@ -1,30 +1,133 @@
-﻿@model IEnumerable<Bgp.Domain.Entities.Report>
+﻿@using System.Linq
+@using Bgp.Domain.Enums
+@model Bgp.Web.Models.AdminReportsViewModel
 @{
     ViewData["Title"] = L["Admin_Reports_Title"].Value;
+    var successKey = TempData["AdminReportsSuccess"] as string;
+    var errorKey = TempData["AdminReportsError"] as string;
+    var successMessage = successKey is null ? null : L[successKey].Value;
+    var errorMessage = errorKey is null ? null : L[errorKey].Value;
+    var statuses = Enum.GetValues<ReportStatus>();
+    string GetStatusLabel(ReportStatus status) => L[$"Admin_Reports_Status_{status}"].Value;
 }
 <h2>@L["Admin_Reports_Heading"].Value</h2>
-<table class="panel">
-    <thead>
-        <tr>
-            <th>@L["Admin_Reports_Date"].Value</th>
-            <th>@L["Admin_Reports_Reporter"].Value</th>
-            <th>@L["Admin_Reports_Target"].Value</th>
-            <th>@L["Admin_Reports_Category"].Value</th>
-            <th>@L["Admin_Reports_Description"].Value</th>
-            <th>@L["Admin_Reports_Status"].Value</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var r in Model)
-        {
-            <tr>
-                <td>@r.CreatedAtUtc.ToLocalTime()</td>
-                <td>@r.ReporterUserId</td>
-                <td>@r.TargetUserId</td>
-                <td>@r.Category</td>
-                <td>@r.Description</td>
-                <td>@r.Status</td>
-            </tr>
-        }
-    </tbody>
-</table>
+<section class="admin-reports">
+    <header class="admin-reports__header">
+        <div>
+            <h1>@L["Admin_Reports_Heading"].Value</h1>
+            <p class="admin-reports__subtitle">@L["Admin_Reports_Subtitle"].Value</p>
+        </div>
+        <div class="admin-reports__totals">
+            <article class="metric-card primary">
+                <span class="metric-card__label">@L["Admin_Reports_Total"].Value</span>
+                <strong class="metric-card__value">@Model.TotalReports</strong>
+            </article>
+            <article class="metric-card">
+                <span class="metric-card__label">@L["Admin_Reports_Status_Open"].Value</span>
+                <strong class="metric-card__value">@Model.CountFor(ReportStatus.Open)</strong>
+            </article>
+            <article class="metric-card">
+                <span class="metric-card__label">@L["Admin_Reports_Status_Actioned"].Value</span>
+                <strong class="metric-card__value">@Model.CountFor(ReportStatus.Actioned)</strong>
+            </article>
+            <article class="metric-card">
+                <span class="metric-card__label">@L["Admin_Reports_Status_Dismissed"].Value</span>
+                <strong class="metric-card__value">@Model.CountFor(ReportStatus.Dismissed)</strong>
+            </article>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert success">@successMessage</div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert error">@errorMessage</div>
+    }
+
+    <form method="get" class="admin-reports__filters">
+        <label class="filter-item">
+            <span>@L["Admin_Reports_Search"].Value</span>
+            <input type="search" name="search" value="@Model.Search" placeholder="@L["Admin_Reports_Search_Placeholder"].Value" />
+        </label>
+        <label class="filter-item">
+            <span>@L["Admin_Reports_Filter_Status"].Value</span>
+            <select name="status">
+                <option value="">@L["Admin_Reports_Status_All"].Value</option>
+                @foreach (var status in statuses)
+                {
+                    var selected = Model.StatusFilter == status ? "selected" : string.Empty;
+                    <option value="@status" @selected>@GetStatusLabel(status)</option>
+                }
+            </select>
+        </label>
+        <div class="filter-actions">
+            <button type="submit" class="btn-primary btn-compact">@L["Admin_Reports_Filter_Apply"].Value</button>
+            @if (!string.IsNullOrWhiteSpace(Model.Search) || Model.StatusFilter.HasValue)
+            {
+                <a class="btn-outline btn-compact" asp-action="Reports">@L["Admin_Reports_Filter_Reset"].Value</a>
+            }
+        </div>
+    </form>
+
+    <div class="table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>@L["Admin_Reports_Date"].Value</th>
+                    <th>@L["Admin_Reports_Reporter"].Value</th>
+                    <th>@L["Admin_Reports_Target"].Value</th>
+                    <th>@L["Admin_Reports_Category"].Value</th>
+                    <th>@L["Admin_Reports_Description"].Value</th>
+                    <th>@L["Admin_Reports_Status"].Value</th>
+                    <th class="min">@L["Admin_Reports_Actions"].Value</th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (Model.Reports.Any())
+            {
+                foreach (var report in Model.Reports)
+                {
+                    <tr>
+                        <td>
+                            <span class="badge">@report.CreatedAtUtc.ToLocalTime().ToString("g")</span>
+                        </td>
+                        <td>
+                            <strong>@report.ReporterUserId</strong>
+                        </td>
+                        <td>@report.TargetUserId</td>
+                        <td><span class="badge subtle">@report.Category</span></td>
+                        <td class="description">@(!string.IsNullOrWhiteSpace(report.Description) ? report.Description : L["Admin_Reports_NoDescription"].Value)</td>
+                        <td>
+                            <span class="status status-@report.Status.ToString().ToLowerInvariant()">@GetStatusLabel(report.Status)</span>
+                        </td>
+                        <td>
+                            <form asp-action="UpdateReportStatus" method="post" class="inline-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@report.Id" />
+                                <input type="hidden" name="statusFilter" value="@Model.StatusFilter" />
+                                <input type="hidden" name="search" value="@Model.Search" />
+                                <select name="status">
+                                    @foreach (var status in statuses)
+                                    {
+                                        var selected = report.Status == status ? "selected" : string.Empty;
+                                        <option value="@status" @selected>@GetStatusLabel(status)</option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn-primary btn-compact">@L["Admin_Reports_Update_Button"].Value</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="empty">@L["Admin_Reports_Empty"].Value</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>

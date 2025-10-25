@@ -28,7 +28,9 @@ public static class AppDbInitializer
         var adminUserName = "admin";
         var adminEmail = "admin@bgp.local";
         var admin = await userMgr.FindByNameAsync(adminUserName) ?? await userMgr.FindByEmailAsync(adminEmail);
-        
+
+        const string adminPassword = "admin";
+
         if (admin is null)
         {
             admin = new ApplicationUser
@@ -38,11 +40,22 @@ public static class AppDbInitializer
                 EmailConfirmed = true,
                 DisplayName = "Admin"
             };
-            var result = await userMgr.CreateAsync(admin, "Passw0rd!");
+            var result = await userMgr.CreateAsync(admin, adminPassword);
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 throw new InvalidOperationException($"Failed to create default admin user: {errors}");
+            }
+        }
+
+        else if (!await userMgr.CheckPasswordAsync(admin, adminPassword))
+        {
+            var token = await userMgr.GeneratePasswordResetTokenAsync(admin);
+            var reset = await userMgr.ResetPasswordAsync(admin, token, adminPassword);
+            if (!reset.Succeeded)
+            {
+                var errors = string.Join(", ", reset.Errors.Select(e => e.Description));
+                throw new InvalidOperationException($"Failed to reset default admin password: {errors}");
             }
         }
 

@@ -2,27 +2,41 @@
 @{
     ViewData["Title"] = L["Auth_Login_Title"].Value;
 }
-<section class="auth">
-    <div class="auth-card">
+<section class="auth auth--login">
+    <div class="auth-hero">
+        <span class="eyebrow">@L["Auth_Login_Eyebrow"].Value</span>
         <h1>@L["Auth_Login_Heading"].Value</h1>
+        <p class="auth-hero__lead">@L["Auth_Login_Tagline"].Value</p>
+        <ul class="auth-hero__features">
+            <li>@L["Auth_Login_Feature_Games"].Value</li>
+            <li>@L["Auth_Login_Feature_Community"].Value</li>
+            <li>@L["Auth_Login_Feature_Insights"].Value</li>
+        </ul>
+        <div class="auth-hero__cta">
+            <span>@L["Auth_Login_NoAccount"].Value</span>
+            <a class="btn-outline" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">@L["Auth_Login_RegisterLink"].Value</a>
+        </div>
+    </div>
+    <div class="auth-card">
+        <div class="auth-card__header">
+            <h2>@L["Auth_Login_FormTitle"].Value</h2>
+            <p>@L["Auth_Login_FormSubtitle"].Value</p>
+        </div>
         <div asp-validation-summary="ModelOnly" class="val-summary"></div>
-        <form asp-action="Login" method="post">
+        <form asp-action="Login" method="post" class="form-vertical">
             <input type="hidden" asp-for="ReturnUrl" />
-            <label>@L["Auth_Login_LoginOrEmail"].Value</label>
-            <input asp-for="LoginOrEmail" autocomplete="username" />
+            <label for="LoginOrEmail">@L["Auth_Login_LoginOrEmail"].Value</label>
+            <input asp-for="LoginOrEmail" id="LoginOrEmail" autocomplete="username" />
             <span asp-validation-for="LoginOrEmail" class="val"></span>
 
-            <label>@L["Auth_Login_Password"].Value</label>
-            <input asp-for="Password" type="password" autocomplete="current-password" />
+            <label for="Password">@L["Auth_Login_Password"].Value</label>
+            <input asp-for="Password" id="Password" type="password" autocomplete="current-password" />
             <span asp-validation-for="Password" class="val"></span>
 
             <label class="check"><input asp-for="RememberMe" /> @L["Auth_Login_RememberMe"].Value</label>
 
-            <div class="auth-actions">
-                <a class="btn-outline" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">@L["Auth_Login_RegisterLink"].Value</a>
-                <button class="btn-primary" type="submit">@L["Auth_Login_LoginButton"].Value</button>
-            </div>
+            <button class="btn-primary" type="submit">@L["Auth_Login_LoginButton"].Value</button>
         </form>
+        <p class="auth-card__hint">@L["Auth_Login_AdminHint"].Value</p>
     </div>
-    <div class="auth-sideimg"></div>
 </section>

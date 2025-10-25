@@ -1,322 +1,1852 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
 	<resheader name="resmimetype">
+
+
+
+
 		<value>text/microsoft-resx</value>
+
+
+
+
 	</resheader>
+
+
+
+
 	<resheader name="version">
+
+
+
+
 		<value>2.0</value>
+
+
+
+
 	</resheader>
+
+
+
+
 	<resheader name="reader">
+
+
+
+
 		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+
+
+
+
 	</resheader>
+
+
+
+
 	<resheader name="writer">
+
+
+
+
 		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+
+
+
+
 	</resheader>
+
+
+
+
 	<data name="Navigation_Home" xml:space="preserve">
-    <value>Home</value>
-  </data>
+        
+        
+    
+        
+        <value>Home</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Navigation_Games" xml:space="preserve">
-    <value>Games</value>
-  </data>
+        
+        
+    
+        
+        <value>Games</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Navigation_Api" xml:space="preserve">
-    <value>API</value>
-  </data>
+        
+        
+    
+        
+        <value>API</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Navigation_Login" xml:space="preserve">
-    <value>Log in</value>
-  </data>
+        
+        
+    
+        
+        <value>Log in</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Navigation_Register" xml:space="preserve">
-    <value>Sign up</value>
-  </data>
+        
+        
+    
+        
+        <value>Sign up</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Navigation_Logout" xml:space="preserve">
-    <value>Log out</value>
-  </data>
+        
+        
+    
+        
+        <value>Log out</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Navigation_ChatToggleTitle" xml:space="preserve">
-    <value>Open chat</value>
-  </data>
+        
+        
+    
+        
+        <value>Open chat</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Language_Polish" xml:space="preserve">
-    <value>Polish</value>
-  </data>
+        
+        
+    
+        
+        <value>Polish</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Language_English" xml:space="preserve">
-    <value>English</value>
-  </data>
+        
+        
+    
+        
+        <value>English</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Home_Title" xml:space="preserve">
-    <value>BGP – Browser Games Platform</value>
-  </data>
+        
+        
+    
+        
+        <value>BGP – Browser Games Platform</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Home_HeroTitle" xml:space="preserve">
-    <value>Browser Games Platform</value>
-  </data>
+        
+        
+    
+        
+        <value>Browser Games Platform</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Home_HeroDescription" xml:space="preserve">
-    <value>HTML5 games catalog. Upload, ratings, leaderboards, single/multiplayer modes, score API.</value>
-  </data>
+        
+        
+    
+        
+        <value>HTML5 games catalog. Upload, ratings, leaderboards, single/multiplayer modes, score API.</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Home_BrowseButton" xml:space="preserve">
-    <value>Browse games</value>
-  </data>
+        
+        
+    
+        
+        <value>Browse games</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Games_Index_Title" xml:space="preserve">
-    <value>Games catalog</value>
-  </data>
+        
+        
+    
+        
+        <value>Games catalog</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Games_Index_Heading" xml:space="preserve">
-    <value>Games catalog</value>
-  </data>
+        
+        
+    
+        
+        <value>Games catalog</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Games_Index_Rating" xml:space="preserve">
-    <value>Rating</value>
-  </data>
+        
+        
+    
+        
+        <value>Rating</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Details_NoBuild" xml:space="preserve">
-    <value>No published build available.</value>
-  </data>
+        
+        
+    
+        
+        <value>No published build available.</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Details_LeaderboardTitle" xml:space="preserve">
-    <value>Leaderboard (Top 20)</value>
-  </data>
+        
+        
+    
+        
+        <value>Leaderboard (Top 20)</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Details_LeaderboardLoading" xml:space="preserve">
-    <value>Loading…</value>
-  </data>
+        
+        
+    
+        
+        <value>Loading…</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Details_LeaderboardError" xml:space="preserve">
-    <value>Error</value>
-  </data>
+        
+        
+    
+        
+        <value>Error</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Login_Title" xml:space="preserve">
-    <value>Sign in</value>
-  </data>
+        
+        
+    
+        
+        <value>Sign in</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Login_Heading" xml:space="preserve">
-    <value>Game platform</value>
-  </data>
+        
+        
+    
+        
+        <value>Game platform</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Login_LoginOrEmail" xml:space="preserve">
-    <value>Login or email</value>
-  </data>
+        
+        
+    
+        
+        <value>Login or email</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Login_Password" xml:space="preserve">
-    <value>Password</value>
-  </data>
+        
+        
+    
+        
+        <value>Password</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Login_RememberMe" xml:space="preserve">
-    <value>Remember me</value>
-  </data>
+        
+        
+    
+        
+        <value>Remember me</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Login_RegisterLink" xml:space="preserve">
-    <value>Register</value>
-  </data>
+        
+        
+    
+        
+        <value>Register</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Login_LoginButton" xml:space="preserve">
-    <value>Sign in</value>
-  </data>
+        
+        
+    
+        
+        <value>Sign in</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Register_Title" xml:space="preserve">
-    <value>Sign up</value>
-  </data>
+        
+        
+    
+        
+        <value>Sign up</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Register_Heading" xml:space="preserve">
-    <value>New account</value>
-  </data>
+        
+        
+    
+        
+        <value>New account</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Register_Login" xml:space="preserve">
-    <value>Login</value>
-  </data>
+        
+        
+    
+        
+        <value>Login</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Register_Email" xml:space="preserve">
-    <value>E-mail</value>
-  </data>
+        
+        
+    
+        
+        <value>E-mail</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Register_Password" xml:space="preserve">
-    <value>Password</value>
-  </data>
+        
+        
+    
+        
+        <value>Password</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Register_ConfirmPassword" xml:space="preserve">
-    <value>Confirm password</value>
-  </data>
+        
+        
+    
+        
+        <value>Confirm password</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Register_Back" xml:space="preserve">
-    <value>Back</value>
-  </data>
+        
+        
+    
+        
+        <value>Back</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Auth_Register_Create" xml:space="preserve">
-    <value>Create account</value>
-  </data>
+        
+        
+    
+        
+        <value>Create account</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Footer_Legal" xml:space="preserve">
-    <value>© {0} Browser Games Platform</value>
-  </data>
+        
+        
+    
+        
+        <value>© {0} Browser Games Platform</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Account_InvalidCredentials" xml:space="preserve">
-    <value>Invalid credentials.</value>
-  </data>
+        
+        
+    
+        
+        <value>Invalid credentials.</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Account_LockedOut" xml:space="preserve">
-    <value>Account temporarily locked. Try again later.</value>
-  </data>
+        
+        
+    
+        
+        <value>Account temporarily locked. Try again later.</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Chat_Title" xml:space="preserve">
-    <value>Chat</value>
-  </data>
+        
+        
+    
+        
+        <value>Chat</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Chat_Close" xml:space="preserve">
-    <value>Close</value>
-  </data>
+        
+        
+    
+        
+        <value>Close</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Chat_SearchPlaceholder" xml:space="preserve">
-    <value>Search player...</value>
-  </data>
+        
+        
+    
+        
+        <value>Search player...</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Chat_Friends" xml:space="preserve">
-    <value>Friends</value>
-  </data>
+        
+        
+    
+        
+        <value>Friends</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Chat_Invites" xml:space="preserve">
-    <value>Invites</value>
-  </data>
+        
+        
+    
+        
+        <value>Invites</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Chat_WriteMessage" xml:space="preserve">
-    <value>Type a message...</value>
-  </data>
+        
+        
+    
+        
+        <value>Type a message...</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Chat_Send" xml:space="preserve">
-    <value>Send</value>
-  </data>
+        
+        
+    
+        
+        <value>Send</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Chat_Open" xml:space="preserve">
-    <value>Open chat</value>
-  </data>
+        
+        
+    
+        
+        <value>Open chat</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Admin_Reports_Title" xml:space="preserve">
-    <value>Reports</value>
-  </data>
+        
+        
+    
+        
+        <value>Reports</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Admin_Reports_Heading" xml:space="preserve">
-    <value>Reports</value>
-  </data>
+        
+        
+    
+        
+        <value>Reports</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Admin_Reports_Date" xml:space="preserve">
-    <value>Date</value>
-  </data>
+        
+        
+    
+        
+        <value>Date</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Admin_Reports_Reporter" xml:space="preserve">
-    <value>Reporter</value>
-  </data>
+        
+        
+    
+        
+        <value>Reporter</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Admin_Reports_Target" xml:space="preserve">
-    <value>Reported player</value>
-  </data>
+        
+        
+    
+        
+        <value>Reported player</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Admin_Reports_Category" xml:space="preserve">
-    <value>Category</value>
-  </data>
+        
+        
+    
+        
+        <value>Category</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Admin_Reports_Description" xml:space="preserve">
-    <value>Description</value>
-  </data>
+        
+        
+    
+        
+        <value>Description</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Admin_Reports_Status" xml:space="preserve">
-    <value>Status</value>
-  </data>
+        
+        
+    
+        
+        <value>Status</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Privacy_Title" xml:space="preserve">
-    <value>Privacy policy</value>
-  </data>
+        
+        
+    
+        
+        <value>Privacy policy</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Privacy_Description" xml:space="preserve">
-    <value>Use this page to detail your site's privacy policy.</value>
-  </data>
+        
+        
+    
+        
+        <value>Use this page to detail your site's privacy policy.</value>
+        
+        
+  
+    
+    </data>
+
+
+
+
 	<data name="Navigation_Dashboard" xml:space="preserve">
-    <value>Dashboard</value>
-</data>
+        
+        
+    
+        
+        <value>Dashboard</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Navigation_Admin" xml:space="preserve">
-    <value>Admin</value>
-</data>
+        
+        
+    
+        
+        <value>Admin</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Title" xml:space="preserve">
-    <value>Player hub</value>
-</data>
+        
+        
+    
+        
+        <value>Player hub</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Overview_Tab" xml:space="preserve">
-    <value>Overview</value>
-</data>
+        
+        
+    
+        
+        <value>Overview</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Profile_Tab" xml:space="preserve">
-    <value>Profile</value>
-</data>
+        
+        
+    
+        
+        <value>Profile</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Security_Tab" xml:space="preserve">
-    <value>Security</value>
-</data>
+        
+        
+    
+        
+        <value>Security</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Stats_Tab" xml:space="preserve">
-    <value>Statistics</value>
-</data>
+        
+        
+    
+        
+        <value>Statistics</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Games_Tab" xml:space="preserve">
-    <value>My games</value>
-</data>
+        
+        
+    
+        
+        <value>My games</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Friends_Tab" xml:space="preserve">
-    <value>Friends</value>
-</data>
+        
+        
+    
+        
+        <value>Friends</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Success_Profile" xml:space="preserve">
-    <value>Profile updated successfully.</value>
-</data>
+        
+        
+    
+        
+        <value>Profile updated successfully.</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Success_Email" xml:space="preserve">
-    <value>E-mail updated successfully.</value>
-</data>
+        
+        
+    
+        
+        <value>E-mail updated successfully.</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Success_Password" xml:space="preserve">
-    <value>Password updated successfully.</value>
-</data>
+        
+        
+    
+        
+        <value>Password updated successfully.</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Success_Game" xml:space="preserve">
-    <value>Game submitted successfully.</value>
-</data>
+        
+        
+    
+        
+        <value>Game submitted successfully.</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Profile_Info" xml:space="preserve">
-    <value>Update how other players see you on the platform.</value>
-</data>
+        
+        
+    
+        
+        <value>Update how other players see you on the platform.</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Profile_DisplayName" xml:space="preserve">
-    <value>Display name</value>
-</data>
+        
+        
+    
+        
+        <value>Display name</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Profile_Avatar" xml:space="preserve">
-    <value>Avatar</value>
-</data>
+        
+        
+    
+        
+        <value>Avatar</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Profile_CurrentAvatar" xml:space="preserve">
-    <value>Current avatar:</value>
-</data>
+        
+        
+    
+        
+        <value>Current avatar:</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Profile_NoAvatar" xml:space="preserve">
-    <value>No avatar uploaded</value>
-</data>
+        
+        
+    
+        
+        <value>No avatar uploaded</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Profile_Save" xml:space="preserve">
-    <value>Save profile</value>
-</data>
+        
+        
+    
+        
+        <value>Save profile</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Security_EmailSection" xml:space="preserve">
-    <value>Change e-mail</value>
-</data>
+        
+        
+    
+        
+        <value>Change e-mail</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Security_Email" xml:space="preserve">
-    <value>New e-mail</value>
-</data>
+        
+        
+    
+        
+        <value>New e-mail</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Security_EmailPassword" xml:space="preserve">
-    <value>Confirm with password</value>
-</data>
+        
+        
+    
+        
+        <value>Confirm with password</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Security_SaveEmail" xml:space="preserve">
-    <value>Update e-mail</value>
-</data>
+        
+        
+    
+        
+        <value>Update e-mail</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Security_PasswordSection" xml:space="preserve">
-    <value>Change password</value>
-</data>
+        
+        
+    
+        
+        <value>Change password</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Security_CurrentPassword" xml:space="preserve">
-    <value>Current password</value>
-</data>
+        
+        
+    
+        
+        <value>Current password</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Security_NewPassword" xml:space="preserve">
-    <value>New password</value>
-</data>
+        
+        
+    
+        
+        <value>New password</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Security_ConfirmPassword" xml:space="preserve">
-    <value>Confirm new password</value>
-</data>
+        
+        
+    
+        
+        <value>Confirm new password</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Security_ChangePassword" xml:space="preserve">
-    <value>Update password</value>
-</data>
+        
+        
+    
+        
+        <value>Update password</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Stats_UploadedGames" xml:space="preserve">
-    <value>Games uploaded</value>
-</data>
+        
+        
+    
+        
+        <value>Games uploaded</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Stats_TotalScores" xml:space="preserve">
-    <value>Scores submitted</value>
-</data>
+        
+        
+    
+        
+        <value>Scores submitted</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Stats_TotalReviews" xml:space="preserve">
-    <value>Reviews written</value>
-</data>
+        
+        
+    
+        
+        <value>Reviews written</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Stats_Friends" xml:space="preserve">
-    <value>Friends</value>
-</data>
+        
+        
+    
+        
+        <value>Friends</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Games_CreateHeading" xml:space="preserve">
-    <value>Add a new game</value>
-</data>
+        
+        
+    
+        
+        <value>Add a new game</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Games_Title" xml:space="preserve">
-    <value>Title</value>
-</data>
+        
+        
+    
+        
+        <value>Title</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Games_Description" xml:space="preserve">
-    <value>Description</value>
-</data>
+        
+        
+    
+        
+        <value>Description</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Games_Cover" xml:space="preserve">
-    <value>Cover image</value>
-</data>
+        
+        
+    
+        
+        <value>Cover image</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Games_Submit" xml:space="preserve">
-    <value>Publish game</value>
-</data>
+        
+        
+    
+        
+        <value>Publish game</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Games_ListHeading" xml:space="preserve">
-    <value>Your games</value>
-</data>
+        
+        
+    
+        
+        <value>Your games</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Games_Rating" xml:space="preserve">
-    <value>Rating</value>
-</data>
+        
+        
+    
+        
+        <value>Rating</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Games_Empty" xml:space="preserve">
-    <value>No games uploaded yet.</value>
-</data>
+        
+        
+    
+        
+        <value>No games uploaded yet.</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Friends_ListHeading" xml:space="preserve">
-    <value>Your friends</value>
-</data>
+        
+        
+    
+        
+        <value>Your friends</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Friends_Since" xml:space="preserve">
-    <value>Friends since {0}</value>
-</data>
+        
+        
+    
+        
+        <value>Friends since {0}</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Friends_Empty" xml:space="preserve">
-    <value>You don't have any friends yet.</value>
-</data>
+        
+        
+    
+        
+        <value>You don't have any friends yet.</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Overview_Heading" xml:space="preserve">
-    <value>Latest games</value>
-</data>
+        
+        
+    
+        
+        <value>Latest games</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 	<data name="Dashboard_Overview_Description" xml:space="preserve">
-    <value>Browse everything available on the platform.</value>
-</data>
+        
+        
+    
+        
+        <value>Browse everything available on the platform.</value>
+        
+        
+
+    
+    </data>
+
+
+
+
 
 	<data name="Dashboard_Friends_Unknown" xml:space="preserve">
-    <value>Unknown player</value>
-</data>
+        
+        
+    
+        
+        <value>Unknown player</value>
+        
+        
+
+    
+    </data>
+
+
+
+
+	<data name="Admin_Reports_Subtitle" xml:space="preserve">
+        
+        
+        <value>Monitor community feedback and action it without leaving the dashboard.</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Total" xml:space="preserve">
+        
+        
+        <value>All reports</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Status_Open" xml:space="preserve">
+        
+        
+        <value>Open</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Status_Actioned" xml:space="preserve">
+        
+        
+        <value>Actioned</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Status_Dismissed" xml:space="preserve">
+        
+        
+        <value>Dismissed</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Status_All" xml:space="preserve">
+        
+        
+        <value>All statuses</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Search" xml:space="preserve">
+        
+        
+        <value>Search</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Search_Placeholder" xml:space="preserve">
+        
+        
+        <value>Find by reporter, target or keyword</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Filter_Status" xml:space="preserve">
+        
+        
+        <value>Status</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Filter_Apply" xml:space="preserve">
+        
+        
+        <value>Apply filters</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Filter_Reset" xml:space="preserve">
+        
+        
+        <value>Clear</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Actions" xml:space="preserve">
+        
+        
+        <value>Actions</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Update_Button" xml:space="preserve">
+        
+        
+        <value>Update</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Update_Success" xml:space="preserve">
+        
+        
+        <value>Report status updated.</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Update_NotFound" xml:space="preserve">
+        
+        
+        <value>Report no longer exists.</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_NoDescription" xml:space="preserve">
+        
+        
+        <value>No additional description provided.</value>
+        
+    
+    </data>
+
+
+	<data name="Admin_Reports_Empty" xml:space="preserve">
+        
+        
+        <value>No reports match the current filters.</value>
+        
+    
+    </data>
+
+
+	<data name="Auth_Login_Eyebrow" xml:space="preserve">
+        
+        
+        <value>Welcome back</value>
+        
+    
+    </data>
+
+
+	<data name="Auth_Login_Tagline" xml:space="preserve">
+        
+        
+        <value>Sign in to keep curating and sharing the best browser games.</value>
+        
+    
+    </data>
+
+
+	<data name="Auth_Login_Feature_Games" xml:space="preserve">
+        
+        
+        <value>Track your library across every device.</value>
+        
+    
+    </data>
+
+
+	<data name="Auth_Login_Feature_Community" xml:space="preserve">
+        
+        
+        <value>Connect with creators and players in real time.</value>
+        
+    
+    </data>
+
+
+	<data name="Auth_Login_Feature_Insights" xml:space="preserve">
+        
+        
+        <value>Review rich analytics for each of your games.</value>
+        
+    
+    </data>
+
+
+	<data name="Auth_Login_NoAccount" xml:space="preserve">
+        
+        
+        <value>Don't have an account yet?</value>
+        
+    
+    </data>
+
+
+	<data name="Auth_Login_FormTitle" xml:space="preserve">
+        
+        
+        <value>Sign in to your account</value>
+        
+    
+    </data>
+
+
+	<data name="Auth_Login_FormSubtitle" xml:space="preserve">
+        
+        
+        <value>Use your username or email address to continue.</value>
+        
+    
+    </data>
+
+
+	<data name="Auth_Login_AdminHint" xml:space="preserve">
+        
+        
+        <value>Default admin credentials: admin / admin.</value>
+        
+    
+    </data>
+
+
+	<data name="Auth_Register_Eyebrow" xml:space="preserve">
+        <value>Create your profile</value>
+    </data>
+	<data name="Auth_Register_Tagline" xml:space="preserve">
+        <value>Join the platform to publish games, invite friends and earn recognition.</value>
+    </data>
+	<data name="Auth_Register_Feature_Create" xml:space="preserve">
+        <value>Publish polished browser games in minutes.</value>
+    </data>
+	<data name="Auth_Register_Feature_Share" xml:space="preserve">
+        <value>Share curated playlists with the community.</value>
+    </data>
+	<data name="Auth_Register_Feature_Grow" xml:space="preserve">
+        <value>Grow your audience with built-in analytics.</value>
+    </data>
+	<data name="Auth_Register_HaveAccount" xml:space="preserve">
+        <value>Already part of the community?</value>
+    </data>
+	<data name="Auth_Register_FormTitle" xml:space="preserve">
+        <value>Set up your account</value>
+    </data>
+	<data name="Auth_Register_FormSubtitle" xml:space="preserve">
+        <value>A few quick details and you're ready to explore.</value>
+    </data>
 </root>
