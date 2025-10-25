@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Bgp.Domain.Entities;
 using Bgp.Domain.Enums;
@@ -13,6 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Localization;
@@ -31,6 +34,17 @@ public class DashboardController : Controller
 
     private static readonly Regex SlugRegex = new("[^a-z0-9-]", RegexOptions.Compiled);
     private static readonly Regex VersionSanitizer = new("[^a-zA-Z0-9._-]", RegexOptions.Compiled);
+    private static readonly (string TitleKey, string BodyKey)[] ProfileTips =
+    {
+        ("Dashboard_Profile_Tip_Strategy_Title", "Dashboard_Profile_Tip_Strategy_Body"),
+        ("Dashboard_Profile_Tip_Focus_Title", "Dashboard_Profile_Tip_Focus_Body"),
+        ("Dashboard_Profile_Tip_Routine_Title", "Dashboard_Profile_Tip_Routine_Body"),
+        ("Dashboard_Profile_Tip_Teamplay_Title", "Dashboard_Profile_Tip_Teamplay_Body"),
+        ("Dashboard_Profile_Tip_Balance_Title", "Dashboard_Profile_Tip_Balance_Body")
+    };
+
+    private readonly record struct RankStage(string Tier, string? Division, int Threshold);
+    private static readonly IReadOnlyList<RankStage> RankTable = BuildRankTable();
 
     public DashboardController(
         UserManager<ApplicationUser> users,
@@ -48,7 +62,7 @@ public class DashboardController : Controller
         _localizer = localizer;
     }
 
-    public async Task<IActionResult> Index(string tab = "overview")
+    public async Task<IActionResult> Index(string tab = "overview", string? panel = null)
     {
         var user = await _users.GetUserAsync(User);
         if (user is null)
@@ -57,6 +71,11 @@ public class DashboardController : Controller
         }
 
         ViewData["ActiveTab"] = tab;
+        if (!string.IsNullOrEmpty(panel))
+        {
+            ViewData["ProfilePanel"] = panel;
+        }
+
         var vm = await BuildViewModelAsync(user);
         return View(vm);
     }
@@ -73,17 +92,41 @@ public class DashboardController : Controller
 
         if (!ModelState.IsValid)
         {
-            return await ReturnDashboardWithErrorsAsync(user, "profile");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
         }
 
         user.DisplayName = input.DisplayName.Trim();
+        user.FirstName = string.IsNullOrWhiteSpace(input.FirstName) ? null : input.FirstName.Trim();
+        user.LastName = string.IsNullOrWhiteSpace(input.LastName) ? null : input.LastName.Trim();
+
+        if (input.BirthDate.HasValue)
+        {
+            var birthDate = input.BirthDate.Value.Date;
+            if (birthDate > DateTime.UtcNow.Date)
+            {
+                ModelState.AddModelError(nameof(input.BirthDate), _localizer["Dashboard_Profile_BirthDate_FutureError"].Value);
+                return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
+            }
+
+            user.BirthDate = birthDate;
+        }
+        else
+        {
+            user.BirthDate = null;
+        }
+
+        user.DisplayNameVisibility = input.DisplayNameVisibility;
+        user.FirstNameVisibility = input.FirstNameVisibility;
+        user.LastNameVisibility = input.LastNameVisibility;
+        user.BirthDateVisibility = input.BirthDateVisibility;
+        user.EmailVisibility = input.EmailVisibility;
 
         if (input.Avatar is not null && input.Avatar.Length > 0)
         {
             if (input.Avatar.Length > 2 * 1024 * 1024)
             {
                 ModelState.AddModelError(nameof(input.Avatar), "Avatar file is too large (max 2 MB).");
-                return await ReturnDashboardWithErrorsAsync(user, "profile");
+                return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
             }
 
             var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "avatars");
@@ -112,13 +155,13 @@ public class DashboardController : Controller
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            return await ReturnDashboardWithErrorsAsync(user, "profile");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
         }
 
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogInformation("User {UserId} updated profile settings.", user.Id);
         TempData["DashboardSuccess"] = "ProfileUpdated";
-        return RedirectToAction(nameof(Index), new { tab = "profile" });
+        return RedirectToAction(nameof(Index), new { tab = "profile", panel = "info" });
     }
 
     [HttpPost]
@@ -133,14 +176,14 @@ public class DashboardController : Controller
 
         if (!ModelState.IsValid)
         {
-            return await ReturnDashboardWithErrorsAsync(user, "security");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "email");
         }
 
         var passwordValid = await _users.CheckPasswordAsync(user, input.Password);
         if (!passwordValid)
         {
             ModelState.AddModelError(nameof(input.Password), "Invalid password.");
-            return await ReturnDashboardWithErrorsAsync(user, "security");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "email");
         }
 
         var newEmail = input.Email.Trim();
@@ -152,7 +195,7 @@ public class DashboardController : Controller
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            return await ReturnDashboardWithErrorsAsync(user, "security");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "email");
         }
 
         user.EmailConfirmed = true;
@@ -164,13 +207,13 @@ public class DashboardController : Controller
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            return await ReturnDashboardWithErrorsAsync(user, "security");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "email");
         }
 
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogInformation("User {UserId} updated email address.", user.Id);
         TempData["DashboardSuccess"] = "EmailUpdated";
-        return RedirectToAction(nameof(Index), new { tab = "security" });
+        return RedirectToAction(nameof(Index), new { tab = "profile", panel = "email" });
     }
 
     [HttpPost]
@@ -185,7 +228,7 @@ public class DashboardController : Controller
 
         if (!ModelState.IsValid)
         {
-            return await ReturnDashboardWithErrorsAsync(user, "security");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "password");
         }
 
         var result = await _users.ChangePasswordAsync(user, input.CurrentPassword, input.NewPassword);
@@ -196,13 +239,13 @@ public class DashboardController : Controller
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            return await ReturnDashboardWithErrorsAsync(user, "security");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "password");
         }
 
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogInformation("User {UserId} changed password.", user.Id);
         TempData["DashboardSuccess"] = "PasswordUpdated";
-        return RedirectToAction(nameof(Index), new { tab = "security" });
+        return RedirectToAction(nameof(Index), new { tab = "profile", panel = "password" });
     }
 
     [HttpPost]
@@ -426,24 +469,67 @@ public class DashboardController : Controller
             FriendsCount = friendVms.Count
         };
 
-
         var rank = CalculateRank(stats);
+
+        var bestGameProjection = await _db.Scores
+            .AsNoTracking()
+            .Where(s => s.UserId == user.Id)
+            .Join(
+                _db.Games.AsNoTracking(),
+                score => score.GameId,
+                game => game.Id,
+                (score, game) => new { score.GameId, score.Value, score.SubmittedAtUtc, game.Title })
+            .GroupBy(x => new { x.GameId, x.Title })
+            .Select(g => new
+            {
+                g.Key.GameId,
+                g.Key.Title,
+                AverageScore = g.Average(x => x.Value),
+                LastPlayed = g.Max(x => x.SubmittedAtUtc)
+            })
+            .OrderByDescending(g => g.AverageScore)
+            .ThenByDescending(g => g.LastPlayed)
+            .FirstOrDefaultAsync();
+
+        ProfileBestGameViewModel? bestGame = null;
+        if (bestGameProjection is not null && !string.IsNullOrWhiteSpace(bestGameProjection.Title))
+        {
+            bestGame = new ProfileBestGameViewModel
+            {
+                Title = bestGameProjection.Title!,
+                AverageScore = bestGameProjection.AverageScore,
+                LastPlayedAt = bestGameProjection.LastPlayed
+            };
+        }
+
+        var visibilityOptions = BuildVisibilityOptions();
+
+        var profile = new ProfileSectionViewModel
+        {
+            DisplayName = user.DisplayName ?? user.Email ?? user.UserName ?? string.Empty,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            BirthDate = user.BirthDate,
+            IsBirthdayToday = IsBirthdayToday(user.BirthDate),
+            AvatarUrl = user.AvatarUrl,
+            Email = user.Email ?? string.Empty,
+            DisplayNameVisibility = user.DisplayNameVisibility,
+            FirstNameVisibility = user.FirstNameVisibility,
+            LastNameVisibility = user.LastNameVisibility,
+            BirthDateVisibility = user.BirthDateVisibility,
+            EmailVisibility = user.EmailVisibility,
+            Rank = rank,
+            BestGame = bestGame,
+            Highlights = BuildHighlights(user, rank, bestGame),
+            VisibilityOptions = visibilityOptions
+        };
 
         return new DashboardViewModel
         {
             Games = games,
             MyGames = myGames,
-            Profile = new ProfileSectionViewModel
-            {
-                DisplayName = user.DisplayName ?? user.Email ?? user.UserName ?? string.Empty,
-                AvatarUrl = user.AvatarUrl,
-                Email = user.Email ?? string.Empty,
-                RankName = rank.Name,
-                RankLevel = rank.Level,
-                ExperiencePoints = rank.Xp,
-                ExperienceToNextLevel = rank.XpToNextLevel,
-                CurrentLevelThreshold = rank.CurrentThreshold
-            },
+
+            Profile = profile,
             Security = new SecuritySectionViewModel
             {
                 Email = user.Email ?? string.Empty
@@ -454,9 +540,13 @@ public class DashboardController : Controller
         };
     }
 
-    private async Task<IActionResult> ReturnDashboardWithErrorsAsync(ApplicationUser user, string tab)
+    private async Task<IActionResult> ReturnDashboardWithErrorsAsync(ApplicationUser user, string tab, string? profilePanel = null)
     {
         ViewData["ActiveTab"] = tab;
+        if (!string.IsNullOrEmpty(profilePanel))
+        {
+            ViewData["ProfilePanel"] = profilePanel;
+        }
         var vm = await BuildViewModelAsync(user);
 
         if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.DisplayName), out var displayNameState) &&
@@ -464,6 +554,29 @@ public class DashboardController : Controller
         {
             vm.Profile.DisplayName = displayNameState.AttemptedValue!;
         }
+
+        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.FirstName), out var firstNameState))
+        {
+            vm.Profile.FirstName = firstNameState.AttemptedValue;
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.LastName), out var lastNameState))
+        {
+            vm.Profile.LastName = lastNameState.AttemptedValue;
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.BirthDate), out var birthDateState) &&
+            DateTime.TryParse(birthDateState.AttemptedValue, CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal, out var parsedBirthDate))
+        {
+            vm.Profile.BirthDate = parsedBirthDate.Date;
+        }
+
+        vm.Profile.DisplayNameVisibility = GetVisibilityFromState(nameof(UpdateProfileInputModel.DisplayNameVisibility));
+        vm.Profile.FirstNameVisibility = GetVisibilityFromState(nameof(UpdateProfileInputModel.FirstNameVisibility));
+        vm.Profile.LastNameVisibility = GetVisibilityFromState(nameof(UpdateProfileInputModel.LastNameVisibility));
+        vm.Profile.BirthDateVisibility = GetVisibilityFromState(nameof(UpdateProfileInputModel.BirthDateVisibility));
+        vm.Profile.EmailVisibility = GetVisibilityFromState(nameof(UpdateProfileInputModel.EmailVisibility));
+
 
         if (ModelState.TryGetValue(nameof(UpdateEmailInputModel.Email), out var emailState) &&
             !string.IsNullOrWhiteSpace(emailState.AttemptedValue))
@@ -489,6 +602,24 @@ public class DashboardController : Controller
         }
 
         return View("Index", vm);
+
+        ProfileVisibility GetVisibilityFromState(string key)
+        {
+            if (ModelState.TryGetValue(key, out var state) && int.TryParse(state.AttemptedValue, out var raw) && Enum.IsDefined(typeof(ProfileVisibility), raw))
+            {
+                return (ProfileVisibility)raw;
+            }
+
+            return key switch
+            {
+                nameof(UpdateProfileInputModel.DisplayNameVisibility) => vm.Profile.DisplayNameVisibility,
+                nameof(UpdateProfileInputModel.FirstNameVisibility) => vm.Profile.FirstNameVisibility,
+                nameof(UpdateProfileInputModel.LastNameVisibility) => vm.Profile.LastNameVisibility,
+                nameof(UpdateProfileInputModel.BirthDateVisibility) => vm.Profile.BirthDateVisibility,
+                nameof(UpdateProfileInputModel.EmailVisibility) => vm.Profile.EmailVisibility,
+                _ => ProfileVisibility.OwnerOnly
+            };
+        }
     }
 
     private async Task<string> GenerateUniqueSlugAsync(string title)
@@ -516,32 +647,181 @@ public class DashboardController : Controller
         return string.IsNullOrWhiteSpace(slug) ? Guid.NewGuid().ToString("n") : slug;
     }
 
-    private static (string Name, int Level, int Xp, int XpToNextLevel, int CurrentThreshold) CalculateRank(DashboardStatsViewModel stats)
+    private static IReadOnlyList<RankStage> BuildRankTable()
     {
-        var xp = stats.UploadedGames * 120 + stats.TotalScores * 30 + stats.TotalReviews * 45 + stats.FriendsCount * 25;
+        var stages = new List<RankStage>();
+        var xp = 0;
 
-        var thresholds = new (int Threshold, string Name)[]
+        void AddTier(string tier, int step, params string[] divisions)
         {
-            (0, "Nowicjusz"),
-            (250, "Entuzjasta"),
-            (600, "Weteran"),
-            (1200, "Arcymistrz")
-        };
-
-        var current = thresholds[0];
-        int? next = null;
-        for (var i = 0; i < thresholds.Length; i++)
-        {
-            if (xp >= thresholds[i].Threshold)
+            if (divisions.Length == 0)
             {
-                current = thresholds[i];
-                next = i + 1 < thresholds.Length ? thresholds[i + 1].Threshold : null;
+                stages.Add(new RankStage(tier, null, xp));
+                xp += step;
+                return;
+            }
+
+            foreach (var division in divisions)
+            {
+                stages.Add(new RankStage(tier, division, xp));
+                xp += step;
             }
         }
 
-        var level = Array.IndexOf(thresholds, current) + 1;
-        var xpToNext = next.HasValue ? Math.Max(0, next.Value - xp) : 0;
+        AddTier("Żelazo", 120, "IV", "III", "II", "I");
+        AddTier("Brąz", 140, "IV", "III", "II", "I");
+        AddTier("Srebro", 160, "IV", "III", "II", "I");
+        AddTier("Złoto", 180, "IV", "III", "II", "I");
+        AddTier("Platyna", 210, "IV", "III", "II", "I");
+        AddTier("Szmaragd", 240, "IV", "III", "II", "I");
+        AddTier("Diament", 280, "IV", "III", "II", "I");
+        AddTier("Mistrz", 320);
+        AddTier("Arcymistrz", 360);
+        AddTier("Pretendent", 0);
 
-        return (current.Name, level, xp, xpToNext, current.Threshold);
+        return stages;
+    }
+
+    private static int CalculateTotalExperience(DashboardStatsViewModel stats) =>
+        stats.UploadedGames * 120 + stats.TotalScores * 30 + stats.TotalReviews * 45 + stats.FriendsCount * 25;
+
+    private static ProfileRankViewModel CalculateRank(DashboardStatsViewModel stats)
+    {
+        var xp = CalculateTotalExperience(stats);
+
+        var currentStage = RankTable[0];
+        RankStage? nextStage = null;
+
+        foreach (var stage in RankTable)
+        {
+            if (xp >= stage.Threshold)
+            {
+                currentStage = stage;
+            }
+            else
+            {
+                nextStage = stage;
+                break;
+            }
+        }
+
+        var nextThreshold = nextStage?.Threshold ?? (currentStage.Threshold + 500);
+        var xpIntoCurrent = Math.Max(0, xp - currentStage.Threshold);
+        var window = Math.Max(1, nextThreshold - currentStage.Threshold);
+        var xpToNext = nextStage is null ? 0 : Math.Max(0, nextThreshold - xp);
+        var progress = nextStage is null ? 100 : Math.Clamp((int)Math.Round((double)xpIntoCurrent / window * 100), 0, 100);
+
+        return new ProfileRankViewModel
+        {
+            Tier = currentStage.Tier,
+            Division = currentStage.Division,
+            NextTier = nextStage?.Tier,
+            NextDivision = nextStage?.Division,
+            ExperiencePoints = xp,
+            CurrentThreshold = currentStage.Threshold,
+            NextThreshold = nextThreshold,
+            XpIntoCurrent = xpIntoCurrent,
+            XpRequiredForNext = xpToNext,
+            ProgressPercent = progress
+        };
+    }
+
+    private static bool IsBirthdayToday(DateTime? birthDate)
+    {
+        if (birthDate is null)
+        {
+            return false;
+        }
+
+        var today = DateTime.UtcNow;
+        return birthDate.Value.Month == today.Month && birthDate.Value.Day == today.Day;
+    }
+
+    private IReadOnlyList<SelectListItem> BuildVisibilityOptions()
+    {
+        return new List<SelectListItem>
+        {
+            new SelectListItem
+            {
+                Value = ((int)ProfileVisibility.Everyone).ToString(CultureInfo.InvariantCulture),
+                Text = _localizer["Dashboard_Profile_Visibility_Everyone"].Value
+            },
+            new SelectListItem
+            {
+                Value = ((int)ProfileVisibility.Friends).ToString(CultureInfo.InvariantCulture),
+                Text = _localizer["Dashboard_Profile_Visibility_Friends"].Value
+            },
+            new SelectListItem
+            {
+                Value = ((int)ProfileVisibility.OwnerOnly).ToString(CultureInfo.InvariantCulture),
+                Text = _localizer["Dashboard_Profile_Visibility_Owner"].Value
+            }
+        };
+
+    }
+
+    private IReadOnlyList<ProfileHighlightViewModel> BuildHighlights(ApplicationUser user, ProfileRankViewModel rank, ProfileBestGameViewModel? bestGame)
+    {
+        var highlights = new List<ProfileHighlightViewModel>();
+
+        if (IsBirthdayToday(user.BirthDate))
+        {
+            highlights.Add(new ProfileHighlightViewModel(
+                _localizer["Dashboard_Profile_Highlight_Birthday_Title"].Value,
+                string.Format(_localizer["Dashboard_Profile_Highlight_Birthday_Body"].Value, user.DisplayName ?? user.Email ?? user.UserName ?? _localizer["Dashboard_Profile_Highlight_Birthday_Default"].Value)));
+        }
+
+        if (rank.NextDisplayName is not null && rank.XpRequiredForNext > 0)
+        {
+            highlights.Add(new ProfileHighlightViewModel(
+                _localizer["Dashboard_Profile_Highlight_NextRank_Title"].Value,
+                string.Format(_localizer["Dashboard_Profile_Highlight_NextRank_Body"].Value, rank.NextDisplayName, rank.XpRequiredForNext)));
+        }
+        else
+        {
+            highlights.Add(new ProfileHighlightViewModel(
+                _localizer["Dashboard_Profile_Highlight_MaxRank_Title"].Value,
+                _localizer["Dashboard_Profile_Highlight_MaxRank_Body"].Value));
+        }
+
+        if (bestGame is not null)
+        {
+            highlights.Add(new ProfileHighlightViewModel(
+                _localizer["Dashboard_Profile_Highlight_BestGame_Title"].Value,
+                string.Format(_localizer["Dashboard_Profile_Highlight_BestGame_Body"].Value, bestGame.Title, bestGame.AverageScore.ToString("0.##", CultureInfo.CurrentCulture))));
+        }
+        else
+        {
+            highlights.Add(new ProfileHighlightViewModel(
+                _localizer["Dashboard_Profile_Highlight_NoBestGame_Title"].Value,
+                _localizer["Dashboard_Profile_Highlight_NoBestGame_Body"].Value));
+        }
+
+        var tipIndex = GetTipIndex(user.Id);
+        var tip = ProfileTips[tipIndex];
+        highlights.Add(new ProfileHighlightViewModel(
+            _localizer[tip.TitleKey].Value,
+            _localizer[tip.BodyKey].Value));
+
+        return highlights;
+    }
+
+    private static int GetTipIndex(string? userId)
+    {
+        var seed = DateTime.UtcNow.DayOfYear;
+        if (!string.IsNullOrEmpty(userId))
+        {
+            foreach (var ch in userId)
+            {
+                seed = unchecked(seed * 31 + ch);
+            }
+
+            if (ProfileTips.Length == 0)
+            {
+                return 0;
+            }
+
+            return Math.Abs(seed) % ProfileTips.Length;
+        }
     }
 }

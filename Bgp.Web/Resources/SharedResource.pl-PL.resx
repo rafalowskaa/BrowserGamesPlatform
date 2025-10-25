@@ -2138,4 +2138,130 @@
 	<data name="Auth_Login_PolicyHint" xml:space="preserve">
     <value>Logując się akceptujesz naszą <a href="{0}">politykę platformy</a>.</value>
   </data>
+	<data name="Dashboard_Profile_Actions_EditInfo" xml:space="preserve">
+    <value>Aktualizuj profil</value>
+  </data>
+	<data name="Dashboard_Profile_Actions_Email" xml:space="preserve">
+    <value>Zmień e-mail</value>
+  </data>
+	<data name="Dashboard_Profile_Actions_Label" xml:space="preserve">
+    <value>Opcje profilu</value>
+  </data>
+	<data name="Dashboard_Profile_Actions_Password" xml:space="preserve">
+    <value>Zmień hasło</value>
+  </data>
+	<data name="Dashboard_Profile_BirthDate" xml:space="preserve">
+    <value>Data urodzenia</value>
+  </data>
+	<data name="Dashboard_Profile_BirthDateVisibility" xml:space="preserve">
+    <value>Widoczność daty urodzenia</value>
+  </data>
+	<data name="Dashboard_Profile_BirthDate_FutureError" xml:space="preserve">
+    <value>Data urodzenia nie może pochodzić z przyszłości.</value>
+  </data>
+	<data name="Dashboard_Profile_Birthday_Today" xml:space="preserve">
+    <value>Wszystkiego najlepszego! 🎂</value>
+  </data>
+	<data name="Dashboard_Profile_DisplayNameVisibility" xml:space="preserve">
+    <value>Widoczność nazwy użytkownika</value>
+  </data>
+	<data name="Dashboard_Profile_EmailLabel" xml:space="preserve">
+    <value>Aktualny e-mail</value>
+  </data>
+	<data name="Dashboard_Profile_EmailVisibility" xml:space="preserve">
+    <value>Widoczność e-maila</value>
+  </data>
+	<data name="Dashboard_Profile_FirstName" xml:space="preserve">
+    <value>Imię</value>
+  </data>
+	<data name="Dashboard_Profile_FirstNameVisibility" xml:space="preserve">
+    <value>Widoczność imienia</value>
+  </data>
+	<data name="Dashboard_Profile_Highlight_BestGame_Body" xml:space="preserve">
+    <value>Najlepiej idzie Ci w {0} ze średnim wynikiem {1}.</value>
+  </data>
+	<data name="Dashboard_Profile_Highlight_BestGame_Title" xml:space="preserve">
+    <value>Najlepsza gra</value>
+  </data>
+	<data name="Dashboard_Profile_Highlight_Birthday_Body" xml:space="preserve">
+    <value>Złóż życzenia {0} – dziś świętuje urodziny!</value>
+  </data>
+	<data name="Dashboard_Profile_Highlight_Birthday_Default" xml:space="preserve">
+    <value>temu graczowi</value>
+  </data>
+	<data name="Dashboard_Profile_Highlight_Birthday_Title" xml:space="preserve">
+    <value>Świętuj urodziny</value>
+  </data>
+	<data name="Dashboard_Profile_Highlight_MaxRank_Body" xml:space="preserve">
+    <value>Masz najwyższą rangę – każda gra utrwala legendę.</value>
+  </data>
+	<data name="Dashboard_Profile_Highlight_MaxRank_Title" xml:space="preserve">
+    <value>Szczyt formy</value>
+  </data>
+	<data name="Dashboard_Profile_Highlight_NextRank_Body" xml:space="preserve">
+    <value>Do rangi {0} brakuje już tylko {1} PD. Tak trzymaj!</value>
+  </data>
+	<data name="Dashboard_Profile_Highlight_NextRank_Title" xml:space="preserve">
+    <value>Kolejny próg</value>
+  </data>
+	<data name="Dashboard_Profile_Highlight_NoBestGame_Body" xml:space="preserve">
+    <value>Rozegraj kilka meczów, aby zobaczyć, w której grze błyszczysz.</value>
+  </data>
+	<data name="Dashboard_Profile_Highlight_NoBestGame_Title" xml:space="preserve">
+    <value>Odkryj swoją grę</value>
+  </data>
+	<data name="Dashboard_Profile_LastName" xml:space="preserve">
+    <value>Nazwisko</value>
+  </data>
+	<data name="Dashboard_Profile_LastNameVisibility" xml:space="preserve">
+    <value>Widoczność nazwiska</value>
+  </data>
+	<data name="Dashboard_Profile_Rank_Max" xml:space="preserve">
+    <value>Legendarny szczyt</value>
+  </data>
+	<data name="Dashboard_Profile_Rank_ProgressLabel" xml:space="preserve">
+    <value>Postęp: zdobyto {0} PD, do celu {1} PD</value>
+  </data>
+	<data name="Dashboard_Profile_Rank_TotalXp" xml:space="preserve">
+    <value>Łączne doświadczenie: {0} PD</value>
+  </data>
+	<data name="Dashboard_Profile_Tip_Balance_Body" xml:space="preserve">
+    <value>Pamiętaj o rozciąganiu i nawodnieniu między kolejkami – równowaga ciała ostrzy umysł.</value>
+  </data>
+	<data name="Dashboard_Profile_Tip_Balance_Title" xml:space="preserve">
+    <value>Zdrowa równowaga</value>
+  </data>
+	<data name="Dashboard_Profile_Tip_Focus_Body" xml:space="preserve">
+    <value>Wyłącz rozpraszacze przed rankedem – krótkie, skupione sesje utrzymują refleks.</value>
+  </data>
+	<data name="Dashboard_Profile_Tip_Focus_Title" xml:space="preserve">
+    <value>Laserowa koncentracja</value>
+  </data>
+	<data name="Dashboard_Profile_Tip_Routine_Body" xml:space="preserve">
+    <value>Pięć minut rozgrzewki, łamigłówka albo aim trainer, resetuje pamięć mięśniową i trzyma precyzję.</value>
+  </data>
+	<data name="Dashboard_Profile_Tip_Routine_Title" xml:space="preserve">
+    <value>Stała rutyna</value>
+  </data>
+	<data name="Dashboard_Profile_Tip_Strategy_Body" xml:space="preserve">
+    <value>Analizuj ostatnie mecze i planuj każdy ruch co najmniej dwa kroki naprzód – najlepsze zagrania nie są przypadkowe.</value>
+  </data>
+	<data name="Dashboard_Profile_Tip_Strategy_Title" xml:space="preserve">
+    <value>Strategiczne podejście</value>
+  </data>
+	<data name="Dashboard_Profile_Tip_Teamplay_Body" xml:space="preserve">
+    <value>Podaj w każdej grze jedną pozytywną informację – dobre callouty przyspieszają reakcję drużyny.</value>
+  </data>
+	<data name="Dashboard_Profile_Tip_Teamplay_Title" xml:space="preserve">
+    <value>Wspierająca drużyna</value>
+  </data>
+	<data name="Dashboard_Profile_Visibility_Everyone" xml:space="preserve">
+    <value>Widoczne dla wszystkich</value>
+  </data>
+	<data name="Dashboard_Profile_Visibility_Friends" xml:space="preserve">
+    <value>Widoczne dla znajomych</value>
+  </data>
+	<data name="Dashboard_Profile_Visibility_Owner" xml:space="preserve">
+    <value>Widoczne tylko dla Ciebie</value>
+  </data>
 </root>

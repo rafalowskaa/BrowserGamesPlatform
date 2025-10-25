@@ -28,6 +28,39 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(b);
 
+        b.Entity<ApplicationUser>()
+            .Property(u => u.FirstName)
+            .HasMaxLength(100);
+
+        b.Entity<ApplicationUser>()
+            .Property(u => u.LastName)
+            .HasMaxLength(100);
+
+        b.Entity<ApplicationUser>()
+            .Property(u => u.DisplayNameVisibility)
+            .HasConversion<int>()
+            .HasDefaultValue(ProfileVisibility.Everyone);
+
+        b.Entity<ApplicationUser>()
+            .Property(u => u.FirstNameVisibility)
+            .HasConversion<int>()
+            .HasDefaultValue(ProfileVisibility.OwnerOnly);
+
+        b.Entity<ApplicationUser>()
+            .Property(u => u.LastNameVisibility)
+            .HasConversion<int>()
+            .HasDefaultValue(ProfileVisibility.OwnerOnly);
+
+        b.Entity<ApplicationUser>()
+            .Property(u => u.BirthDateVisibility)
+            .HasConversion<int>()
+            .HasDefaultValue(ProfileVisibility.OwnerOnly);
+
+        b.Entity<ApplicationUser>()
+            .Property(u => u.EmailVisibility)
+            .HasConversion<int>()
+            .HasDefaultValue(ProfileVisibility.OwnerOnly);
+
         b.Entity<Game>()
             .HasIndex(x => x.Slug)
             .IsUnique();

@@ -1849,4 +1849,130 @@
 	<data name="Auth_Register_FormSubtitle" xml:space="preserve">
         <value>A few quick details and you're ready to explore.</value>
     </data>
+	<data name="Dashboard_Profile_Actions_EditInfo" xml:space="preserve">
+        <value>Update profile details</value>
+    </data>
+	<data name="Dashboard_Profile_Actions_Email" xml:space="preserve">
+        <value>Change e-mail</value>
+    </data>
+	<data name="Dashboard_Profile_Actions_Label" xml:space="preserve">
+        <value>Profile options</value>
+    </data>
+	<data name="Dashboard_Profile_Actions_Password" xml:space="preserve">
+        <value>Change password</value>
+    </data>
+	<data name="Dashboard_Profile_BirthDate" xml:space="preserve">
+        <value>Date of birth</value>
+    </data>
+	<data name="Dashboard_Profile_BirthDateVisibility" xml:space="preserve">
+        <value>Birthday visibility</value>
+    </data>
+	<data name="Dashboard_Profile_BirthDate_FutureError" xml:space="preserve">
+        <value>Birth date cannot be in the future.</value>
+    </data>
+	<data name="Dashboard_Profile_Birthday_Today" xml:space="preserve">
+        <value>Happy birthday! 🎂</value>
+    </data>
+	<data name="Dashboard_Profile_DisplayNameVisibility" xml:space="preserve">
+        <value>Display name visibility</value>
+    </data>
+	<data name="Dashboard_Profile_EmailLabel" xml:space="preserve">
+        <value>Current e-mail</value>
+    </data>
+	<data name="Dashboard_Profile_EmailVisibility" xml:space="preserve">
+        <value>E-mail visibility</value>
+    </data>
+	<data name="Dashboard_Profile_FirstName" xml:space="preserve">
+        <value>First name</value>
+    </data>
+	<data name="Dashboard_Profile_FirstNameVisibility" xml:space="preserve">
+        <value>First name visibility</value>
+    </data>
+	<data name="Dashboard_Profile_Highlight_BestGame_Body" xml:space="preserve">
+        <value>You shine brightest in {0} with an average score of {1}.</value>
+    </data>
+	<data name="Dashboard_Profile_Highlight_BestGame_Title" xml:space="preserve">
+        <value>Best-performing game</value>
+    </data>
+	<data name="Dashboard_Profile_Highlight_Birthday_Body" xml:space="preserve">
+        <value>Wish {0} a happy level-up—today is their birthday!</value>
+    </data>
+	<data name="Dashboard_Profile_Highlight_Birthday_Default" xml:space="preserve">
+        <value>this player</value>
+    </data>
+	<data name="Dashboard_Profile_Highlight_Birthday_Title" xml:space="preserve">
+        <value>Birthday celebration</value>
+    </data>
+	<data name="Dashboard_Profile_Highlight_MaxRank_Body" xml:space="preserve">
+        <value>You are holding the top rank—every match now protects your legend.</value>
+    </data>
+	<data name="Dashboard_Profile_Highlight_MaxRank_Title" xml:space="preserve">
+        <value>Peak performance</value>
+    </data>
+	<data name="Dashboard_Profile_Highlight_NextRank_Body" xml:space="preserve">
+        <value>Only {1} XP left to reach {0}. Keep going!</value>
+    </data>
+	<data name="Dashboard_Profile_Highlight_NextRank_Title" xml:space="preserve">
+        <value>Next milestone</value>
+    </data>
+	<data name="Dashboard_Profile_Highlight_NoBestGame_Body" xml:space="preserve">
+        <value>Play a few matches to learn where your skills peak.</value>
+    </data>
+	<data name="Dashboard_Profile_Highlight_NoBestGame_Title" xml:space="preserve">
+        <value>Discover your main game</value>
+    </data>
+	<data name="Dashboard_Profile_LastName" xml:space="preserve">
+        <value>Last name</value>
+    </data>
+	<data name="Dashboard_Profile_LastNameVisibility" xml:space="preserve">
+        <value>Last name visibility</value>
+    </data>
+	<data name="Dashboard_Profile_Rank_Max" xml:space="preserve">
+        <value>Legendary peak</value>
+    </data>
+	<data name="Dashboard_Profile_Rank_ProgressLabel" xml:space="preserve">
+        <value>Progress: {0} XP earned, {1} XP to go</value>
+    </data>
+	<data name="Dashboard_Profile_Rank_TotalXp" xml:space="preserve">
+        <value>Total experience: {0} XP</value>
+    </data>
+	<data name="Dashboard_Profile_Tip_Balance_Body" xml:space="preserve">
+        <value>Remember to stretch and hydrate between queues; physical balance keeps the mind sharp.</value>
+    </data>
+	<data name="Dashboard_Profile_Tip_Balance_Title" xml:space="preserve">
+        <value>Healthy balance</value>
+    </data>
+	<data name="Dashboard_Profile_Tip_Focus_Body" xml:space="preserve">
+        <value>Mute distractions before a ranked run; short, focused sessions keep your reactions crisp.</value>
+    </data>
+	<data name="Dashboard_Profile_Tip_Focus_Title" xml:space="preserve">
+        <value>Laser focus</value>
+    </data>
+	<data name="Dashboard_Profile_Tip_Routine_Body" xml:space="preserve">
+        <value>A five-minute warm-up puzzle or aim trainer resets muscle memory and keeps execution sharp.</value>
+    </data>
+	<data name="Dashboard_Profile_Tip_Routine_Title" xml:space="preserve">
+        <value>Steady routine</value>
+    </data>
+	<data name="Dashboard_Profile_Tip_Strategy_Body" xml:space="preserve">
+        <value>Analyze your recent matches and plan each move two steps ahead—the best plays are rarely accidental.</value>
+    </data>
+	<data name="Dashboard_Profile_Tip_Strategy_Title" xml:space="preserve">
+        <value>Strategic mindset</value>
+    </data>
+	<data name="Dashboard_Profile_Tip_Teamplay_Body" xml:space="preserve">
+        <value>Share one positive callout per match; uplifting comms accelerate team reactions.</value>
+    </data>
+	<data name="Dashboard_Profile_Tip_Teamplay_Title" xml:space="preserve">
+        <value>Supportive teamplay</value>
+    </data>
+	<data name="Dashboard_Profile_Visibility_Everyone" xml:space="preserve">
+        <value>Visible to everyone</value>
+    </data>
+	<data name="Dashboard_Profile_Visibility_Friends" xml:space="preserve">
+        <value>Visible to friends</value>
+    </data>
+	<data name="Dashboard_Profile_Visibility_Owner" xml:space="preserve">
+        <value>Only visible to you</value>
+    </data>
 </root>

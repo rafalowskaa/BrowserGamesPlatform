@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Bgp.Domain.Enums;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Bgp.Web.Models;
 
@@ -21,13 +23,51 @@ public record GameSummaryViewModel(Guid Id, string Title, string Slug, string? C
 public class ProfileSectionViewModel
 {
     public string DisplayName { get; set; } = string.Empty;
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public DateTime? BirthDate { get; set; }
+    public bool IsBirthdayToday { get; set; }
     public string? AvatarUrl { get; set; }
     public string Email { get; set; } = string.Empty;
-    public string RankName { get; set; } = string.Empty;
-    public int RankLevel { get; set; }
+    public ProfileVisibility DisplayNameVisibility { get; set; } = ProfileVisibility.Everyone;
+    public ProfileVisibility FirstNameVisibility { get; set; } = ProfileVisibility.OwnerOnly;
+    public ProfileVisibility LastNameVisibility { get; set; } = ProfileVisibility.OwnerOnly;
+    public ProfileVisibility BirthDateVisibility { get; set; } = ProfileVisibility.OwnerOnly;
+    public ProfileVisibility EmailVisibility { get; set; } = ProfileVisibility.OwnerOnly;
+    public ProfileRankViewModel Rank { get; set; } = new();
+    public ProfileBestGameViewModel? BestGame { get; set; }
+    public IReadOnlyList<ProfileHighlightViewModel> Highlights { get; set; } = Array.Empty<ProfileHighlightViewModel>();
+    public IReadOnlyList<SelectListItem> VisibilityOptions { get; set; } = Array.Empty<SelectListItem>();
+}
+
+public class ProfileRankViewModel
+{
+    public string Tier { get; set; } = string.Empty;
+    public string? Division { get; set; }
+    public string? NextTier { get; set; }
+    public string? NextDivision { get; set; }
     public int ExperiencePoints { get; set; }
-    public int ExperienceToNextLevel { get; set; }
-    public int CurrentLevelThreshold { get; set; }
+    public int CurrentThreshold { get; set; }
+    public int NextThreshold { get; set; }
+    public int XpIntoCurrent { get; set; }
+    public int XpRequiredForNext { get; set; }
+    public int ProgressPercent { get; set; }
+
+    public string DisplayName => string.IsNullOrWhiteSpace(Division) ? Tier : $"{Tier} {Division}";
+    public string? NextDisplayName => NextTier is null && NextDivision is null
+        ? null
+        : string.IsNullOrWhiteSpace(NextDivision)
+            ? NextTier
+            : $"{NextTier} {NextDivision}";
+}
+
+public record ProfileHighlightViewModel(string Title, string Description);
+
+public class ProfileBestGameViewModel
+{
+    public string Title { get; set; } = string.Empty;
+    public double AverageScore { get; set; }
+    public DateTime LastPlayedAt { get; set; }
 }
 
 public class SecuritySectionViewModel
@@ -71,6 +111,21 @@ public class UpdateProfileInputModel
 {
     [Required, MaxLength(120)]
     public string DisplayName { get; set; } = string.Empty;
+
+    [MaxLength(100)]
+    public string? FirstName { get; set; }
+
+    [MaxLength(100)]
+    public string? LastName { get; set; }
+
+    [DataType(DataType.Date)]
+    public DateTime? BirthDate { get; set; }
+
+    public ProfileVisibility DisplayNameVisibility { get; set; } = ProfileVisibility.Everyone;
+    public ProfileVisibility FirstNameVisibility { get; set; } = ProfileVisibility.OwnerOnly;
+    public ProfileVisibility LastNameVisibility { get; set; } = ProfileVisibility.OwnerOnly;
+    public ProfileVisibility BirthDateVisibility { get; set; } = ProfileVisibility.OwnerOnly;
+    public ProfileVisibility EmailVisibility { get; set; } = ProfileVisibility.OwnerOnly;
 
     public IFormFile? Avatar { get; set; }
 }

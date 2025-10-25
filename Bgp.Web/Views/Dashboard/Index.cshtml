@@ -14,13 +14,8 @@
         "GameCreated" => L["Dashboard_Success_Game"].Value,
         _ => null
     };
-    var xp = Model.Profile.ExperiencePoints;
-    var xpIntoLevel = Math.Max(0, xp - Model.Profile.CurrentLevelThreshold);
-    var xpWindow = Math.Max(1, xpIntoLevel + Math.Max(0, Model.Profile.ExperienceToNextLevel));
-    var progress = Math.Clamp((int)Math.Round((double)xpIntoLevel / xpWindow * 100), 0, 100);
-    var nextRankText = Model.Profile.ExperienceToNextLevel <= 0
-        ? L["Dashboard_Profile_RankMax"].Value
-        : string.Format(L["Dashboard_Profile_RankProgress"].Value, Model.Profile.ExperienceToNextLevel);
+    var includeProfileScripts = false;
+    var includeOverviewScripts = false;
 
     string StatusClass(GameApprovalStatus status) => status switch
     {
@@ -60,58 +55,180 @@
     @switch (activeTab)
     {
         case "profile":
+            includeProfileScripts = true;
+            var selectedProfilePanel = (ViewData["ProfilePanel"] as string ?? "info").ToLowerInvariant();
             <section class="dashboard-panel profile-panel">
-                <header class="profile-summary">
-                    <div class="profile-summary__avatar">
-                        @if (!string.IsNullOrEmpty(Model.Profile.AvatarUrl))
-                        {
-                            <img src="@Model.Profile.AvatarUrl" alt="avatar" class="avatar-large" />
-                        }
-                        else
-                        {
-                            <span class="avatar-large placeholder">@L["Dashboard_Profile_NoAvatar"].Value</span>
-                        }
+                <div class="profile-hero">
+                    <div class="profile-hero__trophy profile-hero__trophy--left">
+                        <span>@Model.Profile.Rank.DisplayName</span>
                     </div>
-
-                    <div class="profile-summary__details">
-                        <h2 class="profile-summary__name">@Model.Profile.DisplayName</h2>
-                        <p class="profile-summary__email">@Model.Profile.Email</p>
-                        <div class="profile-summary__rank">
-                            <span class="rank-badge">@Model.Profile.RankName</span>
-                            <div class="rank-progress">
-                                <div class="rank-progress__bar" style="width:@progress%"></div>
-                            </div>
-                            <small>@nextRankText</small>
+                    <div class="profile-hero__center">
+                        <div class="profile-avatar-frame">
+                            @if (!string.IsNullOrEmpty(Model.Profile.AvatarUrl))
+                            {
+                                <img src="@Model.Profile.AvatarUrl" alt="avatar" class="profile-avatar-frame__image" />
+                            }
+                            else
+                            {
+                                <span class="profile-avatar-frame__placeholder">@L["Dashboard_Profile_NoAvatar"].Value</span>
+                            }
                         </div>
-                        <p class="profile-summary__xp">@string.Format(L["Dashboard_Profile_RankXp"].Value, Model.Profile.ExperiencePoints)</p>
+                        <h2 class="profile-hero__name">@Model.Profile.DisplayName</h2>
+                        @if (Model.Profile.IsBirthdayToday)
+                        {
+                             <span class="profile-hero__birthday">@L["Dashboard_Profile_Birthday_Today"].Value</span>
+                        }
+                    <div class="profile-progress">
+                            <div class="profile-progress__track">
+                                <div class="profile-progress__fill" style="width:@Model.Profile.Rank.ProgressPercent%"></div>
+                            </div>
+                            <div class="profile-progress__meta">
+                                <span>@string.Format(L["Dashboard_Profile_Rank_ProgressLabel"].Value, Model.Profile.Rank.XpIntoCurrent, Model.Profile.Rank.XpRequiredForNext)</span>
+                                <span>@string.Format(L["Dashboard_Profile_Rank_TotalXp"].Value, Model.Profile.Rank.ExperiencePoints)</span>
+                            </div>
+                            
+                        </div>
+                        
                     </div>
-                </header>
+                    <div class="profile-hero__trophy profile-hero__trophy--right">
+                        <span>@(Model.Profile.Rank.NextDisplayName ?? L["Dashboard_Profile_Rank_Max"].Value)</span>
+                    </div>
+                </div>
+
+                <div class="profile-highlights">
+                    @foreach (var highlight in Model.Profile.Highlights.Take(4))
+                    {
+                        <article class="profile-highlight">
+                            <h3>@highlight.Title</h3>
+                            <p>@highlight.Description</p>
+                        </article>
+                    }
+                </div>
 
                 <div class="profile-actions">
-                    <article class="profile-card">
+                    <div class="profile-actions__menu">
+                        <label for="profileAction">@L["Dashboard_Profile_Actions_Label"].Value</label>
+                        <select id="profileAction" class="profile-actions__select" data-default="@selectedProfilePanel">
+                            <option value="info"@(selectedProfilePanel == "info" ? " selected" : string.Empty)>@L["Dashboard_Profile_Actions_EditInfo"].Value</option>
+                            <option value="email"@(selectedProfilePanel == "email" ? " selected" : string.Empty)>@L["Dashboard_Profile_Actions_Email"].Value</option>
+                            <option value="password"@(selectedProfilePanel == "password" ? " selected" : string.Empty)>@L["Dashboard_Profile_Actions_Password"].Value</option>
+                        </select>
+                    </div>
+
+                    <div class="profile-actions__panel is-active" data-action="info">
                         <h3>@L["Dashboard_Profile_UpdateTitle"].Value</h3>
                         <p>@L["Dashboard_Profile_UpdateDescription"].Value</p>
-                        <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data" class="form-stacked">
+                        <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data" class="profile-form">
                             @Html.AntiForgeryToken()
                             @Html.ValidationSummary(true, null, new { @class = "val-summary" })
-                            <label for="DisplayName">@L["Dashboard_Profile_DisplayName"].Value</label>
-                            <input id="DisplayName" name="DisplayName" value="@Model.Profile.DisplayName" maxlength="120" />
-                            @Html.ValidationMessage("DisplayName", null, new { @class = "val" })
+                            <div class="profile-field">
+                                <div class="profile-field__input">
+                                    <label for="DisplayName">@L["Dashboard_Profile_DisplayName"].Value</label>
+                                    <input id="DisplayName" name="DisplayName" value="@Model.Profile.DisplayName" maxlength="120" />
+                                    @Html.ValidationMessage("DisplayName", null, new { @class = "val" })
+                                </div>
+                                <div class="profile-field__visibility">
+                                    <label for="DisplayNameVisibility">@L["Dashboard_Profile_DisplayNameVisibility"].Value</label>
+                                    <select id="DisplayNameVisibility" name="DisplayNameVisibility">
+                                        @foreach (var option in Model.Profile.VisibilityOptions)
+                                        {
+                                            var isSelected = option.Value == ((int)Model.Profile.DisplayNameVisibility).ToString();
+                                            <option value="@option.Value"@(isSelected ? " selected" : string.Empty)>@option.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
 
-                            <label for="Avatar">@L["Dashboard_Profile_Avatar"].Value</label>
-                            <input id="Avatar" type="file" name="Avatar" accept="image/*" />
-                            @Html.ValidationMessage("Avatar", null, new { @class = "val" })
+                            <div class="profile-field">
+                                <div class="profile-field__input">
+                                    <label for="FirstName">@L["Dashboard_Profile_FirstName"].Value</label>
+                                    <input id="FirstName" name="FirstName" value="@Model.Profile.FirstName" maxlength="100" />
+                                    @Html.ValidationMessage("FirstName", null, new { @class = "val" })
+                                </div>
+                                <div class="profile-field__visibility">
+                                    <label for="FirstNameVisibility">@L["Dashboard_Profile_FirstNameVisibility"].Value</label>
+                                    <select id="FirstNameVisibility" name="FirstNameVisibility">
+                                        @foreach (var option in Model.Profile.VisibilityOptions)
+                                        {
+                                            var isSelected = option.Value == ((int)Model.Profile.FirstNameVisibility).ToString();
+                                            <option value="@option.Value"@(isSelected ? " selected" : string.Empty)>@option.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="profile-field">
+                                <div class="profile-field__input">
+                                    <label for="LastName">@L["Dashboard_Profile_LastName"].Value</label>
+                                    <input id="LastName" name="LastName" value="@Model.Profile.LastName" maxlength="100" />
+                                    @Html.ValidationMessage("LastName", null, new { @class = "val" })
+                                </div>
+                                <div class="profile-field__visibility">
+                                    <label for="LastNameVisibility">@L["Dashboard_Profile_LastNameVisibility"].Value</label>
+                                    <select id="LastNameVisibility" name="LastNameVisibility">
+                                        @foreach (var option in Model.Profile.VisibilityOptions)
+                                        {
+                                            var isSelected = option.Value == ((int)Model.Profile.LastNameVisibility).ToString();
+                                            <option value="@option.Value"@(isSelected ? " selected" : string.Empty)>@option.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="profile-field">
+                                <div class="profile-field__input">
+                                    <label for="BirthDate">@L["Dashboard_Profile_BirthDate"].Value</label>
+                                    <input id="BirthDate" name="BirthDate" type="date" value="@(Model.Profile.BirthDate?.ToString("yyyy-MM-dd"))" />
+                                    @Html.ValidationMessage("BirthDate", null, new { @class = "val" })
+                                </div>
+                                <div class="profile-field__visibility">
+                                    <label for="BirthDateVisibility">@L["Dashboard_Profile_BirthDateVisibility"].Value</label>
+                                    <select id="BirthDateVisibility" name="BirthDateVisibility">
+                                        @foreach (var option in Model.Profile.VisibilityOptions)
+                                        {
+                                            var isSelected = option.Value == ((int)Model.Profile.BirthDateVisibility).ToString();
+                                            <option value="@option.Value"@(isSelected ? " selected" : string.Empty)>@option.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="profile-field">
+                                <div class="profile-field__input">
+                                    <label>@L["Dashboard_Profile_EmailLabel"].Value</label>
+                                    <div class="profile-field__static">@Model.Profile.Email</div>
+                                </div>
+                                <div class="profile-field__visibility">
+                                    <label for="EmailVisibility">@L["Dashboard_Profile_EmailVisibility"].Value</label>
+                                    <select id="EmailVisibility" name="EmailVisibility">
+                                        @foreach (var option in Model.Profile.VisibilityOptions)
+                                        {
+                                            var isSelected = option.Value == ((int)Model.Profile.EmailVisibility).ToString();
+                                            <option value="@option.Value"@(isSelected ? " selected" : string.Empty)>@option.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="profile-field">
+                                <div class="profile-field__input">
+                                    <label for="Avatar">@L["Dashboard_Profile_Avatar"].Value</label>
+                                    <input id="Avatar" type="file" name="Avatar" accept="image/*" />
+                                    @Html.ValidationMessage("Avatar", null, new { @class = "val" })
+                                </div>
+                            </div>
 
                             <button class="btn-primary" type="submit">@L["Dashboard_Profile_Save"].Value</button>
                         </form>
-                    </article>
+                    </div>
 
-                    <article class="profile-card">
+                    <div class="profile-actions__panel" data-action="email">
                         <h3>@L["Dashboard_Profile_EmailTitle"].Value</h3>
                         <p>@string.Format(L["Dashboard_Profile_EmailDescription"].Value, Model.Security.Email)</p>
-                        <form asp-action="UpdateEmail" method="post" class="form-stacked">
+                        <form asp-action="UpdateEmail" method="post" class="profile-form">
                             @Html.AntiForgeryToken()
                             @Html.ValidationSummary(true, null, new { @class = "val-summary" })
+
                             <label for="Email">@L["Dashboard_Security_Email"].Value</label>
                             <input id="Email" name="Email" type="email" value="@Model.Security.Email" autocomplete="email" />
                             @Html.ValidationMessage("Email", null, new { @class = "val" })
@@ -122,14 +239,15 @@
 
                             <button class="btn-primary" type="submit">@L["Dashboard_Security_SaveEmail"].Value</button>
                         </form>
-                    </article>
+                    </div>
 
-                    <article class="profile-card">
+                    <div class="profile-actions__panel" data-action="password">
                         <h3>@L["Dashboard_Profile_PasswordTitle"].Value</h3>
                         <p>@L["Dashboard_Profile_PasswordDescription"].Value</p>
-                        <form asp-action="ChangePassword" method="post" class="form-stacked">
+                        <form asp-action="ChangePassword" method="post" class="profile-form">
                             @Html.AntiForgeryToken()
                             @Html.ValidationSummary(true, null, new { @class = "val-summary" })
+
                             <label for="CurrentPassword">@L["Dashboard_Security_CurrentPassword"].Value</label>
                             <input id="CurrentPassword" name="CurrentPassword" type="password" autocomplete="current-password" />
                             @Html.ValidationMessage("CurrentPassword", null, new { @class = "val" })
@@ -144,7 +262,7 @@
 
                             <button class="btn-primary" type="submit">@L["Dashboard_Security_ChangePassword"].Value</button>
                         </form>
-                    </article>
+                    </div>
                 </div>
             </section>
             break;
@@ -289,6 +407,7 @@
             </section>
             break;
         default:
+            includeOverviewScripts = true;
             <section class="dashboard-panel">
                 <h2>@L["Dashboard_Overview_Heading"].Value</h2>
                 <p>@L["Dashboard_Overview_Subheading"].Value</p>
@@ -303,9 +422,44 @@
                     }
                 </div>
             </section>
-            @section Scripts {
-                <script src="~/js/dashboard.js" asp-append-version="true"></script>
-            }
+            
             break;
     }
 </section>
+
+@section Scripts {
+        if (includeOverviewScripts)
+        {
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+        }
+        if (includeProfileScripts)
+        {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const selector = document.getElementById('profileAction');
+            if (!selector) {
+                return;
+            }
+
+            const panels = document.querySelectorAll('.profile-actions__panel');
+            const togglePanels = (value) => {
+                panels.forEach(panel => {
+                    if (panel.dataset.action === value) {
+                        panel.classList.add('is-active');
+                    }
+                    else {
+                        panel.classList.remove('is-active');
+                    }
+                });
+            };
+
+            const defaultValue = selector.dataset.default || selector.value;
+            selector.value = defaultValue;
+            togglePanels(defaultValue);
+            selector.addEventListener('change', (event) => {
+                togglePanels(event.target.value);
+            });
+        });
+    </script>
+        }
+}
