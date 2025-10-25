@@ -5,6 +5,7 @@ using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -37,7 +38,13 @@ var jwtKey = builder.Configuration["Jwt:Key"] ?? "dev-key-change-me";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "Bgp";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "BgpAudience";
 
-builder.Services.AddAuthentication()
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+})
+    .AddCookie(IdentityConstants.ApplicationScheme)
+    .AddCookie(IdentityConstants.ExternalScheme)
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
     {
         o.TokenValidationParameters = new()

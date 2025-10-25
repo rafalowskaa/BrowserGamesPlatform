@@ -1,31 +1,31 @@
 ﻿@* Prosty panel czatu wysuwany z prawej *@
 <aside id="chatSidebar" class="chat-sidebar">
     <div class="chat-header">
-        <strong>@L["Chat_Title"]</strong>
-        <button id="chatClose" class="btn-icon" title="@L["Chat_Close"]">✕</button>
+        <strong>@L["Chat_Title"].Value</strong>
+        <button id="chatClose" class="btn-icon" title="@L["Chat_Close"].Value">✕</button>
     </div>
     <div class="chat-search">
-        <input id="chatSearch" placeholder="@L["Chat_SearchPlaceholder"]" />
+        <input id="chatSearch" placeholder="@L["Chat_SearchPlaceholder"].Value" />
     </div>
 
     <div class="chat-content">
         <div class="chat-lists">
-            <h4>@L["Chat_Friends"]</h4>
+            <h4>@L["Chat_Friends"].Value</h4>
             <ul id="friendsList" class="list"></ul>
 
             <h4>Zaproszenia</h4>
-            <h4>@L["Chat_Invites"]</h4>
+            <h4>@L["Chat_Invites"].Value</h4>
         </div>
 
         <div class="chat-thread">
             <div id="threadHeader" class="thread-header"></div>
             <div id="threadBody" class="thread-body"></div>
             <div class="thread-input">
-                <input id="msgInput" placeholder="@L["Chat_WriteMessage"]" />
-                <button id="msgSend" class="btn-primary">@L["Chat_Send"]</button>
+                <input id="msgInput" placeholder="@L["Chat_WriteMessage"].Value" />
+                <button id="msgSend" class="btn-primary">@L["Chat_Send"].Value</button>
             </div>
         </div>
     </div>
 </aside>
 
-<button id="chatToggle" class="chat-toggle" title="@L["Chat_Open"]">💬</button>
+<button id="chatToggle" class="chat-toggle" title="@L["Chat_Open"].Value">💬</button>

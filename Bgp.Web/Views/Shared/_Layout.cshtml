@@ -82,15 +82,21 @@
     </main>
 
     <!-- Wysuwany panel czatu -->
-    @await Html.PartialAsync("_ChatSidebar")
+    @if (SignInManager.IsSignedIn(User))
+    {
+        @await Html.PartialAsync("_ChatSidebar")
+    }
 
     <footer class="container footer">
         <span>@string.Format(L["Footer_Legal"].Value, DateTime.UtcNow.Year)</span>
     </footer>
 
-    <!-- SignalR + Chat -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.5/signalr.min.js"></script>
-    <script src="~/js/chat.js" asp-append-version="true"></script>
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <!-- SignalR + Chat -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.5/signalr.min.js"></script>
+        <script src="~/js/chat.js" asp-append-version="true"></script>
+    }
     @RenderSection("Scripts", required: false)
 </body>
 </html>

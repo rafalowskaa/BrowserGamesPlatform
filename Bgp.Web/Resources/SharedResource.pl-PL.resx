@@ -123,6 +123,9 @@
 	<data name="Account_InvalidCredentials" xml:space="preserve">
     <value>Nieprawidłowe dane logowania.</value>
   </data>
+	<data name="Account_LockedOut" xml:space="preserve">
+    <value>Konto zostało tymczasowo zablokowane. Spróbuj ponownie później.</value>
+  </data>
 	<data name="Chat_Title" xml:space="preserve">
     <value>Czat</value>
   </data>

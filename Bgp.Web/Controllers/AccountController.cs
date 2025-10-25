@@ -28,13 +28,22 @@ public class AccountController : Controller
     public async Task<IActionResult> Login(LoginVm vm)
     {
         if (!ModelState.IsValid) return View(vm);
-        var userName = vm.LoginOrEmail;
-        if (vm.LoginOrEmail.Contains('@'))
+        var identifier = vm.LoginOrEmail.Trim();
+        vm.LoginOrEmail = identifier;
+
+        if (string.IsNullOrWhiteSpace(identifier) || string.IsNullOrWhiteSpace(vm.Password))
         {
-            var byEmail = await _users.FindByEmailAsync(vm.LoginOrEmail);
+            ModelState.AddModelError(string.Empty, _localizer["Account_InvalidCredentials"]);
+            return View(vm);
+        }
+
+        var userName = identifier;
+        if (identifier.Contains('@'))
+        {
+            var byEmail = await _users.FindByEmailAsync(identifier);
             if (byEmail is not null)
             {
-                userName = byEmail.UserName ?? byEmail.Email ?? vm.LoginOrEmail;
+                userName = byEmail.UserName ?? byEmail.Email ?? identifier;
             }
         }
 
@@ -49,7 +58,14 @@ public class AccountController : Controller
 
             return LocalRedirect(target);
         }
-        ModelState.AddModelError("", _localizer["Account_InvalidCredentials"]);
+        if (res.IsLockedOut)
+        {
+            ModelState.AddModelError(string.Empty, _localizer["Account_LockedOut"]);
+        }
+        else
+        {
+            ModelState.AddModelError(string.Empty, _localizer["Account_InvalidCredentials"]);
+        }
         return View(vm);
     }
 
