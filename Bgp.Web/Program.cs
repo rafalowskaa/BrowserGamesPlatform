@@ -70,6 +70,9 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
 });
 
+CultureInfo.DefaultThreadCurrentCulture = supportedCultures[0];
+CultureInfo.DefaultThreadCurrentUICulture = supportedCultures[0];
+
 var app = builder.Build();
 
 // Migracje + seeding
@@ -81,6 +84,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+var locOpts = app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>();
+app.UseRequestLocalization(locOpts.Value);
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
@@ -90,9 +96,6 @@ app.UseCors("Games");
 app.UseAuthentication();
 app.UseAuthorization();
 
-
-var locOpts = app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>();
-app.UseRequestLocalization(locOpts.Value);
 
 // Swagger
 app.UseSwagger();
