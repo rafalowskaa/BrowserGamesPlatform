@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\Bgp.Infrastructure\Bgp.Infrastructure.csproj" />
@@ -33,6 +33,7 @@
 	
   <ItemGroup>
     <Folder Include="wwwroot\img\flags\" />
+    <Folder Include="wwwroot\img\trophies\" />
   </ItemGroup>
 
   <PropertyGroup>
