@@ -1035,6 +1035,22 @@
           "lib/netstandard2.0/Mono.TextTemplating.dll": {}
         }
       },
+      "SixLabors.ImageSharp/3.1.4": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/SixLabors.ImageSharp.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/SixLabors.ImageSharp.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "build/SixLabors.ImageSharp.props": {}
+        }
+      },
       "Swashbuckle.AspNetCore/9.0.6": {
         "type": "package",
         "dependencies": {
@@ -3379,6 +3395,22 @@
         "mono.texttemplating.nuspec"
       ]
     },
+    "SixLabors.ImageSharp/3.1.4": {
+      "sha512": "lFIdxgGDA5iYkUMRFOze7BGLcdpoLFbR+a20kc1W7NepvzU7ejtxtWOg9RvgG7kb9tBoJ3ONYOK6kLil/dgF1w==",
+      "type": "package",
+      "path": "sixlabors.imagesharp/3.1.4",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "build/SixLabors.ImageSharp.props",
+        "lib/net6.0/SixLabors.ImageSharp.dll",
+        "lib/net6.0/SixLabors.ImageSharp.xml",
+        "sixlabors.imagesharp.128.png",
+        "sixlabors.imagesharp.3.1.4.nupkg.sha512",
+        "sixlabors.imagesharp.nuspec"
+      ]
+    },
     "Swashbuckle.AspNetCore/9.0.6": {
       "sha512": "q/UfEAgrk6qQyjHXgsW9ILw0YZLfmPtWUY4wYijliX6supozC+TkzU0G6FTnn/dPYxnChjM8g8lHjWHF6VKy+A==",
       "type": "package",
@@ -4425,6 +4457,7 @@
       "Microsoft.AspNetCore.Authentication.JwtBearer >= 8.0.10",
       "Microsoft.AspNetCore.Identity.UI >= 8.0.10",
       "Microsoft.EntityFrameworkCore.Design >= 8.0.10",
+      "SixLabors.ImageSharp >= 3.1.4",
       "Swashbuckle.AspNetCore >= 9.0.6"
     ]
   },
@@ -4503,6 +4536,10 @@
             "target": "Package",
             "version": "[8.0.10, )"
           },
+          "SixLabors.ImageSharp": {
+            "target": "Package",
+            "version": "[3.1.4, )"
+          },
           "Swashbuckle.AspNetCore": {
             "target": "Package",
             "version": "[9.0.6, )"
@@ -4530,5 +4567,47 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Pakiet „SixLabors.ImageSharp” 3.1.4 ma znane wysoka luki w zabezpieczeniach o ważności, https://github.com/advisories/GHSA-2cmq-823j-5qj8",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Pakiet „SixLabors.ImageSharp” 3.1.4 ma znane wysoka luki w zabezpieczeniach o ważności, https://github.com/advisories/GHSA-63p8-c4ww-9cg7",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Pakiet „SixLabors.ImageSharp” 3.1.4 ma znane umiarkowana luki w zabezpieczeniach o ważności, https://github.com/advisories/GHSA-qxrv-gp6x-rc23",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Pakiet „SixLabors.ImageSharp” 3.1.4 ma znane umiarkowana luki w zabezpieczeniach o ważności, https://github.com/advisories/GHSA-rxmq-m78w-7wmc",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }

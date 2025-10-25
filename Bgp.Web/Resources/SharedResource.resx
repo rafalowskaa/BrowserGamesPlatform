@@ -1126,11 +1126,17 @@
 
 
 	<data name="Dashboard_Profile_Avatar" xml:space="preserve">
-        
-        
-    
-        
+
         <value>Avatar</value>
+        
+        
+
+    
+    </data>
+
+	<data name="Dashboard_Profile_Avatar_ProcessingError" xml:space="preserve">
+
+        <value>We couldn't process your avatar. Please upload a valid image up to 2 MB.</value>
         
         
 

@@ -1,0 +1,1052 @@
+﻿[
+  {
+    "Text": "Jaki z poniższych typów średnich ruchomych reaguje najszybciej na zmianę ceny?",
+    "Options": [
+      {
+        "Text": "SMA",
+        "IsCorrect": false
+      },
+      {
+        "Text": "WMA",
+        "IsCorrect": false
+      },
+      {
+        "Text": "EMA",
+        "IsCorrect": true
+      },
+      {
+        "Text": "HMA",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Która wartość RSI zwykle oznacza strefę wykupienia?",
+    "Options": [
+      {
+        "Text": "30",
+        "IsCorrect": false
+      },
+      {
+        "Text": "50",
+        "IsCorrect": false
+      },
+      {
+        "Text": "70",
+        "IsCorrect": true
+      },
+      {
+        "Text": "14",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "W trendzie wzrostowym linia trendu jest rysowana przez:",
+    "Options": [
+      {
+        "Text": "Rosnące minima (dołki)",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Rosnące maksima (szczyty)",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Malejące minima",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Malejące maksima",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Wskaż szerokość pasm Wstęg Bollingera w standardowej konfiguracji:",
+    "Options": [
+      {
+        "Text": "±1 odchylenie standardowe",
+        "IsCorrect": false
+      },
+      {
+        "Text": "±1,5 odchylenia standardowego",
+        "IsCorrect": false
+      },
+      {
+        "Text": "±2 odchylenia standardowe",
+        "IsCorrect": true
+      },
+      {
+        "Text": "±3 odchylenia standardowe",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Wzór %K = (C − L14)/(H14 − L14) dotyczy oscylatora:",
+    "Options": [
+      {
+        "Text": "RSI",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Stochastic",
+        "IsCorrect": true
+      },
+      {
+        "Text": "MACD",
+        "IsCorrect": false
+      },
+      {
+        "Text": "CCI",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Przy metodzie \"double crossover\" sygnał kupna występuje, gdy:",
+    "Options": [
+      {
+        "Text": "MA krótkookresowa przecina MA długookresową od dołu",
+        "IsCorrect": true
+      },
+      {
+        "Text": "MA długookresowa przecina MA krótkookresową od dołu",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Cena przecina MA(200) od góry",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Linia trendu jest złamana",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Model DCF wycenia spółkę na podstawie:",
+    "Options": [
+      {
+        "Text": "Zdyskontowanych przepływów pieniężnych",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Średniej arytmetycznej wskaźników rynkowych",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Ceny księgowej",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Prognozowanego wolumenu obrotu",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Model Gordon-Shapiro służy do wyceny:",
+    "Options": [
+      {
+        "Text": "Opcji",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Dywidend przy stałym wzroście",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Futures",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Spreadu kredytowego",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Które z poniższych są mnożnikami wyceny? (wybierz wszystkie poprawne)",
+    "Options": [
+      {
+        "Text": "P/E",
+        "IsCorrect": true
+      },
+      {
+        "Text": "EV/EBITDA",
+        "IsCorrect": true
+      },
+      {
+        "Text": "DCF",
+        "IsCorrect": false
+      },
+      {
+        "Text": "WACC",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Reguła 3 % w zarządzaniu ryzykiem oznacza:",
+    "Options": [
+      {
+        "Text": "Nie inwestuj więcej niż 3 % kapitału w jedną transakcję",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Akceptuj maks. 3 % stratę kapitału na jedną transakcję",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Oczekuj zysku co najmniej 3 %",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Stosuj dźwignię 1:3",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Preferowany stosunek zysk/ryzyko przy ustawianiu SL/TP wynosi co najmniej:",
+    "Options": [
+      {
+        "Text": "1:1",
+        "IsCorrect": false
+      },
+      {
+        "Text": "2:1",
+        "IsCorrect": false
+      },
+      {
+        "Text": "3:1",
+        "IsCorrect": true
+      },
+      {
+        "Text": "5:1",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Zlecenie stop-loss służy do:",
+    "Options": [
+      {
+        "Text": "Zabezpieczenia zysku",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Ograniczenia potencjalnej straty",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Otwarcia nowej pozycji po cenie rynkowej",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Zwiększenia ekspozycji na ryzyko",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Kontrakty futures są rozliczane codziennie według zasady:",
+    "Options": [
+      {
+        "Text": "cash-and-carry",
+        "IsCorrect": false
+      },
+      {
+        "Text": "mark-to-market",
+        "IsCorrect": true
+      },
+      {
+        "Text": "spot next",
+        "IsCorrect": false
+      },
+      {
+        "Text": "expiry swap",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Opcja finansowa daje właścicielowi:",
+    "Options": [
+      {
+        "Text": "Obowiązek kupna lub sprzedaży aktywa",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Prawo, lecz nie obowiązek, kupna lub sprzedaży aktywa",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Gwarancję zysku",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Stały kupon",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Strategia covered call polega na:",
+    "Options": [
+      {
+        "Text": "Kupnie opcji put i sprzedaży akcji",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Posiadaniu akcji i sprzedaży opcji call",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Kupnie dwóch opcji call",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Sprzedaży akcji na krótką i kupnie call",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Maximum Drawdown oznacza:",
+    "Options": [
+      {
+        "Text": "Średnią stratę portfela",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Największy spadek kapitału od szczytu do dna",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Największy zysk portfela",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Zmienne oprocentowanie",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Wskaźnik OBV wykorzystuje:",
+    "Options": [
+      {
+        "Text": "Wyłącznie ceny zamknięcia",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Wolumen obrotu",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Stopy procentowe",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Zmiany kursów walut",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "VWAP to skrót od:",
+    "Options": [
+      {
+        "Text": "Volume Weighted Average Price",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Value Weighted Average Profit",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Variable Weighted Asset Price",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Volume in Weighted Active Period",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Formacja zapowiadająca odwrócenie trendu to:",
+    "Options": [
+      {
+        "Text": "Flaga",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Głowa z ramionami (Head & Shoulders)",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Trójkąt prostokątny",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Kanał równoległy",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Formacja kontynuacji trendu to:",
+    "Options": [
+      {
+        "Text": "Podwójny szczyt",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Flaga",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Młot",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Objęcie bessy",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Wskaż poprawne twierdzenie o RSI:",
+    "Options": [
+      {
+        "Text": "RSI = 100 – 100 / (1 + RS)",
+        "IsCorrect": true
+      },
+      {
+        "Text": "RSI mierzy wyłącznie wolumen",
+        "IsCorrect": false
+      },
+      {
+        "Text": "RSI nie ma poziomów granicznych",
+        "IsCorrect": false
+      },
+      {
+        "Text": "RSI używa mediany cen",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Poziom 80/20 dotyczy stref wykupienia/wyprzedania dla oscylatora:",
+    "Options": [
+      {
+        "Text": "Stochastic",
+        "IsCorrect": true
+      },
+      {
+        "Text": "MACD",
+        "IsCorrect": false
+      },
+      {
+        "Text": "RSI",
+        "IsCorrect": false
+      },
+      {
+        "Text": "ATR",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Linia sygnałowa MACD jest:",
+    "Options": [
+      {
+        "Text": "Wartością średnią 3-dniową MACD",
+        "IsCorrect": false
+      },
+      {
+        "Text": "9-okresową EMA linii MACD",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Prostą SMA ceny",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Wskaźnikiem dywidendy",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "WACC to:",
+    "Options": [
+      {
+        "Text": "Średni ważony koszt kapitału",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Zmiana wartości aktywów",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Wskaźnik rentowności obligacji",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Model wyceny opcji",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "EV/EBITDA pozwala porównać spółki, eliminując wpływ:",
+    "Options": [
+      {
+        "Text": "Struktury kapitałowej i amortyzacji",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Sezonowości sprzedaży",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Wolumenu obrotu",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Polityki dywidendowej",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Modele dywidendowe wyceniają akcje w oparciu o:",
+    "Options": [
+      {
+        "Text": "Przyszłe dywidendy",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Zysk brutto",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Bilans",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Popyt na akcje",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Wskaźnik C/Z odnosi się do:",
+    "Options": [
+      {
+        "Text": "Cena / Zysk na akcję",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Cena / Wartość księgowa",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Cena / EBITDA",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Cena / Sprzedaż",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Kanał wzrostowy składa się z:",
+    "Options": [
+      {
+        "Text": "Dwu linii równoległych",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Jednej linii prostej",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Linii krzywej i prostej",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Średniej logarytmicznej",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "W standardowej konfiguracji Wstęg Bollingera ~95 % cen mieści się:",
+    "Options": [
+      {
+        "Text": "Pomiędzy średnią a dolnym pasmem",
+        "IsCorrect": false
+      },
+      {
+        "Text": "W całym paśmie ±2 σ",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Powyżej górnego pasma",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Poniżej dolnego pasma",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "EMA nadaje:",
+    "Options": [
+      {
+        "Text": "Jednakową wagę wszystkim notowaniom",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Większą wagę najnowszym notowaniom",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Większą wagę najstarszym notowaniom",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Losowe wagi",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Dywergencja pozytywna występuje, gdy:",
+    "Options": [
+      {
+        "Text": "Cena tworzy niższy dołek, a oscylator wyższy dołek",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Cena i oscylator równocześnie tworzą wyższy szczyt",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Oscylator tworzy niższy dołek, a cena wyższy",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Cena przebija średnią 200-dniową",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Oscylatory są szczególnie użyteczne w rynku:",
+    "Options": [
+      {
+        "Text": "Bocznym (ranging)",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Silnie trendowym",
+        "IsCorrect": false
+      },
+      {
+        "Text": "O wysokiej inflacji",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Na Debiuty IPO",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Średnia 200-dniowa zwykle symbolizuje:",
+    "Options": [
+      {
+        "Text": "Trend krótkoterminowy",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Trend długoterminowy",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Zmianę wolumenu",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Krótką sprzedaż",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "W DCF wartość rezydualna najczęściej wylicza się metodą:",
+    "Options": [
+      {
+        "Text": "Nadwyżki księgowej",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Gordon Growth",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Sumy aktywów",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Metodą mnożnikową",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Dywersyfikacja portfela redukuje przede wszystkim:",
+    "Options": [
+      {
+        "Text": "Ryzyko systemowe",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Ryzyko niesystemowe",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Zmiany stóp procentowych",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Brak płynności rynku",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Fundusze hedge mogą wykorzystywać:",
+    "Options": [
+      {
+        "Text": "Dźwignię i krótką sprzedaż",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Wyłącznie inwestycje pasywne",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Tylko obligacje skarbowe",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Zakaz strategii arbitrażowych",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "VWAP jest często używany jako:",
+    "Options": [
+      {
+        "Text": "Benchmark jakości wykonania transakcji",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Wskaźnik bankructwa",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Wycena godziwa akcji",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Model prognozowania inflacji",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Strategia protective put polega na:",
+    "Options": [
+      {
+        "Text": "Kupnie opcji call przy posiadaniu akcji",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Kupnie opcji put przy posiadaniu akcji",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Sprzedaży opcji put bez akcji",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Kupnie futures",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Straddle polega na jednoczesnym:",
+    "Options": [
+      {
+        "Text": "Kupnie call i put o tym samym strike'u",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Sprzedaży dwóch call",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Kupnie call i sprzedaży put",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Kupnie futures i opcji",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Kontrakt futures nakłada na strony:",
+    "Options": [
+      {
+        "Text": "Prawo bez obowiązku realizacji",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Obowiązek kupna/sprzedaży aktywa w przyszłości",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Wypłatę stałego kuponu",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Brak marży",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Pierwszym etapem pełnej analizy fundamentalnej jest:",
+    "Options": [
+      {
+        "Text": "Analiza finansowa spółki",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Analiza makroekonomiczna",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Wycena akcji",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Analiza sektorowa",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Wycena względna (porównawcza) polega na:",
+    "Options": [
+      {
+        "Text": "Użyciu zdyskontowanych przepływów pieniężnych",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Porównaniu mnożników spółki do grupy porównawczej",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Sumowaniu majątku trwałego",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Obliczaniu EVA",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "W analizie technicznej \"whipsaw\" oznacza:",
+    "Options": [
+      {
+        "Text": "Szybki, fałszywy sygnał w trendzie bocznym",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Stabilny trend wzrostowy",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Formację trójkąta",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Opóźnienie oscylatora",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "C/WK jest równoważne wskaźnikowi:",
+    "Options": [
+      {
+        "Text": "P/BV",
+        "IsCorrect": true
+      },
+      {
+        "Text": "EV/EBITDA",
+        "IsCorrect": false
+      },
+      {
+        "Text": "P/E",
+        "IsCorrect": false
+      },
+      {
+        "Text": "PEG",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Wskaźnik OBV rośnie, gdy:",
+    "Options": [
+      {
+        "Text": "Cena zamknięcia jest niższa niż poprzednia",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Cena zamknięcia jest wyższa niż poprzednia",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Otwarcie przewyższa zamknięcie",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Maleje wolumen",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Kupny sygnał Stochastic pojawia się, gdy %K przecina %D:",
+    "Options": [
+      {
+        "Text": "Powyżej poziomu 80",
+        "IsCorrect": false
+      },
+      {
+        "Text": "%K %D nie mają znaczenia",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Poniżej poziomu 20 od dołu",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Przy poziomie 50",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Break-even dla nabywcy opcji call wynosi:",
+    "Options": [
+      {
+        "Text": "Strike − premia",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Strike + premia",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Cena spot",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Zero",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Beta mierzy:",
+    "Options": [
+      {
+        "Text": "Rentowność dywidendy",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Ryzyko systemowe względem rynku",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Płynność akcji",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Marżę operacyjną",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Zwężenie Wstęg Bollingera (squeeze) sugeruje:",
+    "Options": [
+      {
+        "Text": "Wysoką zmienność",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Niską zmienność i możliwy silny ruch",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Stały trend",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Spadek wolumenu poniżej zera",
+        "IsCorrect": false
+      }
+    ]
+  },
+  {
+    "Text": "Maximum Drawdown jest szczególnie użyteczne przy ocenie:",
+    "Options": [
+      {
+        "Text": "Ryzyka strategii algorytmicznych",
+        "IsCorrect": true
+      },
+      {
+        "Text": "Płynności rynkowej",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Poziomu inflacji",
+        "IsCorrect": false
+      },
+      {
+        "Text": "Stopy dywidendy",
+        "IsCorrect": false
+      }
+    ]
+  }
+]

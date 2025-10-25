@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "PGYpZCOpCLE=",
+  "dgSpecHash": "L9T3P6eVINQ=",
   "success": true,
   "projectFilePath": "C:\\Users\\nrafa\\source\\repos\\BrowserGamesPlatform\\Bgp.Web\\Bgp.Web.csproj",
   "expectedPackageFiles": [
@@ -53,6 +53,7 @@
     "C:\\Users\\nrafa\\.nuget\\packages\\microsoft.sqlserver.server\\1.0.0\\microsoft.sqlserver.server.1.0.0.nupkg.sha512",
     "C:\\Users\\nrafa\\.nuget\\packages\\microsoft.win32.systemevents\\6.0.0\\microsoft.win32.systemevents.6.0.0.nupkg.sha512",
     "C:\\Users\\nrafa\\.nuget\\packages\\mono.texttemplating\\2.2.1\\mono.texttemplating.2.2.1.nupkg.sha512",
+    "C:\\Users\\nrafa\\.nuget\\packages\\sixlabors.imagesharp\\3.1.4\\sixlabors.imagesharp.3.1.4.nupkg.sha512",
     "C:\\Users\\nrafa\\.nuget\\packages\\swashbuckle.aspnetcore\\9.0.6\\swashbuckle.aspnetcore.9.0.6.nupkg.sha512",
     "C:\\Users\\nrafa\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\9.0.6\\swashbuckle.aspnetcore.swagger.9.0.6.nupkg.sha512",
     "C:\\Users\\nrafa\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\9.0.6\\swashbuckle.aspnetcore.swaggergen.9.0.6.nupkg.sha512",
@@ -90,5 +91,54 @@
     "C:\\Users\\nrafa\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512",
     "C:\\Users\\nrafa\\.nuget\\packages\\system.windows.extensions\\6.0.0\\system.windows.extensions.6.0.0.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Pakiet „SixLabors.ImageSharp” 3.1.4 ma znane wysoka luki w zabezpieczeniach o ważności, https://github.com/advisories/GHSA-2cmq-823j-5qj8",
+      "projectPath": "C:\\Users\\nrafa\\source\\repos\\BrowserGamesPlatform\\Bgp.Web\\Bgp.Web.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\nrafa\\source\\repos\\BrowserGamesPlatform\\Bgp.Web\\Bgp.Web.csproj",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Pakiet „SixLabors.ImageSharp” 3.1.4 ma znane wysoka luki w zabezpieczeniach o ważności, https://github.com/advisories/GHSA-63p8-c4ww-9cg7",
+      "projectPath": "C:\\Users\\nrafa\\source\\repos\\BrowserGamesPlatform\\Bgp.Web\\Bgp.Web.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\nrafa\\source\\repos\\BrowserGamesPlatform\\Bgp.Web\\Bgp.Web.csproj",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Pakiet „SixLabors.ImageSharp” 3.1.4 ma znane umiarkowana luki w zabezpieczeniach o ważności, https://github.com/advisories/GHSA-qxrv-gp6x-rc23",
+      "projectPath": "C:\\Users\\nrafa\\source\\repos\\BrowserGamesPlatform\\Bgp.Web\\Bgp.Web.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\nrafa\\source\\repos\\BrowserGamesPlatform\\Bgp.Web\\Bgp.Web.csproj",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Pakiet „SixLabors.ImageSharp” 3.1.4 ma znane umiarkowana luki w zabezpieczeniach o ważności, https://github.com/advisories/GHSA-rxmq-m78w-7wmc",
+      "projectPath": "C:\\Users\\nrafa\\source\\repos\\BrowserGamesPlatform\\Bgp.Web\\Bgp.Web.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\nrafa\\source\\repos\\BrowserGamesPlatform\\Bgp.Web\\Bgp.Web.csproj",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }

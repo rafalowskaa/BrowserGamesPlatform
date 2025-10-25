@@ -1125,15 +1125,15 @@
 
 
 
-
 	<data name="Dashboard_Profile_Avatar" xml:space="preserve">
-        
-        
-    
         
         <value>Avatar</value>
         
-        
+         </data>
+
+	<data name="Dashboard_Profile_Avatar_ProcessingError" xml:space="preserve">
+
+        <value>Nie udało się przetworzyć Twojego awatara. Prześlij prawidłowy obraz nie większy niż 2 MB.</value>
 
     
     </data>

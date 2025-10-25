@@ -1,25 +1,31 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text.RegularExpressions;
-using System.Text;
-using Bgp.Domain.Entities;
+﻿using Bgp.Domain.Entities;
 using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Identity;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Models;
 using Bgp.Web.Resources;
-using System.IO.Compression;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Bgp.Web.Controllers;
 
@@ -32,6 +38,9 @@ public class DashboardController : Controller
     private readonly IWebHostEnvironment _env;
     private readonly ILogger<DashboardController> _logger;
     private readonly IStringLocalizer<SharedResource> _localizer;
+
+    private const long MaxAvatarBytes = 2 * 1024 * 1024;
+    private const int MinAvatarDimension = 100;
 
     private static readonly Regex SlugRegex = new("[^a-z0-9-]", RegexOptions.Compiled);
     private static readonly Regex VersionSanitizer = new("[^a-zA-Z0-9._-]", RegexOptions.Compiled);
@@ -127,26 +136,20 @@ public class DashboardController : Controller
 
         if (input.Avatar is not null && input.Avatar.Length > 0)
         {
-            if (input.Avatar.Length > 2 * 1024 * 1024)
-            {
-                ModelState.AddModelError(nameof(input.Avatar), "Avatar file is too large (max 2 MB).");
-                return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
-            }
+            
 
             var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "avatars");
             Directory.CreateDirectory(uploadsDir);
 
-            var extension = Path.GetExtension(input.Avatar.FileName);
-            if (string.IsNullOrWhiteSpace(extension) || extension.Length > 8)
-            {
-                extension = ".png";
-            }
-
-            var fileName = $"{user.Id}{extension}";
+            var fileName = $"{user.Id}.jpg";
             var filePath = Path.Combine(uploadsDir, fileName);
 
-            await using var fs = System.IO.File.Create(filePath);
-            await input.Avatar.CopyToAsync(fs);
+            var processed = await TryProcessAndSaveAvatarAsync(input.Avatar, filePath);
+            if (!processed)
+            {
+                ModelState.AddModelError(nameof(input.Avatar), _localizer["Dashboard_Profile_Avatar_ProcessingError"].Value);
+                return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
+            }
 
             user.AvatarUrl = $"/uploads/avatars/{fileName}";
         }
@@ -166,6 +169,76 @@ public class DashboardController : Controller
         _logger.LogInformation("User {UserId} updated profile settings.", user.Id);
         TempData["DashboardSuccess"] = "ProfileUpdated";
         return RedirectToAction(nameof(Index), new { tab = "profile", panel = "info" });
+    }
+
+    private async Task<bool> TryProcessAndSaveAvatarAsync(IFormFile avatar, string filePath)
+    {
+        try
+        {
+            await using var sourceStream = avatar.OpenReadStream();
+            using var image = await Image.LoadAsync<Rgba32>(sourceStream);
+            using var outputStream = new MemoryStream();
+
+            var encoder = new JpegEncoder();
+            var quality = 90;
+
+            while (true)
+            {
+                outputStream.SetLength(0);
+                encoder.Quality = quality;
+                await image.SaveAsync(outputStream, encoder);
+
+                if (outputStream.Length <= MaxAvatarBytes)
+                {
+                    await using var fileStream = System.IO.File.Create(filePath);
+                    outputStream.Position = 0;
+                    await outputStream.CopyToAsync(fileStream);
+                    return true;
+                }
+
+                if (quality > 30)
+                {
+                    quality = Math.Max(30, quality - 10);
+                    continue;
+                }
+
+                if (image.Width <= MinAvatarDimension || image.Height <= MinAvatarDimension)
+                {
+                    return false;
+                }
+
+                var newWidth = Math.Max(MinAvatarDimension, (int)Math.Round(image.Width * 0.9));
+                var newHeight = Math.Max(MinAvatarDimension, (int)Math.Round(image.Height * 0.9));
+
+                if (newWidth == image.Width && newHeight == image.Height)
+                {
+                    return false;
+                }
+
+                image.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Mode = ResizeMode.Max,
+                    Size = new Size(newWidth, newHeight)
+                }));
+
+                quality = 90;
+            }
+        }
+        catch (UnknownImageFormatException ex)
+        {
+            _logger.LogWarning(ex, "Unsupported avatar image format uploaded.");
+            return false;
+        }
+        catch (InvalidImageContentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid avatar image content uploaded.");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while processing avatar image.");
+            return false;
+        }
     }
 
     [HttpPost]
