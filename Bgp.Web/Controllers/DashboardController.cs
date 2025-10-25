@@ -815,6 +815,7 @@ public class DashboardController : Controller
             {
                 seed = unchecked(seed * 31 + ch);
             }
+        }
 
             if (ProfileTips.Length == 0)
             {
@@ -824,4 +825,3 @@ public class DashboardController : Controller
             return Math.Abs(seed) % ProfileTips.Length;
         }
     }
-}

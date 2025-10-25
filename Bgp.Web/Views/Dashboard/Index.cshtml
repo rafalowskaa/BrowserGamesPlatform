@@ -109,9 +109,9 @@
                     <div class="profile-actions__menu">
                         <label for="profileAction">@L["Dashboard_Profile_Actions_Label"].Value</label>
                         <select id="profileAction" class="profile-actions__select" data-default="@selectedProfilePanel">
-                            <option value="info"@(selectedProfilePanel == "info" ? " selected" : string.Empty)>@L["Dashboard_Profile_Actions_EditInfo"].Value</option>
-                            <option value="email"@(selectedProfilePanel == "email" ? " selected" : string.Empty)>@L["Dashboard_Profile_Actions_Email"].Value</option>
-                            <option value="password"@(selectedProfilePanel == "password" ? " selected" : string.Empty)>@L["Dashboard_Profile_Actions_Password"].Value</option>
+                            <option value="info" selected="@(selectedProfilePanel == "info" ? "selected" : null)">@L["Dashboard_Profile_Actions_EditInfo"].Value</option>
+                            <option value="email" selected="@(selectedProfilePanel == "email" ? "selected" : null)">@L["Dashboard_Profile_Actions_Email"].Value</option>
+                            <option value="password" selected="@(selectedProfilePanel == "password" ? "selected" : null)">@L["Dashboard_Profile_Actions_Password"].Value</option>
                         </select>
                     </div>
 
@@ -133,7 +133,7 @@
                                         @foreach (var option in Model.Profile.VisibilityOptions)
                                         {
                                             var isSelected = option.Value == ((int)Model.Profile.DisplayNameVisibility).ToString();
-                                            <option value="@option.Value"@(isSelected ? " selected" : string.Empty)>@option.Text</option>
+                                            <option value="@option.Value" selected="@(isSelected ? "selected" : null)">@option.Text</option>
                                         }
                                     </select>
                                 </div>
@@ -151,7 +151,7 @@
                                         @foreach (var option in Model.Profile.VisibilityOptions)
                                         {
                                             var isSelected = option.Value == ((int)Model.Profile.FirstNameVisibility).ToString();
-                                            <option value="@option.Value"@(isSelected ? " selected" : string.Empty)>@option.Text</option>
+                                            <option value="@option.Value" selected="@(isSelected ? "selected" : null)">@option.Text</option>
                                         }
                                     </select>
                                 </div>
@@ -169,7 +169,7 @@
                                         @foreach (var option in Model.Profile.VisibilityOptions)
                                         {
                                             var isSelected = option.Value == ((int)Model.Profile.LastNameVisibility).ToString();
-                                            <option value="@option.Value"@(isSelected ? " selected" : string.Empty)>@option.Text</option>
+                                            <option value="@option.Value" selected="@(isSelected ? "selected" : null)">@option.Text</option>
                                         }
                                     </select>
                                 </div>
@@ -187,7 +187,7 @@
                                         @foreach (var option in Model.Profile.VisibilityOptions)
                                         {
                                             var isSelected = option.Value == ((int)Model.Profile.BirthDateVisibility).ToString();
-                                            <option value="@option.Value"@(isSelected ? " selected" : string.Empty)>@option.Text</option>
+                                            <option value="@option.Value" selected="@(isSelected ? "selected" : null)">@option.Text</option>
                                         }
                                     </select>
                                 </div>
@@ -204,7 +204,7 @@
                                         @foreach (var option in Model.Profile.VisibilityOptions)
                                         {
                                             var isSelected = option.Value == ((int)Model.Profile.EmailVisibility).ToString();
-                                            <option value="@option.Value"@(isSelected ? " selected" : string.Empty)>@option.Text</option>
+                                            <option value="@option.Value" selected="@(isSelected ? "selected" : null)">@option.Text</option>
                                         }
                                     </select>
                                 </div>
