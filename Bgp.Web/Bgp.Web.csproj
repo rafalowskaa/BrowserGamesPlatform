@@ -16,6 +16,17 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
   </ItemGroup>
 
+	<ItemGroup>
+		<EmbeddedResource Update="Resources/SharedResource.resx">
+			<LogicalName>Bgp.Web.Resources.SharedResource.resources</LogicalName>
+		</EmbeddedResource>
+		<EmbeddedResource Update="Resources/SharedResource.en-US.resx">
+			<LogicalName>Bgp.Web.Resources.SharedResource.en-US.resources</LogicalName>
+		</EmbeddedResource>
+		<EmbeddedResource Update="Resources/SharedResource.pl-PL.resx">
+			<LogicalName>Bgp.Web.Resources.SharedResource.pl-PL.resources</LogicalName>
+		</EmbeddedResource>
+	</ItemGroup>
 	
   <ItemGroup>
     <Folder Include="wwwroot\img\flags\" />
