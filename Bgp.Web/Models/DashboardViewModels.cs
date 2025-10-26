@@ -142,6 +142,9 @@ public class UpdateProfileInputModel
     [Required, MaxLength(120)]
     public string DisplayName { get; set; } = string.Empty;
 
+    public string? DisplayNamePassword { get; set; }
+
+
     [Range(1, 12)]
     public int? BirthMonth { get; set; }
 

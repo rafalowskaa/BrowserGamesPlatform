@@ -983,10 +983,50 @@ body {
     gap: 16px;
 }
 
-    .profile-form .form-hint {
-        margin-top: 6px;
-        font-size: 13px;
-        color: rgba(148, 163, 184, 0.85);
+    .profile-form button[type="submit"] {
+        align-self: flex-start;
+    }
+
+.form-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    background: rgba(30, 41, 59, 0.75);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    color: rgba(226, 232, 240, 0.85);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+    .form-hint::before {
+        content: "\2139";
+        font-size: 16px;
+        line-height: 1;
+        color: rgba(148, 197, 255, 0.9);
+    }
+
+.form-hint--warning {
+    background: rgba(127, 29, 29, 0.35);
+    border-color: rgba(248, 113, 113, 0.4);
+    color: rgba(254, 226, 226, 0.95);
+}
+
+    .form-hint--warning::before {
+        content: "\26A0";
+        color: rgba(248, 180, 0, 0.9);
+    }
+
+.form-hint--muted {
+    background: rgba(15, 23, 42, 0.55);
+    border-color: rgba(148, 163, 184, 0.2);
+    color: rgba(148, 163, 184, 0.95);
+}
+
+    .form-hint--muted::before {
+        color: rgba(148, 163, 184, 0.7);
     }
 
 .profile-field {
@@ -1003,6 +1043,11 @@ body {
 
     .birthdate-picker select {
         flex: 1;
+        padding: 10px 14px;
+        border-radius: var(--radius);
+        border: 1px solid rgba(148,163,184,0.35);
+        background: rgba(15,23,42,0.9);
+        color: var(--text);
     }
 
 .profile-field__input label,
@@ -1025,19 +1070,295 @@ body {
     color: var(--text);
 }
 
-.profile-form input[type="file"] {
-    border: 1px dashed rgba(148,163,184,0.4);
-    padding: 12px;
-    border-radius: var(--radius);
-    background: rgba(15,23,42,0.7);
-    color: #94a3b8;
-}
-
 .games-catalog {
     display: flex;
     flex-direction: column;
     gap: 24px;
 }
+
+.file-upload {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.file-upload__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    border: 0;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+}
+
+.file-upload__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.file-upload__meta {
+    font-size: 14px;
+    color: rgba(148, 163, 184, 0.9);
+}
+
+.file-upload__tooltip {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 10px;
+    max-width: 320px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    color: rgba(226, 232, 240, 0.9);
+    font-size: 13px;
+    line-height: 1.4;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-6px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 20;
+}
+
+    .file-upload__tooltip.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+.checkbox {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: rgba(226, 232, 240, 0.9);
+    font-size: 14px;
+}
+
+    .checkbox input {
+        margin: 0;
+        margin-top: 3px;
+    }
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.72);
+    z-index: 1000;
+}
+
+    .modal-backdrop[hidden] {
+        display: none;
+    }
+
+.modal-backdrop__overlay {
+    position: absolute;
+    inset: 0;
+}
+
+.modal-dialog {
+    position: relative;
+    width: min(420px, 100%);
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+    z-index: 1;
+}
+
+.modal-dialog__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+    .modal-dialog__content h3 {
+        margin: 0;
+        font-size: 20px;
+        color: rgba(226, 232, 240, 0.95);
+    }
+
+.modal-dialog__message {
+    margin: 0;
+    font-size: 15px;
+    color: rgba(226, 232, 240, 0.9);
+}
+
+.modal-dialog__warning {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(248, 113, 113, 0.95);
+}
+
+    .modal-dialog__warning[hidden] {
+        display: none;
+    }
+
+.modal-dialog__control {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modal-dialog__label {
+    font-weight: 600;
+    font-size: 14px;
+    color: rgba(226, 232, 240, 0.9);
+}
+
+.modal-dialog__input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    border: 1px solid rgba(148,163,184,0.35);
+    background: rgba(15,23,42,0.9);
+    color: var(--text);
+}
+
+.modal-dialog__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.game-wizard {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.wizard-progress {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.wizard-progress__step {
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: rgba(15, 23, 42, 0.6);
+    color: rgba(148, 163, 184, 0.9);
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+    .wizard-progress__step.is-active {
+        background: rgba(59, 130, 246, 0.2);
+        border-color: rgba(59, 130, 246, 0.5);
+        color: rgba(191, 219, 254, 0.95);
+    }
+
+    .wizard-progress__step.is-complete {
+        background: rgba(22, 163, 74, 0.2);
+        border-color: rgba(34, 197, 94, 0.45);
+        color: rgba(187, 247, 208, 0.95);
+    }
+
+.wizard-steps {
+    position: relative;
+}
+
+.wizard-step {
+    display: none;
+    flex-direction: column;
+    gap: 18px;
+}
+
+    .wizard-step.is-active {
+        display: flex;
+    }
+
+.wizard-step__intro {
+    margin: 0;
+    font-size: 14px;
+    color: rgba(148, 163, 184, 0.95);
+}
+
+.wizard-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+    .wizard-field label {
+        font-weight: 600;
+        font-size: 14px;
+        color: rgba(226, 232, 240, 0.95);
+    }
+
+    .wizard-field textarea,
+    .wizard-field input[type="text"],
+    .wizard-field input[type="password"],
+    .wizard-field input[type="email"],
+    .wizard-field input[type="number"] {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: var(--radius);
+        border: 1px solid rgba(148,163,184,0.35);
+        background: rgba(15,23,42,0.9);
+        color: var(--text);
+    }
+
+    .wizard-field textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+.wizard-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.wizard-fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    border-radius: var(--radius);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(15, 23, 42, 0.5);
+}
+
+    .wizard-fieldset h4 {
+        margin: 0;
+        font-size: 16px;
+        color: rgba(226, 232, 240, 0.95);
+    }
+
+.wizard-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.wizard-step__warning {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(248, 113, 113, 0.95);
+}
+
+    .wizard-step__warning[hidden] {
+        display: none;
+    }
+
+.wizard-final-note {
+    margin-top: -4px;
+}
+
 
 .catalog-header {
     display: flex;

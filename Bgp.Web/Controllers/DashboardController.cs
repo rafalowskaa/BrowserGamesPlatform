@@ -130,6 +130,18 @@ public class DashboardController : Controller
                 return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
             }
 
+            if (string.IsNullOrWhiteSpace(input.DisplayNamePassword))
+            {
+                ModelState.AddModelError(nameof(input.DisplayNamePassword), Localize("Dashboard_Profile_DisplayName_ConfirmPasswordError"));
+                return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
+            }
+
+            if (!await _users.CheckPasswordAsync(user, input.DisplayNamePassword))
+            {
+                ModelState.AddModelError(nameof(input.DisplayNamePassword), Localize("Dashboard_Profile_DisplayName_InvalidPassword"));
+                return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
+            }
+
             user.PendingDisplayName = sanitizedDisplayName;
             user.PendingDisplayNameRequestedAtUtc = DateTime.UtcNow;
             displayNameRequested = true;

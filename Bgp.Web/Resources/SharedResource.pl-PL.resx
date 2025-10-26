@@ -1138,6 +1138,12 @@
     
     </data>
 
+	<data name="Dashboard_Common_SelectFile">
+		<value>Wybierz plik</value>
+	</data>
+	<data name="Dashboard_Common_NoFile">
+		<value>Nie wybrano pliku</value>
+	</data>
 
 
 
@@ -2277,7 +2283,7 @@
 		<value>Podany dzień nie istnieje w wybranym miesiącu.</value>
 	</data>
 	<data name="Dashboard_Profile_DisplayName_Hint">
-		<value>Wniosek trafia do administratora i można go wysłać raz na 30 dni.</value>
+		<value>Zmiana wymaga potwierdzenia hasłem i trafia do moderacji administratora.</value>
 	</data>
 	<data name="Dashboard_Profile_DisplayName_PendingInfo">
 		<value>Oczekujący wniosek: {0} (wysłano {1}).</value>
@@ -2288,6 +2294,39 @@
 	<data name="Dashboard_Profile_DisplayName_CanRequest">
 		<value>Możesz teraz zgłosić nową nazwę użytkownika.</value>
 	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmTitle">
+		<value>Potwierdź zmianę nazwy</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmMessage">
+		<value>Zmiana zostanie wysłana do moderacji. Po zatwierdzeniu kolejny wniosek będzie dostępny po 30 dniach. Czy potwierdzasz zmianę nazwy?</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmBlocked">
+		<value>Nie możesz wysłać kolejnego wniosku przed {0}.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmBlocked_Generic">
+		<value>Nie możesz teraz wysłać kolejnego wniosku. Spróbuj ponownie za kilka dni.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmAgreement">
+		<value>Potwierdzam, że chcę zmienić nazwę użytkownika.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmPasswordLabel">
+		<value>Potwierdź hasłem</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmCancel">
+		<value>Anuluj</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmAccept">
+		<value>Zmień nazwę</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmAgreementError">
+		<value>Zaznacz potwierdzenie, aby kontynuować.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmPasswordError">
+		<value>Podaj hasło, aby zatwierdzić zmianę.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_InvalidPassword">
+		<value>Nieprawidłowe hasło.</value>
+	</data>
 	<data name="Dashboard_Profile_BirthDate_MonthPlaceholder">
 		<value>Miesiąc</value>
 	</data>
@@ -2295,7 +2334,7 @@
 		<value>Dzień</value>
 	</data>
 	<data name="Dashboard_Profile_BirthDate_Hint">
-		<value>Wyświetlany jest tylko miesiąc i dzień.</value>
+		<value>Podaj miesiąc i dzień swoich urodzin i zdecyduj o ich widoczności poniżej.</value>
 	</data>
 	<data name="Dashboard_Profile_Avatar_Hint">
 		<value>Najlepiej sprawdzają się kwadratowe obrazy – przytniemy i skompresujemy je automatycznie.</value>
@@ -2524,5 +2563,62 @@
 	</data>
 	<data name="Admin_Games_Metadata_Success">
 		<value>Metadane gry zostały zaktualizowane.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step1_Title">
+		<value>Krok 1. Paczka gry</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step1_Intro">
+		<value>Zacznij od przesłania archiwum WebGL oraz nazwy gry. To pola obowiązkowe.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step1_Short">
+		<value>Paczka</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step1_Warning">
+		<value>Podaj nazwę gry i wybierz archiwum, aby przejść dalej.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step2_Title">
+		<value>Krok 2. Opis i materiały</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step2_Intro">
+		<value>Dodaj opis, okładkę oraz oznacz wersję. Te informacje pomogą graczom.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step2_Short">
+		<value>Opis</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step3_Title">
+		<value>Krok 3. Kategoria i tryb</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step3_Intro">
+		<value>Wybierz kategorie i tryby, które najlepiej opisują Twoją grę.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step3_Short">
+		<value>Ustawienia</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step3_Warning">
+		<value>Wybierz przynajmniej jedną kategorię i jeden tryb gry.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step4_Title">
+		<value>Krok 4. Tagowanie i wysyłka</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step4_Intro">
+		<value>Dodaj tagi, aby ułatwić wyszukiwanie, a następnie wyślij grę do moderacji.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step4_Short">
+		<value>Podsumowanie</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Next">
+		<value>Dalej</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Back">
+		<value>Wstecz</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Submit">
+		<value>Wyślij do zatwierdzenia</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_FinalNotice">
+		<value>Po wysłaniu wniosek trafi do administratora w celu zatwierdzenia.</value>
+	</data>
+	<data name="Dashboard_Overview_Subheading">
+		<value>Sprawdź najnowsze gry społeczności.</value>
 	</data>
 </root>

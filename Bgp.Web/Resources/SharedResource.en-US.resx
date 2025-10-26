@@ -2241,7 +2241,7 @@
 		<value>Selected day does not exist in the chosen month.</value>
 	</data>
 	<data name="Dashboard_Profile_DisplayName_Hint">
-		<value>Requests are reviewed by an administrator and can be submitted once every 30 days.</value>
+		<value>Every change must be confirmed with your password and will be reviewed by an administrator.</value>
 	</data>
 	<data name="Dashboard_Profile_DisplayName_PendingInfo">
 		<value>Pending request: {0} (submitted {1}).</value>
@@ -2259,7 +2259,7 @@
 		<value>Day</value>
 	</data>
 	<data name="Dashboard_Profile_BirthDate_Hint">
-		<value>Visible month and day only.</value>
+		<value>Provide your birth month and day and decide who can see them below.</value>
 	</data>
 	<data name="Dashboard_Profile_Avatar_Hint">
 		<value>Square images work best; we crop and compress automatically.</value>
@@ -2488,5 +2488,101 @@
 	</data>
 	<data name="Admin_Games_Metadata_Success">
 		<value>Game metadata updated.</value>
+	</data>
+	<data name="Dashboard_Common_SelectFile">
+		<value>Choose file</value>
+	</data>
+	<data name="Dashboard_Common_NoFile">
+		<value>No file selected</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmTitle">
+		<value>Confirm display name change</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmMessage">
+		<value>Your request will be reviewed by an administrator. After approval you must wait 30 days before submitting another change. Do you want to continue?</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmBlocked">
+		<value>You can't send another request before {0}.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmBlocked_Generic">
+		<value>You can't send another request right now. Please try again in a few days.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmAgreement">
+		<value>I confirm that I want to change my display name.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmPasswordLabel">
+		<value>Confirm with your password</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmCancel">
+		<value>Cancel</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmAccept">
+		<value>Change name</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmAgreementError">
+		<value>Please confirm that you agree to the change.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_ConfirmPasswordError">
+		<value>Enter your password to confirm the change.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_InvalidPassword">
+		<value>Invalid password.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step1_Title">
+		<value>Step 1. Game package</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step1_Intro">
+		<value>Upload the WebGL archive and provide the game name. These fields are required.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step1_Short">
+		<value>Package</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step1_Warning">
+		<value>Provide the game name and upload the archive to continue.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step2_Title">
+		<value>Step 2. Description &amp; media</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step2_Intro">
+		<value>Add a description, cover image and version details.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step2_Short">
+		<value>Details</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step3_Title">
+		<value>Step 3. Categories &amp; modes</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step3_Intro">
+		<value>Choose the categories and modes that match your game.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step3_Short">
+		<value>Categories</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step3_Warning">
+		<value>Select at least one category and one game mode.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step4_Title">
+		<value>Step 4. Tags &amp; submission</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step4_Intro">
+		<value>Add tags for discovery and send your game for review.</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Step4_Short">
+		<value>Review</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Next">
+		<value>Next</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Back">
+		<value>Back</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_Submit">
+		<value>Submit for review</value>
+	</data>
+	<data name="Dashboard_Games_Wizard_FinalNotice">
+		<value>Your submission will be sent to an administrator for approval.</value>
+	</data>
+	<data name="Dashboard_Overview_Subheading">
+		<value>Catch up with the newest community releases.</value>
 	</data>
 </root>

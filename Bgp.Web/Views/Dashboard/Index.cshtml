@@ -18,6 +18,7 @@
     };
     var includeProfileScripts = false;
     var includeOverviewScripts = false;
+    var includeGamesScripts = false;
 
     string StatusClass(GameApprovalStatus status) => status switch
     {
@@ -151,28 +152,32 @@
                             var days = Enumerable.Range(1, 31).ToList();
                             var hasPendingDisplayName = !string.IsNullOrWhiteSpace(Model.Profile.PendingDisplayName);
                             var changeAvailableAt = Model.Profile.DisplayNameChangeAvailableAtUtc;
+                            var canRequestDisplayNameChange = !hasPendingDisplayName && (!changeAvailableAt.HasValue || changeAvailableAt.Value <= DateTime.UtcNow);
+                            var displayNameBlockedMessage = changeAvailableAt.HasValue
+                            ? string.Format(L["Dashboard_Profile_DisplayName_ConfirmBlocked"].Value, changeAvailableAt.Value.ToLocalTime().ToString("f"))
+                            : L["Dashboard_Profile_DisplayName_ConfirmBlocked_Generic"].Value;
                         }
-                        <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data" class="profile-form">
+                        <form asp-action="UpdateProfile"
+                              method="post"
+                              enctype="multipart/form-data"
+                              class="profile-form"
+                              data-display-name-can-request="@(canRequestDisplayNameChange ? "true" : "false")"
+                              data-display-name-pending="@(hasPendingDisplayName ? "true" : "false")"
+                              data-display-name-blocked-message="@displayNameBlockedMessage">
                             @Html.AntiForgeryToken()
                             @Html.ValidationSummary(true, null, new { @class = "val-summary" })
                             <div class="profile-field">
                                 <div class="profile-field__input">
                                     <label for="DisplayName">@L["Dashboard_Profile_DisplayName"].Value</label>
-                                    <input id="DisplayName" name="DisplayName" value="@Model.Profile.DisplayName" maxlength="120" />
-                                    <p class="form-hint">@L["Dashboard_Profile_DisplayName_Hint"].Value</p>
+                                    <input id="DisplayName" name="DisplayName" value="@Model.Profile.DisplayName" maxlength="120" data-current-name="@Model.Profile.DisplayName" />
+                                    <div class="form-hint">@L["Dashboard_Profile_DisplayName_Hint"].Value</div>
                                     @if (hasPendingDisplayName)
                                     {
-                                        <div class="badge info">@string.Format(L["Dashboard_Profile_DisplayName_PendingInfo"].Value, Model.Profile.PendingDisplayName, Model.Profile.PendingDisplayNameRequestedAtUtc?.ToLocalTime().ToString("g"))</div>
-                                    }
-                                    else if (changeAvailableAt.HasValue && changeAvailableAt.Value > DateTime.UtcNow)
-                                    {
-                                        <div class="badge subtle">@string.Format(L["Dashboard_Profile_DisplayName_CooldownInfo"].Value, changeAvailableAt.Value.ToLocalTime().ToString("d"))</div>
-                                    }
-                                    else
-                                    {
-                                        <div class="badge subtle">@L["Dashboard_Profile_DisplayName_CanRequest"].Value</div>
+                                        <div class="form-hint form-hint--warning">@string.Format(L["Dashboard_Profile_DisplayName_PendingInfo"].Value, Model.Profile.PendingDisplayName, Model.Profile.PendingDisplayNameRequestedAtUtc?.ToLocalTime().ToString("g"))</div>
                                     }
                                     @Html.ValidationMessage("DisplayName", null, new { @class = "val" })
+                                    @Html.ValidationMessage("DisplayNamePassword", null, new { @class = "val" })
+                                    <input type="hidden" id="DisplayNamePasswordField" name="DisplayNamePassword" />
                                 </div>
                                 <div class="profile-field__visibility">
                                     <label for="DisplayNameVisibility">@L["Dashboard_Profile_DisplayNameVisibility"].Value</label>
@@ -208,7 +213,7 @@
                                             }
                                         </select>
                                     </div>
-                                    <p class="form-hint">@L["Dashboard_Profile_BirthDate_Hint"].Value</p>
+                                    <div class="form-hint">@L["Dashboard_Profile_BirthDate_Hint"].Value</div>
                                     @Html.ValidationMessage("BirthMonth", null, new { @class = "val" })
                                     @Html.ValidationMessage("BirthDay", null, new { @class = "val" })
                                 </div>
@@ -244,14 +249,46 @@
                             <div class="profile-field">
                                 <div class="profile-field__input">
                                     <label for="Avatar">@L["Dashboard_Profile_Avatar"].Value</label>
-                                    <input id="Avatar" type="file" name="Avatar" accept="image/*" />
-                                    <p class="form-hint">@L["Dashboard_Profile_Avatar_Hint"].Value</p>
+                                    <div class="file-upload avatar-upload">
+                                        <input id="Avatar" type="file" name="Avatar" accept="image/*" class="file-upload__input" />
+                                        <label for="Avatar" class="btn-outline btn-compact file-upload__button" data-file-trigger>@L["Dashboard_Common_SelectFile"].Value</label>
+                                        <span class="file-upload__meta" data-file-name data-placeholder="@L["Dashboard_Common_NoFile"].Value">@L["Dashboard_Common_NoFile"].Value</span>
+                                        <div class="file-upload__tooltip" id="avatarTooltip" role="status">@L["Dashboard_Profile_Avatar_Hint"].Value</div>
+                                    </div>
                                     @Html.ValidationMessage("Avatar", null, new { @class = "val" })
                                 </div>
                             </div>
 
-                            <button class="btn-primary" type="submit">@L["Dashboard_Profile_Save"].Value</button>
+                            <button class="btn-primary btn-compact" type="submit">@L["Dashboard_Profile_Save"].Value</button>
                         </form>
+                        <div class="modal-backdrop" id="displayNameConfirmModal" hidden
+                             data-confirm-message="@L["Dashboard_Profile_DisplayName_ConfirmMessage"].Value"
+                             data-blocked-message="@displayNameBlockedMessage"
+                             data-agreement-error="@L["Dashboard_Profile_DisplayName_ConfirmAgreementError"].Value"
+                             data-password-error="@L["Dashboard_Profile_DisplayName_ConfirmPasswordError"].Value">
+                            <div class="modal-backdrop__overlay" data-modal-close></div>
+                            <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="displayNameConfirmTitle">
+                                <div class="modal-dialog__content">
+                                    <h3 id="displayNameConfirmTitle">@L["Dashboard_Profile_DisplayName_ConfirmTitle"].Value</h3>
+                                    <p class="modal-dialog__message" data-modal-message>@L["Dashboard_Profile_DisplayName_ConfirmMessage"].Value</p>
+                                    <p class="modal-dialog__warning" data-modal-warning hidden></p>
+                                    <div class="modal-dialog__control" data-modal-agreement>
+                                        <label class="checkbox">
+                                            <input type="checkbox" id="displayNameConfirmAgree" />
+                                            <span>@L["Dashboard_Profile_DisplayName_ConfirmAgreement"].Value</span>
+                                        </label>
+                                    </div>
+                                    <div class="modal-dialog__control" data-modal-password>
+                                        <label class="modal-dialog__label" for="displayNameConfirmPassword">@L["Dashboard_Profile_DisplayName_ConfirmPasswordLabel"].Value</label>
+                                        <input type="password" id="displayNameConfirmPassword" class="modal-dialog__input" autocomplete="current-password" />
+                                    </div>
+                                    <div class="modal-dialog__actions">
+                                        <button type="button" class="btn-outline btn-compact" data-modal-close>@L["Dashboard_Profile_DisplayName_ConfirmCancel"].Value</button>
+                                        <button type="button" class="btn-primary btn-compact" data-modal-confirm>@L["Dashboard_Profile_DisplayName_ConfirmAccept"].Value</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="profile-actions__panel" data-action="email">
@@ -310,6 +347,7 @@
             </section>
             break;
         case "games":
+            includeGamesScripts = true;
             <section class="dashboard-panel games-panel">
                 <header class="panel-header">
                     <div>
@@ -319,73 +357,131 @@
                     <aside class="panel-note">@L["Dashboard_Games_VerificationNotice"].Value</aside>
                 </header>
 
-                <form asp-action="CreateGame" method="post" enctype="multipart/form-data" class="form-stacked">
+                <form asp-action="CreateGame" method="post" enctype="multipart/form-data" class="game-wizard">
                     @Html.AntiForgeryToken()
                     @Html.ValidationSummary(true, null, new { @class = "val-summary" })
 
 
-                    <div class="form-grid">
-                        <label for="GameTitle">@L["Dashboard_Games_Title"].Value</label>
-                        <input id="GameTitle" name="Title" value="@Model.NewGame.Title" maxlength="120" />
-                        @Html.ValidationMessage("Title", null, new { @class = "val" })
-
-                        <label for="GameDescription">@L["Dashboard_Games_Description"].Value</label>
-                        <textarea id="GameDescription" name="Description" maxlength="2000">@(Model.NewGame.Description ?? string.Empty)</textarea>
-                        @Html.ValidationMessage("Description", null, new { @class = "val" })
-
-                        <label for="GameCover">@L["Dashboard_Games_Cover"].Value</label>
-                        <input id="GameCover" type="file" name="CoverImage" accept="image/*" />
-                        @Html.ValidationMessage("CoverImage", null, new { @class = "val" })
-
-                        <label for="GameVersion">@L["Dashboard_Games_Version"].Value</label>
-                        <input id="GameVersion" name="Version" value="@Model.NewGame.Version" maxlength="32" />
-                        @Html.ValidationMessage("Version", null, new { @class = "val" })
-
-                        <label for="GamePackage">@L["Dashboard_Games_Package"].Value</label>
-                        <input id="GamePackage" type="file" name="Package" accept=".zip" />
-                        @Html.ValidationMessage("Package", null, new { @class = "val" })
+                    <div class="wizard-progress" role="list">
+                        <span class="wizard-progress__step" data-step-index="0">@L["Dashboard_Games_Wizard_Step1_Short"].Value</span>
+                        <span class="wizard-progress__step" data-step-index="1">@L["Dashboard_Games_Wizard_Step2_Short"].Value</span>
+                        <span class="wizard-progress__step" data-step-index="2">@L["Dashboard_Games_Wizard_Step3_Short"].Value</span>
+                        <span class="wizard-progress__step" data-step-index="3">@L["Dashboard_Games_Wizard_Step4_Short"].Value</span>
                     </div>
 
-                    <fieldset class="form-fieldset">
-                        <legend>@L["Dashboard_Games_Categories_Label"].Value</legend>
-                        <p class="form-hint">@L["Dashboard_Games_Categories_Hint"].Value</p>
-                        <div class="option-grid">
-                            @foreach (var option in Model.NewGame.CategoryOptions)
-                            {
-                                var isChecked = option.Selected ? "checked" : null;
-                                <label class="option-chip">
-                                    <input type="checkbox" name="SelectedCategoryValues" value="@option.Value" @isChecked />
-                                    <span>@option.Text</span>
-                                </label>
-                            }
-                        </div>
-                        @Html.ValidationMessage("SelectedCategoryValues", null, new { @class = "val" })
-                    </fieldset>
 
-                    <fieldset class="form-fieldset">
-                        <legend>@L["Dashboard_Games_Modes_Label"].Value</legend>
-                        <p class="form-hint">@L["Dashboard_Games_Modes_Hint"].Value</p>
-                        <div class="option-grid">
-                            @foreach (var option in Model.NewGame.ModeOptions)
-                            {
-                                var isChecked = option.Selected ? "checked" : null;
-                                <label class="option-chip">
-                                    <input type="checkbox" name="SelectedModeValues" value="@option.Value" @isChecked />
-                                    <span>@option.Text</span>
-                                </label>
-                            }
-                        </div>
-                        @Html.ValidationMessage("SelectedModeValues", null, new { @class = "val" })
-                    </fieldset>
+                    <div class="wizard-steps">
+                        <section class="wizard-step" data-step="0" data-warning="@L["Dashboard_Games_Wizard_Step1_Warning"].Value">
+                            <h3>@L["Dashboard_Games_Wizard_Step1_Title"].Value</h3>
+                            <p class="wizard-step__intro">@L["Dashboard_Games_Wizard_Step1_Intro"].Value</p>
+                            <div class="wizard-field">
+                                <label for="GamePackage">@L["Dashboard_Games_Package"].Value</label>
+                                <div class="file-upload">
+                                    <input id="GamePackage" type="file" name="Package" accept=".zip" class="file-upload__input" />
+                                    <label for="GamePackage" class="btn-outline btn-compact file-upload__button" data-file-trigger>@L["Dashboard_Common_SelectFile"].Value</label>
+                                    <span class="file-upload__meta" data-file-name data-placeholder="@L["Dashboard_Common_NoFile"].Value">@L["Dashboard_Common_NoFile"].Value</span>
+                                </div>
+                                @Html.ValidationMessage("Package", null, new { @class = "val" })
+                            </div>
+                            <div class="wizard-field">
+                                <label for="GameTitle">@L["Dashboard_Games_Title"].Value</label>
+                                <input id="GameTitle" name="Title" value="@Model.NewGame.Title" maxlength="120" />
+                                @Html.ValidationMessage("Title", null, new { @class = "val" })
+                            </div>
+                            <p class="wizard-step__warning" data-step-warning hidden></p>
+                            <div class="wizard-actions">
+                                <button type="button" class="btn-primary btn-compact" data-wizard-next>@L["Dashboard_Games_Wizard_Next"].Value</button>
+                            </div>
+                        </section>
 
-                    <div class="form-grid">
-                        <label for="GameTags">@L["Dashboard_Games_Tags_Label"].Value</label>
-                        <textarea id="GameTags" name="TagsRaw" maxlength="200" placeholder="@L["Dashboard_Games_Tags_Placeholder"].Value">@Model.NewGame.TagsRaw</textarea>
-                        <p class="form-hint">@L["Dashboard_Games_Tags_Hint"].Value</p>
-                        @Html.ValidationMessage("TagsRaw", null, new { @class = "val" })
+                        <section class="wizard-step" data-step="1">
+                            <h3>@L["Dashboard_Games_Wizard_Step2_Title"].Value</h3>
+                            <p class="wizard-step__intro">@L["Dashboard_Games_Wizard_Step2_Intro"].Value</p>
+                            <div class="wizard-field">
+                                <label for="GameDescription">@L["Dashboard_Games_Description"].Value</label>
+                                <textarea id="GameDescription" name="Description" maxlength="2000">@(Model.NewGame.Description ?? string.Empty)</textarea>
+                                @Html.ValidationMessage("Description", null, new { @class = "val" })
+                            </div>
+                            <div class="wizard-field">
+                                <label for="GameCover">@L["Dashboard_Games_Cover"].Value</label>
+                                <div class="file-upload">
+                                    <input id="GameCover" type="file" name="CoverImage" accept="image/*" class="file-upload__input" />
+                                    <label for="GameCover" class="btn-outline btn-compact file-upload__button" data-file-trigger>@L["Dashboard_Common_SelectFile"].Value</label>
+                                    <span class="file-upload__meta" data-file-name data-placeholder="@L["Dashboard_Common_NoFile"].Value">@L["Dashboard_Common_NoFile"].Value</span>
+                                </div>
+                                @Html.ValidationMessage("CoverImage", null, new { @class = "val" })
+                            </div>
+                            <div class="wizard-field">
+                                <label for="GameVersion">@L["Dashboard_Games_Version"].Value</label>
+                                <input id="GameVersion" name="Version" value="@Model.NewGame.Version" maxlength="32" />
+                                @Html.ValidationMessage("Version", null, new { @class = "val" })
+                            </div>
+                            <div class="wizard-actions">
+                                <button type="button" class="btn-outline btn-compact" data-wizard-prev>@L["Dashboard_Games_Wizard_Back"].Value</button>
+                                <button type="button" class="btn-primary btn-compact" data-wizard-next>@L["Dashboard_Games_Wizard_Next"].Value</button>
+                            </div>
+                        </section>
+
+                        <section class="wizard-step" data-step="2" data-warning="@L["Dashboard_Games_Wizard_Step3_Warning"].Value">
+                            <h3>@L["Dashboard_Games_Wizard_Step3_Title"].Value</h3>
+                            <p class="wizard-step__intro">@L["Dashboard_Games_Wizard_Step3_Intro"].Value</p>
+                            <div class="wizard-grid">
+                                <div class="wizard-fieldset">
+                                    <h4>@L["Dashboard_Games_Categories_Label"].Value</h4>
+                                    <div class="form-hint">@L["Dashboard_Games_Categories_Hint"].Value</div>
+                                    <div class="option-grid">
+                                        @foreach (var option in Model.NewGame.CategoryOptions)
+                                        {
+                                            var isChecked = option.Selected ? "checked" : null;
+                                            <label class="option-chip">
+                                                <input type="checkbox" name="SelectedCategoryValues" value="@option.Value" @isChecked />
+                                                <span>@option.Text</span>
+                                            </label>
+                                        }
+                                    </div>
+                                    @Html.ValidationMessage("SelectedCategoryValues", null, new { @class = "val" })
+                                </div>
+                                <div class="wizard-fieldset">
+                                    <h4>@L["Dashboard_Games_Modes_Label"].Value</h4>
+                                    <div class="form-hint">@L["Dashboard_Games_Modes_Hint"].Value</div>
+                                    <div class="option-grid">
+                                        @foreach (var option in Model.NewGame.ModeOptions)
+                                        {
+                                            var isChecked = option.Selected ? "checked" : null;
+                                            <label class="option-chip">
+                                                <input type="checkbox" name="SelectedModeValues" value="@option.Value" @isChecked />
+                                                <span>@option.Text</span>
+                                            </label>
+                                        }
+                                    </div>
+                                    @Html.ValidationMessage("SelectedModeValues", null, new { @class = "val" })
+                                </div>
+                            </div>
+                            <p class="wizard-step__warning" data-step-warning hidden></p>
+                            <div class="wizard-actions">
+                                <button type="button" class="btn-outline btn-compact" data-wizard-prev>@L["Dashboard_Games_Wizard_Back"].Value</button>
+                                <button type="button" class="btn-primary btn-compact" data-wizard-next>@L["Dashboard_Games_Wizard_Next"].Value</button>
+                            </div>
+                        </section>
+
+                        <section class="wizard-step" data-step="3">
+                            <h3>@L["Dashboard_Games_Wizard_Step4_Title"].Value</h3>
+                            <p class="wizard-step__intro">@L["Dashboard_Games_Wizard_Step4_Intro"].Value</p>
+                            <div class="wizard-field">
+                                <label for="GameTags">@L["Dashboard_Games_Tags_Label"].Value</label>
+                                <textarea id="GameTags" name="TagsRaw" maxlength="200" placeholder="@L["Dashboard_Games_Tags_Placeholder"].Value">@Model.NewGame.TagsRaw</textarea>
+                                <div class="form-hint">@L["Dashboard_Games_Tags_Hint"].Value</div>
+                                @Html.ValidationMessage("TagsRaw", null, new { @class = "val" })
+                            </div>
+                            <div class="form-hint form-hint--muted wizard-final-note">@L["Dashboard_Games_Wizard_FinalNotice"].Value</div>
+                            <div class="wizard-actions">
+                                <button type="button" class="btn-outline btn-compact" data-wizard-prev>@L["Dashboard_Games_Wizard_Back"].Value</button>
+                                <button class="btn-primary btn-compact" type="submit">@L["Dashboard_Games_Wizard_Submit"].Value</button>
+                            </div>
+                        </section>
                     </div>
 
-                    <button class="btn-primary" type="submit">@L["Dashboard_Games_Submit"].Value</button>
+                    
                 </form>
 
                 <h3>@L["Dashboard_Games_ListHeading"].Value</h3>
@@ -503,33 +599,361 @@
         {
     <script src="~/js/dashboard.js" asp-append-version="true"></script>
         }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const uploads = document.querySelectorAll('.file-upload');
+            uploads.forEach(upload => {
+                const input = upload.querySelector('.file-upload__input');
+                const trigger = upload.querySelector('[data-file-trigger]');
+                const nameTarget = upload.querySelector('[data-file-name]');
+                const tooltip = upload.querySelector('.file-upload__tooltip');
+                const placeholder = nameTarget ? (nameTarget.dataset.placeholder || nameTarget.textContent || '') : '';
+
+                if (input && nameTarget) {
+                    const updateFileName = () => {
+                        if (input.files && input.files.length > 0) {
+                            nameTarget.textContent = input.files[0].name;
+                        }
+                        else {
+                            nameTarget.textContent = placeholder;
+                        }
+                    };
+                    input.addEventListener('change', updateFileName);
+                    updateFileName();
+                }
+
+                if (tooltip) {
+                    let timerId;
+                    const showTooltip = () => {
+                        tooltip.classList.add('is-visible');
+                        if (timerId) {
+                            clearTimeout(timerId);
+                        }
+                        timerId = window.setTimeout(() => {
+                            tooltip.classList.remove('is-visible');
+                        }, 3200);
+                    };
+
+                    const hideTooltip = () => {
+                        tooltip.classList.remove('is-visible');
+                    };
+
+                    const targets = [trigger, input].filter(Boolean);
+                    targets.forEach(element => {
+                        element.addEventListener('click', showTooltip);
+                        element.addEventListener('focus', showTooltip);
+                    });
+
+                    upload.addEventListener('mouseleave', hideTooltip);
+                }
+            });
+        });
+    </script>
         if (includeProfileScripts)
         {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const selector = document.getElementById('profileAction');
-            if (!selector) {
+            if (selector) {
+                const panels = document.querySelectorAll('.profile-actions__panel');
+                const togglePanels = (value) => {
+                    panels.forEach(panel => {
+                        if (panel.dataset.action === value) {
+                            panel.classList.add('is-active');
+                        }
+                        else {
+                            panel.classList.remove('is-active');
+                        }
+                    });
+                };
+
+                const defaultValue = selector.dataset.default || selector.value;
+                selector.value = defaultValue;
+                togglePanels(defaultValue);
+                selector.addEventListener('change', (event) => {
+                    togglePanels(event.target.value);
+                });
+            }
+
+            const profileForm = document.querySelector('.profile-form[data-display-name-can-request]');
+            const displayNameInput = document.getElementById('DisplayName');
+            const passwordHiddenField = document.getElementById('DisplayNamePasswordField');
+            const modal = document.getElementById('displayNameConfirmModal');
+            if (!profileForm || !displayNameInput || !passwordHiddenField || !modal) {
                 return;
             }
 
-            const panels = document.querySelectorAll('.profile-actions__panel');
-            const togglePanels = (value) => {
-                panels.forEach(panel => {
-                    if (panel.dataset.action === value) {
-                        panel.classList.add('is-active');
-                    }
-                    else {
-                        panel.classList.remove('is-active');
-                    }
-                });
+            const modalMessage = modal.querySelector('[data-modal-message]');
+            const warningMessage = modal.querySelector('[data-modal-warning]');
+            const agreementWrapper = modal.querySelector('[data-modal-agreement]');
+            const passwordWrapper = modal.querySelector('[data-modal-password]');
+            const agreementCheckbox = modal.querySelector('#displayNameConfirmAgree');
+            const passwordInput = modal.querySelector('#displayNameConfirmPassword');
+            const confirmButton = modal.querySelector('[data-modal-confirm]');
+            const closeButtons = modal.querySelectorAll('[data-modal-close]');
+            const overlay = modal.querySelector('.modal-backdrop__overlay');
+
+            const canRequestChange = profileForm.dataset.displayNameCanRequest === 'true';
+            const hasPendingRequest = profileForm.dataset.displayNamePending === 'true';
+            const confirmCopy = modal.dataset.confirmMessage || '';
+            const blockedCopy = modal.dataset.blockedMessage || '';
+            const agreementError = modal.dataset.agreementError || '';
+            const passwordError = modal.dataset.passwordError || '';
+
+            const resetModal = () => {
+                if (warningMessage) {
+                    warningMessage.textContent = '';
+                    warningMessage.setAttribute('hidden', '');
+                }
+                if (agreementCheckbox) {
+                    agreementCheckbox.checked = false;
+                }
+                if (passwordInput) {
+                    passwordInput.value = '';
+                }
+                passwordHiddenField.value = '';
             };
 
-            const defaultValue = selector.dataset.default || selector.value;
-            selector.value = defaultValue;
-            togglePanels(defaultValue);
-            selector.addEventListener('change', (event) => {
-                togglePanels(event.target.value);
+            const closeModal = () => {
+                resetModal();
+                modal.setAttribute('hidden', '');
+                modal.classList.remove('is-blocked');
+                if (agreementWrapper) {
+                    agreementWrapper.removeAttribute('hidden');
+                }
+                if (passwordWrapper) {
+                    passwordWrapper.removeAttribute('hidden');
+                }
+                if (confirmButton) {
+                    confirmButton.removeAttribute('hidden');
+                    confirmButton.disabled = false;
+                }
+            };
+
+            const showBlockedModal = () => {
+                if (modalMessage) {
+                    modalMessage.textContent = blockedCopy;
+                }
+                if (agreementWrapper) {
+                    agreementWrapper.setAttribute('hidden', '');
+                }
+                if (passwordWrapper) {
+                    passwordWrapper.setAttribute('hidden', '');
+                }
+                if (confirmButton) {
+                    confirmButton.setAttribute('hidden', '');
+                }
+                modal.classList.add('is-blocked');
+                modal.removeAttribute('hidden');
+            };
+
+            const showConfirmModal = () => {
+                if (modalMessage) {
+                    modalMessage.textContent = confirmCopy;
+                }
+                modal.classList.remove('is-blocked');
+                modal.removeAttribute('hidden');
+            };
+
+            const displayBlocked = hasPendingRequest || !canRequestChange;
+
+            const showWarning = (message) => {
+                if (!warningMessage) {
+                    return;
+                }
+                warningMessage.textContent = message;
+                warningMessage.removeAttribute('hidden');
+            };
+
+            const hideWarning = () => {
+                if (!warningMessage) {
+                    return;
+                }
+                warningMessage.textContent = '';
+                warningMessage.setAttribute('hidden', '');
+            };
+
+            const closeControls = () => {
+                closeModal();
+            };
+
+            const openModal = () => {
+                hideWarning();
+                if (displayBlocked) {
+                    showBlockedModal();
+                }
+                else {
+                    showConfirmModal();
+                }
+            };
+
+            if (confirmButton) {
+                confirmButton.addEventListener('click', () => {
+                    if (!agreementCheckbox || !passwordInput) {
+                        profileForm.submit();
+                        return;
+                    }
+
+                    if (!agreementCheckbox.checked) {
+                        showWarning(agreementError);
+                        return;
+                    }
+
+                    if (!passwordInput.value.trim()) {
+                        showWarning(passwordError);
+                        return;
+                    }
+
+                    hideWarning();
+                    passwordHiddenField.value = passwordInput.value;
+                    closeModal();
+                    profileForm.submit();
+                });
+            }
+
+            const closers = Array.from(closeButtons);
+            if (overlay) {
+                closers.push(overlay);
+            }
+            closers.forEach(button => {
+                button.addEventListener('click', closeControls);
             });
+
+            profileForm.addEventListener('submit', function (event) {
+                const desiredName = (displayNameInput.value || '').trim();
+                const currentName = (displayNameInput.dataset.currentName || '').trim();
+                if (!desiredName || desiredName.toLowerCase() === currentName.toLowerCase()) {
+                    return;
+                }
+
+                if (displayBlocked) {
+                    event.preventDefault();
+                    openModal();
+                    return;
+                }
+
+                if (!passwordHiddenField.value) {
+                    event.preventDefault();
+                    openModal();
+                }
+            });
+        });
+    </script>
+            }
+            if (includeGamesScripts)
+            {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const wizard = document.querySelector('.game-wizard');
+            if (!wizard) {
+                return;
+            }
+
+            const steps = Array.from(wizard.querySelectorAll('.wizard-step'));
+            const progress = Array.from(wizard.querySelectorAll('.wizard-progress__step'));
+
+            const showWarning = (step, message) => {
+                const warning = step.querySelector('[data-step-warning]');
+                if (!warning) {
+                    return;
+                }
+                if (message) {
+                    warning.textContent = message;
+                    warning.removeAttribute('hidden');
+                }
+                else {
+                    warning.textContent = '';
+                    warning.setAttribute('hidden', '');
+                }
+            };
+
+            const setStepState = (index) => {
+                const current = Math.max(0, Math.min(index, steps.length - 1));
+                steps.forEach((step, idx) => {
+                    if (idx === current) {
+                        step.classList.add('is-active');
+                    }
+                    else {
+                        step.classList.remove('is-active');
+                    }
+                    showWarning(step, '');
+                });
+
+                progress.forEach((item, idx) => {
+                    item.classList.toggle('is-active', idx === current);
+                    item.classList.toggle('is-complete', idx < current);
+                });
+
+                wizard.dataset.currentStep = String(current);
+            };
+
+            const stepIndexForElement = (element) => steps.findIndex(step => step.contains(element));
+
+            const validateStep = (index) => {
+                const step = steps[index];
+                if (!step) {
+                    return true;
+                }
+
+                const warningMessage = step.dataset.warning || '';
+                switch (index) {
+                    case 0: {
+                        const packageInput = wizard.querySelector('#GamePackage');
+                        const titleInput = wizard.querySelector('#GameTitle');
+                        const hasPackage = packageInput && packageInput.files && packageInput.files.length > 0;
+                        const hasTitle = titleInput && titleInput.value.trim().length > 0;
+                        if (!hasPackage || !hasTitle) {
+                            showWarning(step, warningMessage);
+                            return false;
+                        }
+                        showWarning(step, '');
+                        return true;
+                    }
+                    case 2: {
+                        const categorySelected = wizard.querySelectorAll('input[name="SelectedCategoryValues"]:checked').length > 0;
+                        const modeSelected = wizard.querySelectorAll('input[name="SelectedModeValues"]:checked').length > 0;
+                        if (!categorySelected || !modeSelected) {
+                            showWarning(step, warningMessage);
+                            return false;
+                        }
+                        showWarning(step, '');
+                        return true;
+                    }
+                    default:
+                        showWarning(step, '');
+                        return true;
+                }
+            };
+
+            const goToStep = (index) => {
+                setStepState(index);
+            };
+
+            const nextButtons = wizard.querySelectorAll('[data-wizard-next]');
+            nextButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const index = stepIndexForElement(button);
+                    if (validateStep(index)) {
+                        goToStep(index + 1);
+                    }
+                });
+            });
+
+            const prevButtons = wizard.querySelectorAll('[data-wizard-prev]');
+            prevButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const index = stepIndexForElement(button);
+                    goToStep(index - 1);
+                });
+            });
+
+            const firstErrorStep = steps.findIndex(step => Array.from(step.querySelectorAll('.val')).some(message => message.textContent && message.textContent.trim().length > 0));
+            if (firstErrorStep >= 0) {
+                goToStep(firstErrorStep);
+            }
+            else {
+                goToStep(0);
+            }
         });
     </script>
         }
