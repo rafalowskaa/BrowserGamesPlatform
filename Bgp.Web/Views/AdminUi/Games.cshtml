@@ -1,10 +1,42 @@
 ﻿@using System.Linq
 @using Bgp.Domain.Enums
+@using Bgp.Web.Helpers
 @model AdminGamesViewModel
 @{
     ViewData["Title"] = L["Admin_Games_Title"].Value;
     var filterValue = Model.Filter?.ToString();
     var statuses = Enum.GetValues<GameApprovalStatus>();
+    string FormatCategories(GameCategory categories)
+    {
+        if (categories == GameCategory.None)
+        {
+            return L["Admin_Games_Metadata_None"].Value;
+        }
+
+        var labels = GameMetadataOptions.CategoryDefinitions
+            .Where(def => (categories & def.Category) != 0)
+            .Select(def => L[def.ResourceKey].Value)
+            .Where(label => !string.IsNullOrWhiteSpace(label))
+            .ToList();
+
+        return labels.Count == 0 ? L["Admin_Games_Metadata_None"].Value : string.Join(", ", labels);
+    }
+
+    string FormatModes(GameMode modes)
+    {
+        if (modes == GameMode.None)
+        {
+            return L["Admin_Games_Metadata_None"].Value;
+        }
+
+        var labels = GameMetadataOptions.ModeDefinitions
+            .Where(def => (modes & def.Mode) != 0)
+            .Select(def => L[def.ResourceKey].Value)
+            .Where(label => !string.IsNullOrWhiteSpace(label))
+            .ToList();
+
+        return labels.Count == 0 ? L["Admin_Games_Metadata_None"].Value : string.Join(", ", labels);
+    }
 }
 
 <section class="admin-section">
@@ -64,6 +96,10 @@
                             <td>
                                 <strong>@game.Title</strong>
                                 <div class="game-meta">@game.Slug</div>
+                                <div class="game-meta">@L["Admin_Games_Metadata_Current"].Value: @FormatCategories(game.Categories)</div>
+                                <div class="game-meta">@L["Admin_Games_Metadata_ProposedCategories_Label"].Value: @FormatCategories(game.ProposedCategories)</div>
+                                <div class="game-meta">@L["Admin_Games_Metadata_Modes_Current"].Value: @FormatModes(game.Modes)</div>
+                                <div class="game-meta">@L["Admin_Games_Metadata_Modes_Proposed"].Value: @FormatModes(game.ProposedModes)</div>
                                 @if (!string.IsNullOrWhiteSpace(game.ModerationNotes))
                                 {
                                     <div class="game-note">@game.ModerationNotes</div>
@@ -74,6 +110,72 @@
                             <td><span class="status-pill @($"status-{game.Status.ToString().ToLowerInvariant()}")">@L[$"Dashboard_Games_Status_{game.Status}"].Value</span></td>
                             <td>
                                 <div class="admin-actions vertical">
+                                    <details class="admin-metadata">
+                                        <summary>@L["Admin_Games_Metadata_Edit"].Value</summary>
+                                        <form asp-action="UpdateGameMetadata" method="post" class="admin-metadata-form">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="Id" value="@game.Id" />
+                                            <fieldset>
+                                                <legend>@L["Admin_Games_Metadata_Categories"].Value</legend>
+                                                <div class="option-grid">
+                                                    @foreach (var option in GameMetadataOptions.CategoryDefinitions)
+                                                    {
+                                                        var isChecked = (game.Categories & option.Category) != 0;
+                                                        <label class="option-chip">
+                                                            <input type="checkbox" name="Categories" value="@((int)option.Category)" @(isChecked ? "checked" : null) />
+                                                            <span>@L[option.ResourceKey].Value</span>
+                                                            @if ((game.ProposedCategories & option.Category) != 0 && !isChecked)
+                                                            {
+                                                                <span class="badge info">@L["Admin_Games_Metadata_Proposed"].Value</span>
+                                                            }
+                                                        </label>
+                                                    }
+                                                </div>
+                                            </fieldset>
+                                            <fieldset>
+                                                <legend>@L["Admin_Games_Metadata_Modes"].Value</legend>
+                                                <div class="option-grid">
+                                                    @foreach (var option in GameMetadataOptions.ModeDefinitions)
+                                                    {
+                                                        var isChecked = (game.Modes & option.Mode) != 0;
+                                                        <label class="option-chip">
+                                                            <input type="checkbox" name="Modes" value="@((int)option.Mode)" @(isChecked ? "checked" : null) />
+                                                            <span>@L[option.ResourceKey].Value</span>
+                                                            @if ((game.ProposedModes & option.Mode) != 0 && !isChecked)
+                                                            {
+                                                                <span class="badge info">@L["Admin_Games_Metadata_Proposed"].Value</span>
+                                                            }
+                                                        </label>
+                                                    }
+                                                </div>
+                                            </fieldset>
+                                            <div class="metadata-tags">
+                                                <strong>@L["Admin_Games_Metadata_Tags"].Value</strong>
+                                                @if (game.Tags.Any())
+                                                {
+                                                    <div class="tag-list">
+                                                        @foreach (var tag in game.Tags)
+                                                        {
+                                                            var isChecked = tag.IsApproved;
+                                                            <label class="option-chip">
+                                                                <input type="checkbox" name="ApprovedTags" value="@tag.Id" @(isChecked ? "checked" : null) />
+                                                                <span>@tag.Value</span>
+                                                                @if (tag.IsPending)
+                                                                {
+                                                                    <span class="badge info">@L["Admin_Games_Metadata_TagPending"].Value</span>
+                                                                }
+                                                            </label>
+                                                        }
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <p class="muted">@L["Admin_Games_Metadata_NoTags"].Value</p>
+                                                }
+                                            </div>
+                                            <button class="btn-primary btn-small" type="submit">@L["Admin_Games_Metadata_Save"].Value</button>
+                                        </form>
+                                    </details>
                                     @if (game.Status != GameApprovalStatus.Approved)
                                     {
                                         <form asp-action="ApproveGame" method="post">

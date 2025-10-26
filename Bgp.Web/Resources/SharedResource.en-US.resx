@@ -1920,7 +1920,7 @@
     <value>Invite to game</value>
   </data>
 	<data name="Dashboard_Friends_InviteMessage" xml:space="preserve">
-    <value>Let&apos;s play a round together!</value>
+    <value>Let's play a round together!</value>
   </data>
 	<data name="Admin_Nav_Users" xml:space="preserve">
     <value>Users</value>
@@ -2228,4 +2228,265 @@
 	<data name="Dashboard_Profile_Visibility_Owner" xml:space="preserve">
         <value>Only visible to you</value>
     </data>
+	<data name="Dashboard_Profile_DisplayName_Pending">
+		<value>You already have a pending username change.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_Cooldown">
+		<value>Username can only be changed once every 30 days.</value>
+	</data>
+	<data name="Dashboard_Profile_BirthDate_Incomplete">
+		<value>Please choose both month and day.</value>
+	</data>
+	<data name="Dashboard_Profile_BirthDate_Invalid">
+		<value>Selected day does not exist in the chosen month.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_Hint">
+		<value>Requests are reviewed by an administrator and can be submitted once every 30 days.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_PendingInfo">
+		<value>Pending request: {0} (submitted {1}).</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_CooldownInfo">
+		<value>Next request available after {0}.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_CanRequest">
+		<value>You can request a new username now.</value>
+	</data>
+	<data name="Dashboard_Profile_BirthDate_MonthPlaceholder">
+		<value>Month</value>
+	</data>
+	<data name="Dashboard_Profile_BirthDate_DayPlaceholder">
+		<value>Day</value>
+	</data>
+	<data name="Dashboard_Profile_BirthDate_Hint">
+		<value>Visible month and day only.</value>
+	</data>
+	<data name="Dashboard_Profile_Avatar_Hint">
+		<value>Square images work best; we crop and compress automatically.</value>
+	</data>
+	<data name="Dashboard_Success_DisplayNameRequested">
+		<value>Username change request sent to moderation.</value>
+	</data>
+	<data name="Dashboard_Games_Categories_Label">
+		<value>Categories</value>
+	</data>
+	<data name="Dashboard_Games_Categories_Hint">
+		<value>Pick every genre that fits your game.</value>
+	</data>
+	<data name="Dashboard_Games_Modes_Label">
+		<value>Game modes</value>
+	</data>
+	<data name="Dashboard_Games_Modes_Hint">
+		<value>Select all supported modes. Admins will confirm before publishing.</value>
+	</data>
+	<data name="Dashboard_Games_Tags_Label">
+		<value>Tags</value>
+	</data>
+	<data name="Dashboard_Games_Tags_Placeholder">
+		<value>e.g. roguelike, retro, pixel art</value>
+	</data>
+	<data name="Dashboard_Games_Tags_Hint">
+		<value>Use comma-separated keywords (max 10). Admin decides which stay.</value>
+	</data>
+	<data name="Dashboard_Games_Categories_Required">
+		<value>Choose at least one category.</value>
+	</data>
+	<data name="Dashboard_Games_Modes_Required">
+		<value>Select at least one mode.</value>
+	</data>
+	<data name="Dashboard_Games_Tags_TooMany">
+		<value>Please provide at most 10 tags.</value>
+	</data>
+	<data name="Dashboard_Games_Category_Shooter">
+		<value>Shooter</value>
+	</data>
+	<data name="Dashboard_Games_Category_Racing">
+		<value>Racing</value>
+	</data>
+	<data name="Dashboard_Games_Category_Puzzle">
+		<value>Puzzle</value>
+	</data>
+	<data name="Dashboard_Games_Category_Strategy">
+		<value>Strategy</value>
+	</data>
+	<data name="Dashboard_Games_Category_Adventure">
+		<value>Adventure</value>
+	</data>
+	<data name="Dashboard_Games_Category_Platformer">
+		<value>Platformer</value>
+	</data>
+	<data name="Dashboard_Games_Category_Sports">
+		<value>Sports</value>
+	</data>
+	<data name="Dashboard_Games_Category_Simulation">
+		<value>Simulation</value>
+	</data>
+	<data name="Dashboard_Games_Category_Rpg">
+		<value>RPG</value>
+	</data>
+	<data name="Dashboard_Games_Category_Arcade">
+		<value>Arcade</value>
+	</data>
+	<data name="Dashboard_Games_Category_Educational">
+		<value>Educational</value>
+	</data>
+	<data name="Dashboard_Games_Category_Horror">
+		<value>Horror</value>
+	</data>
+	<data name="Dashboard_Games_Category_Music">
+		<value>Music</value>
+	</data>
+	<data name="Dashboard_Games_Category_Card">
+		<value>Card</value>
+	</data>
+	<data name="Dashboard_Games_Category_Board">
+		<value>Board</value>
+	</data>
+	<data name="Dashboard_Games_Category_Sandbox">
+		<value>Sandbox</value>
+	</data>
+	<data name="Dashboard_Games_Category_Fighting">
+		<value>Fighting</value>
+	</data>
+	<data name="Dashboard_Games_Category_Survival">
+		<value>Survival</value>
+	</data>
+	<data name="Dashboard_Games_Category_Indie">
+		<value>Indie</value>
+	</data>
+	<data name="Dashboard_Games_Mode_Singleplayer">
+		<value>Singleplayer</value>
+	</data>
+	<data name="Dashboard_Games_Mode_MultiplayerRealtime">
+		<value>Real-time multiplayer</value>
+	</data>
+	<data name="Dashboard_Games_Mode_MultiplayerAsync">
+		<value>Asynchronous multiplayer</value>
+	</data>
+	<data name="Games_Index_Filter_Search">
+		<value>Search</value>
+	</data>
+	<data name="Games_Index_Filter_SearchPlaceholder">
+		<value>Game title or description</value>
+	</data>
+	<data name="Games_Index_Filter_Category">
+		<value>Category</value>
+	</data>
+	<data name="Games_Index_Filter_Mode">
+		<value>Mode</value>
+	</data>
+	<data name="Games_Index_Filter_Tag">
+		<value>Tag</value>
+	</data>
+	<data name="Games_Index_Filter_All">
+		<value>All</value>
+	</data>
+	<data name="Games_Index_Filter_AllTags">
+		<value>All tags</value>
+	</data>
+	<data name="Games_Index_Filter_Apply">
+		<value>Apply filters</value>
+	</data>
+	<data name="Games_Index_Mode_Unspecified">
+		<value>Not specified</value>
+	</data>
+	<data name="Games_Index_Category_Unspecified">
+		<value>Not specified</value>
+	</data>
+	<data name="Games_Index_Modes">
+		<value>Modes</value>
+	</data>
+	<data name="Games_Index_Categories">
+		<value>Categories</value>
+	</data>
+	<data name="Games_Details_Modes">
+		<value>Modes</value>
+	</data>
+	<data name="Games_Details_Categories">
+		<value>Categories</value>
+	</data>
+	<data name="Games_Details_Tags">
+		<value>Tags</value>
+	</data>
+	<data name="Games_Details_Mode_Unspecified">
+		<value>Not specified</value>
+	</data>
+	<data name="Games_Details_Category_Unspecified">
+		<value>Not specified</value>
+	</data>
+	<data name="Admin_Users_DisplayName_PendingTitle">
+		<value>Pending username changes</value>
+	</data>
+	<data name="Admin_Users_DisplayName_Current">
+		<value>Current name</value>
+	</data>
+	<data name="Admin_Users_DisplayName_Requested">
+		<value>Requested name</value>
+	</data>
+	<data name="Admin_Users_DisplayName_RequestedAt">
+		<value>Requested at</value>
+	</data>
+	<data name="Admin_Users_DisplayName_Approve">
+		<value>Approve</value>
+	</data>
+	<data name="Admin_Users_DisplayName_Reject">
+		<value>Reject</value>
+	</data>
+	<data name="Admin_Users_DisplayName_NotFound">
+		<value>Could not find a pending request for this user.</value>
+	</data>
+	<data name="Admin_Users_DisplayNameApproved">
+		<value>Username updated successfully.</value>
+	</data>
+	<data name="Admin_Users_DisplayNameRejected">
+		<value>Username request rejected.</value>
+	</data>
+	<data name="Admin_Users_DisplayName_UpdateError">
+		<value>Failed to update username request.</value>
+	</data>
+	<data name="Admin_Games_Metadata_None">
+		<value>Not set</value>
+	</data>
+	<data name="Admin_Games_Metadata_Current">
+		<value>Current categories</value>
+	</data>
+	<data name="Admin_Games_Metadata_ProposedCategories_Label">
+		<value>Proposed categories</value>
+	</data>
+	<data name="Admin_Games_Metadata_Modes_Current">
+		<value>Current modes</value>
+	</data>
+	<data name="Admin_Games_Metadata_Modes_Proposed">
+		<value>Proposed modes</value>
+	</data>
+	<data name="Admin_Games_Metadata_Edit">
+		<value>Edit metadata</value>
+	</data>
+	<data name="Admin_Games_Metadata_Categories">
+		<value>Categories</value>
+	</data>
+	<data name="Admin_Games_Metadata_Modes">
+		<value>Modes</value>
+	</data>
+	<data name="Admin_Games_Metadata_Tags">
+		<value>Tags</value>
+	</data>
+	<data name="Admin_Games_Metadata_TagPending">
+		<value>Pending review</value>
+	</data>
+	<data name="Admin_Games_Metadata_NoTags">
+		<value>No tags submitted yet.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Save">
+		<value>Save metadata</value>
+	</data>
+	<data name="Admin_Games_Metadata_Proposed">
+		<value>Proposed</value>
+	</data>
+	<data name="Admin_Games_Metadata_Validation">
+		<value>Please review metadata values.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Success">
+		<value>Game metadata updated.</value>
+	</data>
 </root>

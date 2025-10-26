@@ -38,7 +38,8 @@ public static class AppDbInitializer
                 UserName = adminUserName,
                 Email = adminEmail,
                 EmailConfirmed = true,
-                DisplayName = "Admin"
+                DisplayName = "Admin",
+                DisplayNameLastApprovedAtUtc = DateTime.UtcNow
             };
             var result = await userMgr.CreateAsync(admin, adminPassword);
             if (!result.Succeeded)

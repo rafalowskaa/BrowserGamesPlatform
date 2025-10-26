@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
+using System.Collections.Generic;
 using Bgp.Application.Dtos;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Bgp.Application.Interfaces;
 using Bgp.Domain.Entities;
 using Bgp.Domain.Enums;
@@ -40,7 +42,8 @@ public class GamesController : ControllerBase
             .Select(g => new GameListItemDto(
                 g.Id, g.Title, g.Slug, g.CoverImagePath,
                 g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0,
-                g.Reviews.Count, g.Modes))
+                g.Reviews.Count, g.Modes, g.Categories,
+                g.Tags.Where(t => t.IsApproved).OrderBy(t => t.Value).Select(t => t.Value).ToList()))
             .ToListAsync();
 
         return Ok(list);
@@ -66,11 +69,13 @@ public class GamesController : ControllerBase
             g.Slug,
             g.Description,
             g.Modes,
+            g.Categories,
             g.CoverImagePath,
             LatestVersion = latest?.Version,
             PlayUrl = latest?.ContentPath is null ? null : $"{latest.ContentPath.TrimEnd('/')}/index.html",
             AvgRating = g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0,
-            ReviewsCount = g.Reviews.Count
+            ReviewsCount = g.Reviews.Count,
+            Tags = g.Tags.Where(t => t.IsApproved).OrderBy(t => t.Value).Select(t => t.Value).ToList()
         });
     }
 
@@ -90,21 +95,102 @@ public class GamesController : ControllerBase
         if (cover is not null && cover.Length > 0)
             coverPath = await _storage.SaveAsync(cover.OpenReadStream(), cover.FileName, "covers");
 
+        var proposedModes = GameMode.None;
+        if (dto.Modes is not null)
+        {
+            foreach (var mode in dto.Modes.Where(m => m != GameMode.None))
+            {
+                proposedModes |= mode;
+            }
+        }
+
+        if (proposedModes == GameMode.None)
+        {
+            proposedModes = GameMode.Singleplayer;
+        }
+
+        var proposedCategories = GameCategory.None;
+        if (dto.Categories is not null)
+        {
+            foreach (var category in dto.Categories.Where(c => c != GameCategory.None))
+            {
+                proposedCategories |= category;
+            }
+        }
+
+        var sanitizedTags = SanitizeTags(dto.Tags);
+
         var game = new Game
         {
             Title = dto.Title.Trim(),
             Slug = slug,
             Description = dto.Description?.Trim(),
-            Modes = dto.Modes == GameMode.None ? GameMode.Singleplayer : dto.Modes,
+            Modes = GameMode.None,
+            ProposedModes = proposedModes,
+            Categories = GameCategory.None,
+            ProposedCategories = proposedCategories == GameCategory.None ? GameCategory.Indie : proposedCategories,
             CoverImagePath = coverPath,
             CreatedByUserId = userId,
             ApprovalStatus = GameApprovalStatus.Pending
         };
 
+        foreach (var tag in sanitizedTags)
+        {
+            game.Tags.Add(new GameTag
+            {
+                Value = tag,
+                IsApproved = false,
+                AddedByUserId = userId,
+                CreatedAtUtc = DateTime.UtcNow
+            });
+        }
+
         _db.Games.Add(game);
         await _db.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetBySlug), new { slug = game.Slug }, new { game.Id, game.Slug });
+    }
+
+    private static IReadOnlyList<string> SanitizeTags(IEnumerable<string>? tags)
+    {
+        if (tags is null)
+        {
+            return Array.Empty<string>();
+        }
+
+        var cleaned = new List<string>();
+        foreach (var tag in tags)
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                continue;
+            }
+
+            var value = Regex.Replace(tag.Trim(), "[^a-zA-Z0-9#+-]", " ");
+            value = Regex.Replace(value, "\\s+", " ").Trim();
+            if (value.Length < 2)
+            {
+                continue;
+            }
+
+            if (value.Length > 40)
+            {
+                value = value[..40];
+            }
+
+            value = value.ToLowerInvariant();
+            if (!cleaned.Contains(value, StringComparer.OrdinalIgnoreCase))
+            {
+                cleaned.Add(value);
+            }
+
+            if (cleaned.Count >= 10)
+            {
+                break;
+            }
+        }
+
+        return cleaned;
     }
 
     [Authorize]

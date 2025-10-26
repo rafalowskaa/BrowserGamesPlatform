@@ -1,10 +1,61 @@
-﻿@model Bgp.Domain.Entities.Game
+﻿@using Bgp.Domain.Enums
+@using Bgp.Web.Helpers
+@model Bgp.Domain.Entities.Game
 @{
     ViewData["Title"] = Model.Title;
     var playUrl = ViewBag.PlayUrl as string;
+    var approvedTags = Model.Tags?.Where(t => t.IsApproved).Select(t => t.Value).OrderBy(t => t).ToList() ?? new List<string>();
+    string FormatModes(GameMode modes)
+    {
+        if (modes == GameMode.None)
+        {
+            return L["Games_Details_Mode_Unspecified"].Value;
+        }
+
+        var labels = GameMetadataOptions.ModeDefinitions
+            .Where(def => (modes & def.Mode) != 0)
+            .Select(def => L[def.ResourceKey].Value)
+            .Where(label => !string.IsNullOrWhiteSpace(label))
+            .ToList();
+
+        return labels.Count == 0 ? L["Games_Details_Mode_Unspecified"].Value : string.Join(", ", labels);
+    }
+
+    string FormatCategories(GameCategory categories)
+    {
+        if (categories == GameCategory.None)
+        {
+            return L["Games_Details_Category_Unspecified"].Value;
+        }
+
+        var labels = GameMetadataOptions.CategoryDefinitions
+            .Where(def => (categories & def.Category) != 0)
+            .Select(def => L[def.ResourceKey].Value)
+            .Where(label => !string.IsNullOrWhiteSpace(label))
+            .ToList();
+
+        return labels.Count == 0 ? L["Games_Details_Category_Unspecified"].Value : string.Join(", ", labels);
+    }
 }
 <h2>@Model.Title</h2>
 <p>@Model.Description</p>
+
+<div class="game-meta-panel">
+    <div><strong>@L["Games_Details_Modes"].Value</strong><span>@FormatModes(Model.Modes)</span></div>
+    <div><strong>@L["Games_Details_Categories"].Value</strong><span>@FormatCategories(Model.Categories)</span></div>
+    @if (approvedTags.Any())
+    {
+        <div class="game-tags">
+            <strong>@L["Games_Details_Tags"].Value</strong>
+            <div class="tag-list">
+                @foreach (var tag in approvedTags)
+                {
+                    <span class="badge subtle">@tag</span>
+                }
+            </div>
+        </div>
+    }
+</div>
 
 @if (playUrl is not null)
 {

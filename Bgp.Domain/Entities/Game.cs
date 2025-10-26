@@ -17,7 +17,13 @@ public class Game : IAggregateRoot
     [MaxLength(2000)]
     public string? Description { get; set; }
 
-    public GameMode Modes { get; set; } = GameMode.Singleplayer;
+    public GameMode Modes { get; set; } = GameMode.None;
+
+    public GameMode ProposedModes { get; set; } = GameMode.Singleplayer;
+
+    public GameCategory Categories { get; set; } = GameCategory.None;
+
+    public GameCategory ProposedCategories { get; set; } = GameCategory.None;
 
     [MaxLength(256)]
     public string? CoverImagePath { get; set; }
@@ -38,4 +44,5 @@ public class Game : IAggregateRoot
     public ICollection<GameVersion> Versions { get; set; } = new List<GameVersion>();
     public ICollection<GameReview> Reviews { get; set; } = new List<GameReview>();
     public ICollection<Score> Scores { get; set; } = new List<Score>();
+    public ICollection<GameTag> Tags { get; set; } = new List<GameTag>();
 }

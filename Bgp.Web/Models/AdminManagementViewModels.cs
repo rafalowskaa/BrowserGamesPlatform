@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using Bgp.Domain.Enums;
 
 namespace Bgp.Web.Models;
@@ -9,9 +10,12 @@ public class AdminUsersViewModel
     public string? Search { get; init; }
     public string? SuccessKey { get; init; }
     public string? ErrorKey { get; init; }
+    public IReadOnlyList<DisplayNameRequestViewModel> DisplayNameRequests { get; init; } = Array.Empty<DisplayNameRequestViewModel>();
 }
 
 public record AdminUserRowViewModel(string Id, string DisplayName, string Email, DateTime CreatedAtUtc, bool IsBlocked, bool IsAdmin);
+
+public record DisplayNameRequestViewModel(string UserId, string CurrentDisplayName, string RequestedDisplayName, DateTime? RequestedAtUtc);
 
 public class AdminUpdateUserInputModel
 {
@@ -33,7 +37,21 @@ public class AdminGamesViewModel
     public string? ErrorKey { get; init; }
 }
 
-public record AdminGameRowViewModel(Guid Id, string Title, string Slug, string Owner, DateTime CreatedAtUtc, GameApprovalStatus Status, string? ModerationNotes);
+public record AdminGameRowViewModel(
+    Guid Id,
+    string Title,
+    string Slug,
+    string Owner,
+    DateTime CreatedAtUtc,
+    GameApprovalStatus Status,
+    string? ModerationNotes,
+    GameCategory ProposedCategories,
+    GameCategory Categories,
+    GameMode ProposedModes,
+    GameMode Modes,
+    IReadOnlyList<AdminGameTagViewModel> Tags);
+
+public record AdminGameTagViewModel(Guid Id, string Value, bool IsApproved, bool IsPending);
 
 public class AdminRejectGameInputModel
 {
@@ -42,4 +60,17 @@ public class AdminRejectGameInputModel
 
     [MaxLength(500)]
     public string? Notes { get; set; }
+
+}
+
+public class AdminUpdateGameMetadataInputModel
+{
+    [Required]
+    public Guid Id { get; set; }
+
+    public List<int> Categories { get; set; } = new();
+
+    public List<int> Modes { get; set; } = new();
+
+    public List<Guid> ApprovedTags { get; set; } = new();
 }

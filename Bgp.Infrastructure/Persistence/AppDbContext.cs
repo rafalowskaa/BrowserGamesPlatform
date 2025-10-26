@@ -18,8 +18,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<GameReview> GameReviews => Set<GameReview>();
     public DbSet<MatchSession> MatchSessions => Set<MatchSession>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<GameTag> GameTags => Set<GameTag>();
 
-    // NOWE:
     public DbSet<Friendship> Friendships => Set<Friendship>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<Report> Reports => Set<Report>();
@@ -28,13 +28,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(b);
 
-        b.Entity<ApplicationUser>()
-            .Property(u => u.FirstName)
-            .HasMaxLength(100);
-
-        b.Entity<ApplicationUser>()
-            .Property(u => u.LastName)
-            .HasMaxLength(100);
 
         b.Entity<ApplicationUser>()
             .Property(u => u.DisplayNameVisibility)
@@ -42,12 +35,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasDefaultValue(ProfileVisibility.Everyone);
 
         b.Entity<ApplicationUser>()
-            .Property(u => u.FirstNameVisibility)
-            .HasConversion<int>()
-            .HasDefaultValue(ProfileVisibility.OwnerOnly);
-
-        b.Entity<ApplicationUser>()
-            .Property(u => u.LastNameVisibility)
+            .Property(u => u.BirthDateVisibility)
             .HasConversion<int>()
             .HasDefaultValue(ProfileVisibility.OwnerOnly);
 
@@ -57,9 +45,28 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasDefaultValue(ProfileVisibility.OwnerOnly);
 
         b.Entity<ApplicationUser>()
-            .Property(u => u.EmailVisibility)
+            .Property(u => u.PendingDisplayName)
+            .HasMaxLength(120);
+
+        b.Entity<Game>()
+            .Property(x => x.Categories)
             .HasConversion<int>()
-            .HasDefaultValue(ProfileVisibility.OwnerOnly);
+            .HasDefaultValue(GameCategory.None);
+
+        b.Entity<Game>()
+            .Property(x => x.ProposedCategories)
+            .HasConversion<int>()
+            .HasDefaultValue(GameCategory.None);
+
+        b.Entity<Game>()
+            .Property(x => x.Modes)
+            .HasConversion<int>()
+            .HasDefaultValue(GameMode.None);
+
+        b.Entity<Game>()
+            .Property(x => x.ProposedModes)
+            .HasConversion<int>()
+            .HasDefaultValue(GameMode.Singleplayer);
 
         b.Entity<Game>()
             .HasIndex(x => x.Slug)
@@ -78,6 +85,17 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         b.Entity<Game>()
             .Property(x => x.ModerationNotes)
             .HasMaxLength(500);
+
+        b.Entity<Game>()
+            .HasMany(g => g.Tags)
+            .WithOne(t => t.Game!)
+            .HasForeignKey(t => t.GameId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        b.Entity<GameTag>()
+            .Property(t => t.Value)
+            .HasMaxLength(40)
+            .IsRequired();
 
         b.Entity<GameVersion>()
             .HasOne(x => x.Game)

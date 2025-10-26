@@ -1,4 +1,5 @@
-﻿@using System.Linq
+﻿﻿@using System.Globalization
+@using System.Linq
 @using System.Text.Json
 @using Bgp.Domain.Enums
 @model DashboardViewModel
@@ -12,6 +13,7 @@
         "EmailUpdated" => L["Dashboard_Success_Email"].Value,
         "PasswordUpdated" => L["Dashboard_Success_Password"].Value,
         "GameCreated" => L["Dashboard_Success_Game"].Value,
+        "DisplayNameRequested" => L["Dashboard_Success_DisplayNameRequested"].Value,
         _ => null
     };
     var includeProfileScripts = false;
@@ -141,6 +143,15 @@
                     <div class="profile-actions__panel is-active" data-action="info">
                         <h3>@L["Dashboard_Profile_UpdateTitle"].Value</h3>
                         <p>@L["Dashboard_Profile_UpdateDescription"].Value</p>
+                        @{
+                            var months = Enumerable.Range(1, 12)
+                            .Select(i => new { Value = i, Name = CultureInfo.CurrentCulture.DateTimeFormat.MonthNames[i - 1] })
+                            .Select(m => new { m.Value, Name = string.IsNullOrWhiteSpace(m.Name) ? m.Value.ToString("00") : m.Name })
+                            .ToList();
+                            var days = Enumerable.Range(1, 31).ToList();
+                            var hasPendingDisplayName = !string.IsNullOrWhiteSpace(Model.Profile.PendingDisplayName);
+                            var changeAvailableAt = Model.Profile.DisplayNameChangeAvailableAtUtc;
+                        }
                         <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data" class="profile-form">
                             @Html.AntiForgeryToken()
                             @Html.ValidationSummary(true, null, new { @class = "val-summary" })
@@ -148,6 +159,19 @@
                                 <div class="profile-field__input">
                                     <label for="DisplayName">@L["Dashboard_Profile_DisplayName"].Value</label>
                                     <input id="DisplayName" name="DisplayName" value="@Model.Profile.DisplayName" maxlength="120" />
+                                    <p class="form-hint">@L["Dashboard_Profile_DisplayName_Hint"].Value</p>
+                                    @if (hasPendingDisplayName)
+                                    {
+                                        <div class="badge info">@string.Format(L["Dashboard_Profile_DisplayName_PendingInfo"].Value, Model.Profile.PendingDisplayName, Model.Profile.PendingDisplayNameRequestedAtUtc?.ToLocalTime().ToString("g"))</div>
+                                    }
+                                    else if (changeAvailableAt.HasValue && changeAvailableAt.Value > DateTime.UtcNow)
+                                    {
+                                        <div class="badge subtle">@string.Format(L["Dashboard_Profile_DisplayName_CooldownInfo"].Value, changeAvailableAt.Value.ToLocalTime().ToString("d"))</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="badge subtle">@L["Dashboard_Profile_DisplayName_CanRequest"].Value</div>
+                                    }
                                     @Html.ValidationMessage("DisplayName", null, new { @class = "val" })
                                 </div>
                                 <div class="profile-field__visibility">
@@ -164,45 +188,29 @@
 
                             <div class="profile-field">
                                 <div class="profile-field__input">
-                                    <label for="FirstName">@L["Dashboard_Profile_FirstName"].Value</label>
-                                    <input id="FirstName" name="FirstName" value="@Model.Profile.FirstName" maxlength="100" />
-                                    @Html.ValidationMessage("FirstName", null, new { @class = "val" })
-                                </div>
-                                <div class="profile-field__visibility">
-                                    <label for="FirstNameVisibility">@L["Dashboard_Profile_FirstNameVisibility"].Value</label>
-                                    <select id="FirstNameVisibility" name="FirstNameVisibility">
-                                        @foreach (var option in Model.Profile.VisibilityOptions)
-                                        {
-                                            var isSelected = option.Value == ((int)Model.Profile.FirstNameVisibility).ToString();
-                                            <option value="@option.Value" selected="@(isSelected ? "selected" : null)">@option.Text</option>
-                                        }
-                                    </select>
-                                </div>
-                            </div>
 
-                            <div class="profile-field">
-                                <div class="profile-field__input">
-                                    <label for="LastName">@L["Dashboard_Profile_LastName"].Value</label>
-                                    <input id="LastName" name="LastName" value="@Model.Profile.LastName" maxlength="100" />
-                                    @Html.ValidationMessage("LastName", null, new { @class = "val" })
-                                </div>
-                                <div class="profile-field__visibility">
-                                    <label for="LastNameVisibility">@L["Dashboard_Profile_LastNameVisibility"].Value</label>
-                                    <select id="LastNameVisibility" name="LastNameVisibility">
-                                        @foreach (var option in Model.Profile.VisibilityOptions)
-                                        {
-                                            var isSelected = option.Value == ((int)Model.Profile.LastNameVisibility).ToString();
-                                            <option value="@option.Value" selected="@(isSelected ? "selected" : null)">@option.Text</option>
-                                        }
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="profile-field">
-                                <div class="profile-field__input">
-                                    <label for="BirthDate">@L["Dashboard_Profile_BirthDate"].Value</label>
-                                    <input id="BirthDate" name="BirthDate" type="date" value="@(Model.Profile.BirthDate?.ToString("yyyy-MM-dd"))" />
-                                    @Html.ValidationMessage("BirthDate", null, new { @class = "val" })
+                                    <label>@L["Dashboard_Profile_BirthDate"].Value</label>
+                                    <div class="birthdate-picker">
+                                        <select id="BirthMonth" name="BirthMonth">
+                                            <option value="">@L["Dashboard_Profile_BirthDate_MonthPlaceholder"].Value</option>
+                                            @foreach (var month in months)
+                                            {
+                                                var selected = month.Value == Model.Profile.BirthMonth ? "selected" : null;
+                                                <option value="@month.Value" selected="@selected">@month.Name</option>
+                                            }
+                                        </select>
+                                        <select id="BirthDay" name="BirthDay">
+                                            <option value="">@L["Dashboard_Profile_BirthDate_DayPlaceholder"].Value</option>
+                                            @foreach (var day in days)
+                                            {
+                                                var selected = day == Model.Profile.BirthDay ? "selected" : null;
+                                                <option value="@day" selected="@selected">@day.ToString("00")</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <p class="form-hint">@L["Dashboard_Profile_BirthDate_Hint"].Value</p>
+                                    @Html.ValidationMessage("BirthMonth", null, new { @class = "val" })
+                                    @Html.ValidationMessage("BirthDay", null, new { @class = "val" })
                                 </div>
                                 <div class="profile-field__visibility">
                                     <label for="BirthDateVisibility">@L["Dashboard_Profile_BirthDateVisibility"].Value</label>
@@ -237,6 +245,7 @@
                                 <div class="profile-field__input">
                                     <label for="Avatar">@L["Dashboard_Profile_Avatar"].Value</label>
                                     <input id="Avatar" type="file" name="Avatar" accept="image/*" />
+                                    <p class="form-hint">@L["Dashboard_Profile_Avatar_Hint"].Value</p>
                                     @Html.ValidationMessage("Avatar", null, new { @class = "val" })
                                 </div>
                             </div>
@@ -335,6 +344,45 @@
                         <label for="GamePackage">@L["Dashboard_Games_Package"].Value</label>
                         <input id="GamePackage" type="file" name="Package" accept=".zip" />
                         @Html.ValidationMessage("Package", null, new { @class = "val" })
+                    </div>
+
+                    <fieldset class="form-fieldset">
+                        <legend>@L["Dashboard_Games_Categories_Label"].Value</legend>
+                        <p class="form-hint">@L["Dashboard_Games_Categories_Hint"].Value</p>
+                        <div class="option-grid">
+                            @foreach (var option in Model.NewGame.CategoryOptions)
+                            {
+                                var isChecked = option.Selected ? "checked" : null;
+                                <label class="option-chip">
+                                    <input type="checkbox" name="SelectedCategoryValues" value="@option.Value" @isChecked />
+                                    <span>@option.Text</span>
+                                </label>
+                            }
+                        </div>
+                        @Html.ValidationMessage("SelectedCategoryValues", null, new { @class = "val" })
+                    </fieldset>
+
+                    <fieldset class="form-fieldset">
+                        <legend>@L["Dashboard_Games_Modes_Label"].Value</legend>
+                        <p class="form-hint">@L["Dashboard_Games_Modes_Hint"].Value</p>
+                        <div class="option-grid">
+                            @foreach (var option in Model.NewGame.ModeOptions)
+                            {
+                                var isChecked = option.Selected ? "checked" : null;
+                                <label class="option-chip">
+                                    <input type="checkbox" name="SelectedModeValues" value="@option.Value" @isChecked />
+                                    <span>@option.Text</span>
+                                </label>
+                            }
+                        </div>
+                        @Html.ValidationMessage("SelectedModeValues", null, new { @class = "val" })
+                    </fieldset>
+
+                    <div class="form-grid">
+                        <label for="GameTags">@L["Dashboard_Games_Tags_Label"].Value</label>
+                        <textarea id="GameTags" name="TagsRaw" maxlength="200" placeholder="@L["Dashboard_Games_Tags_Placeholder"].Value">@Model.NewGame.TagsRaw</textarea>
+                        <p class="form-hint">@L["Dashboard_Games_Tags_Hint"].Value</p>
+                        @Html.ValidationMessage("TagsRaw", null, new { @class = "val" })
                     </div>
 
                     <button class="btn-primary" type="submit">@L["Dashboard_Games_Submit"].Value</button>

@@ -66,6 +66,17 @@ public class AdminUiController : Controller
             })
             .ToListAsync();
 
+        var pendingDisplayNames = await _db.Users
+            .AsNoTracking()
+            .Where(u => u.PendingDisplayName != null)
+            .OrderByDescending(u => u.PendingDisplayNameRequestedAtUtc)
+            .Select(u => new DisplayNameRequestViewModel(
+                u.Id,
+                DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
+                u.PendingDisplayName!,
+                u.PendingDisplayNameRequestedAtUtc))
+            .ToListAsync();
+
         var users = userRows
             .Select(u => new AdminUserRowViewModel(
                 u.Id,
@@ -81,7 +92,8 @@ public class AdminUiController : Controller
             Users = users,
             Search = search,
             SuccessKey = TempData["AdminUsersSuccess"] as string,
-            ErrorKey = TempData["AdminUsersError"] as string
+            ErrorKey = TempData["AdminUsersError"] as string,
+            DisplayNameRequests = pendingDisplayNames
         };
 
         return View(vm);
@@ -234,6 +246,70 @@ public class AdminUiController : Controller
         return RedirectToAction(nameof(Users));
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ApproveDisplayName(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            TempData["AdminUsersError"] = "Admin_Users_DisplayName_NotFound";
+            return RedirectToAction(nameof(Users));
+        }
+
+        var user = await _users.FindByIdAsync(id);
+        if (user is null || string.IsNullOrWhiteSpace(user.PendingDisplayName))
+        {
+            TempData["AdminUsersError"] = "Admin_Users_DisplayName_NotFound";
+            return RedirectToAction(nameof(Users));
+        }
+
+        user.DisplayName = user.PendingDisplayName;
+        user.PendingDisplayName = null;
+        user.PendingDisplayNameRequestedAtUtc = null;
+        user.DisplayNameLastApprovedAtUtc = DateTime.UtcNow;
+
+        var result = await _users.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            TempData["AdminUsersError"] = result.Errors.FirstOrDefault()?.Description ?? "Admin_Users_DisplayName_UpdateError";
+            return RedirectToAction(nameof(Users));
+        }
+
+        TempData["AdminUsersSuccess"] = "Admin_Users_DisplayNameApproved";
+        return RedirectToAction(nameof(Users));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RejectDisplayName(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            TempData["AdminUsersError"] = "Admin_Users_DisplayName_NotFound";
+            return RedirectToAction(nameof(Users));
+        }
+
+        var user = await _users.FindByIdAsync(id);
+        if (user is null || string.IsNullOrWhiteSpace(user.PendingDisplayName))
+        {
+            TempData["AdminUsersError"] = "Admin_Users_DisplayName_NotFound";
+            return RedirectToAction(nameof(Users));
+        }
+
+        user.PendingDisplayName = null;
+        user.PendingDisplayNameRequestedAtUtc = null;
+
+        var result = await _users.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            TempData["AdminUsersError"] = result.Errors.FirstOrDefault()?.Description ?? "Admin_Users_DisplayName_UpdateError";
+            return RedirectToAction(nameof(Users));
+        }
+
+        TempData["AdminUsersSuccess"] = "Admin_Users_DisplayNameRejected";
+        return RedirectToAction(nameof(Users));
+    }
+
     public async Task<IActionResult> Games(string? status = null)
     {
         GameApprovalStatus? filter = null;
@@ -242,7 +318,9 @@ public class AdminUiController : Controller
             filter = parsed;
         }
 
-        var gamesQuery = _db.Games.AsNoTracking();
+        var gamesQuery = _db.Games
+            .AsNoTracking()
+            .Include(g => g.Tags);
         if (filter.HasValue)
         {
             gamesQuery = gamesQuery.Where(g => g.ApprovalStatus == filter.Value);
@@ -259,7 +337,12 @@ public class AdminUiController : Controller
                 g.CreatedAtUtc,
                 g.ApprovalStatus,
                 g.ModerationNotes,
-                g.CreatedByUserId
+                g.CreatedByUserId,
+                g.ProposedCategories,
+                g.Categories,
+                g.ProposedModes,
+                g.Modes,
+                Tags = g.Tags.Select(t => new { t.Id, t.Value, t.IsApproved, t.ReviewedAtUtc }).ToList()
             })
             .ToListAsync();
 
@@ -279,7 +362,12 @@ public class AdminUiController : Controller
                 ownerMap.GetValueOrDefault(g.CreatedByUserId, g.CreatedByUserId.ToUpperInvariant()),
                 g.CreatedAtUtc,
                 g.ApprovalStatus,
-                g.ModerationNotes)).ToList(),
+                g.ModerationNotes,
+                g.ProposedCategories,
+                g.Categories,
+                g.ProposedModes,
+                g.Modes,
+                g.Tags.Select(t => new AdminGameTagViewModel(t.Id, t.Value, t.IsApproved, t.ReviewedAtUtc is null)).ToList())).ToList(),
             Filter = filter,
             SuccessKey = TempData["AdminGamesSuccess"] as string,
             ErrorKey = TempData["AdminGamesError"] as string
@@ -305,6 +393,69 @@ public class AdminUiController : Controller
         await _db.SaveChangesAsync();
 
         TempData["AdminGamesSuccess"] = "Admin_Games_Approve_Success";
+        return RedirectToAction(nameof(Games));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateGameMetadata(AdminUpdateGameMetadataInputModel input)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["AdminGamesError"] = "Admin_Games_Metadata_Validation";
+            return RedirectToAction(nameof(Games));
+        }
+
+        var game = await _db.Games.Include(g => g.Tags).FirstOrDefaultAsync(g => g.Id == input.Id);
+        if (game is null)
+        {
+            TempData["AdminGamesError"] = "Admin_Games_NotFound";
+            return RedirectToAction(nameof(Games));
+        }
+
+        GameCategory categories = GameCategory.None;
+        if (input.Categories is not null)
+        {
+            foreach (var value in input.Categories)
+            {
+                if (Enum.IsDefined(typeof(GameCategory), value))
+                {
+                    categories |= (GameCategory)value;
+                }
+            }
+        }
+
+        GameMode modes = GameMode.None;
+        if (input.Modes is not null)
+        {
+            foreach (var value in input.Modes)
+            {
+                if (Enum.IsDefined(typeof(GameMode), value))
+                {
+                    modes |= (GameMode)value;
+                }
+            }
+        }
+
+        if (modes == GameMode.None)
+        {
+            modes = GameMode.Singleplayer;
+        }
+
+        var approvedTags = input.ApprovedTags?.ToHashSet() ?? new HashSet<Guid>();
+        foreach (var tag in game.Tags)
+        {
+            tag.IsApproved = approvedTags.Contains(tag.Id);
+            tag.ReviewedAtUtc = DateTime.UtcNow;
+        }
+
+        game.Categories = categories == GameCategory.None ? GameCategory.Indie : categories;
+        game.Modes = modes;
+        game.UpdatedAtUtc = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        TempData["AdminGamesSuccess"] = "Admin_Games_Metadata_Success";
         return RedirectToAction(nameof(Games));
     }
 

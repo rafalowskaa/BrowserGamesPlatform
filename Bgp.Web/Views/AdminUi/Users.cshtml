@@ -33,6 +33,49 @@
         <div class="alert error">@L[Model.ErrorKey].Value</div>
     }
 
+    @if (Model.DisplayNameRequests.Any())
+    {
+        <section class="admin-subpanel">
+            <h2>@L["Admin_Users_DisplayName_PendingTitle"].Value</h2>
+            <div class="table-wrapper">
+                <table class="admin-table compact">
+                    <thead>
+                        <tr>
+                            <th>@L["Admin_Users_DisplayName_Current"].Value</th>
+                            <th>@L["Admin_Users_DisplayName_Requested"].Value</th>
+                            <th>@L["Admin_Users_DisplayName_RequestedAt"].Value</th>
+                            <th class="min">@L["Admin_Users_Table_Actions"].Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in Model.DisplayNameRequests)
+                        {
+                            <tr>
+                                <td>@request.CurrentDisplayName</td>
+                                <td>@request.RequestedDisplayName</td>
+                                <td>@(request.RequestedAtUtc?.ToLocalTime().ToString("g") ?? "-")</td>
+                                <td>
+                                    <div class="admin-actions">
+                                        <form asp-action="ApproveDisplayName" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@request.UserId" />
+                                            <button class="btn-primary btn-small" type="submit">@L["Admin_Users_DisplayName_Approve"].Value</button>
+                                        </form>
+                                        <form asp-action="RejectDisplayName" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@request.UserId" />
+                                            <button class="btn-ghost btn-small" type="submit">@L["Admin_Users_DisplayName_Reject"].Value</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+
     <div class="table-wrapper">
         <table class="admin-table">
             <thead>

@@ -23,15 +23,15 @@ public record GameSummaryViewModel(Guid Id, string Title, string Slug, string? C
 public class ProfileSectionViewModel
 {
     public string DisplayName { get; set; } = string.Empty;
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public DateTime? BirthDate { get; set; }
+    public string? PendingDisplayName { get; set; }
+    public DateTime? PendingDisplayNameRequestedAtUtc { get; set; }
+    public DateTime? DisplayNameChangeAvailableAtUtc { get; set; }
+    public int? BirthMonth { get; set; }
+    public int? BirthDay { get; set; }
     public bool IsBirthdayToday { get; set; }
     public string? AvatarUrl { get; set; }
     public string Email { get; set; } = string.Empty;
     public ProfileVisibility DisplayNameVisibility { get; set; } = ProfileVisibility.Everyone;
-    public ProfileVisibility FirstNameVisibility { get; set; } = ProfileVisibility.OwnerOnly;
-    public ProfileVisibility LastNameVisibility { get; set; } = ProfileVisibility.OwnerOnly;
     public ProfileVisibility BirthDateVisibility { get; set; } = ProfileVisibility.OwnerOnly;
     public ProfileVisibility EmailVisibility { get; set; } = ProfileVisibility.OwnerOnly;
     public ProfileRankViewModel Rank { get; set; } = new();
@@ -117,6 +117,17 @@ public class CreateGameFormViewModel
 
     [Required]
     public IFormFile? Package { get; set; }
+
+    public List<string> SelectedCategoryValues { get; set; } = new();
+
+    public List<string> SelectedModeValues { get; set; } = new();
+
+    [MaxLength(200)]
+    public string? TagsRaw { get; set; }
+
+    public IReadOnlyList<SelectListItem> CategoryOptions { get; set; } = Array.Empty<SelectListItem>();
+
+    public IReadOnlyList<SelectListItem> ModeOptions { get; set; } = Array.Empty<SelectListItem>();
 }
 
 public class FriendViewModel
@@ -131,18 +142,13 @@ public class UpdateProfileInputModel
     [Required, MaxLength(120)]
     public string DisplayName { get; set; } = string.Empty;
 
-    [MaxLength(100)]
-    public string? FirstName { get; set; }
+    [Range(1, 12)]
+    public int? BirthMonth { get; set; }
 
-    [MaxLength(100)]
-    public string? LastName { get; set; }
-
-    [DataType(DataType.Date)]
-    public DateTime? BirthDate { get; set; }
+    [Range(1, 31)]
+    public int? BirthDay { get; set; }
 
     public ProfileVisibility DisplayNameVisibility { get; set; } = ProfileVisibility.Everyone;
-    public ProfileVisibility FirstNameVisibility { get; set; } = ProfileVisibility.OwnerOnly;
-    public ProfileVisibility LastNameVisibility { get; set; } = ProfileVisibility.OwnerOnly;
     public ProfileVisibility BirthDateVisibility { get; set; } = ProfileVisibility.OwnerOnly;
     public ProfileVisibility EmailVisibility { get; set; } = ProfileVisibility.OwnerOnly;
 

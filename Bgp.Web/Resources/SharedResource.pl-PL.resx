@@ -2264,4 +2264,265 @@
 	<data name="Dashboard_Profile_Visibility_Owner" xml:space="preserve">
     <value>Widoczne tylko dla Ciebie</value>
   </data>
+	<data name="Dashboard_Profile_DisplayName_Pending">
+		<value>Masz już oczekującą zmianę nazwy użytkownika.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_Cooldown">
+		<value>Nazwę użytkownika można zmieniać raz na 30 dni.</value>
+	</data>
+	<data name="Dashboard_Profile_BirthDate_Incomplete">
+		<value>Wybierz miesiąc i dzień.</value>
+	</data>
+	<data name="Dashboard_Profile_BirthDate_Invalid">
+		<value>Podany dzień nie istnieje w wybranym miesiącu.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_Hint">
+		<value>Wniosek trafia do administratora i można go wysłać raz na 30 dni.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_PendingInfo">
+		<value>Oczekujący wniosek: {0} (wysłano {1}).</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_CooldownInfo">
+		<value>Kolejny wniosek dostępny po {0}.</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_CanRequest">
+		<value>Możesz teraz zgłosić nową nazwę użytkownika.</value>
+	</data>
+	<data name="Dashboard_Profile_BirthDate_MonthPlaceholder">
+		<value>Miesiąc</value>
+	</data>
+	<data name="Dashboard_Profile_BirthDate_DayPlaceholder">
+		<value>Dzień</value>
+	</data>
+	<data name="Dashboard_Profile_BirthDate_Hint">
+		<value>Wyświetlany jest tylko miesiąc i dzień.</value>
+	</data>
+	<data name="Dashboard_Profile_Avatar_Hint">
+		<value>Najlepiej sprawdzają się kwadratowe obrazy – przytniemy i skompresujemy je automatycznie.</value>
+	</data>
+	<data name="Dashboard_Success_DisplayNameRequested">
+		<value>Wniosek o zmianę nazwy użytkownika został wysłany do moderacji.</value>
+	</data>
+	<data name="Dashboard_Games_Categories_Label">
+		<value>Kategorie</value>
+	</data>
+	<data name="Dashboard_Games_Categories_Hint">
+		<value>Wybierz wszystkie gatunki pasujące do gry.</value>
+	</data>
+	<data name="Dashboard_Games_Modes_Label">
+		<value>Tryby rozgrywki</value>
+	</data>
+	<data name="Dashboard_Games_Modes_Hint">
+		<value>Zaznacz obsługiwane tryby. Administrator potwierdzi je przed publikacją.</value>
+	</data>
+	<data name="Dashboard_Games_Tags_Label">
+		<value>Tagi</value>
+	</data>
+	<data name="Dashboard_Games_Tags_Placeholder">
+		<value>np. roguelike, retro, pixel art</value>
+	</data>
+	<data name="Dashboard_Games_Tags_Hint">
+		<value>Podaj słowa kluczowe oddzielone przecinkami (maks. 10). Administrator zdecyduje, które pozostaną.</value>
+	</data>
+	<data name="Dashboard_Games_Categories_Required">
+		<value>Wybierz co najmniej jedną kategorię.</value>
+	</data>
+	<data name="Dashboard_Games_Modes_Required">
+		<value>Wybierz co najmniej jeden tryb.</value>
+	</data>
+	<data name="Dashboard_Games_Tags_TooMany">
+		<value>Możesz podać maksymalnie 10 tagów.</value>
+	</data>
+	<data name="Dashboard_Games_Category_Shooter">
+		<value>Strzelanka</value>
+	</data>
+	<data name="Dashboard_Games_Category_Racing">
+		<value>Wyścigi</value>
+	</data>
+	<data name="Dashboard_Games_Category_Puzzle">
+		<value>Łamigłówki</value>
+	</data>
+	<data name="Dashboard_Games_Category_Strategy">
+		<value>Strategia</value>
+	</data>
+	<data name="Dashboard_Games_Category_Adventure">
+		<value>Przygodowa</value>
+	</data>
+	<data name="Dashboard_Games_Category_Platformer">
+		<value>Platformowa</value>
+	</data>
+	<data name="Dashboard_Games_Category_Sports">
+		<value>Sportowa</value>
+	</data>
+	<data name="Dashboard_Games_Category_Simulation">
+		<value>Symulacja</value>
+	</data>
+	<data name="Dashboard_Games_Category_Rpg">
+		<value>RPG</value>
+	</data>
+	<data name="Dashboard_Games_Category_Arcade">
+		<value>Arkadówka</value>
+	</data>
+	<data name="Dashboard_Games_Category_Educational">
+		<value>Edukacyjna</value>
+	</data>
+	<data name="Dashboard_Games_Category_Horror">
+		<value>Horror</value>
+	</data>
+	<data name="Dashboard_Games_Category_Music">
+		<value>Muzyczna</value>
+	</data>
+	<data name="Dashboard_Games_Category_Card">
+		<value>Karciana</value>
+	</data>
+	<data name="Dashboard_Games_Category_Board">
+		<value>Planszowa</value>
+	</data>
+	<data name="Dashboard_Games_Category_Sandbox">
+		<value>Sandbox</value>
+	</data>
+	<data name="Dashboard_Games_Category_Fighting">
+		<value>Bijatyka</value>
+	</data>
+	<data name="Dashboard_Games_Category_Survival">
+		<value>Survival</value>
+	</data>
+	<data name="Dashboard_Games_Category_Indie">
+		<value>Indie</value>
+	</data>
+	<data name="Dashboard_Games_Mode_Singleplayer">
+		<value>Tryb jednoosobowy</value>
+	</data>
+	<data name="Dashboard_Games_Mode_MultiplayerRealtime">
+		<value>Tryb wieloosobowy (czas rzeczywisty)</value>
+	</data>
+	<data name="Dashboard_Games_Mode_MultiplayerAsync">
+		<value>Tryb wieloosobowy (asynchroniczny)</value>
+	</data>
+	<data name="Games_Index_Filter_Search">
+		<value>Szukaj</value>
+	</data>
+	<data name="Games_Index_Filter_SearchPlaceholder">
+		<value>Tytuł lub opis gry</value>
+	</data>
+	<data name="Games_Index_Filter_Category">
+		<value>Kategoria</value>
+	</data>
+	<data name="Games_Index_Filter_Mode">
+		<value>Tryb</value>
+	</data>
+	<data name="Games_Index_Filter_Tag">
+		<value>Tag</value>
+	</data>
+	<data name="Games_Index_Filter_All">
+		<value>Wszystkie</value>
+	</data>
+	<data name="Games_Index_Filter_AllTags">
+		<value>Wszystkie tagi</value>
+	</data>
+	<data name="Games_Index_Filter_Apply">
+		<value>Zastosuj filtry</value>
+	</data>
+	<data name="Games_Index_Mode_Unspecified">
+		<value>Nie określono</value>
+	</data>
+	<data name="Games_Index_Category_Unspecified">
+		<value>Nie określono</value>
+	</data>
+	<data name="Games_Index_Modes">
+		<value>Tryby</value>
+	</data>
+	<data name="Games_Index_Categories">
+		<value>Kategorie</value>
+	</data>
+	<data name="Games_Details_Modes">
+		<value>Tryby</value>
+	</data>
+	<data name="Games_Details_Categories">
+		<value>Kategorie</value>
+	</data>
+	<data name="Games_Details_Tags">
+		<value>Tagi</value>
+	</data>
+	<data name="Games_Details_Mode_Unspecified">
+		<value>Nie określono</value>
+	</data>
+	<data name="Games_Details_Category_Unspecified">
+		<value>Nie określono</value>
+	</data>
+	<data name="Admin_Users_DisplayName_PendingTitle">
+		<value>Oczekujące zmiany nazw użytkowników</value>
+	</data>
+	<data name="Admin_Users_DisplayName_Current">
+		<value>Obecna nazwa</value>
+	</data>
+	<data name="Admin_Users_DisplayName_Requested">
+		<value>Zgłoszona nazwa</value>
+	</data>
+	<data name="Admin_Users_DisplayName_RequestedAt">
+		<value>Data zgłoszenia</value>
+	</data>
+	<data name="Admin_Users_DisplayName_Approve">
+		<value>Zatwierdź</value>
+	</data>
+	<data name="Admin_Users_DisplayName_Reject">
+		<value>Odrzuć</value>
+	</data>
+	<data name="Admin_Users_DisplayName_NotFound">
+		<value>Nie znaleziono oczekującego wniosku dla tego użytkownika.</value>
+	</data>
+	<data name="Admin_Users_DisplayNameApproved">
+		<value>Nazwa użytkownika została zaktualizowana.</value>
+	</data>
+	<data name="Admin_Users_DisplayNameRejected">
+		<value>Wniosek o zmianę nazwy został odrzucony.</value>
+	</data>
+	<data name="Admin_Users_DisplayName_UpdateError">
+		<value>Nie udało się zaktualizować wniosku o zmianę nazwy.</value>
+	</data>
+	<data name="Admin_Games_Metadata_None">
+		<value>Brak</value>
+	</data>
+	<data name="Admin_Games_Metadata_Current">
+		<value>Obecne kategorie</value>
+	</data>
+	<data name="Admin_Games_Metadata_ProposedCategories_Label">
+		<value>Zgłoszone kategorie</value>
+	</data>
+	<data name="Admin_Games_Metadata_Modes_Current">
+		<value>Obecne tryby</value>
+	</data>
+	<data name="Admin_Games_Metadata_Modes_Proposed">
+		<value>Zgłoszone tryby</value>
+	</data>
+	<data name="Admin_Games_Metadata_Edit">
+		<value>Edytuj metadane</value>
+	</data>
+	<data name="Admin_Games_Metadata_Categories">
+		<value>Kategorie</value>
+	</data>
+	<data name="Admin_Games_Metadata_Modes">
+		<value>Tryby</value>
+	</data>
+	<data name="Admin_Games_Metadata_Tags">
+		<value>Tagi</value>
+	</data>
+	<data name="Admin_Games_Metadata_TagPending">
+		<value>Oczekuje na weryfikację</value>
+	</data>
+	<data name="Admin_Games_Metadata_NoTags">
+		<value>Brak zgłoszonych tagów.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Save">
+		<value>Zapisz metadane</value>
+	</data>
+	<data name="Admin_Games_Metadata_Proposed">
+		<value>Zgłoszono</value>
+	</data>
+	<data name="Admin_Games_Metadata_Validation">
+		<value>Sprawdź poprawność metadanych.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Success">
+		<value>Metadane gry zostały zaktualizowane.</value>
+	</data>
 </root>

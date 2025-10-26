@@ -15,19 +15,18 @@ public class ApplicationUser : IdentityUser
 
     public bool IsBlocked { get; set; }
 
-    [MaxLength(100)]
-    public string? FirstName { get; set; }
+    public int? BirthMonth { get; set; }
 
-    [MaxLength(100)]
-    public string? LastName { get; set; }
+    public int? BirthDay { get; set; }
 
-    public DateTime? BirthDate { get; set; }
+    [MaxLength(120)]
+    public string? PendingDisplayName { get; set; }
+
+    public DateTime? PendingDisplayNameRequestedAtUtc { get; set; }
+
+    public DateTime? DisplayNameLastApprovedAtUtc { get; set; }
 
     public ProfileVisibility DisplayNameVisibility { get; set; } = ProfileVisibility.Everyone;
-
-    public ProfileVisibility FirstNameVisibility { get; set; } = ProfileVisibility.OwnerOnly;
-
-    public ProfileVisibility LastNameVisibility { get; set; } = ProfileVisibility.OwnerOnly;
 
     public ProfileVisibility BirthDateVisibility { get; set; } = ProfileVisibility.OwnerOnly;
 

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Bgp.Infrastructure.Identity;
 using Bgp.Web.Resources;
 using Microsoft.AspNetCore.Authorization;
@@ -93,7 +94,8 @@ public class AccountController : Controller
             UserName = vm.Login,
             Email = vm.Email,
             DisplayName = DisplayNameFormatter.Format(vm.Login),
-            EmailConfirmed = true // DEV: w produkcji – wysyłka maila weryfikacyjnego
+            EmailConfirmed = true, // DEV: w produkcji – wysyłka maila weryfikacyjnego
+            DisplayNameLastApprovedAtUtc = DateTime.UtcNow
         };
 
         var result = await _users.CreateAsync(user, vm.Password);

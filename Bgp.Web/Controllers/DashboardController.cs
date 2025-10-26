@@ -40,7 +40,7 @@ public class DashboardController : Controller
     private readonly IStringLocalizer<SharedResource> _localizer;
 
     private const long MaxAvatarBytes = 2 * 1024 * 1024;
-    private const int MinAvatarDimension = 100;
+    private const int AvatarTargetSize = 256;
 
     private static readonly Regex SlugRegex = new("[^a-z0-9-]", RegexOptions.Compiled);
     private static readonly Regex VersionSanitizer = new("[^a-zA-Z0-9._-]", RegexOptions.Compiled);
@@ -108,29 +108,60 @@ public class DashboardController : Controller
             return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
         }
 
-        user.DisplayName = DisplayNameFormatter.Format(input.DisplayName.Trim());
-        user.FirstName = string.IsNullOrWhiteSpace(input.FirstName) ? null : input.FirstName.Trim();
-        user.LastName = string.IsNullOrWhiteSpace(input.LastName) ? null : input.LastName.Trim();
+        var sanitizedDisplayName = DisplayNameFormatter.Format(input.DisplayName.Trim());
+        var displayNameRequested = false;
+        var hasDisplayNameChange = !string.Equals(
+            sanitizedDisplayName,
+            user.DisplayName,
+            StringComparison.OrdinalIgnoreCase);
 
-        if (input.BirthDate.HasValue)
+        if (hasDisplayNameChange)
         {
-            var birthDate = input.BirthDate.Value.Date;
-            if (birthDate > DateTime.UtcNow.Date)
+            if (!string.IsNullOrWhiteSpace(user.PendingDisplayName))
             {
-                ModelState.AddModelError(nameof(input.BirthDate), Localize("Dashboard_Profile_BirthDate_FutureError"));
+                ModelState.AddModelError(nameof(input.DisplayName), Localize("Dashboard_Profile_DisplayName_Pending"));
                 return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
             }
 
-            user.BirthDate = birthDate;
+            var lastApproved = user.DisplayNameLastApprovedAtUtc ?? user.CreatedAtUtc;
+            if (lastApproved > DateTime.UtcNow.AddMonths(-1))
+            {
+                ModelState.AddModelError(nameof(input.DisplayName), Localize("Dashboard_Profile_DisplayName_Cooldown"));
+                return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
+            }
+
+            user.PendingDisplayName = sanitizedDisplayName;
+            user.PendingDisplayNameRequestedAtUtc = DateTime.UtcNow;
+            displayNameRequested = true;
+        }
+
+        if (input.BirthMonth.HasValue || input.BirthDay.HasValue)
+        {
+            if (!(input.BirthMonth.HasValue && input.BirthDay.HasValue))
+            {
+                ModelState.AddModelError(nameof(input.BirthDay), Localize("Dashboard_Profile_BirthDate_Incomplete"));
+                return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
+            }
+
+            var month = input.BirthMonth!.Value;
+            var day = input.BirthDay!.Value;
+
+            if (!IsValidDayMonthCombination(month, day))
+            {
+                ModelState.AddModelError(nameof(input.BirthDay), Localize("Dashboard_Profile_BirthDate_Invalid"));
+                return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
+            }
+
+            user.BirthMonth = month;
+            user.BirthDay = day;
         }
         else
         {
-            user.BirthDate = null;
+            user.BirthMonth = null;
+            user.BirthDay = null;
         }
 
         user.DisplayNameVisibility = input.DisplayNameVisibility;
-        user.FirstNameVisibility = input.FirstNameVisibility;
-        user.LastNameVisibility = input.LastNameVisibility;
         user.BirthDateVisibility = input.BirthDateVisibility;
         user.EmailVisibility = input.EmailVisibility;
 
@@ -167,7 +198,7 @@ public class DashboardController : Controller
 
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogInformation("User {UserId} updated profile settings.", user.Id);
-        TempData["DashboardSuccess"] = "ProfileUpdated";
+        TempData["DashboardSuccess"] = displayNameRequested ? "DisplayNameRequested" : "ProfileUpdated";
         return RedirectToAction(nameof(Index), new { tab = "profile", panel = "info" });
     }
 
@@ -177,55 +208,43 @@ public class DashboardController : Controller
         {
             await using var sourceStream = avatar.OpenReadStream();
             using var image = await Image.LoadAsync<Rgba32>(sourceStream);
-            using var outputStream = new MemoryStream();
 
-            
-            var quality = 90;
-
-            while (true)
+            image.Mutate(x =>
             {
-                outputStream.SetLength(0);
-                var encoder = new JpegEncoder
+                x.AutoOrient();
+                var minSide = Math.Min(image.Width, image.Height);
+                var cropRect = new Rectangle(
+                    (image.Width - minSide) / 2,
+                    (image.Height - minSide) / 2,
+                    minSide,
+                    minSide);
+                x.Crop(cropRect);
+                x.Resize(new ResizeOptions
                 {
-                    Quality = quality
-                };
+                    Size = new Size(AvatarTargetSize, AvatarTargetSize),
+                    Mode = ResizeMode.Crop,
+                    Sampler = KnownResamplers.Lanczos3
+                });
+            });
+
+            foreach (var quality in new[] { 90, 80, 70, 60, 50 })
+            {
+                await using var outputStream = new MemoryStream();
+                var encoder = new JpegEncoder { Quality = quality };
                 await image.SaveAsync(outputStream, encoder);
 
                 if (outputStream.Length <= MaxAvatarBytes)
                 {
-                    await using var fileStream = System.IO.File.Create(filePath);
                     outputStream.Position = 0;
+                    await using var fileStream = System.IO.File.Create(filePath);
                     await outputStream.CopyToAsync(fileStream);
                     return true;
                 }
 
-                if (quality > 30)
-                {
-                    quality = Math.Max(30, quality - 10);
-                    continue;
-                }
-
-                if (image.Width <= MinAvatarDimension || image.Height <= MinAvatarDimension)
-                {
-                    return false;
-                }
-
-                var newWidth = Math.Max(MinAvatarDimension, (int)Math.Round(image.Width * 0.9));
-                var newHeight = Math.Max(MinAvatarDimension, (int)Math.Round(image.Height * 0.9));
-
-                if (newWidth == image.Width && newHeight == image.Height)
-                {
-                    return false;
-                }
-
-                image.Mutate(x => x.Resize(new ResizeOptions
-                {
-                    Mode = ResizeMode.Max,
-                    Size = new Size(newWidth, newHeight)
-                }));
-
-                quality = 90;
+                
             }
+
+            await using var fileStream = System.IO.File.Create(filePath);
         }
         catch (UnknownImageFormatException ex)
         {
@@ -343,6 +362,43 @@ public class DashboardController : Controller
             return await ReturnDashboardWithErrorsAsync(user, "games");
         }
 
+        var proposedCategories = GameCategory.None;
+        foreach (var categoryValue in input.SelectedCategoryValues)
+        {
+            if (int.TryParse(categoryValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var raw) && Enum.IsDefined(typeof(GameCategory), raw))
+            {
+                proposedCategories |= (GameCategory)raw;
+            }
+        }
+
+        if (proposedCategories == GameCategory.None)
+        {
+            ModelState.AddModelError("SelectedCategoryValues", Localize("Dashboard_Games_Categories_Required"));
+            return await ReturnDashboardWithErrorsAsync(user, "games");
+        }
+
+        var proposedModes = GameMode.None;
+        foreach (var modeValue in input.SelectedModeValues)
+        {
+            if (int.TryParse(modeValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var raw) && Enum.IsDefined(typeof(GameMode), raw))
+            {
+                proposedModes |= (GameMode)raw;
+            }
+        }
+
+        if (proposedModes == GameMode.None)
+        {
+            ModelState.AddModelError("SelectedModeValues", Localize("Dashboard_Games_Modes_Required"));
+            return await ReturnDashboardWithErrorsAsync(user, "games");
+        }
+
+        var parsedTags = ParseTags(input.TagsRaw);
+        if (parsedTags.Count > 10)
+        {
+            ModelState.AddModelError(nameof(input.TagsRaw), Localize("Dashboard_Games_Tags_TooMany"));
+            return await ReturnDashboardWithErrorsAsync(user, "games");
+        }
+
         var slug = await GenerateUniqueSlugAsync(input.Title);
         string? coverPath = null;
         var version = string.IsNullOrWhiteSpace(input.Version) ? "1.0.0" : input.Version.Trim();
@@ -453,8 +509,22 @@ public class DashboardController : Controller
             CoverImagePath = coverPath,
             CreatedByUserId = user.Id,
             ApprovalStatus = GameApprovalStatus.Pending,
-            Modes = GameMode.Singleplayer
+            Modes = GameMode.None,
+            ProposedModes = proposedModes,
+            Categories = GameCategory.None,
+            ProposedCategories = proposedCategories
         };
+
+        foreach (var tag in parsedTags)
+        {
+            game.Tags.Add(new GameTag
+            {
+                Value = tag,
+                IsApproved = false,
+                AddedByUserId = user.Id,
+                CreatedAtUtc = DateTime.UtcNow
+            });
+        }
 
         var versionEntity = new GameVersion
         {
@@ -673,15 +743,15 @@ public class DashboardController : Controller
         var profile = new ProfileSectionViewModel
         {
             DisplayName = formattedDisplayName,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            BirthDate = user.BirthDate,
-            IsBirthdayToday = IsBirthdayToday(user.BirthDate),
+            PendingDisplayName = user.PendingDisplayName,
+            PendingDisplayNameRequestedAtUtc = user.PendingDisplayNameRequestedAtUtc,
+            DisplayNameChangeAvailableAtUtc = CalculateNextDisplayNameChangeAt(user),
+            BirthMonth = user.BirthMonth,
+            BirthDay = user.BirthDay,
+            IsBirthdayToday = IsBirthdayToday(user.BirthMonth, user.BirthDay),
             AvatarUrl = user.AvatarUrl,
             Email = user.Email ?? string.Empty,
             DisplayNameVisibility = user.DisplayNameVisibility,
-            FirstNameVisibility = user.FirstNameVisibility,
-            LastNameVisibility = user.LastNameVisibility,
             BirthDateVisibility = user.BirthDateVisibility,
             EmailVisibility = user.EmailVisibility,
             Rank = rank,
@@ -701,7 +771,7 @@ public class DashboardController : Controller
                 Email = user.Email ?? string.Empty
             },
             Stats = stats,
-            NewGame = new CreateGameFormViewModel(),
+            NewGame = BuildEmptyCreateGameForm(),
             Friends = friendVms
         };
     }
@@ -721,27 +791,22 @@ public class DashboardController : Controller
             vm.Profile.DisplayName = DisplayNameFormatter.Format(displayNameState.AttemptedValue);
         }
 
-        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.FirstName), out var firstNameState))
-        {
-            vm.Profile.FirstName = firstNameState.AttemptedValue;
-        }
-
-        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.LastName), out var lastNameState))
-        {
-            vm.Profile.LastName = lastNameState.AttemptedValue;
-        }
-
-        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.BirthDate), out var birthDateState) &&
-            DateTime.TryParse(birthDateState.AttemptedValue, CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal, out var parsedBirthDate))
-        {
-            vm.Profile.BirthDate = parsedBirthDate.Date;
-        }
-
         vm.Profile.DisplayNameVisibility = GetVisibilityFromState(nameof(UpdateProfileInputModel.DisplayNameVisibility));
-        vm.Profile.FirstNameVisibility = GetVisibilityFromState(nameof(UpdateProfileInputModel.FirstNameVisibility));
-        vm.Profile.LastNameVisibility = GetVisibilityFromState(nameof(UpdateProfileInputModel.LastNameVisibility));
         vm.Profile.BirthDateVisibility = GetVisibilityFromState(nameof(UpdateProfileInputModel.BirthDateVisibility));
         vm.Profile.EmailVisibility = GetVisibilityFromState(nameof(UpdateProfileInputModel.EmailVisibility));
+
+        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.BirthMonth), out var monthState) &&
+            int.TryParse(monthState.AttemptedValue, out var monthValue))
+        {
+            vm.Profile.BirthMonth = monthValue;
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.BirthDay), out var dayState) &&
+            int.TryParse(dayState.AttemptedValue, out var dayValue))
+        {
+            vm.Profile.BirthDay = dayValue;
+        }
+
 
 
         if (ModelState.TryGetValue(nameof(UpdateEmailInputModel.Email), out var emailState) &&
@@ -767,6 +832,24 @@ public class DashboardController : Controller
             vm.NewGame.Version = versionState.AttemptedValue!;
         }
 
+        if (ModelState.TryGetValue(nameof(CreateGameFormViewModel.TagsRaw), out var tagsState))
+        {
+            vm.NewGame.TagsRaw = tagsState.AttemptedValue;
+        }
+
+        if (Request.Form.TryGetValue("SelectedCategoryValues", out var categories))
+        {
+            vm.NewGame.SelectedCategoryValues = categories.ToList();
+        }
+
+        if (Request.Form.TryGetValue("SelectedModeValues", out var modes))
+        {
+            vm.NewGame.SelectedModeValues = modes.ToList();
+        }
+
+        vm.NewGame.CategoryOptions = BuildCategoryOptions(vm.NewGame.SelectedCategoryValues);
+        vm.NewGame.ModeOptions = BuildModeOptions(vm.NewGame.SelectedModeValues);
+
         return View("Index", vm);
 
         ProfileVisibility GetVisibilityFromState(string key)
@@ -779,8 +862,6 @@ public class DashboardController : Controller
             return key switch
             {
                 nameof(UpdateProfileInputModel.DisplayNameVisibility) => vm.Profile.DisplayNameVisibility,
-                nameof(UpdateProfileInputModel.FirstNameVisibility) => vm.Profile.FirstNameVisibility,
-                nameof(UpdateProfileInputModel.LastNameVisibility) => vm.Profile.LastNameVisibility,
                 nameof(UpdateProfileInputModel.BirthDateVisibility) => vm.Profile.BirthDateVisibility,
                 nameof(UpdateProfileInputModel.EmailVisibility) => vm.Profile.EmailVisibility,
                 _ => ProfileVisibility.OwnerOnly
@@ -1053,15 +1134,72 @@ public class DashboardController : Controller
         return PopulateRankVisuals(rank);
     }
 
-    private static bool IsBirthdayToday(DateTime? birthDate)
+    private static DateTime? CalculateNextDisplayNameChangeAt(ApplicationUser user)
     {
-        if (birthDate is null)
+        var reference = user.DisplayNameLastApprovedAtUtc ?? user.CreatedAtUtc;
+        if (reference == default)
+        {
+            return null;
+        }
+
+        return reference.AddMonths(1);
+    }
+
+    private static bool IsValidDayMonthCombination(int month, int day)
+    {
+        if (month < 1 || month > 12)
+        {
+            return false;
+        }
+
+        if (day < 1)
+        {
+            return false;
+        }
+
+        var referenceYear = month == 2 && day == 29 ? 2020 : 2000;
+        var maxDay = DateTime.DaysInMonth(referenceYear, month);
+        return day <= maxDay;
+    }
+
+    private static bool IsBirthdayToday(int? month, int? day)
+    {
+        if (!month.HasValue || !day.HasValue)
         {
             return false;
         }
 
         var today = DateTime.UtcNow;
-        return birthDate.Value.Month == today.Month && birthDate.Value.Day == today.Day;
+        return month.Value == today.Month && day.Value == today.Day;
+    }
+
+    private static IReadOnlyList<string> ParseTags(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return Array.Empty<string>();
+        }
+
+        var tokens = raw
+            .Split(new[] { ',', ';', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(t => Regex.Replace(t.Trim(), "[^a-zA-Z0-9#+-]", " "))
+            .Select(t => Regex.Replace(t, "\\s+", " ").Trim())
+            .Where(t => t.Length >= 2)
+            .Select(t => t.Length > 40 ? t[..40] : t)
+            .Select(t => t.ToLowerInvariant())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(10)
+            .ToList();
+
+        return tokens;
+    }
+
+    private CreateGameFormViewModel BuildEmptyCreateGameForm()
+    {
+        var form = new CreateGameFormViewModel();
+        form.CategoryOptions = BuildCategoryOptions();
+        form.ModeOptions = BuildModeOptions();
+        return form;
     }
 
     private IReadOnlyList<SelectListItem> BuildVisibilityOptions()
@@ -1087,11 +1225,43 @@ public class DashboardController : Controller
 
     }
 
+    private IReadOnlyList<SelectListItem> BuildCategoryOptions(IReadOnlyCollection<string>? selectedValues = null)
+    {
+        var selected = selectedValues is null
+            ? new HashSet<string>(StringComparer.Ordinal)
+            : new HashSet<string>(selectedValues, StringComparer.Ordinal);
+
+        return GameMetadataOptions.CategoryDefinitions
+            .Select(option => new SelectListItem
+            {
+                Value = ((int)option.Category).ToString(CultureInfo.InvariantCulture),
+                Text = Localize(option.ResourceKey, option.Category.ToString()),
+                Selected = selected.Contains(((int)option.Category).ToString(CultureInfo.InvariantCulture))
+            })
+            .ToList();
+    }
+
+    private IReadOnlyList<SelectListItem> BuildModeOptions(IReadOnlyCollection<string>? selectedValues = null)
+    {
+        var selected = selectedValues is null
+            ? new HashSet<string>(StringComparer.Ordinal)
+            : new HashSet<string>(selectedValues, StringComparer.Ordinal);
+
+        return GameMetadataOptions.ModeDefinitions
+            .Select(option => new SelectListItem
+            {
+                Value = ((int)option.Mode).ToString(CultureInfo.InvariantCulture),
+                Text = Localize(option.ResourceKey, option.Mode.ToString()),
+                Selected = selected.Contains(((int)option.Mode).ToString(CultureInfo.InvariantCulture))
+            })
+            .ToList();
+    }
+
     private IReadOnlyList<ProfileHighlightViewModel> BuildHighlights(ApplicationUser user, ProfileRankViewModel rank, ProfileBestGameViewModel? bestGame)
     {
         var highlights = new List<ProfileHighlightViewModel>();
 
-        if (IsBirthdayToday(user.BirthDate))
+        if (IsBirthdayToday(user.BirthMonth, user.BirthDay))
         {
             var birthdayName = DisplayNameFormatter.Format(user);
             if (string.IsNullOrWhiteSpace(birthdayName))
