@@ -57,7 +57,7 @@ public class FriendsController : ControllerBase
             .ToList();
 
         var profileLookup = allIds.Count == 0
-            ? new Dictionary<string, (string? DisplayName, string? Email, string? UserName, string? AvatarUrl, string? StatusMessage, UserPresenceStatus Presence, bool IsInvisible)>()
+            ? new Dictionary<string, (string? DisplayName, string? Email, string? UserName, string? AvatarUrl, string? StatusMessage, UserPresenceStatus PresenceStatus, bool IsInvisible)>()
             : (await _db.Users
                 .AsNoTracking()
                 .Where(u => allIds.Contains(u.Id))
@@ -102,7 +102,7 @@ public class FriendsController : ControllerBase
             : null;
 
         UserPresenceStatus ResolvePresence(string id) => profileLookup.TryGetValue(id, out var profile)
-            ? profile.Presence
+            ? profile.PresenceStatus
             : UserPresenceStatus.Available;
 
         bool ResolveInvisible(string id) => profileLookup.TryGetValue(id, out var profile) && profile.IsInvisible;

@@ -36,6 +36,9 @@ namespace Bgp.Infrastructure.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("ReadAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("ReceiverId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -446,6 +449,11 @@ namespace Bgp.Infrastructure.Migrations
                     b.Property<bool>("IsBlocked")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsInvisible")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -476,8 +484,17 @@ namespace Bgp.Infrastructure.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<int>("PresenceStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StatusMessage")
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
