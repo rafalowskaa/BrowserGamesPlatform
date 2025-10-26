@@ -236,15 +236,17 @@ public class DashboardController : Controller
                 if (outputStream.Length <= MaxAvatarBytes)
                 {
                     outputStream.Position = 0;
-                    await using var fileStream = System.IO.File.Create(filePath);
-                    await outputStream.CopyToAsync(fileStream);
+                    await using var destinationStream = System.IO.File.Create(filePath);
+                    await outputStream.CopyToAsync(destinationStream);
                     return true;
                 }
 
                 
             }
 
-            await using var fileStream = System.IO.File.Create(filePath);
+            _logger.LogWarning(
+                "Failed to compress avatar image below the maximum size constraint after trying all quality levels.");
+            return false;
         }
         catch (UnknownImageFormatException ex)
         {

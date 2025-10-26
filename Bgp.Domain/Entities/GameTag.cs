@@ -1,26 +1,25 @@
-﻿namespace Bgp.Domain.Enums;
+﻿using System.ComponentModel.DataAnnotations;
 
-[Flags]
-public enum GameCategory
+namespace Bgp.Domain.Entities;
+
+public class GameTag
 {
-    None = 0,
-    Shooter = 1 << 0,
-    Racing = 1 << 1,
-    Puzzle = 1 << 2,
-    Strategy = 1 << 3,
-    Adventure = 1 << 4,
-    Platformer = 1 << 5,
-    Sports = 1 << 6,
-    Simulation = 1 << 7,
-    Rpg = 1 << 8,
-    Arcade = 1 << 9,
-    Educational = 1 << 10,
-    Horror = 1 << 11,
-    Music = 1 << 12,
-    Card = 1 << 13,
-    Board = 1 << 14,
-    Sandbox = 1 << 15,
-    Fighting = 1 << 16,
-    Survival = 1 << 17,
-    Indie = 1 << 18
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [Required]
+    [MaxLength(40)]
+    public string Value { get; set; } = string.Empty;
+
+    public Guid GameId { get; set; }
+
+    public Game? Game { get; set; }
+
+    public bool IsApproved { get; set; }
+
+    [Required]
+    public string AddedByUserId { get; set; } = string.Empty;
+
+    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+
+    public DateTime? ReviewedAtUtc { get; set; }
 }
