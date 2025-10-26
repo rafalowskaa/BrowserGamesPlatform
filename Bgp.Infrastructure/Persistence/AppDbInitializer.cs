@@ -69,5 +69,26 @@ public static class AppDbInitializer
         {
             await userMgr.AddToRoleAsync(admin, "User");
         }
+
+        var adminStateChanged = false;
+
+        if (admin.LockoutEnabled)
+        {
+            admin.LockoutEnabled = false;
+            adminStateChanged = true;
+        }
+
+        if (admin.LockoutEnd.HasValue || admin.AccessFailedCount > 0 || admin.IsBlocked)
+        {
+            admin.LockoutEnd = null;
+            admin.AccessFailedCount = 0;
+            admin.IsBlocked = false;
+            adminStateChanged = true;
+        }
+
+        if (adminStateChanged)
+        {
+            await userMgr.UpdateAsync(admin);
+        }
     }
 }

@@ -29,10 +29,63 @@
     function createActionButton(text, handler, css) {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = css || 'btn-link';
+        btn.className = css || 'btn-link btn-small';
         btn.innerText = text;
         btn.addEventListener('click', handler);
         return btn;
+    }
+
+    function createAvatar(url, name) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'friend-avatar';
+        if (url) {
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = name || '';
+            wrapper.appendChild(img);
+        } else {
+            const fallback = (name || '?').trim();
+            wrapper.textContent = fallback ? fallback[0].toUpperCase() : '?';
+        }
+        return wrapper;
+    }
+
+    function buildFriendItem(container, friend, options = {}) {
+        const li = document.createElement('li');
+        const summary = document.createElement('div');
+        summary.className = 'friend-summary';
+
+        summary.appendChild(createAvatar(friend.avatarUrl, friend.displayName));
+
+        const meta = document.createElement('div');
+        meta.className = 'friend-meta';
+
+        const nameEl = document.createElement('span');
+        nameEl.className = 'friend-name';
+        nameEl.innerText = friend.displayName;
+        meta.appendChild(nameEl);
+
+        if (options.showRank !== false) {
+            const rankEl = document.createElement('span');
+            rankEl.className = 'friend-rank';
+            rankEl.innerText = friend.rankTitle ? `${labels.rankLabel}: ${friend.rankTitle}` : labels.rankUnknown;
+            meta.appendChild(rankEl);
+        }
+
+        summary.appendChild(meta);
+        li.appendChild(summary);
+
+        const actions = document.createElement('div');
+        actions.className = 'friend-actions';
+        (options.actions || []).forEach(action => {
+            if (!action) {
+                return;
+            }
+            actions.appendChild(createActionButton(action.label, action.handler, action.className));
+        });
+        li.appendChild(actions);
+
+        container.appendChild(li);
     }
 
     async function apiCall(url, options = {}) {
@@ -65,42 +118,38 @@
         clearList(outgoingList);
 
         accepted.forEach(f => {
-            const li = document.createElement('li');
-            const name = document.createElement('span');
-            name.className = 'friend-name';
-            name.innerText = f.displayName;
-            const actions = document.createElement('div');
-            actions.className = 'friend-actions';
-            actions.appendChild(createActionButton(labels.chat, () => openChat(f.userId, f.displayName), 'btn-link'));
-            actions.appendChild(createActionButton(labels.invite, () => inviteToGame(f.userId, f.displayName), 'btn-link'));
-            actions.appendChild(createActionButton(labels.remove, () => removeFriend(f.userId), 'btn-danger'));
-            li.append(name, actions);
-            acceptedList.appendChild(li);
+            buildFriendItem(acceptedList, f, {
+                actions: [
+                    { label: labels.chat, handler: () => openChat(f.userId, f.displayName), className: 'btn-link btn-small' },
+                    { label: labels.invite, handler: () => inviteToGame(f.userId, f.displayName), className: 'btn-link btn-small' },
+                    { label: labels.report, handler: () => reportUser(f.userId, f.displayName), className: 'btn-ghost btn-small' },
+                    { label: labels.block, handler: () => blockUser(f.userId, f.displayName), className: 'btn-danger btn-small' },
+                    { label: labels.remove, handler: () => removeFriend(f.userId), className: 'btn-danger btn-small' }
+                ]
+            });
         });
 
         incoming.forEach(f => {
-            const li = document.createElement('li');
-            const name = document.createElement('span');
-            name.className = 'friend-name';
-            name.innerText = f.displayName;
-            const actions = document.createElement('div');
-            actions.className = 'friend-actions';
-            actions.appendChild(createActionButton(labels.accept, () => acceptFriend(f.userId), 'btn-primary btn-small'));
-            actions.appendChild(createActionButton(labels.decline, () => removeFriend(f.userId), 'btn-ghost btn-small'));
-            li.append(name, actions);
-            incomingList.appendChild(li);
+            buildFriendItem(incomingList, f, {
+                showRank: false,
+                actions: [
+                    { label: labels.accept, handler: () => acceptFriend(f.userId), className: 'btn-primary btn-small' },
+                    { label: labels.decline, handler: () => removeFriend(f.userId), className: 'btn-ghost btn-small' },
+                    { label: labels.report, handler: () => reportUser(f.userId, f.displayName), className: 'btn-ghost btn-small' },
+                    { label: labels.block, handler: () => blockUser(f.userId, f.displayName), className: 'btn-danger btn-small' }
+                ]
+            });
         });
 
         outgoing.forEach(f => {
-            const li = document.createElement('li');
-            const name = document.createElement('span');
-            name.className = 'friend-name';
-            name.innerText = f.displayName;
-            const actions = document.createElement('div');
-            actions.className = 'friend-actions';
-            actions.appendChild(createActionButton(labels.cancel, () => removeFriend(f.userId), 'btn-ghost btn-small'));
-            li.append(name, actions);
-            outgoingList.appendChild(li);
+            buildFriendItem(outgoingList, f, {
+                showRank: false,
+                actions: [
+                    { label: labels.cancel, handler: () => removeFriend(f.userId), className: 'btn-ghost btn-small' },
+                    { label: labels.report, handler: () => reportUser(f.userId, f.displayName), className: 'btn-ghost btn-small' },
+                    { label: labels.block, handler: () => blockUser(f.userId, f.displayName), className: 'btn-danger btn-small' }
+                ]
+            });
         });
 
         setEmptyState(acceptedEmpty, accepted.length > 0);
@@ -121,15 +170,21 @@
             const results = await res.json();
             clearList(searchResults);
             results.forEach(r => {
-                const li = document.createElement('li');
-                const name = document.createElement('span');
-                name.className = 'friend-name';
-                name.innerText = r.name;
-                const actions = document.createElement('div');
-                actions.className = 'friend-actions';
-                actions.appendChild(createActionButton(labels.add, () => sendInvite(r.id)));
-                li.append(name, actions);
-                searchResults.appendChild(li);
+                const profile = {
+                    userId: r.id,
+                    displayName: r.name,
+                    avatarUrl: r.avatarUrl,
+                    rankTitle: null
+                };
+                buildFriendItem(searchResults, profile, {
+                    showRank: false,
+                    actions: [
+                        { label: labels.add, handler: () => sendInvite(r.id), className: 'btn-primary btn-small' },
+                        { label: labels.chat, handler: () => openChat(r.id, r.name), className: 'btn-link btn-small' },
+                        { label: labels.report, handler: () => reportUser(r.id, r.name), className: 'btn-ghost btn-small' },
+                        { label: labels.block, handler: () => blockUser(r.id, r.name), className: 'btn-danger btn-small' }
+                    ]
+                });
             });
             setEmptyState(searchEmpty, results.length > 0);
         } catch (err) {
@@ -165,6 +220,56 @@
             await loadFriends();
         } catch (err) {
             console.error(err);
+        }
+    }
+
+    async function blockUser(userId, displayName) {
+        if (!window.confirm(labels.blockConfirm)) {
+            return;
+        }
+
+        try {
+            await apiCall(`/api/friends/block/${encodeURIComponent(userId)}`, { method: 'POST' });
+            await loadFriends();
+            await searchFriends();
+            if (labels.blockSuccess) {
+                alert(labels.blockSuccess);
+            }
+        } catch (err) {
+            console.error(err);
+            if (labels.blockError) {
+                alert(labels.blockError);
+            }
+        }
+    }
+
+    async function reportUser(userId, displayName) {
+        const promptTemplate = labels.reportPrompt || '';
+        const message = promptTemplate.includes('{0}')
+            ? promptTemplate.replace('{0}', displayName || '')
+            : promptTemplate;
+        const description = window.prompt(message);
+        if (description === null) {
+            return;
+        }
+
+        try {
+            await apiCall('/api/reports', {
+                method: 'POST',
+                body: JSON.stringify({
+                    targetUserId: userId,
+                    category: 4,
+                    description: description.trim() ? description.trim() : null
+                })
+            });
+            if (labels.reportSuccess) {
+                alert(labels.reportSuccess);
+            }
+        } catch (err) {
+            console.error(err);
+            if (labels.reportError) {
+                alert(labels.reportError);
+            }
         }
     }
 

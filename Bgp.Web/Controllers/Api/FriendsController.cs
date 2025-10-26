@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using Bgp.Application.Dtos;
 using Bgp.Domain.Entities;
@@ -8,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Bgp.Web.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Bgp.Web.Models;
 
 namespace Bgp.Web.Controllers.Api;
 
@@ -31,14 +34,9 @@ public class FriendsController : ControllerBase
             .Select(f => new { f.RequesterId, f.AddresseeId })
             .ToListAsync();
 
-        var friendIds = accepted.Select(a => a.RequesterId == uid ? a.AddresseeId : a.RequesterId).Distinct().ToList();
-
-        var acceptedUsersRaw = await _db.Users.Where(u => friendIds.Contains(u.Id))
-            .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
-            .ToListAsync();
-
-        var users = acceptedUsersRaw
-            .Select(u => new FriendDto(u.Id, DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id), FriendshipStatus.Accepted, false))
+        var friendIds = accepted
+            .Select(a => a.RequesterId == uid ? a.AddresseeId : a.RequesterId)
+            .Distinct()
             .ToList();
 
         var outgoing = await _db.Friendships
@@ -46,28 +44,55 @@ public class FriendsController : ControllerBase
             .Select(f => f.AddresseeId)
             .ToListAsync();
 
-        var outgoingUsersRaw = await _db.Users.Where(u => outgoing.Contains(u.Id))
-            .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
-            .ToListAsync();
-
-        var outgoingUsers = outgoingUsersRaw
-            .Select(u => new FriendDto(u.Id, DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id), FriendshipStatus.Pending, true))
-            .ToList();
-
         var incoming = await _db.Friendships
             .Where(f => f.AddresseeId == uid && f.Status == FriendshipStatus.Pending)
             .Select(f => f.RequesterId)
             .ToListAsync();
 
-        var incomingUsersRaw = await _db.Users.Where(u => incoming.Contains(u.Id))
-            .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
-            .ToListAsync();
-
-        var incomingUsers = incomingUsersRaw
-            .Select(u => new FriendDto(u.Id, DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id), FriendshipStatus.Pending, false))
+        var allIds = friendIds
+            .Concat(outgoing)
+            .Concat(incoming)
+            .Distinct()
             .ToList();
 
-        return Ok(users.Concat(outgoingUsers).Concat(incomingUsers));
+        var profileLookup = allIds.Count == 0
+            ? new Dictionary<string, (string? DisplayName, string? Email, string? UserName, string? AvatarUrl)>()
+            : (await _db.Users
+                .AsNoTracking()
+                .Where(u => allIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName, u.AvatarUrl })
+                .ToListAsync())
+                .ToDictionary(u => u.Id, u => (u.DisplayName, u.Email, u.UserName, u.AvatarUrl));
+
+        var rankTitles = await BuildRankTitlesAsync(friendIds);
+
+        string ResolveName(string id)
+        {
+            if (profileLookup.TryGetValue(id, out var profile))
+            {
+                return DisplayNameFormatter.Format(profile.DisplayName, profile.Email, profile.UserName, id);
+            }
+
+            return DisplayNameFormatter.Format(null, null, null, id);
+        }
+
+        string? ResolveAvatar(string id) => profileLookup.TryGetValue(id, out var profile) ? profile.AvatarUrl : null;
+
+        string? ResolveRank(string id) => rankTitles.TryGetValue(id, out var value) ? value : null;
+
+        var acceptedDtos = friendIds
+            .Select(id => new FriendDto(id, ResolveName(id), ResolveRank(id), ResolveAvatar(id), FriendshipStatus.Accepted, false))
+            .ToList();
+
+        var outgoingDtos = outgoing
+            .Select(id => new FriendDto(id, ResolveName(id), ResolveRank(id), ResolveAvatar(id), FriendshipStatus.Pending, true))
+            .ToList();
+
+        var incomingDtos = incoming
+            .Select(id => new FriendDto(id, ResolveName(id), ResolveRank(id), ResolveAvatar(id), FriendshipStatus.Pending, false))
+            .ToList();
+
+        return Ok(acceptedDtos.Concat(outgoingDtos).Concat(incomingDtos));
     }
 
     [HttpGet("search")]
@@ -188,5 +213,193 @@ public class FriendsController : ControllerBase
         _db.Friendships.Remove(fr);
         await _db.SaveChangesAsync();
         return Ok();
+    }
+
+    private async Task<Dictionary<string, string>> BuildRankTitlesAsync(IReadOnlyCollection<string> userIds)
+    {
+        var ids = userIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct()
+            .ToList();
+
+        var result = new Dictionary<string, string>();
+        if (ids.Count == 0)
+        {
+            return result;
+        }
+
+        var statsByUser = ids.ToDictionary(
+            id => id,
+            id => new DashboardStatsViewModel
+            {
+                GamePerformances = new List<GamePerformanceStat>()
+            });
+
+        var uploadedCounts = await _db.Games
+            .AsNoTracking()
+            .Where(g => ids.Contains(g.CreatedByUserId))
+            .GroupBy(g => g.CreatedByUserId)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        foreach (var entry in uploadedCounts)
+        {
+            if (statsByUser.TryGetValue(entry.Key, out var stats))
+            {
+                stats.UploadedGames = entry.Count;
+            }
+        }
+
+        var reviewCounts = await _db.GameReviews
+            .AsNoTracking()
+            .Where(r => ids.Contains(r.UserId))
+            .GroupBy(r => r.UserId)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        foreach (var entry in reviewCounts)
+        {
+            if (statsByUser.TryGetValue(entry.Key, out var stats))
+            {
+                stats.TotalReviews = entry.Count;
+            }
+        }
+
+        var scoreTotals = await _db.Scores
+            .AsNoTracking()
+            .Where(s => ids.Contains(s.UserId))
+            .GroupBy(s => s.UserId)
+            .Select(g => new
+            {
+                g.Key,
+                Count = g.Count(),
+                Last = g.Max(x => (DateTime?)x.SubmittedAtUtc)
+            })
+            .ToListAsync();
+
+        foreach (var entry in scoreTotals)
+        {
+            if (statsByUser.TryGetValue(entry.Key, out var stats))
+            {
+                stats.TotalScores = entry.Count;
+                stats.LastScoreSubmittedAt = entry.Last;
+            }
+        }
+
+        var friendConnections = await _db.Friendships
+            .AsNoTracking()
+            .Where(f => f.Status == FriendshipStatus.Accepted && (ids.Contains(f.RequesterId) || ids.Contains(f.AddresseeId)))
+            .Select(f => new { f.RequesterId, f.AddresseeId })
+            .ToListAsync();
+
+        foreach (var entry in friendConnections)
+        {
+            if (statsByUser.TryGetValue(entry.RequesterId, out var requesterStats))
+            {
+                requesterStats.FriendsCount++;
+            }
+
+            if (statsByUser.TryGetValue(entry.AddresseeId, out var addresseeStats))
+            {
+                addresseeStats.FriendsCount++;
+            }
+        }
+
+        var scoreGroups = await _db.Scores
+            .AsNoTracking()
+            .Where(s => ids.Contains(s.UserId))
+            .GroupBy(s => new { s.UserId, s.GameId })
+            .Select(g => new
+            {
+                g.Key.UserId,
+                g.Key.GameId,
+                PlayCount = g.Count(),
+                BestScore = g.Max(x => x.Value),
+                LastPlayedAt = g.Max(x => x.SubmittedAtUtc)
+            })
+            .ToListAsync();
+
+        var gameIds = scoreGroups.Select(g => g.GameId).Distinct().ToList();
+
+        var gameTitles = gameIds.Count == 0
+            ? new Dictionary<Guid, string>()
+            : (await _db.Games
+                .AsNoTracking()
+                .Where(g => gameIds.Contains(g.Id))
+                .Select(g => new { g.Id, g.Title })
+                .ToListAsync())
+                .ToDictionary(g => g.Id, g => g.Title);
+
+        var bestScores = gameIds.Count == 0
+            ? new List<(Guid GameId, string UserId, double BestScore)>()
+            : (await _db.Scores
+                .AsNoTracking()
+                .Where(s => gameIds.Contains(s.GameId))
+                .GroupBy(s => new { s.GameId, s.UserId })
+                .Select(g => new
+                {
+                    g.Key.GameId,
+                    g.Key.UserId,
+                    BestScore = g.Max(x => x.Value)
+                })
+                .ToListAsync())
+                .Select(x => (x.GameId, x.UserId, x.BestScore))
+                .ToList();
+
+        var leaderboardLookup = bestScores
+            .GroupBy(x => x.GameId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderByDescending(x => x.BestScore).ToList());
+
+        foreach (var grouping in scoreGroups.GroupBy(x => x.UserId))
+        {
+            if (!statsByUser.TryGetValue(grouping.Key, out var stats))
+            {
+                continue;
+            }
+
+            var performances = new List<GamePerformanceStat>();
+
+            foreach (var entry in grouping)
+            {
+                if (!gameTitles.TryGetValue(entry.GameId, out var title) ||
+                    !leaderboardLookup.TryGetValue(entry.GameId, out var leaderboard))
+                {
+                    continue;
+                }
+
+                var totalPlayers = leaderboard.Count;
+                var position = leaderboard.FindIndex(x => x.UserId == entry.UserId) + 1;
+                if (position <= 0)
+                {
+                    position = totalPlayers;
+                }
+
+                performances.Add(new GamePerformanceStat(
+                    entry.GameId,
+                    title,
+                    entry.PlayCount,
+                    entry.BestScore,
+                    position,
+                    totalPlayers,
+                    entry.LastPlayedAt));
+            }
+
+            stats.GamePerformances = performances;
+        }
+
+        foreach (var id in ids)
+        {
+            if (!statsByUser.TryGetValue(id, out var stats))
+            {
+                continue;
+            }
+
+            var rank = RankCalculator.CalculateRank(stats);
+            result[id] = rank.DisplayName;
+        }
+
+        return result;
     }
 }

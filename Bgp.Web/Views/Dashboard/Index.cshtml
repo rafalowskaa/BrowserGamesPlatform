@@ -170,7 +170,6 @@
                                 <div class="profile-field__input">
                                     <label for="DisplayName">@L["Dashboard_Profile_DisplayName"].Value</label>
                                     <input id="DisplayName" name="DisplayName" value="@Model.Profile.DisplayName" maxlength="120" data-current-name="@Model.Profile.DisplayName" />
-                                    <div class="form-hint">@L["Dashboard_Profile_DisplayName_Hint"].Value</div>
                                     @if (hasPendingDisplayName)
                                     {
                                         <div class="form-hint form-hint--warning">@string.Format(L["Dashboard_Profile_DisplayName_PendingInfo"].Value, Model.Profile.PendingDisplayName, Model.Profile.PendingDisplayNameRequestedAtUtc?.ToLocalTime().ToString("g"))</div>
@@ -178,6 +177,31 @@
                                     @Html.ValidationMessage("DisplayName", null, new { @class = "val" })
                                     @Html.ValidationMessage("DisplayNamePassword", null, new { @class = "val" })
                                     <input type="hidden" id="DisplayNamePasswordField" name="DisplayNamePassword" />
+                                </div>
+                                <div class="profile-field__status">
+                                    @{
+                                        string displayNameStatusClass;
+                                        string displayNameStatusText;
+                                        if (hasPendingDisplayName)
+                                        {
+                                            displayNameStatusClass = "status-chip--pending";
+                                            displayNameStatusText = L["Dashboard_Profile_DisplayName_Status_Pending"].Value;
+                                        }
+                                        else if (canRequestDisplayNameChange)
+                                        {
+                                            displayNameStatusClass = "status-chip--ready";
+                                            displayNameStatusText = L["Dashboard_Profile_DisplayName_Status_Ready"].Value;
+                                        }
+                                        else
+                                        {
+                                            displayNameStatusClass = "status-chip--cooldown";
+                                            displayNameStatusText = changeAvailableAt.HasValue
+                                            ? string.Format(L["Dashboard_Profile_DisplayName_Status_Cooldown"].Value, changeAvailableAt.Value.ToLocalTime().ToString("f"))
+                                            : L["Dashboard_Profile_DisplayName_Status_Cooldown_Generic"].Value;
+                                        }
+                                    }
+                                    <label>@L["Dashboard_Profile_FieldStatus"].Value</label>
+                                    <span class="status-chip @displayNameStatusClass">@displayNameStatusText</span>
                                 </div>
                                 <div class="profile-field__visibility">
                                     <label for="DisplayNameVisibility">@L["Dashboard_Profile_DisplayNameVisibility"].Value</label>
@@ -213,9 +237,12 @@
                                             }
                                         </select>
                                     </div>
-                                    <div class="form-hint">@L["Dashboard_Profile_BirthDate_Hint"].Value</div>
                                     @Html.ValidationMessage("BirthMonth", null, new { @class = "val" })
                                     @Html.ValidationMessage("BirthDay", null, new { @class = "val" })
+                                </div>
+                                <div class="profile-field__status">
+                                    <label>@L["Dashboard_Profile_FieldStatus"].Value</label>
+                                    <span class="status-chip status-chip--auto">@L["Dashboard_Profile_BirthDate_Status_Immediate"].Value</span>
                                 </div>
                                 <div class="profile-field__visibility">
                                     <label for="BirthDateVisibility">@L["Dashboard_Profile_BirthDateVisibility"].Value</label>
@@ -233,6 +260,10 @@
                                 <div class="profile-field__input">
                                     <label>@L["Dashboard_Profile_EmailLabel"].Value</label>
                                     <div class="profile-field__static">@Model.Profile.Email</div>
+                                </div>
+                                <div class="profile-field__status">
+                                    <label>@L["Dashboard_Profile_FieldStatus"].Value</label>
+                                    <span class="status-chip status-chip--auto">@L["Dashboard_Profile_Email_Status_Immediate"].Value</span>
                                 </div>
                                 <div class="profile-field__visibility">
                                     <label for="EmailVisibility">@L["Dashboard_Profile_EmailVisibility"].Value</label>
@@ -529,33 +560,33 @@
         case "friends":
 
             <section class="dashboard-panel friends-panel">
-                <div class="friends-grid">
-                    <article class="friends-card">
-                        <h3>@L["Dashboard_Friends_SearchHeading"].Value</h3>
-                        <p>@L["Dashboard_Friends_SearchDescription"].Value</p>
-                        <div class="friends-search">
-                            <input type="search" id="friendSearch" placeholder="@L["Dashboard_Friends_SearchPlaceholder"].Value" />
-                            <button id="friendSearchBtn" class="btn-primary" type="button">@L["Dashboard_Friends_SearchButton"].Value</button>
-                        </div>
-                        <ul id="friendSearchResults" class="friends-list muted"></ul>
-                        <p id="friendSearchEmpty" class="empty">@L["Dashboard_Friends_SearchEmpty"].Value</p>
-                    </article>
-                    <article class="friends-card">
-                        <h3>@L["Dashboard_Friends_CurrentHeading"].Value</h3>
-                        <ul id="friendsAccepted" class="friends-list"></ul>
-                        <p id="friendsAcceptedEmpty" class="empty">@L["Dashboard_Friends_Empty"].Value</p>
-                    </article>
-                    <article class="friends-card">
-                        <h3>@L["Dashboard_Friends_IncomingHeading"].Value</h3>
-                        <ul id="friendsIncoming" class="friends-list"></ul>
-                        <p id="friendsIncomingEmpty" class="empty">@L["Dashboard_Friends_NoIncoming"].Value</p>
-                    </article>
-                    <article class="friends-card">
+                <article class="friends-section friends-section--search">
+                    <h3>@L["Dashboard_Friends_SearchHeading"].Value</h3>
+                    <p>@L["Dashboard_Friends_SearchDescription"].Value</p>
+                    <div class="friends-search">
+                        <input type="search" id="friendSearch" placeholder="@L["Dashboard_Friends_SearchPlaceholder"].Value" />
+                        <button id="friendSearchBtn" class="btn-primary" type="button">@L["Dashboard_Friends_SearchButton"].Value</button>
+                    </div>
+                    <ul id="friendSearchResults" class="friends-list friends-list--muted"></ul>
+                    <p id="friendSearchEmpty" class="empty">@L["Dashboard_Friends_SearchEmpty"].Value</p>
+                </article>
+                <article class="friends-section friends-section--list">
+                    <h3>@L["Dashboard_Friends_CurrentHeading"].Value</h3>
+                    <ul id="friendsAccepted" class="friends-list friends-list--detailed"></ul>
+                    <p id="friendsAcceptedEmpty" class="empty">@L["Dashboard_Friends_Empty"].Value</p>
+                </article>
+                <article class="friends-section friends-section--requests">
+                    <div class="friends-subsection">
                         <h3>@L["Dashboard_Friends_OutgoingHeading"].Value</h3>
-                        <ul id="friendsOutgoing" class="friends-list"></ul>
+                        <ul id="friendsOutgoing" class="friends-list friends-list--compact"></ul>
                         <p id="friendsOutgoingEmpty" class="empty">@L["Dashboard_Friends_NoOutgoing"].Value</p>
-                    </article>
-                </div>
+                    </div>
+                    <div class="friends-subsection">
+                        <h3>@L["Dashboard_Friends_IncomingHeading"].Value</h3>
+                        <ul id="friendsIncoming" class="friends-list friends-list--compact"></ul>
+                        <p id="friendsIncomingEmpty" class="empty">@L["Dashboard_Friends_NoIncoming"].Value</p>
+                    </div>
+                </article>
                 @{
                     var friendStrings = new
                     {
@@ -566,7 +597,17 @@
                         chat = L["Dashboard_Friends_Chat"].Value,
                         invite = L["Dashboard_Friends_InviteToGame"].Value,
                         inviteMessage = L["Dashboard_Friends_InviteMessage"].Value,
-                        remove = L["Dashboard_Friends_Remove"].Value
+                        remove = L["Dashboard_Friends_Remove"].Value,
+                        report = L["Dashboard_Friends_Report"].Value,
+                        reportPrompt = L["Dashboard_Friends_ReportPrompt"].Value,
+                        reportSuccess = L["Dashboard_Friends_ReportSuccess"].Value,
+                        reportError = L["Dashboard_Friends_ReportError"].Value,
+                        rankLabel = L["Dashboard_Friends_RankLabel"].Value,
+                        rankUnknown = L["Dashboard_Friends_RankUnknown"].Value,
+                        block = L["Dashboard_Friends_Block"].Value,
+                        blockConfirm = L["Dashboard_Friends_BlockConfirm"].Value,
+                        blockSuccess = L["Dashboard_Friends_BlockSuccess"].Value,
+                        blockError = L["Dashboard_Friends_BlockError"].Value
                     };
 
                 }

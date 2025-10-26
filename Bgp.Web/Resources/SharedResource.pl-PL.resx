@@ -1962,8 +1962,38 @@
     <value>Zaproś do gry</value>
   </data>
 	<data name="Dashboard_Friends_InviteMessage" xml:space="preserve">
-    <value>Zagrajmy razem!</value>
-  </data>
+      <value>Zagrajmy razem!</value>
+    </data>
+	<data name="Dashboard_Friends_Report" xml:space="preserve">
+      <value>Zgłoś</value>
+    </data>
+	<data name="Dashboard_Friends_ReportPrompt" xml:space="preserve">
+      <value>Opisz problem z {0} (opcjonalnie):</value>
+    </data>
+	<data name="Dashboard_Friends_ReportSuccess" xml:space="preserve">
+      <value>Zgłoszenie wysłane. Dziękujemy!</value>
+    </data>
+	<data name="Dashboard_Friends_ReportError" xml:space="preserve">
+      <value>Nie udało się wysłać zgłoszenia.</value>
+    </data>
+	<data name="Dashboard_Friends_RankLabel" xml:space="preserve">
+      <value>Ranga</value>
+    </data>
+	<data name="Dashboard_Friends_RankUnknown" xml:space="preserve">
+      <value>Ranga nieznana</value>
+    </data>
+	<data name="Dashboard_Friends_Block" xml:space="preserve">
+      <value>Zablokuj</value>
+    </data>
+	<data name="Dashboard_Friends_BlockConfirm" xml:space="preserve">
+      <value>Na pewno chcesz zablokować tego gracza? Przestanie mieć możliwość kontaktu z Tobą.</value>
+    </data>
+	<data name="Dashboard_Friends_BlockSuccess" xml:space="preserve">
+      <value>Gracz został zablokowany.</value>
+    </data>
+	<data name="Dashboard_Friends_BlockError" xml:space="preserve">
+      <value>Nie udało się zablokować gracza.</value>
+    </data>
 	<data name="Admin_Nav_Users" xml:space="preserve">
     <value>Użytkownicy</value>
   </data>
@@ -2294,6 +2324,21 @@
 	<data name="Dashboard_Profile_DisplayName_CanRequest">
 		<value>Możesz teraz zgłosić nową nazwę użytkownika.</value>
 	</data>
+	<data name="Dashboard_Profile_DisplayName_Status_Pending">
+		<value>Oczekuje na zatwierdzenie moderatora</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_Status_Ready">
+		<value>Możesz wysłać nową prośbę</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_Status_Cooldown">
+		<value>Następna zmiana dostępna {0}</value>
+	</data>
+	<data name="Dashboard_Profile_DisplayName_Status_Cooldown_Generic">
+		<value>Zmiana chwilowo niedostępna</value>
+	</data>
+	<data name="Dashboard_Profile_FieldStatus">
+		<value>Status zatwierdzenia</value>
+	</data>
 	<data name="Dashboard_Profile_DisplayName_ConfirmTitle">
 		<value>Potwierdź zmianę nazwy</value>
 	</data>
@@ -2333,11 +2378,17 @@
 	<data name="Dashboard_Profile_BirthDate_DayPlaceholder">
 		<value>Dzień</value>
 	</data>
+	<data name="Dashboard_Profile_BirthDate_Status_Immediate">
+		<value>Zmiana zapisuje się od razu</value>
+	</data>
 	<data name="Dashboard_Profile_BirthDate_Hint">
 		<value>Podaj miesiąc i dzień swoich urodzin i zdecyduj o ich widoczności poniżej.</value>
 	</data>
 	<data name="Dashboard_Profile_Avatar_Hint">
 		<value>Najlepiej sprawdzają się kwadratowe obrazy – przytniemy i skompresujemy je automatycznie.</value>
+	</data>
+	<data name="Dashboard_Profile_Email_Status_Immediate">
+		<value>Zmiana zapisuje się od razu</value>
 	</data>
 	<data name="Dashboard_Success_DisplayNameRequested">
 		<value>Wniosek o zmianę nazwy użytkownika został wysłany do moderacji.</value>
