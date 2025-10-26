@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Bgp.Web.Helpers;
+using Bgp.Domain.Entities;
 using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Identity;
 using Bgp.Infrastructure.Persistence;
@@ -318,7 +319,7 @@ public class AdminUiController : Controller
             filter = parsed;
         }
 
-        var gamesQuery = _db.Games
+        IQueryable<Game> gamesQuery = _db.Games
             .AsNoTracking()
             .Include(g => g.Tags);
         if (filter.HasValue)

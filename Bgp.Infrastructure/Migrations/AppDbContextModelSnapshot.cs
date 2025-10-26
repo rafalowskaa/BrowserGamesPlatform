@@ -103,6 +103,11 @@ namespace Bgp.Infrastructure.Migrations
                     b.Property<DateTime?>("ApprovedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Categories")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<string>("CoverImagePath")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -123,7 +128,19 @@ namespace Bgp.Infrastructure.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("Modes")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ProposedCategories")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ProposedModes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -174,6 +191,40 @@ namespace Bgp.Infrastructure.Migrations
                     b.HasIndex("GameId");
 
                     b.ToTable("GameReviews");
+                });
+
+            modelBuilder.Entity("Bgp.Domain.Entities.GameTag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AddedByUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("GameId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GameId");
+
+                    b.ToTable("GameTags");
                 });
 
             modelBuilder.Entity("Bgp.Domain.Entities.GameVersion", b =>
@@ -353,13 +404,16 @@ namespace Bgp.Infrastructure.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
 
-                    b.Property<DateTime?>("BirthDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("BirthDateVisibility")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(0);
+
+                    b.Property<int?>("BirthDay")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BirthMonth")
+                        .HasColumnType("int");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -370,6 +424,9 @@ namespace Bgp.Infrastructure.Migrations
 
                     b.Property<string>("DisplayName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DisplayNameLastApprovedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("DisplayNameVisibility")
                         .ValueGeneratedOnAdd()
@@ -384,30 +441,10 @@ namespace Bgp.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<int>("EmailVisibility")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<string>("FirstName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("FirstNameVisibility")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsBlocked")
                         .HasColumnType("bit");
-
-                    b.Property<string>("LastName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("LastNameVisibility")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -425,6 +462,13 @@ namespace Bgp.Infrastructure.Migrations
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PendingDisplayName")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateTime?>("PendingDisplayNameRequestedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
@@ -599,6 +643,17 @@ namespace Bgp.Infrastructure.Migrations
                     b.Navigation("Game");
                 });
 
+            modelBuilder.Entity("Bgp.Domain.Entities.GameTag", b =>
+                {
+                    b.HasOne("Bgp.Domain.Entities.Game", "Game")
+                        .WithMany("Tags")
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Game");
+                });
+
             modelBuilder.Entity("Bgp.Domain.Entities.GameVersion", b =>
                 {
                     b.HasOne("Bgp.Domain.Entities.Game", "Game")
@@ -677,6 +732,8 @@ namespace Bgp.Infrastructure.Migrations
                     b.Navigation("Reviews");
 
                     b.Navigation("Scores");
+
+                    b.Navigation("Tags");
 
                     b.Navigation("Versions");
                 });
