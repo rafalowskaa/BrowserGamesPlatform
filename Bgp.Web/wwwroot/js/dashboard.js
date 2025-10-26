@@ -26,11 +26,18 @@
         el.style.display = hasItems ? 'none' : 'block';
     }
 
-    function createActionButton(text, handler, css) {
+    function createActionButton(text, handler, css, style) {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = css || 'btn-link btn-small';
         btn.innerText = text;
+        if (style && typeof style === 'object') {
+            Object.entries(style).forEach(([key, value]) => {
+                if (typeof value === 'string' && value.trim()) {
+                    btn.style.setProperty(key, value);
+                }
+            });
+        }
         btn.addEventListener('click', handler);
         return btn;
     }
@@ -81,7 +88,7 @@
             if (!action) {
                 return;
             }
-            actions.appendChild(createActionButton(action.label, action.handler, action.className));
+            actions.appendChild(createActionButton(action.label, action.handler, action.className, action.style));
         });
         li.appendChild(actions);
 
@@ -118,10 +125,11 @@
         clearList(outgoingList);
 
         accepted.forEach(f => {
+            const accent = f.rankAccentColor || '#38bdf8';
             buildFriendItem(acceptedList, f, {
                 actions: [
                     { label: labels.chat, handler: () => openChat(f.userId, f.displayName), className: 'btn-link btn-small' },
-                    { label: labels.invite, handler: () => inviteToGame(f.userId, f.displayName), className: 'btn-link btn-small' },
+                    { label: labels.invite, handler: () => inviteToGame(f.userId, f.displayName), className: 'btn-rank', style: { '--accent-color': accent } },
                     { label: labels.report, handler: () => reportUser(f.userId, f.displayName), className: 'btn-ghost btn-small' },
                     { label: labels.block, handler: () => blockUser(f.userId, f.displayName), className: 'btn-danger btn-small' },
                     { label: labels.remove, handler: () => removeFriend(f.userId), className: 'btn-danger btn-small' }

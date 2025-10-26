@@ -23,6 +23,7 @@ public class FriendsController : ControllerBase
     public FriendsController(AppDbContext db) => _db = db;
 
     private string? UserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
+    private readonly record struct RankSnapshot(string? Title, string AccentColor);
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<FriendDto>>> Get()
@@ -64,7 +65,7 @@ public class FriendsController : ControllerBase
                 .ToListAsync())
                 .ToDictionary(u => u.Id, u => (u.DisplayName, u.Email, u.UserName, u.AvatarUrl));
 
-        var rankTitles = await BuildRankTitlesAsync(friendIds);
+        var rankLookup = await BuildRankSnapshotsAsync(friendIds);
 
         string ResolveName(string id)
         {
@@ -78,18 +79,38 @@ public class FriendsController : ControllerBase
 
         string? ResolveAvatar(string id) => profileLookup.TryGetValue(id, out var profile) ? profile.AvatarUrl : null;
 
-        string? ResolveRank(string id) => rankTitles.TryGetValue(id, out var value) ? value : null;
+        RankSnapshot ResolveRank(string id)
+        {
+            if (rankLookup.TryGetValue(id, out var snapshot))
+            {
+                return snapshot;
+            }
+
+            return new RankSnapshot(null, "#38bdf8");
+        }
 
         var acceptedDtos = friendIds
-            .Select(id => new FriendDto(id, ResolveName(id), ResolveRank(id), ResolveAvatar(id), FriendshipStatus.Accepted, false))
+            .Select(id =>
+            {
+                var rank = ResolveRank(id);
+                return new FriendDto(id, ResolveName(id), rank.Title, ResolveAvatar(id), rank.AccentColor, FriendshipStatus.Accepted, false);
+            })
             .ToList();
 
         var outgoingDtos = outgoing
-            .Select(id => new FriendDto(id, ResolveName(id), ResolveRank(id), ResolveAvatar(id), FriendshipStatus.Pending, true))
+            .Select(id =>
+            {
+                var rank = ResolveRank(id);
+                return new FriendDto(id, ResolveName(id), rank.Title, ResolveAvatar(id), rank.AccentColor, FriendshipStatus.Pending, true);
+            })
             .ToList();
 
         var incomingDtos = incoming
-            .Select(id => new FriendDto(id, ResolveName(id), ResolveRank(id), ResolveAvatar(id), FriendshipStatus.Pending, false))
+            .Select(id =>
+            {
+                var rank = ResolveRank(id);
+                return new FriendDto(id, ResolveName(id), rank.Title, ResolveAvatar(id), rank.AccentColor, FriendshipStatus.Pending, false);
+            })
             .ToList();
 
         return Ok(acceptedDtos.Concat(outgoingDtos).Concat(incomingDtos));
@@ -215,14 +236,14 @@ public class FriendsController : ControllerBase
         return Ok();
     }
 
-    private async Task<Dictionary<string, string>> BuildRankTitlesAsync(IReadOnlyCollection<string> userIds)
+    private async Task<Dictionary<string, RankSnapshot>> BuildRankSnapshotsAsync(IReadOnlyCollection<string> userIds)
     {
         var ids = userIds
             .Where(id => !string.IsNullOrWhiteSpace(id))
             .Distinct()
             .ToList();
 
-        var result = new Dictionary<string, string>();
+        var result = new Dictionary<string, RankSnapshot>();
         if (ids.Count == 0)
         {
             return result;
@@ -397,7 +418,7 @@ public class FriendsController : ControllerBase
             }
 
             var rank = RankCalculator.CalculateRank(stats);
-            result[id] = rank.DisplayName;
+            result[id] = new RankSnapshot(rank.DisplayName, rank.AccentColor);
         }
 
         return result;

@@ -1826,7 +1826,7 @@
 	<data name="Auth_Login_AdminHint" xml:space="preserve">
         
         
-        <value>Domyślne dane administratora: admin / admin.</value>
+        <value>Domyślne dane administratora: admin / admin123 (tylko środowisko deweloperskie).</value>
         
     
     </data>
@@ -2672,4 +2672,16 @@
 	<data name="Dashboard_Overview_Subheading">
 		<value>Sprawdź najnowsze gry społeczności.</value>
 	</data>
+	<data name="Dashboard_Profile_Actions_Security" xml:space="preserve">
+                <value>Zabezpieczenia</value>
+        </data>
+	<data name="Dashboard_Profile_ApplyChange" xml:space="preserve">
+                <value>Zatwierdź</value>
+        </data>
+	<data name="Games_Index_Empty" xml:space="preserve">
+                <value>Brak gier spełniających wybrane kryteria.</value>
+        </data>
+	<data name="Navigation_Api_Tooltip" xml:space="preserve">
+                <value>Dokumentacja API dla deweloperów korzystających z platformy.</value>
+        </data>
 </root>

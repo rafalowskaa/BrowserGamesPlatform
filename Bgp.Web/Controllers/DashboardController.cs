@@ -328,14 +328,14 @@ public class DashboardController : Controller
 
         if (!ModelState.IsValid)
         {
-            return await ReturnDashboardWithErrorsAsync(user, "profile", "email");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "security");
         }
 
         var passwordValid = await _users.CheckPasswordAsync(user, input.Password);
         if (!passwordValid)
         {
             ModelState.AddModelError(nameof(input.Password), "Invalid password.");
-            return await ReturnDashboardWithErrorsAsync(user, "profile", "email");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "security");
         }
 
         var newEmail = input.Email.Trim();
@@ -347,7 +347,7 @@ public class DashboardController : Controller
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            return await ReturnDashboardWithErrorsAsync(user, "profile", "email");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "security");
         }
 
         user.EmailConfirmed = true;
@@ -359,13 +359,13 @@ public class DashboardController : Controller
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            return await ReturnDashboardWithErrorsAsync(user, "profile", "email");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "security");
         }
 
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogInformation("User {UserId} updated email address.", user.Id);
         TempData["DashboardSuccess"] = "EmailUpdated";
-        return RedirectToAction(nameof(Index), new { tab = "profile", panel = "email" });
+        return RedirectToAction(nameof(Index), new { tab = "profile", panel = "security" });
     }
 
     [HttpPost]
@@ -380,7 +380,7 @@ public class DashboardController : Controller
 
         if (!ModelState.IsValid)
         {
-            return await ReturnDashboardWithErrorsAsync(user, "profile", "password");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "security");
         }
 
         var result = await _users.ChangePasswordAsync(user, input.CurrentPassword, input.NewPassword);
@@ -391,13 +391,13 @@ public class DashboardController : Controller
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            return await ReturnDashboardWithErrorsAsync(user, "profile", "password");
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "security");
         }
 
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogInformation("User {UserId} changed password.", user.Id);
         TempData["DashboardSuccess"] = "PasswordUpdated";
-        return RedirectToAction(nameof(Index), new { tab = "profile", panel = "password" });
+        return RedirectToAction(nameof(Index), new { tab = "profile", panel = "security" });
     }
 
     [HttpPost]

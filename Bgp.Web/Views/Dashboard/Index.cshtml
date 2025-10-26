@@ -60,6 +60,10 @@
         case "profile":
             includeProfileScripts = true;
             var selectedProfilePanel = (ViewData["ProfilePanel"] as string ?? "info").ToLowerInvariant();
+            if (selectedProfilePanel == "email" || selectedProfilePanel == "password")
+            {
+                selectedProfilePanel = "security";
+            }
             <section class="dashboard-panel profile-panel">
                 @{
                     var rank = Model.Profile.Rank;
@@ -136,8 +140,7 @@
                         <label for="profileAction">@L["Dashboard_Profile_Actions_Label"].Value</label>
                         <select id="profileAction" class="profile-actions__select" data-default="@selectedProfilePanel">
                             <option value="info" selected="@(selectedProfilePanel == "info" ? "selected" : null)">@L["Dashboard_Profile_Actions_EditInfo"].Value</option>
-                            <option value="email" selected="@(selectedProfilePanel == "email" ? "selected" : null)">@L["Dashboard_Profile_Actions_Email"].Value</option>
-                            <option value="password" selected="@(selectedProfilePanel == "password" ? "selected" : null)">@L["Dashboard_Profile_Actions_Password"].Value</option>
+                            <option value="security" selected="@(selectedProfilePanel == "security" ? "selected" : null)">@L["Dashboard_Profile_Actions_Security"].Value</option>
                         </select>
                     </div>
 
@@ -156,6 +159,8 @@
                             var displayNameBlockedMessage = changeAvailableAt.HasValue
                             ? string.Format(L["Dashboard_Profile_DisplayName_ConfirmBlocked"].Value, changeAvailableAt.Value.ToLocalTime().ToString("f"))
                             : L["Dashboard_Profile_DisplayName_ConfirmBlocked_Generic"].Value;
+                            var displayNameLocked = hasPendingDisplayName || !canRequestDisplayNameChange;
+                            var displayNameActionTitle = displayNameLocked ? displayNameBlockedMessage : null;
                         }
                         <form asp-action="UpdateProfile"
                               method="post"
@@ -178,30 +183,8 @@
                                     @Html.ValidationMessage("DisplayNamePassword", null, new { @class = "val" })
                                     <input type="hidden" id="DisplayNamePasswordField" name="DisplayNamePassword" />
                                 </div>
-                                <div class="profile-field__status">
-                                    @{
-                                        string displayNameStatusClass;
-                                        string displayNameStatusText;
-                                        if (hasPendingDisplayName)
-                                        {
-                                            displayNameStatusClass = "status-chip--pending";
-                                            displayNameStatusText = L["Dashboard_Profile_DisplayName_Status_Pending"].Value;
-                                        }
-                                        else if (canRequestDisplayNameChange)
-                                        {
-                                            displayNameStatusClass = "status-chip--ready";
-                                            displayNameStatusText = L["Dashboard_Profile_DisplayName_Status_Ready"].Value;
-                                        }
-                                        else
-                                        {
-                                            displayNameStatusClass = "status-chip--cooldown";
-                                            displayNameStatusText = changeAvailableAt.HasValue
-                                            ? string.Format(L["Dashboard_Profile_DisplayName_Status_Cooldown"].Value, changeAvailableAt.Value.ToLocalTime().ToString("f"))
-                                            : L["Dashboard_Profile_DisplayName_Status_Cooldown_Generic"].Value;
-                                        }
-                                    }
-                                    <label>@L["Dashboard_Profile_FieldStatus"].Value</label>
-                                    <span class="status-chip @displayNameStatusClass">@displayNameStatusText</span>
+                                <div class="profile-field__actions">
+                                    <button class="btn-primary btn-compact" type="submit" name="submitAction" value="displayName" @(displayNameLocked ? "disabled" : null) title="@(displayNameActionTitle ?? string.Empty)">@L["Dashboard_Profile_ApplyChange"].Value</button>
                                 </div>
                                 <div class="profile-field__visibility">
                                     <label for="DisplayNameVisibility">@L["Dashboard_Profile_DisplayNameVisibility"].Value</label>
@@ -240,9 +223,8 @@
                                     @Html.ValidationMessage("BirthMonth", null, new { @class = "val" })
                                     @Html.ValidationMessage("BirthDay", null, new { @class = "val" })
                                 </div>
-                                <div class="profile-field__status">
-                                    <label>@L["Dashboard_Profile_FieldStatus"].Value</label>
-                                    <span class="status-chip status-chip--auto">@L["Dashboard_Profile_BirthDate_Status_Immediate"].Value</span>
+                                <div class="profile-field__actions">
+                                    <button class="btn-primary btn-compact" type="submit" name="submitAction" value="birthDate">@L["Dashboard_Profile_ApplyChange"].Value</button>
                                 </div>
                                 <div class="profile-field__visibility">
                                     <label for="BirthDateVisibility">@L["Dashboard_Profile_BirthDateVisibility"].Value</label>
@@ -261,9 +243,8 @@
                                     <label>@L["Dashboard_Profile_EmailLabel"].Value</label>
                                     <div class="profile-field__static">@Model.Profile.Email</div>
                                 </div>
-                                <div class="profile-field__status">
-                                    <label>@L["Dashboard_Profile_FieldStatus"].Value</label>
-                                    <span class="status-chip status-chip--auto">@L["Dashboard_Profile_Email_Status_Immediate"].Value</span>
+                                <div class="profile-field__actions">
+                                    <button class="btn-primary btn-compact" type="submit" name="submitAction" value="emailVisibility">@L["Dashboard_Profile_ApplyChange"].Value</button>
                                 </div>
                                 <div class="profile-field__visibility">
                                     <label for="EmailVisibility">@L["Dashboard_Profile_EmailVisibility"].Value</label>
@@ -288,9 +269,11 @@
                                     </div>
                                     @Html.ValidationMessage("Avatar", null, new { @class = "val" })
                                 </div>
+                                <div class="profile-field__actions">
+                                    <button class="btn-primary btn-compact" type="submit" name="submitAction" value="avatar">@L["Dashboard_Profile_ApplyChange"].Value</button>
+                                </div>
+                                <div class="profile-field__visibility profile-field__visibility--empty"></div>
                             </div>
-
-                            <button class="btn-primary btn-compact" type="submit">@L["Dashboard_Profile_Save"].Value</button>
                         </form>
                         <div class="modal-backdrop" id="displayNameConfirmModal" hidden
                              data-confirm-message="@L["Dashboard_Profile_DisplayName_ConfirmMessage"].Value"
@@ -322,46 +305,49 @@
                         </div>
                     </div>
 
-                    <div class="profile-actions__panel" data-action="email">
-                        <h3>@L["Dashboard_Profile_EmailTitle"].Value</h3>
-                        <p>@string.Format(L["Dashboard_Profile_EmailDescription"].Value, Model.Security.Email)</p>
-                        <form asp-action="UpdateEmail" method="post" class="profile-form">
-                            @Html.AntiForgeryToken()
-                            @Html.ValidationSummary(true, null, new { @class = "val-summary" })
+                    <div class="profile-actions__panel" data-action="security">
+                        <div class="profile-security-grid">
+                            <div class="profile-security-grid__item">
+                                <h3>@L["Dashboard_Profile_EmailTitle"].Value</h3>
+                                <p>@string.Format(L["Dashboard_Profile_EmailDescription"].Value, Model.Security.Email)</p>
+                                <form asp-action="UpdateEmail" method="post" class="profile-form">
+                                    @Html.AntiForgeryToken()
+                                    @Html.ValidationSummary(true, null, new { @class = "val-summary" })
 
-                            <label for="Email">@L["Dashboard_Security_Email"].Value</label>
-                            <input id="Email" name="Email" type="email" value="@Model.Security.Email" autocomplete="email" />
-                            @Html.ValidationMessage("Email", null, new { @class = "val" })
+                                    <label for="Email">@L["Dashboard_Security_Email"].Value</label>
+                                    <input id="Email" name="Email" type="email" value="@Model.Security.Email" autocomplete="email" />
+                                    @Html.ValidationMessage("Email", null, new { @class = "val" })
 
-                            <label for="EmailPassword">@L["Dashboard_Security_EmailPassword"].Value</label>
-                            <input id="EmailPassword" name="Password" type="password" autocomplete="current-password" />
-                            @Html.ValidationMessage("Password", null, new { @class = "val" })
+                                    <label for="EmailPassword">@L["Dashboard_Security_EmailPassword"].Value</label>
+                                    <input id="EmailPassword" name="Password" type="password" autocomplete="current-password" />
+                                    @Html.ValidationMessage("Password", null, new { @class = "val" })
 
-                            <button class="btn-primary" type="submit">@L["Dashboard_Security_SaveEmail"].Value</button>
-                        </form>
-                    </div>
+                                    <button class="btn-primary btn-compact" type="submit">@L["Dashboard_Security_SaveEmail"].Value</button>
+                                </form>
+                            </div>
+                            <div class="profile-security-grid__item">
+                                <h3>@L["Dashboard_Profile_PasswordTitle"].Value</h3>
+                                <p>@L["Dashboard_Profile_PasswordDescription"].Value</p>
+                                <form asp-action="ChangePassword" method="post" class="profile-form">
+                                    @Html.AntiForgeryToken()
+                                    @Html.ValidationSummary(true, null, new { @class = "val-summary" })
 
-                    <div class="profile-actions__panel" data-action="password">
-                        <h3>@L["Dashboard_Profile_PasswordTitle"].Value</h3>
-                        <p>@L["Dashboard_Profile_PasswordDescription"].Value</p>
-                        <form asp-action="ChangePassword" method="post" class="profile-form">
-                            @Html.AntiForgeryToken()
-                            @Html.ValidationSummary(true, null, new { @class = "val-summary" })
+                                    <label for="CurrentPassword">@L["Dashboard_Security_CurrentPassword"].Value</label>
+                                    <input id="CurrentPassword" name="CurrentPassword" type="password" autocomplete="current-password" />
+                                    @Html.ValidationMessage("CurrentPassword", null, new { @class = "val" })
 
-                            <label for="CurrentPassword">@L["Dashboard_Security_CurrentPassword"].Value</label>
-                            <input id="CurrentPassword" name="CurrentPassword" type="password" autocomplete="current-password" />
-                            @Html.ValidationMessage("CurrentPassword", null, new { @class = "val" })
+                                    <label for="NewPassword">@L["Dashboard_Security_NewPassword"].Value</label>
+                                    <input id="NewPassword" name="NewPassword" type="password" autocomplete="new-password" />
+                                    @Html.ValidationMessage("NewPassword", null, new { @class = "val" })
 
-                            <label for="NewPassword">@L["Dashboard_Security_NewPassword"].Value</label>
-                            <input id="NewPassword" name="NewPassword" type="password" autocomplete="new-password" />
-                            @Html.ValidationMessage("NewPassword", null, new { @class = "val" })
+                                    <label for="ConfirmPassword">@L["Dashboard_Security_ConfirmPassword"].Value</label>
+                                    <input id="ConfirmPassword" name="ConfirmPassword" type="password" autocomplete="new-password" />
+                                    @Html.ValidationMessage("ConfirmPassword", null, new { @class = "val" })
 
-                            <label for="ConfirmPassword">@L["Dashboard_Security_ConfirmPassword"].Value</label>
-                            <input id="ConfirmPassword" name="ConfirmPassword" type="password" autocomplete="new-password" />
-                            @Html.ValidationMessage("ConfirmPassword", null, new { @class = "val" })
-
-                            <button class="btn-primary" type="submit">@L["Dashboard_Security_ChangePassword"].Value</button>
-                        </form>
+                                    <button class="btn-primary btn-compact" type="submit">@L["Dashboard_Security_ChangePassword"].Value</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

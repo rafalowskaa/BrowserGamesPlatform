@@ -1825,7 +1825,7 @@
 	<data name="Auth_Login_AdminHint" xml:space="preserve">
         
         
-        <value>Default admin credentials: admin / admin.</value>
+        <value>Default admin credentials: admin / admin123 (development only).</value>
         
     
     </data>
@@ -1866,6 +1866,9 @@
     </data>
 	<data name="Dashboard_Profile_Actions_Password" xml:space="preserve">
         <value>Change password</value>
+    </data>
+	<data name="Dashboard_Profile_Actions_Security" xml:space="preserve">
+        <value>Security settings</value>
     </data>
 	<data name="Dashboard_Profile_BirthDate" xml:space="preserve">
         <value>Date of birth</value>
@@ -2462,6 +2465,9 @@
 	<data name="Dashboard_Profile_Avatar_Hint">
 		<value>Square images work best; we crop and compress automatically.</value>
 	</data>
+	<data name="Dashboard_Profile_ApplyChange" xml:space="preserve">
+                <value>Confirm</value>
+        </data>
 	<data name="Dashboard_Profile_Email_Status_Immediate">
 		<value>Applies immediately</value>
 	</data>
@@ -2786,4 +2792,10 @@
 	<data name="Dashboard_Overview_Subheading">
 		<value>Catch up with the newest community releases.</value>
 	</data>
+	<data name="Games_Index_Empty" xml:space="preserve">
+                <value>No games match your filters yet.</value>
+        </data>
+	<data name="Navigation_Api_Tooltip" xml:space="preserve">
+                <value>Developer API documentation for integrating scores, stats or games.</value>
+        </data>
 </root>

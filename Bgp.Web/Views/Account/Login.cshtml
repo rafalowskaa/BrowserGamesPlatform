@@ -38,5 +38,7 @@
             <button class="btn-primary" type="submit">@L["Auth_Login_LoginButton"].Value</button>
         </form>
         <p class="auth-card__hint">@Html.Raw(string.Format(L["Auth_Login_PolicyHint"].Value, Url.Action("Policy", "Home")))</p>
+        @* Informational hint about the seeded administrator account for local testing *@
+        <p class="auth-card__hint auth-card__hint--dev">@L["Auth_Login_AdminHint"].Value</p>
     </div>
 </section>

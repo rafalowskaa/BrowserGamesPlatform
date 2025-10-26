@@ -3,7 +3,14 @@ using Bgp.Domain.Enums;
 
 namespace Bgp.Application.Dtos;
 
-public record FriendDto(string UserId, string DisplayName, string? RankTitle, string? AvatarUrl, FriendshipStatus Status, bool OutgoingRequest);
+public record FriendDto(
+    string UserId,
+    string DisplayName,
+    string? RankTitle,
+    string? AvatarUrl,
+    string RankAccentColor,
+    FriendshipStatus Status,
+    bool OutgoingRequest);
 
 public class FriendRequestDto
 {
