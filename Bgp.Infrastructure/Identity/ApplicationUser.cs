@@ -31,4 +31,11 @@ public class ApplicationUser : IdentityUser
     public ProfileVisibility BirthDateVisibility { get; set; } = ProfileVisibility.OwnerOnly;
 
     public ProfileVisibility EmailVisibility { get; set; } = ProfileVisibility.OwnerOnly;
+
+    [MaxLength(160)]
+    public string? StatusMessage { get; set; }
+
+    public UserPresenceStatus PresenceStatus { get; set; } = UserPresenceStatus.Available;
+
+    public bool IsInvisible { get; set; }
 }

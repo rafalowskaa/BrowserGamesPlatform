@@ -34,10 +34,14 @@ public class ProfileSectionViewModel
     public ProfileVisibility DisplayNameVisibility { get; set; } = ProfileVisibility.Everyone;
     public ProfileVisibility BirthDateVisibility { get; set; } = ProfileVisibility.OwnerOnly;
     public ProfileVisibility EmailVisibility { get; set; } = ProfileVisibility.OwnerOnly;
+    public string? StatusMessage { get; set; }
+    public UserPresenceStatus PresenceStatus { get; set; } = UserPresenceStatus.Available;
+    public bool IsInvisible { get; set; }
     public ProfileRankViewModel Rank { get; set; } = new();
     public ProfileBestGameViewModel? BestGame { get; set; }
     public IReadOnlyList<ProfileHighlightViewModel> Highlights { get; set; } = Array.Empty<ProfileHighlightViewModel>();
     public IReadOnlyList<SelectListItem> VisibilityOptions { get; set; } = Array.Empty<SelectListItem>();
+    public IReadOnlyList<SelectListItem> PresenceOptions { get; set; } = Array.Empty<SelectListItem>();
 }
 
 public class ProfileRankViewModel
@@ -156,6 +160,10 @@ public class UpdateProfileInputModel
     public ProfileVisibility EmailVisibility { get; set; } = ProfileVisibility.OwnerOnly;
 
     public IFormFile? Avatar { get; set; }
+    [MaxLength(160)]
+    public string? StatusMessage { get; set; }
+    public UserPresenceStatus PresenceStatus { get; set; } = UserPresenceStatus.Available;
+    public bool IsInvisible { get; set; }
 }
 
 public class UpdateEmailInputModel

@@ -14,4 +14,5 @@ public class ChatMessage
 
     public DateTime SentAtUtc { get; set; } = DateTime.UtcNow;
     public bool IsRead { get; set; }
+    public DateTime? ReadAtUtc { get; set; }
 }

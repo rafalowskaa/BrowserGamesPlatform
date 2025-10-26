@@ -48,6 +48,19 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .Property(u => u.PendingDisplayName)
             .HasMaxLength(120);
 
+        b.Entity<ApplicationUser>()
+            .Property(u => u.StatusMessage)
+            .HasMaxLength(160);
+
+        b.Entity<ApplicationUser>()
+            .Property(u => u.PresenceStatus)
+            .HasConversion<int>()
+            .HasDefaultValue(UserPresenceStatus.Available);
+
+        b.Entity<ApplicationUser>()
+            .Property(u => u.IsInvisible)
+            .HasDefaultValue(false);
+
         b.Entity<Game>()
             .Property(x => x.Categories)
             .HasConversion<int>()

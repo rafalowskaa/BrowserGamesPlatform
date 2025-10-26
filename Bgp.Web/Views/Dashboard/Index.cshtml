@@ -199,6 +199,32 @@
                             </div>
 
                             <div class="profile-field">
+                                <div class="profile-field__input profile-field__input--stacked">
+                                    <label for="StatusMessage">@L["Dashboard_Profile_StatusMessage"].Value</label>
+                                    <input id="StatusMessage" name="StatusMessage" value="@Model.Profile.StatusMessage" maxlength="160" />
+                                    <label for="PresenceStatus" class="profile-field__sub-label">@L["Dashboard_Profile_Presence_Label"].Value</label>
+                                    <select id="PresenceStatus" name="PresenceStatus">
+                                        @foreach (var option in Model.Profile.PresenceOptions)
+                                        {
+                                            var isSelected = option.Value == ((int)Model.Profile.PresenceStatus).ToString();
+                                            <option value="@option.Value" selected="@(isSelected ? "selected" : null)">@option.Text</option>
+                                        }
+                                    </select>
+                                    @Html.ValidationMessage("StatusMessage", null, new { @class = "val" })
+                                    @Html.ValidationMessage("PresenceStatus", null, new { @class = "val" })
+                                </div>
+                                <div class="profile-field__actions">
+                                    <button class="btn-primary btn-compact" type="submit" name="submitAction" value="status">@L["Dashboard_Profile_ApplyChange"].Value</button>
+                                </div>
+                                <div class="profile-field__visibility">
+                                    <label class="checkbox profile-field__checkbox" for="IsInvisible">
+                                        <input type="checkbox" id="IsInvisible" name="IsInvisible" value="true" @(Model.Profile.IsInvisible ? "checked" : null) />
+                                        <span>@L["Dashboard_Profile_Invisible_Label"].Value</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="profile-field">
                                 <div class="profile-field__input">
 
                                     <label>@L["Dashboard_Profile_BirthDate"].Value</label>
@@ -402,7 +428,12 @@
                             </div>
                             <div class="wizard-field">
                                 <label for="GameTitle">@L["Dashboard_Games_Title"].Value</label>
-                                <input id="GameTitle" name="Title" value="@Model.NewGame.Title" maxlength="120" />
+                                <input id="GameTitle"
+                                       name="Title"
+                                       type="text"
+                                       value="@Model.NewGame.Title"
+                                       maxlength="120"
+                                       class="wizard-field__control" />
                                 @Html.ValidationMessage("Title", null, new { @class = "val" })
                             </div>
                             <p class="wizard-step__warning" data-step-warning hidden></p>

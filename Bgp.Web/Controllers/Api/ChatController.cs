@@ -42,10 +42,16 @@ public class ChatController : ControllerBase
             u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id));
 
         var dto = msgs.Select(m => new ChatMessageDto(
-            m.Id, m.SenderId, m.ReceiverId,
+            m.Id,
+            m.SenderId,
+            m.ReceiverId,
             nameLookup.GetValueOrDefault(m.SenderId, m.SenderId.ToUpperInvariant()),
             nameLookup.GetValueOrDefault(m.ReceiverId, m.ReceiverId.ToUpperInvariant()),
-            m.Content, m.SentAtUtc, m.SenderId == uid));
+            m.Content,
+            m.SentAtUtc,
+            m.SenderId == uid,
+            m.IsRead,
+            m.ReadAtUtc));
 
         return Ok(dto);
     }

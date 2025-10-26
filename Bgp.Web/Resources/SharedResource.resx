@@ -747,7 +747,69 @@
     
     </data>
 
+	<data name="Chat_ReadReceipt" xml:space="preserve">
+		<value>Read at {0}</value>
+	</data>
 
+	<data name="Chat_ReadReceipt_Label" xml:space="preserve">
+		<value>Read</value>
+	</data>
+
+	<data name="Chat_Status_Available" xml:space="preserve">
+		<value>Available</value>
+	</data>
+
+	<data name="Chat_Status_Unavailable" xml:space="preserve">
+		<value>Busy</value>
+	</data>
+
+	<data name="Chat_Status_Invisible" xml:space="preserve">
+		<value>Invisible</value>
+	</data>
+
+	<data name="Chat_Status_Unknown" xml:space="preserve">
+		<value>Offline</value>
+	</data>
+
+	<data name="Chat_NewMessage_Notification" xml:space="preserve">
+		<value>New message</value>
+	</data>
+
+	<data name="Chat_Request_Accept" xml:space="preserve">
+		<value>Accept</value>
+	</data>
+
+	<data name="Chat_Request_Decline" xml:space="preserve">
+		<value>Decline</value>
+	</data>
+
+	<data name="Chat_Request_Pending" xml:space="preserve">
+		<value>Invitation sent</value>
+	</data>
+
+	<data name="Chat_NoFriends" xml:space="preserve">
+		<value>No friends yet</value>
+	</data>
+
+	<data name="Chat_NoInvites" xml:space="preserve">
+		<value>No invitations</value>
+	</data>
+
+	<data name="Chat_NoMatches" xml:space="preserve">
+		<value>No friends match your search</value>
+	</data>
+
+	<data name="Chat_Minimize" xml:space="preserve">
+		<value>Minimize chat window</value>
+	</data>
+
+	<data name="Chat_Restore" xml:space="preserve">
+		<value>Restore chat window</value>
+	</data>
+
+	<data name="Chat_CloseWindow" xml:space="preserve">
+		<value>Close chat window</value>
+	</data>
 
 
 	<data name="Admin_Reports_Title" xml:space="preserve">
@@ -1122,7 +1184,28 @@
     
     </data>
 
+	<data name="Dashboard_Profile_StatusMessage" xml:space="preserve">
+		<value>Status message</value>
+	</data>
 
+	<data name="Dashboard_Profile_Presence_Label" xml:space="preserve">
+		<value>Availability</value>
+	</data>
+
+	<data name="Dashboard_Profile_Invisible_Label" xml:space="preserve">
+		<value>Appear offline</value>
+	</data>
+	<data name="Dashboard_Profile_Presence_Available" xml:space="preserve">
+		<value>Available</value>
+	</data>
+
+	<data name="Dashboard_Profile_Presence_Unavailable" xml:space="preserve">
+		<value>Unavailable</value>
+	</data>
+
+	<data name="Dashboard_Profile_Presence_Invalid" xml:space="preserve">
+		<value>Select a valid availability option.</value>
+	</data>
 
 
 	<data name="Dashboard_Profile_Avatar" xml:space="preserve">

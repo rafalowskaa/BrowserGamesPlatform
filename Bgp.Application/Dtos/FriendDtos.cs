@@ -10,7 +10,11 @@ public record FriendDto(
     string? AvatarUrl,
     string RankAccentColor,
     FriendshipStatus Status,
-    bool OutgoingRequest);
+    bool OutgoingRequest,
+    string? StatusMessage,
+    UserPresenceStatus Presence,
+    bool IsInvisible,
+    int UnreadCount);
 
 public class FriendRequestDto
 {

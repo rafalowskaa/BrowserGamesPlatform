@@ -748,7 +748,69 @@
     
     </data>
 
+	<data name="Chat_ReadReceipt" xml:space="preserve">
+		<value>Odczytano o {0}</value>
+	</data>
 
+	<data name="Chat_ReadReceipt_Label" xml:space="preserve">
+		<value>Odczytano</value>
+	</data>
+
+	<data name="Chat_Status_Available" xml:space="preserve">
+		<value>Dostępny</value>
+	</data>
+
+	<data name="Chat_Status_Unavailable" xml:space="preserve">
+		<value>Niedostępny</value>
+	</data>
+
+	<data name="Chat_Status_Invisible" xml:space="preserve">
+		<value>Niewidoczny</value>
+	</data>
+
+	<data name="Chat_Status_Unknown" xml:space="preserve">
+		<value>Offline</value>
+	</data>
+
+	<data name="Chat_NewMessage_Notification" xml:space="preserve">
+		<value>Nowa wiadomość</value>
+	</data>
+
+	<data name="Chat_Request_Accept" xml:space="preserve">
+		<value>Akceptuj</value>
+	</data>
+
+	<data name="Chat_Request_Decline" xml:space="preserve">
+		<value>Odrzuć</value>
+	</data>
+
+	<data name="Chat_Request_Pending" xml:space="preserve">
+		<value>Zaproszenie wysłane</value>
+	</data>
+
+	<data name="Chat_NoFriends" xml:space="preserve">
+		<value>Brak znajomych</value>
+	</data>
+
+	<data name="Chat_NoInvites" xml:space="preserve">
+		<value>Brak zaproszeń</value>
+	</data>
+
+	<data name="Chat_NoMatches" xml:space="preserve">
+		<value>Brak pasujących znajomych</value>
+	</data>
+
+	<data name="Chat_Minimize" xml:space="preserve">
+		<value>Zminimalizuj okno czatu</value>
+	</data>
+
+	<data name="Chat_Restore" xml:space="preserve">
+		<value>Przywróć okno czatu</value>
+	</data>
+
+	<data name="Chat_CloseWindow" xml:space="preserve">
+		<value>Zamknij okno czatu</value>
+	</data>
 
 
 	<data name="Admin_Reports_Title" xml:space="preserve">
@@ -1123,7 +1185,28 @@
     
     </data>
 
+	<data name="Dashboard_Profile_StatusMessage" xml:space="preserve">
+		<value>Wiadomość statusu</value>
+	</data>
 
+	<data name="Dashboard_Profile_Presence_Label" xml:space="preserve">
+		<value>Dostępność</value>
+	</data>
+
+	<data name="Dashboard_Profile_Invisible_Label" xml:space="preserve">
+		<value>Pokaż mnie jako niewidocznego</value>
+	</data>
+	<data name="Dashboard_Profile_Presence_Available" xml:space="preserve">
+		<value>Dostępny</value>
+	</data>
+
+	<data name="Dashboard_Profile_Presence_Unavailable" xml:space="preserve">
+		<value>Niedostępny</value>
+	</data>
+
+	<data name="Dashboard_Profile_Presence_Invalid" xml:space="preserve">
+		<value>Wybierz prawidłową opcję dostępności.</value>
+	</data>
 
 	<data name="Dashboard_Profile_Avatar" xml:space="preserve">
         

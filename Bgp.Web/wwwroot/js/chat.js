@@ -1,150 +1,716 @@
 ﻿(function () {
-    const sidebar = document.getElementById('chatSidebar');
+    const dock = document.getElementById('chatDock');
+    if (!dock) {
+        return;
+    }
+
     const toggle = document.getElementById('chatToggle');
-    const closeBtn = document.getElementById('chatClose');
-    const friendsList = document.getElementById('friendsList');
-    const reqList = document.getElementById('requestsList');
-    const threadHeader = document.getElementById('threadHeader');
-    const threadBody = document.getElementById('threadBody');
-    const msgInput = document.getElementById('msgInput');
-    const msgSend = document.getElementById('msgSend');
+    const panel = document.getElementById('chatPanel');
+    const closeBtn = panel ? panel.querySelector('[data-chat-close]') : null;
+    const searchInput = panel ? panel.querySelector('[data-chat-search]') : null;
+    const friendsList = panel ? panel.querySelector('[data-chat-friends]') : null;
+    const friendsEmpty = panel ? panel.querySelector('[data-chat-friends-empty]') : null;
+    const requestsList = panel ? panel.querySelector('[data-chat-requests]') : null;
+    const requestsEmpty = panel ? panel.querySelector('[data-chat-requests-empty]') : null;
+    const windowsContainer = dock.querySelector('[data-chat-windows]');
+    const unreadBadge = dock.querySelector('[data-chat-unread]');
+    const stringsElement = document.getElementById('chatStrings');
 
-    if (!sidebar || !toggle) return;
-
-    let currentPeer = null;
+    const friends = new Map();
+    const conversations = new Map();
     let connection = null;
+    let searchTerm = '';
 
-    function openSidebar() { sidebar.classList.add('open'); }
-    function closeSidebar() { sidebar.classList.remove('open'); }
-    toggle.addEventListener('click', openSidebar);
-    closeBtn.addEventListener('click', closeSidebar);
+    const strings = {
+        readReceipt: 'Read at {0}',
+        readReceiptLabel: 'Read',
+        statusAvailable: 'Available',
+        statusUnavailable: 'Unavailable',
+        statusInvisible: 'Invisible',
+        statusUnknown: 'Offline',
+        newMessage: 'New message',
+        accept: 'Accept',
+        decline: 'Decline',
+        pendingOutgoing: 'Invitation sent',
+        noFriends: 'No friends yet',
+        noInvites: 'No invitations',
+        noMatches: 'No friends match your search',
+        minimize: 'Minimize chat window',
+        restore: 'Restore chat window',
+        close: 'Close chat window',
+        writePlaceholder: 'Write a message…',
+        send: 'Send'
+    };
 
-    function el(tag, cls, text) {
-        const e = document.createElement(tag);
-        if (cls) e.className = cls;
-        if (text) e.innerText = text;
-        return e;
+    try {
+        if (stringsElement) {
+            const parsed = JSON.parse(stringsElement.textContent || '{}');
+            Object.assign(strings, parsed);
+        }
+    } catch (err) {
+        console.warn('Unable to parse chat strings.', err);
+    }
+
+    function togglePanel(force) {
+        if (!panel) return;
+        const shouldOpen = typeof force === 'boolean' ? force : !dock.classList.contains('is-open');
+        if (shouldOpen) {
+            dock.classList.add('is-open');
+            toggle.setAttribute('aria-expanded', 'true');
+            panel.hidden = false;
+            if (searchInput) {
+                searchInput.focus();
+            }
+        } else {
+            dock.classList.remove('is-open');
+            toggle.setAttribute('aria-expanded', 'false');
+            panel.hidden = true;
+        }
+    }
+
+    if (toggle) {
+        toggle.addEventListener('click', () => togglePanel());
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => togglePanel(false));
+    }
+
+    document.addEventListener('keydown', (evt) => {
+        if (evt.key === 'Escape' && dock.classList.contains('is-open')) {
+            togglePanel(false);
+        }
+    });
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (evt) => {
+            searchTerm = (evt.target.value || '').toLowerCase().trim();
+            applyFriendFilter();
+        });
+    }
+
+    function presenceLabel(friend) {
+        if (friend.isInvisible) {
+            return strings.statusInvisible;
+        }
+        switch (friend.presence) {
+            case 0:
+                return strings.statusAvailable;
+            case 1:
+                return strings.statusUnavailable;
+            default:
+                return strings.statusUnknown;
+        }
+    }
+
+    function getStatusLine(friend) {
+        if (friend.statusMessage) {
+            return friend.statusMessage;
+        }
+        return presenceLabel(friend);
+    }
+
+    function updateUnreadBadge() {
+        const total = Array.from(friends.values()).reduce((sum, friend) => sum + (friend.unreadCount || 0), 0);
+        if (!unreadBadge) return;
+        if (total > 0) {
+            unreadBadge.textContent = String(total);
+            unreadBadge.hidden = false;
+        } else {
+            unreadBadge.hidden = true;
+        }
+    }
+
+    function applyFriendFilter() {
+        let visible = 0;
+        friends.forEach((friend) => {
+            if (!friend.element) {
+                return;
+            }
+            const matches = !searchTerm || friend.displayName.toLowerCase().includes(searchTerm) ||
+                (friend.statusMessage && friend.statusMessage.toLowerCase().includes(searchTerm));
+            friend.element.hidden = !matches;
+            if (matches) {
+                visible++;
+            }
+        });
+
+        if (friendsEmpty) {
+            const hasFriends = friends.size > 0;
+            friendsEmpty.textContent = searchTerm && hasFriends ? strings.noMatches : strings.noFriends;
+            friendsEmpty.style.display = visible > 0 ? 'none' : 'block';
+        }
+    }
+
+    function updateFriendVisual(friend) {
+        if (!friend.element) return;
+        const nameEl = friend.element.querySelector('[data-friend-name]');
+        const statusEl = friend.element.querySelector('[data-friend-status]');
+        const dotEl = friend.element.querySelector('[data-friend-dot]');
+        if (nameEl) {
+            nameEl.textContent = friend.displayName;
+        }
+        if (statusEl) {
+            statusEl.textContent = getStatusLine(friend);
+        }
+        if (dotEl) {
+            dotEl.classList.toggle('is-online', !friend.isInvisible && friend.presence === 0);
+            dotEl.classList.toggle('is-invisible', !!friend.isInvisible);
+        }
+        friend.element.classList.toggle('is-unread', (friend.unreadCount || 0) > 0);
+    }
+
+    function updateConversationHeader(conversation) {
+        const friend = friends.get(conversation.friendId);
+        if (!friend) return;
+        if (conversation.nameEl) {
+            conversation.nameEl.textContent = friend.displayName;
+        }
+        if (conversation.statusEl) {
+            conversation.statusEl.textContent = getStatusLine(friend);
+        }
+        if (conversation.dotEl) {
+            conversation.dotEl.classList.toggle('is-online', !friend.isInvisible && friend.presence === 0);
+            conversation.dotEl.classList.toggle('is-invisible', !!friend.isInvisible);
+        }
+    }
+
+    function createFriendElement(friend) {
+        const li = document.createElement('li');
+        li.className = 'chat-contact';
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'chat-contact__button';
+        button.addEventListener('click', () => openConversation(friend.userId));
+
+        const avatar = document.createElement('span');
+        avatar.className = 'chat-contact__avatar';
+        if (friend.avatarUrl) {
+            const img = document.createElement('img');
+            img.src = friend.avatarUrl;
+            img.alt = '';
+            avatar.appendChild(img);
+        } else {
+            avatar.textContent = friend.displayName.slice(0, 1).toUpperCase();
+        }
+
+        const statusDot = document.createElement('span');
+        statusDot.className = 'chat-status-dot';
+        statusDot.dataset.friendDot = '';
+        avatar.appendChild(statusDot);
+
+        const meta = document.createElement('span');
+        meta.className = 'chat-contact__meta';
+
+        const name = document.createElement('span');
+        name.className = 'chat-contact__name';
+        name.dataset.friendName = '';
+        meta.appendChild(name);
+
+        const status = document.createElement('span');
+        status.className = 'chat-contact__status';
+        status.dataset.friendStatus = '';
+        meta.appendChild(status);
+
+        button.appendChild(avatar);
+        button.appendChild(meta);
+        li.appendChild(button);
+        friend.element = li;
+        updateFriendVisual(friend);
+        return li;
+    }
+
+    function renderFriends(accepted) {
+        if (!friendsList) return;
+        friendsList.innerHTML = '';
+        accepted.forEach((friend) => {
+            friendsList.appendChild(createFriendElement(friend));
+        });
+        applyFriendFilter();
+        updateUnreadBadge();
+    }
+
+    function renderRequests(incoming, outgoing) {
+        if (!requestsList) return;
+        requestsList.innerHTML = '';
+
+        const fragment = document.createDocumentFragment();
+
+        incoming.forEach((request) => {
+            const item = document.createElement('li');
+            const meta = document.createElement('div');
+            meta.className = 'chat-contact__meta';
+
+            const name = document.createElement('span');
+            name.className = 'chat-contact__name';
+            name.textContent = request.displayName;
+            meta.appendChild(name);
+
+            if (request.statusMessage) {
+                const status = document.createElement('span');
+                status.className = 'chat-contact__status';
+                status.textContent = request.statusMessage;
+                meta.appendChild(status);
+            }
+
+            const actions = document.createElement('div');
+            actions.className = 'chat-requests__actions';
+
+            const acceptBtn = document.createElement('button');
+            acceptBtn.type = 'button';
+            acceptBtn.className = 'btn-primary btn-compact';
+            acceptBtn.textContent = strings.accept;
+            acceptBtn.addEventListener('click', async () => {
+                await fetch(`/api/friends/accept/${encodeURIComponent(request.userId)}`, { method: 'POST' });
+                await loadFriends();
+            });
+
+            const declineBtn = document.createElement('button');
+            declineBtn.type = 'button';
+            declineBtn.className = 'btn-outline btn-compact';
+            declineBtn.textContent = strings.decline;
+            declineBtn.addEventListener('click', async () => {
+                await fetch(`/api/friends/${encodeURIComponent(request.userId)}`, { method: 'DELETE' });
+                await loadFriends();
+            });
+
+            actions.appendChild(acceptBtn);
+            actions.appendChild(declineBtn);
+
+            item.appendChild(meta);
+            item.appendChild(actions);
+            fragment.appendChild(item);
+        });
+
+        outgoing.forEach((request) => {
+            const item = document.createElement('li');
+            const wrapper = document.createElement('div');
+            wrapper.className = 'chat-contact__meta';
+
+            const name = document.createElement('span');
+            name.className = 'chat-contact__name';
+            name.textContent = request.displayName;
+            wrapper.appendChild(name);
+
+            const status = document.createElement('span');
+            status.className = 'chat-contact__status';
+            status.textContent = strings.pendingOutgoing;
+            wrapper.appendChild(status);
+
+            item.appendChild(wrapper);
+            fragment.appendChild(item);
+        });
+
+        requestsList.appendChild(fragment);
+
+        if (requestsEmpty) {
+            const hasRequests = incoming.length + outgoing.length > 0;
+            requestsEmpty.style.display = hasRequests ? 'none' : 'block';
+            requestsEmpty.textContent = strings.noInvites;
+        }
+    }
+
+    function ensureConversation(friendId) {
+        let conversation = conversations.get(friendId);
+        const friend = friends.get(friendId);
+        if (!friend) {
+            return null;
+        }
+
+        if (!conversation) {
+            conversation = createConversation(friend);
+            conversations.set(friendId, conversation);
+        }
+
+        conversation.element.classList.remove('chat-window--collapsed');
+        windowsContainer.appendChild(conversation.element);
+        updateConversationHeader(conversation);
+        markThreadRead(friendId);
+        conversation.input.focus();
+        return conversation;
+    }
+
+    function createConversation(friend) {
+        const element = document.createElement('section');
+        element.className = 'chat-window';
+        element.dataset.friendId = friend.userId;
+
+        const header = document.createElement('div');
+        header.className = 'chat-window__header';
+
+        const title = document.createElement('div');
+        title.className = 'chat-window__title';
+
+        const avatar = document.createElement('span');
+        avatar.className = 'chat-window__avatar';
+        if (friend.avatarUrl) {
+            const img = document.createElement('img');
+            img.src = friend.avatarUrl;
+            img.alt = '';
+            avatar.appendChild(img);
+        } else {
+            avatar.textContent = friend.displayName.slice(0, 1).toUpperCase();
+        }
+
+        const dot = document.createElement('span');
+        dot.className = 'chat-status-dot';
+        avatar.appendChild(dot);
+
+        const labelWrap = document.createElement('div');
+
+        const name = document.createElement('span');
+        name.dataset.windowName = '';
+        labelWrap.appendChild(name);
+
+        const status = document.createElement('small');
+        status.dataset.windowStatus = '';
+        labelWrap.appendChild(status);
+
+        title.appendChild(avatar);
+        title.appendChild(labelWrap);
+
+        const controls = document.createElement('div');
+        controls.className = 'chat-window__controls';
+
+        const minimizeBtn = document.createElement('button');
+        minimizeBtn.type = 'button';
+        minimizeBtn.className = 'btn-icon';
+        minimizeBtn.title = strings.minimize;
+        minimizeBtn.textContent = '▾';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'btn-icon';
+        closeBtn.title = strings.close;
+        closeBtn.textContent = '✕';
+
+        controls.appendChild(minimizeBtn);
+        controls.appendChild(closeBtn);
+
+        header.appendChild(title);
+        header.appendChild(controls);
+
+        const body = document.createElement('div');
+        body.className = 'chat-window__body';
+
+        const inputWrap = document.createElement('div');
+        inputWrap.className = 'chat-window__input';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.autocomplete = 'off';
+        input.maxLength = 2000;
+        input.placeholder = strings.writePlaceholder;
+
+        const sendBtn = document.createElement('button');
+        sendBtn.type = 'button';
+        sendBtn.className = 'btn-primary btn-compact';
+        sendBtn.textContent = strings.send;
+
+        inputWrap.appendChild(input);
+        inputWrap.appendChild(sendBtn);
+
+        element.appendChild(header);
+        element.appendChild(body);
+        element.appendChild(inputWrap);
+
+        minimizeBtn.addEventListener('click', (evt) => {
+            evt.stopPropagation();
+            const collapsed = element.classList.toggle('chat-window--collapsed');
+            minimizeBtn.textContent = collapsed ? '▴' : '▾';
+            minimizeBtn.title = collapsed ? strings.restore : strings.minimize;
+            if (!collapsed) {
+                markThreadRead(friend.userId);
+            }
+        });
+
+        closeBtn.addEventListener('click', (evt) => {
+            evt.stopPropagation();
+            element.remove();
+            conversations.delete(friend.userId);
+        });
+
+        header.addEventListener('dblclick', () => {
+            const collapsed = element.classList.toggle('chat-window--collapsed');
+            minimizeBtn.textContent = collapsed ? '▴' : '▾';
+            minimizeBtn.title = collapsed ? strings.restore : strings.minimize;
+            if (!collapsed) {
+                markThreadRead(friend.userId);
+            }
+        });
+
+        const send = () => {
+            const message = input.value.trim();
+            if (!message || !connection) {
+                return;
+            }
+            input.value = '';
+            connection.invoke('SendPrivateMessage', friend.userId, message).catch((err) => {
+                console.error('Failed to send message.', err);
+            });
+
+        };
+
+        sendBtn.addEventListener('click', send);
+        input.addEventListener('keydown', (evt) => {
+            if (evt.key === 'Enter' && !evt.shiftKey) {
+                evt.preventDefault();
+                send();
+            }
+        });
+
+        input.addEventListener('focus', () => markThreadRead(friend.userId));
+        body.addEventListener('mouseenter', () => markThreadRead(friend.userId));
+
+        const conversation = {
+            friendId: friend.userId,
+            element,
+            body,
+            input,
+            messages: new Map(),
+            loaded: false,
+            nameEl: name,
+            statusEl: status,
+            dotEl: dot
+        };
+
+        updateConversationHeader(conversation);
+        loadHistory(conversation).catch((err) => console.error('Failed to load chat history.', err));
+
+        return conversation;
+    }
+
+    function formatTime(value) {
+        if (!value) return '';
+        return new Date(value + 'Z').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function renderMessage(conversation, message) {
+        const fromSelf = message.fromSelf === true || message.senderId === undefined || message.senderId !== conversation.friendId;
+        const wrapper = document.createElement('div');
+        wrapper.className = `chat-message ${fromSelf ? 'chat-message--me' : 'chat-message--peer'}`;
+        wrapper.dataset.messageId = message.id;
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-message__bubble';
+        bubble.textContent = message.content;
+        wrapper.appendChild(bubble);
+
+        const meta = document.createElement('div');
+        meta.className = 'chat-message__meta';
+        const sentLabel = formatTime(message.sentAtUtc);
+        let label = sentLabel;
+        if (fromSelf && message.isRead && message.readAtUtc) {
+            label += ` · ${strings.readReceiptLabel} ${formatTime(message.readAtUtc)}`;
+        }
+        meta.textContent = label;
+        wrapper.appendChild(meta);
+
+        if (!fromSelf) {
+            wrapper.classList.add('chat-message--highlight');
+            setTimeout(() => wrapper.classList.remove('chat-message--highlight'), 2400);
+        }
+
+        conversation.body.appendChild(wrapper);
+        conversation.messages.set(message.id, { element: wrapper, meta, data: message });
+        conversation.body.scrollTop = conversation.body.scrollHeight;
+    }
+
+    async function loadHistory(conversation) {
+        if (conversation.loaded) return;
+        conversation.loaded = true;
+        try {
+            const res = await fetch(`/api/chat/history/${encodeURIComponent(conversation.friendId)}?take=50`);
+            if (!res.ok) {
+                return;
+            }
+            const history = await res.json();
+            history.forEach((msg) => renderMessage(conversation, msg));
+            markThreadRead(conversation.friendId);
+        } catch (err) {
+            console.error('Chat history failed.', err);
+        }
+    }
+
+    function addIncomingMessage(friendId, message) {
+        const friend = friends.get(friendId);
+        if (!friend) {
+            return;
+        }
+        const conversation = ensureConversation(friendId);
+        renderMessage(conversation, message);
+        if (!message.fromSelf) {
+            if (conversation.element.classList.contains('chat-window--collapsed') || document.visibilityState === 'hidden') {
+                friend.unreadCount = (friend.unreadCount || 0) + 1;
+                updateFriendVisual(friend);
+                updateUnreadBadge();
+            } else {
+                markThreadRead(friendId);
+            }
+        }
+    }
+
+    function handleMessagesRead(payload) {
+        const friendId = friends.has(payload.userId) ? payload.userId : (friends.has(payload.peerId) ? payload.peerId : null);
+        if (!friendId) return;
+        const conversation = conversations.get(friendId);
+        if (!conversation) return;
+        payload.messageIds.forEach((id) => {
+            const entry = conversation.messages.get(id);
+            if (entry && entry.data) {
+                entry.data.isRead = true;
+                entry.data.readAtUtc = payload.readAtUtc;
+                const timeLabel = formatTime(entry.data.sentAtUtc);
+                const readLabel = formatTime(payload.readAtUtc);
+                entry.meta.textContent = `${timeLabel} · ${strings.readReceiptLabel} ${readLabel}`;
+            }
+        });
+    }
+
+    function markThreadRead(friendId) {
+        const friend = friends.get(friendId);
+        if (!friend) return;
+        friend.unreadCount = 0;
+        updateFriendVisual(friend);
+        updateUnreadBadge();
+        if (!connection) return;
+        connection.invoke('MarkThreadRead', friendId).catch(() => { /* ignore */ });
     }
 
     async function loadFriends() {
-        friendsList.innerHTML = '';
-        reqList.innerHTML = '';
+        if (friendsList) {
+            friendsList.innerHTML = '';
+        }
+        if (requestsList) {
+            requestsList.innerHTML = '';
+        }
+
+        const previousUnread = new Map();
+        friends.forEach((friend) => {
+            previousUnread.set(friend.userId, friend.unreadCount || 0);
+        });
+
+        friends.clear();
+
         try {
-            const r = await fetch('/api/friends');
-            if (!r.ok) return;
-            const list = await r.json();
-            const friends = list.filter(x => x.status === 1); // Accepted
-            const outgoing = list.filter(x => x.status === 0 && x.outgoingRequest);
-            const incoming = list.filter(x => x.status === 0 && !x.outgoingRequest);
-
-            friends.forEach(f => {
-                const li = el('li', 'row');
-                li.innerHTML = `<span>${f.displayName}</span><button class="btn-link">Pisz</button>`;
-                li.querySelector('button').addEventListener('click', () => openChat(f.userId, f.displayName));
-                friendsList.appendChild(li);
+            const res = await fetch('/api/friends');
+            if (!res.ok) {
+                throw new Error('Request failed');
+            }
+            const data = await res.json();
+            const accepted = [];
+            const incoming = [];
+            const outgoing = [];
+            data.forEach((row) => {
+                if (row.status === 1) {
+                    const friend = {
+                        userId: row.userId,
+                        displayName: row.displayName,
+                        avatarUrl: row.avatarUrl,
+                        statusMessage: row.statusMessage,
+                        presence: row.presence,
+                        isInvisible: row.isInvisible,
+                        unreadCount: previousUnread.get(row.userId) || row.unreadCount || 0
+                    };
+                    friends.set(row.userId, friend);
+                    accepted.push(friend);
+                } else if (row.status === 0 && row.outgoingRequest) {
+                    outgoing.push(row);
+                } else if (row.status === 0) {
+                    incoming.push(row);
+                }
             });
 
-            incoming.forEach(f => {
-                const li = el('li', 'row');
-                const acc = el('button', 'btn-link', 'Akceptuj');
-                acc.addEventListener('click', async () => {
-                    await fetch(`/api/friends/accept/${encodeURIComponent(f.userId)}`, { method: 'POST' });
-                    await loadFriends();
-                });
-                li.append(el('span', '', f.displayName), acc);
-                reqList.appendChild(li);
+            accepted.sort((a, b) => a.displayName.localeCompare(b.displayName));
+            renderFriends(accepted);
+            renderRequests(incoming, outgoing);
+            conversations.forEach((conversation, id) => {
+                if (friends.has(id)) {
+                    updateConversationHeader(conversation);
+                } else {
+                    conversation.element.remove();
+                    conversations.delete(id);
+                }
             });
-
-            outgoing.forEach(f => {
-                const li = el('li', 'row');
-                li.append(el('span', '', f.displayName), el('span', 'muted', 'Wysłano zaproszenie'));
-                reqList.appendChild(li);
-            });
-
-        } catch { /* ignore */ }
-    }
-
-    async function openChat(userId, displayName) {
-        currentPeer = { userId, displayName };
-        threadHeader.innerText = displayName;
-        threadBody.innerHTML = '';
-        openSidebar();
-
-        const r = await fetch(`/api/chat/history/${encodeURIComponent(userId)}?take=50`);
-        if (r.ok) {
-            const hist = await r.json();
-            hist.forEach(addMessageToThread);
-            threadBody.scrollTop = threadBody.scrollHeight;
+        } catch (err) {
+            console.error('Failed to load friends.', err);
+            if (friendsEmpty) {
+                friendsEmpty.textContent = strings.noFriends;
+                friendsEmpty.style.display = 'block';
+            }
         }
     }
 
-    function addMessageToThread(m) {
-        const wrap = el('div', m.fromSelf ? 'msg me' : 'msg peer');
-        const txt = el('div', 'bubble', m.content);
-        const time = new Date(m.sentAtUtc + 'Z').toLocaleTimeString();
-        const meta = el('div', 'meta', time);
-        wrap.appendChild(txt);
-        wrap.appendChild(meta);
-        threadBody.appendChild(wrap);
-        threadBody.scrollTop = threadBody.scrollHeight;
-    }
-
-    async function sendMessage() {
-        const txt = msgInput.value.trim();
-        if (!txt || !currentPeer) return;
-        msgInput.value = '';
-        if (!connection) return;
-
-        try {
-            await connection.invoke('SendPrivateMessage', currentPeer.userId, txt);
-        } catch (e) {
-            console.error(e);
+    async function startConnection() {
+        if (typeof signalR === 'undefined') {
+            return;
         }
-    }
-
-    msgSend.addEventListener('click', sendMessage);
-    msgInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') sendMessage();
-    });
-
-    async function startSignalR() {
-        if (typeof signalR === 'undefined') return;
         connection = new signalR.HubConnectionBuilder()
             .withUrl('/hubs/chat')
             .withAutomaticReconnect()
             .build();
 
-        connection.on('ReceiveMessage', (m) => {
-            // pokaż tylko jeśli dotyczy aktualnej rozmowy
-            if (!currentPeer) return;
-            if ((m.senderId === currentPeer.userId) || (m.receiverId === currentPeer.userId)) {
-                addMessageToThread({
-                    id: m.id,
-                    senderId: m.senderId,
-                    receiverId: m.receiverId,
-                    content: m.content,
-                    sentAtUtc: m.sentAtUtc,
-                    fromSelf: m.senderId !== currentPeer.userId ? true : false
-                });
+        connection.on('ReceiveMessage', (msg) => {
+            const friendId = friends.has(msg.senderId) ? msg.senderId : msg.receiverId;
+            if (!friendId) {
+                return;
             }
+
+            const normalized = {
+                id: msg.id,
+                senderId: msg.senderId,
+                receiverId: msg.receiverId,
+                content: msg.content,
+                sentAtUtc: msg.sentAtUtc,
+                fromSelf: msg.senderId !== friendId,
+                isRead: msg.isRead,
+                readAtUtc: msg.readAtUtc
+            };
+            addIncomingMessage(friendId, normalized);
         });
 
-        try { await connection.start(); } catch { /* ignore */ }
+        connection.on('MessagesRead', handleMessagesRead);
+
+        try {
+            await connection.start();
+        } catch (err) {
+            console.error('Chat connection failed to start.', err);
+        }
     }
 
-    // expose helpers for dashboard actions
     window.bgpChat = {
-        open: openChat,
-        openWithMessage: async (userId, displayName, message) => {
-            await openChat(userId, displayName);
-            if (message) {
-                msgInput.value = message;
-                msgInput.focus();
+        open: (userId, displayName) => {
+            togglePanel(false);
+            const friend = friends.get(userId) || {
+                userId,
+                displayName,
+                avatarUrl: null,
+                statusMessage: '',
+                presence: 0,
+                isInvisible: false,
+                unreadCount: 0
+            };
+            if (!friends.has(userId)) {
+                friends.set(userId, friend);
+            }
+            ensureConversation(userId);
+        },
+        openWithMessage: async (userId, displayName, presetMessage) => {
+            window.bgpChat.open(userId, displayName);
+            const conversation = conversations.get(userId);
+            if (conversation && presetMessage) {
+                conversation.input.value = presetMessage;
+                conversation.input.focus();
             }
         }
     };
 
-    // start
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            conversations.forEach((_, friendId) => markThreadRead(friendId));
+        }
+    });
+
     loadFriends();
-    startSignalR();
+    startConnection();
 })();

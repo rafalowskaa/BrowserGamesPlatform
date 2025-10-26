@@ -8,7 +8,9 @@ public record ChatMessageDto(
     string ReceiverName,
     string Content,
     DateTime SentAtUtc,
-    bool FromSelf);
+    bool FromSelf,
+    bool IsRead,
+    DateTime? ReadAtUtc);
 
 public class SendMessageRequest
 {

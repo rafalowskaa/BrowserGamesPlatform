@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using System.Linq;
 using Bgp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -75,11 +76,51 @@ public class ChatHub : Hub
             senderName,
             receiverName = string.IsNullOrWhiteSpace(receiverName) ? string.Empty : receiverName,
             content = m.Content,
-            sentAtUtc = m.SentAtUtc
+            sentAtUtc = m.SentAtUtc,
+            isRead = m.IsRead,
+            readAtUtc = m.ReadAtUtc
         };
 
         // Wyślij do obu stron (grupy per użytkownik)
         await Clients.Group($"user-{toUserId}").SendAsync("ReceiveMessage", dto);
         await Clients.Group($"user-{UserId}").SendAsync("ReceiveMessage", dto);
+    }
+
+    public async Task MarkThreadRead(string otherUserId)
+    {
+        if (UserId is null)
+        {
+            throw new HubException("Unauthorized");
+        }
+
+        var unread = await _db.ChatMessages
+            .Where(m => m.SenderId == otherUserId && m.ReceiverId == UserId && !m.IsRead)
+            .ToListAsync();
+
+        if (unread.Count == 0)
+        {
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+
+        foreach (var message in unread)
+        {
+            message.IsRead = true;
+            message.ReadAtUtc = now;
+        }
+
+        await _db.SaveChangesAsync();
+
+        var payload = new
+        {
+            userId = UserId,
+            peerId = otherUserId,
+            messageIds = unread.Select(m => m.Id).ToArray(),
+            readAtUtc = now
+        };
+
+        await Clients.Group($"user-{otherUserId}").SendAsync("MessagesRead", payload);
+        await Clients.Group($"user-{UserId}").SendAsync("MessagesRead", payload);
     }
 }

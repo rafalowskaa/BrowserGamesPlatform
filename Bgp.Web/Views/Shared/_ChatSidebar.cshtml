@@ -1,30 +1,72 @@
-﻿@* Prosty panel czatu wysuwany z prawej *@
-<aside id="chatSidebar" class="chat-sidebar">
-    <div class="chat-header">
-        <strong>@L["Chat_Title"].Value</strong>
-        <button id="chatClose" class="btn-icon" title="@L["Chat_Close"].Value">✕</button>
-    </div>
-    <div class="chat-search">
-        <input id="chatSearch" placeholder="@L["Chat_SearchPlaceholder"].Value" />
-    </div>
+﻿@using System.Text.Json
+@{
+    var chatStrings = new
+    {
+        readReceipt = L["Chat_ReadReceipt"].Value,
+        readReceiptLabel = L["Chat_ReadReceipt_Label"].Value,
+        statusAvailable = L["Chat_Status_Available"].Value,
+        statusUnavailable = L["Chat_Status_Unavailable"].Value,
+        statusInvisible = L["Chat_Status_Invisible"].Value,
+        statusUnknown = L["Chat_Status_Unknown"].Value,
+        newMessage = L["Chat_NewMessage_Notification"].Value,
+        accept = L["Chat_Request_Accept"].Value,
+        decline = L["Chat_Request_Decline"].Value,
+        pendingOutgoing = L["Chat_Request_Pending"].Value,
+        noFriends = L["Chat_NoFriends"].Value,
+        noInvites = L["Chat_NoInvites"].Value,
+        noMatches = L["Chat_NoMatches"].Value,
+        minimize = L["Chat_Minimize"].Value,
+        restore = L["Chat_Restore"].Value,
+        close = L["Chat_CloseWindow"].Value,
+        writePlaceholder = L["Chat_WriteMessage"].Value,
+        send = L["Chat_Send"].Value
+    };
+}
 
-    <div class="chat-content">
-        <div class="chat-lists">
-            <h4>@L["Chat_Friends"].Value</h4>
-            <ul id="friendsList" class="list"></ul>
+<div id="chatDock" class="chat-dock">
+    <button id="chatToggle"
+            class="chat-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="chatPanel"
+            title="@L["Chat_Open"].Value">
+        <span class="chat-toggle__icon" aria-hidden="true">💬</span>
+        <span class="chat-toggle__badge" data-chat-unread hidden>0</span>
+        <span class="sr-only">@L["Chat_Open"].Value</span>
+    </button>
 
-            <h4>@L["Chat_Invites"].Value</h4>
+    <div id="chatPanel" class="chat-panel" hidden>
+        <header class="chat-panel__header">
+            <strong>@L["Chat_Title"].Value</strong>
+            <button type="button"
+                    class="btn-icon"
+                    data-chat-close
+                    aria-label="@L["Chat_Close"].Value">
+                ✕
+            </button>
+        </header>
+        <div class="chat-panel__search">
+            <input id="chatSearch"
+                   data-chat-search
+                   placeholder="@L["Chat_SearchPlaceholder"].Value"
+                   autocomplete="off" />
         </div>
 
-        <div class="chat-thread">
-            <div id="threadHeader" class="thread-header"></div>
-            <div id="threadBody" class="thread-body"></div>
-            <div class="thread-input">
-                <input id="msgInput" placeholder="@L["Chat_WriteMessage"].Value" />
-                <button id="msgSend" class="btn-primary">@L["Chat_Send"].Value</button>
-            </div>
+        <div class="chat-panel__body">
+            <section class="chat-panel__section">
+                <h4>@L["Chat_Friends"].Value</h4>
+                <ul class="chat-contacts" data-chat-friends></ul>
+                <p class="chat-empty" data-chat-friends-empty>@L["Chat_NoFriends"].Value</p>
+            </section>
+            <section class="chat-panel__section">
+                <h4>@L["Chat_Invites"].Value</h4>
+                <ul class="chat-requests" data-chat-requests></ul>
+                <p class="chat-empty" data-chat-requests-empty>@L["Chat_NoInvites"].Value</p>
+            </section>
         </div>
     </div>
-</aside>
 
-<button id="chatToggle" class="chat-toggle" title="@L["Chat_Open"].Value">💬</button>
+    <div class="chat-windows" data-chat-windows></div>
+</div>
+
+<script type="application/json" id="chatStrings">@Html.Raw(JsonSerializer.Serialize(chatStrings))</script>

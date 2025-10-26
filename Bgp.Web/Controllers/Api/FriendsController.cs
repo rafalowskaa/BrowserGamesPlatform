@@ -57,15 +57,33 @@ public class FriendsController : ControllerBase
             .ToList();
 
         var profileLookup = allIds.Count == 0
-            ? new Dictionary<string, (string? DisplayName, string? Email, string? UserName, string? AvatarUrl)>()
+            ? new Dictionary<string, (string? DisplayName, string? Email, string? UserName, string? AvatarUrl, string? StatusMessage, UserPresenceStatus Presence, bool IsInvisible)>()
             : (await _db.Users
                 .AsNoTracking()
                 .Where(u => allIds.Contains(u.Id))
-                .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName, u.AvatarUrl })
+                .Select(u => new
+                {
+                    u.Id,
+                    u.DisplayName,
+                    u.Email,
+                    u.UserName,
+                    u.AvatarUrl,
+                    u.StatusMessage,
+                    u.PresenceStatus,
+                    u.IsInvisible
+                })
                 .ToListAsync())
-                .ToDictionary(u => u.Id, u => (u.DisplayName, u.Email, u.UserName, u.AvatarUrl));
+                .ToDictionary(u => u.Id, u => (u.DisplayName, u.Email, u.UserName, u.AvatarUrl, u.StatusMessage, u.PresenceStatus, u.IsInvisible));
 
         var rankLookup = await BuildRankSnapshotsAsync(friendIds);
+
+        var unreadLookup = friendIds.Count == 0
+            ? new Dictionary<string, int>()
+            : await _db.ChatMessages
+                .Where(m => m.ReceiverId == uid && friendIds.Contains(m.SenderId) && !m.IsRead)
+                .GroupBy(m => m.SenderId)
+                .Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.Key, g => g.Count);
 
         string ResolveName(string id)
         {
@@ -78,6 +96,18 @@ public class FriendsController : ControllerBase
         }
 
         string? ResolveAvatar(string id) => profileLookup.TryGetValue(id, out var profile) ? profile.AvatarUrl : null;
+
+        string? ResolveStatusMessage(string id) => profileLookup.TryGetValue(id, out var profile)
+            ? NormalizeStatus(profile.StatusMessage)
+            : null;
+
+        UserPresenceStatus ResolvePresence(string id) => profileLookup.TryGetValue(id, out var profile)
+            ? profile.Presence
+            : UserPresenceStatus.Available;
+
+        bool ResolveInvisible(string id) => profileLookup.TryGetValue(id, out var profile) && profile.IsInvisible;
+
+        int ResolveUnread(string id) => unreadLookup.TryGetValue(id, out var count) ? count : 0;
 
         RankSnapshot ResolveRank(string id)
         {
@@ -93,7 +123,18 @@ public class FriendsController : ControllerBase
             .Select(id =>
             {
                 var rank = ResolveRank(id);
-                return new FriendDto(id, ResolveName(id), rank.Title, ResolveAvatar(id), rank.AccentColor, FriendshipStatus.Accepted, false);
+                return new FriendDto(
+                    id,
+                    ResolveName(id),
+                    rank.Title,
+                    ResolveAvatar(id),
+                    rank.AccentColor,
+                    FriendshipStatus.Accepted,
+                    false,
+                    ResolveStatusMessage(id),
+                    ResolvePresence(id),
+                    ResolveInvisible(id),
+                    ResolveUnread(id));
             })
             .ToList();
 
@@ -101,7 +142,18 @@ public class FriendsController : ControllerBase
             .Select(id =>
             {
                 var rank = ResolveRank(id);
-                return new FriendDto(id, ResolveName(id), rank.Title, ResolveAvatar(id), rank.AccentColor, FriendshipStatus.Pending, true);
+                return new FriendDto(
+                    id,
+                    ResolveName(id),
+                    rank.Title,
+                    ResolveAvatar(id),
+                    rank.AccentColor,
+                    FriendshipStatus.Pending,
+                    true,
+                    ResolveStatusMessage(id),
+                    ResolvePresence(id),
+                    ResolveInvisible(id),
+                    0);
             })
             .ToList();
 
@@ -109,11 +161,33 @@ public class FriendsController : ControllerBase
             .Select(id =>
             {
                 var rank = ResolveRank(id);
-                return new FriendDto(id, ResolveName(id), rank.Title, ResolveAvatar(id), rank.AccentColor, FriendshipStatus.Pending, false);
+                return new FriendDto(
+                    id,
+                    ResolveName(id),
+                    rank.Title,
+                    ResolveAvatar(id),
+                    rank.AccentColor,
+                    FriendshipStatus.Pending,
+                    false,
+                    ResolveStatusMessage(id),
+                    ResolvePresence(id),
+                    ResolveInvisible(id),
+                    0);
             })
             .ToList();
 
         return Ok(acceptedDtos.Concat(outgoingDtos).Concat(incomingDtos));
+
+        static string? NormalizeStatus(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            var trimmed = value.Trim();
+            return string.IsNullOrEmpty(trimmed) ? null : trimmed;
+        }
     }
 
     [HttpGet("search")]
