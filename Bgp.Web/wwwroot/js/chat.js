@@ -99,6 +99,84 @@
         console.warn('Unable to parse chat strings.', err);
     }
 
+    function normalizeId(id) {
+        return typeof id === 'string' ? id.trim().toLowerCase() : '';
+    }
+
+    function getFriend(id) {
+        return friends.get(normalizeId(id));
+    }
+
+    function setFriend(friend) {
+        friends.set(normalizeId(friend.userId), friend);
+    }
+
+    function hasFriend(id) {
+        return friends.has(normalizeId(id));
+    }
+
+    function getConversation(id) {
+        return conversations.get(normalizeId(id));
+    }
+
+    function setConversation(id, conversation) {
+        conversations.set(normalizeId(id), conversation);
+    }
+
+    function deleteConversation(id) {
+        conversations.delete(normalizeId(id));
+    }
+
+    function getPendingMessages(id, createIfMissing) {
+        const key = normalizeId(id);
+        if (!pendingMessages.has(key) && createIfMissing) {
+            pendingMessages.set(key, []);
+        }
+        return pendingMessages.get(key) || null;
+    }
+
+    function deletePendingMessages(id) {
+        pendingMessages.delete(normalizeId(id));
+    }
+
+    function setPendingOutgoing(id, value) {
+        pendingOutgoing.set(normalizeId(id), value);
+    }
+
+    function getPendingOutgoing(id) {
+        return pendingOutgoing.get(normalizeId(id));
+    }
+
+    function deletePendingOutgoing(id) {
+        pendingOutgoing.delete(normalizeId(id));
+    }
+
+    function getPendingPresence(id) {
+        return pendingPresence.get(normalizeId(id));
+    }
+
+    function setPendingPresence(id, value) {
+        pendingPresence.set(normalizeId(id), value);
+    }
+
+    function deletePendingPresence(id) {
+        pendingPresence.delete(normalizeId(id));
+    }
+
+    function getStrangerContact(id) {
+        return strangerContacts.get(normalizeId(id));
+    }
+
+    function setStrangerContact(id, contact) {
+        strangerContacts.set(normalizeId(id), contact);
+    }
+
+    function deleteStrangerContact(id) {
+        strangerContacts.delete(normalizeId(id));
+    }
+
+    const currentUserKey = normalizeId(currentUserId);
+
     function presenceLabelFromValues(presence, isInvisible) {
         if (isInvisible) {
             return strings.statusInvisible;
@@ -375,7 +453,7 @@
         if (!friend.isInvisible && friend.presence === PRESENCE_AVAILABLE) {
             return 0;
         }
-        if (!friend.isInvisible && friend.presence === PRESENCE_AVAILABLE) {
+        if (!friend.isInvisible && friend.presence === PRESENCE_AWAY) {
             return 1;
         }
         if (friend.isInvisible) {
@@ -411,21 +489,20 @@
         if (!snapshot) {
             return;
         }
-        const friend = friends.get(friendId);
+        const friend = getFriend(friendId);
         if (!friend) {
-            pendingPresence.set(friendId, snapshot);
+            setPendingPresence(friendId, snapshot);
             return;
         }
         friend.statusMessage = snapshot.statusMessage;
         friend.presence = snapshot.presence;
         friend.isInvisible = snapshot.isInvisible;
         updateFriendVisual(friend);
-        conversations.forEach((conversation) => {
-            if (conversation.friendId === friendId) {
-                updateConversationHeader(conversation);
-            }
-        });
-        pendingPresence.delete(friendId);
+        const conversation = getConversation(friendId);
+        if (conversation) {
+            updateConversationHeader(conversation);
+        }
+        deletePendingPresence(friendId);
     }
 
     function applyPendingPresence() {
@@ -445,26 +522,28 @@
     }
 
     function queuePendingMessage(friendId, message) {
-        if (!pendingMessages.has(friendId)) {
-            pendingMessages.set(friendId, []);
+        const queue = getPendingMessages(friendId, true);
+        if (queue) {
+            queue.push(message);
         }
-        pendingMessages.get(friendId).push(message);
     }
 
     function flushPendingMessages(friendId) {
-        const queued = pendingMessages.get(friendId);
-        if (!queued || !friends.has(friendId)) {
+        const queued = getPendingMessages(friendId, false);
+        if (!queued || !hasFriend(friendId)) {
             return;
         }
         queued.forEach((msg) => addIncomingMessage(friendId, msg));
-        pendingMessages.delete(friendId);
+        deletePendingMessages(friendId);
     }
 
     function getPendingQueue(friendId, create) {
-        if (!pendingOutgoing.has(friendId) && create) {
-            pendingOutgoing.set(friendId, []);
+        let queue = getPendingOutgoing(friendId);
+        if (!queue && create) {
+            queue = [];
+            setPendingOutgoing(friendId, queue);
         }
-        return pendingOutgoing.get(friendId) || null;
+        return queue || null;
     }
 
     function getMessageMeta(message, fromSelf) {
@@ -514,7 +593,7 @@
         }
         const pendingId = queue.shift();
         if (queue.length === 0) {
-            pendingOutgoing.delete(conversation.friendId);
+            deletePendingOutgoing(conversation.friendId);
         }
         const entry = conversation.messages.get(pendingId);
         if (!entry) {
@@ -539,9 +618,9 @@
         }
 
         const friendId = friendHint
-            || (friends.has(raw.senderId)
+            || (hasFriend(raw.senderId)
                 ? raw.senderId
-                : (friends.has(raw.receiverId)
+            : (hasFriend(raw.receiverId)
                     ? raw.receiverId
                     : (raw.senderId === currentUserId ? raw.receiverId : raw.senderId)));
 
@@ -562,7 +641,7 @@
             readAtUtc: raw.readAtUtc
         };
 
-        if (!friends.has(friendId)) {
+        if (!hasFriend(friendId)) {
             queuePendingMessage(friendId, normalized);
             ensureFriendLoaded(friendId, normalized).then((friend) => {
                 if (friend) {
@@ -572,7 +651,7 @@
             return;
         }
 
-        const conversation = conversations.get(friendId);
+        const conversation = getConversation(friendId);
         if (conversation && resolvePendingMessage(conversation, normalized)) {
             return;
         }
@@ -707,7 +786,7 @@
                 queue.splice(index, 1);
             }
             if (queue.length === 0) {
-                pendingOutgoing.delete(conversation.friendId);
+                deletePendingOutgoing(conversation.friendId);
             }
         }
         const entry = conversation.messages.get(pendingId);
@@ -785,11 +864,11 @@
         if (!friend || !strangersList) {
             return;
         }
-        let contact = strangerContacts.get(friend.userId);
+        let contact = getStrangerContact(friend.userId);
         if (!contact) {
             const element = createFriendElement(friend, { ghost: true });
             contact = { element };
-            strangerContacts.set(friend.userId, contact);
+            setStrangerContact(friend.userId, contact);
         }
         friend.element = contact.element;
         friend.isFriend = false;
@@ -800,11 +879,11 @@
     }
 
     function removeStrangerContact(friendId) {
-        const contact = strangerContacts.get(friendId);
+        const contact = getStrangerContact(friendId);
         if (contact && contact.element) {
             contact.element.remove();
         }
-        strangerContacts.delete(friendId);
+        deleteStrangerContact(friendId);
         updateStrangerEmptyState();
     }
 
@@ -850,7 +929,7 @@
             if (!identifier) {
                 return;
             }
-            const existing = friends.get(identifier);
+            const existing = getFriend(identifier);
             if (existing) {
                 if (!existing.isFriend) {
                     ensureStrangerContact(existing);
@@ -996,7 +1075,7 @@
     }
 
     function updateConversationHeader(conversation) {
-        const friend = friends.get(conversation.friendId);
+        const friend = getFriend(conversation.friendId);
         if (!friend) return;
         if (conversation.nameEl) {
             conversation.nameEl.textContent = friend.displayName;
@@ -1063,16 +1142,16 @@
     }
 
     async function ensureFriendLoaded(friendId, message) {
-        if (friends.has(friendId)) {
-            return friends.get(friendId);
+        if (hasFriend(friendId)) {
+            return getFriend(friendId);
         }
         try {
             await loadFriends();
         } catch (err) {
             console.error('Friend list refresh failed.', err);
         }
-        if (friends.has(friendId)) {
-            return friends.get(friendId);
+        if (hasFriend(friendId)) {
+            return getFriend(friendId);
         }
         if (!message) {
             return null;
@@ -1090,7 +1169,7 @@
             unreadCount: 0,
             isFriend: false
         };
-        friends.set(friendId, friend);
+        setFriend(friend);
         if (friend.isFriend && friendsList) {
             friendsList.appendChild(createFriendElement(friend));
             applyFriendFilter();
@@ -1212,15 +1291,15 @@
     }
 
     function ensureConversation(friendId, options = {}) {
-        let conversation = conversations.get(friendId);
-        const friend = friends.get(friendId);
+        let conversation = getConversation(friendId);
+        const friend = getFriend(friendId);
         if (!friend) {
             return null;
         }
 
         if (!conversation) {
             conversation = createConversation(friend, options);
-            conversations.set(friendId, conversation);
+            setConversation(friend.userId, conversation);
         }
 
         if (windowsContainer) {
@@ -1330,7 +1409,7 @@
         closeBtn.addEventListener('click', (evt) => {
             evt.stopPropagation();
             element.remove();
-            conversations.delete(friend.userId);
+            deleteConversation(friend.userId);
         });
 
         header.addEventListener('click', (evt) => {
@@ -1472,7 +1551,7 @@
     }
 
     function addIncomingMessage(friendId, message) {
-        const friend = friends.get(friendId);
+        const friend = getFriend(friendId);
         if (!friend) {
             return;
         }
@@ -1484,7 +1563,15 @@
             return;
         }
         renderMessage(conversation, message);
-        if (!message.fromSelf) {
+        const senderMatchesFriend = typeof message.senderId === 'string'
+            ? normalizeId(message.senderId) === normalizeId(friend.userId)
+            : !message.fromSelf;
+        const receiverMatchesSelf = typeof message.receiverId === 'string'
+            ? !currentUserKey || normalizeId(message.receiverId) === currentUserKey
+            : true;
+        const shouldFlagUnread = !message.fromSelf && senderMatchesFriend && receiverMatchesSelf;
+
+        if (shouldFlagUnread) {
             if (isConversationActive(conversation)) {
                 markThreadRead(friendId);
             } else {
@@ -1501,9 +1588,9 @@
     }
 
     function handleMessagesRead(payload) {
-        const friendId = friends.has(payload.userId) ? payload.userId : (friends.has(payload.peerId) ? payload.peerId : null);
+        const friendId = hasFriend(payload.userId) ? payload.userId : (hasFriend(payload.peerId) ? payload.peerId : null);
         if (!friendId) return;
-        const conversation = conversations.get(friendId);
+        const conversation = getConversation(friendId);
         if (!conversation) return;
         payload.messageIds.forEach((id) => {
             const entry = conversation.messages.get(id);
@@ -1516,12 +1603,12 @@
     }
 
     function markThreadRead(friendId) {
-        const friend = friends.get(friendId);
+        const friend = getFriend(friendId);
         if (!friend) return;
         friend.unreadCount = 0;
         updateFriendVisual(friend);
         updateUnreadBadge();
-        const conversation = conversations.get(friendId);
+        const conversation = getConversation(friend.userId);
         if (conversation) {
             conversation.element.classList.remove('chat-window--attention');
         }
@@ -1529,7 +1616,7 @@
             if (!conn || conn.state !== 'Connected') {
                 return;
             }
-            conn.invoke('MarkThreadRead', friendId).catch(() => { /* ignore */ });
+            conn.invoke('MarkThreadRead', friend.userId).catch(() => { /* ignore */ });
         });
     }
 
@@ -1549,7 +1636,7 @@
             const previousUnread = new Map();
             const preservedStrangers = [];
             friends.forEach((friend) => {
-                previousUnread.set(friend.userId, friend.unreadCount || 0);
+                previousUnread.set(normalizeId(friend.userId), friend.unreadCount || 0);
                 if (friend && friend.isFriend === false) {
                     preservedStrangers.push(friend);
                 }
@@ -1575,10 +1662,10 @@
                             statusMessage: row.statusMessage,
                             presence: normalizePresence(row.presence),
                             isInvisible: !!row.isInvisible,
-                            unreadCount: previousUnread.get(row.userId) || row.unreadCount || 0,
+                            unreadCount: previousUnread.get(normalizeId(row.userId)) || row.unreadCount || 0,
                             isFriend: true
                         };
-                        friends.set(row.userId, friend);
+                        setFriend(friend);
                         accepted.push(friend);
                     } else if (row.status === 0 && row.outgoingRequest) {
                         outgoing.push(row);
@@ -1590,23 +1677,23 @@
                 renderFriends(accepted);
                 renderRequests(incoming, outgoing);
                 preservedStrangers.forEach((stranger) => {
-                    if (friends.has(stranger.userId)) {
+                    if (hasFriend(stranger.userId)) {
                         removeStrangerContact(stranger.userId);
                         return;
                     }
-                    stranger.unreadCount = previousUnread.get(stranger.userId) || stranger.unreadCount || 0;
+                    stranger.unreadCount = previousUnread.get(normalizeId(stranger.userId)) || stranger.unreadCount || 0;
                     stranger.isFriend = false;
-                    friends.set(stranger.userId, stranger);
+                    setFriend(stranger);
                     ensureStrangerContact(stranger);
                     flushPendingMessages(stranger.userId);
                 });
                 applyPendingPresence();
                 conversations.forEach((conversation, id) => {
-                    if (friends.has(id)) {
+                    if (hasFriend(id)) {
                         updateConversationHeader(conversation);
                     } else {
                         conversation.element.remove();
-                        conversations.delete(id);
+                        deleteConversation(id);
                     }
                 });
             } catch (err) {
@@ -1735,7 +1822,7 @@
     window.bgpChat = {
         open: (userId, displayName) => {
             togglePanel(true);
-            let friend = friends.get(userId);
+            let friend = getFriend(userId);
             if (!friend) {
                 friend = {
                     userId,
@@ -1747,26 +1834,27 @@
                     unreadCount: 0,
                     isFriend: false
                 };
-                friends.set(userId, friend);
+                setFriend(friend);
                 ensureStrangerContact(friend);
             }
             if (displayName && displayName.trim() && friend.displayName !== displayName) {
                 friend.displayName = displayName;
                 updateFriendVisual(friend);
-                const conversation = conversations.get(userId);
+                const conversation = getConversation(userId);
                 if (conversation) {
                     updateConversationHeader(conversation);
                 }
             }
 
-            if (pendingPresence.has(userId)) {
-                applyPresenceSnapshot(userId, pendingPresence.get(userId));
+            const pending = getPendingPresence(userId);
+            if (pending) {
+                applyPresenceSnapshot(userId, pending);
             }
             ensureConversation(userId, { focus: true, autoRead: true });
         },
         openWithMessage: async (userId, displayName, presetMessage) => {
             window.bgpChat.open(userId, displayName);
-            const conversation = conversations.get(userId);
+            const conversation = getConversation(userId);
             if (conversation && presetMessage) {
                 conversation.input.value = presetMessage;
                 conversation.input.focus();
