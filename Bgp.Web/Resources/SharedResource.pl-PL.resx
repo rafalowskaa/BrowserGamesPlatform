@@ -762,9 +762,13 @@
 		<value>Odczytano</value>
 	</data>
 
+	<data name="Chat_Receipt_Delivered" xml:space="preserve">
+                <value>Dostarczono</value>
+        </data>
+
 	<data name="Chat_Status_Available" xml:space="preserve">
-		<value>Dostępny</value>
-	</data>
+                <value>Dostępny</value>
+        </data>
 
 	<data name="Chat_Status_Unavailable" xml:space="preserve">
 		<value>Niedostępny</value>

@@ -762,6 +762,9 @@
 	<data name="Chat_ReadReceipt_Label" xml:space="preserve">
           <value>Read</value>
       </data>
+	<data name="Chat_Receipt_Delivered" xml:space="preserve">
+          <value>Delivered</value>
+      </data>
 	<data name="Chat_Request_Accept" xml:space="preserve">
           <value>Accept</value>
       </data>

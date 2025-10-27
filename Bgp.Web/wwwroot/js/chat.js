@@ -31,7 +31,9 @@
 
     const friends = new Map();
     const conversations = new Map();
+    const pendingMessages = new Map();
     let connection = null;
+    let loadFriendsPromise = null;
     let connectionPromise = null;
     let searchTerm = '';
     let statusDirty = false;
@@ -61,7 +63,8 @@
         restore: 'Restore chat window',
         close: 'Close chat window',
         writePlaceholder: 'Write a message…',
-        send: 'Send'
+        send: 'Send',
+        deliveredReceiptLabel: 'Delivered'
     };
 
     try {
@@ -287,6 +290,19 @@
         return presenceLabelFromValues(friend.presence, friend.isInvisible);
     }
 
+    function presencePriority(friend) {
+        if (!friend.isInvisible && friend.presence === 0) {
+            return 0;
+        }
+        if (!friend.isInvisible && friend.presence === 1) {
+            return 1;
+        }
+        if (friend.isInvisible) {
+            return 2;
+        }
+        return 3;
+    }
+
     function getStatusLine(friend) {
         if (friend.statusMessage) {
             return friend.statusMessage;
@@ -351,6 +367,22 @@
         }
     }
 
+    function queuePendingMessage(friendId, message) {
+        if (!pendingMessages.has(friendId)) {
+            pendingMessages.set(friendId, []);
+        }
+        pendingMessages.get(friendId).push(message);
+    }
+
+    function flushPendingMessages(friendId) {
+        const queued = pendingMessages.get(friendId);
+        if (!queued || !friends.has(friendId)) {
+            return;
+        }
+        queued.forEach((msg) => addIncomingMessage(friendId, msg));
+        pendingMessages.delete(friendId);
+    }
+
     function applyFriendFilter() {
         let visible = 0;
         friends.forEach((friend) => {
@@ -400,7 +432,7 @@
     }
 
     function openConversation(friendId) {
-        ensureConversation(friendId);
+        ensureConversation(friendId, { focus: true, autoRead: true });
     }
 
     function createFriendElement(friend) {
@@ -448,15 +480,64 @@
         return li;
     }
 
+    async function ensureFriendLoaded(friendId, message) {
+        if (friends.has(friendId)) {
+            return friends.get(friendId);
+        }
+        try {
+            await loadFriends();
+        } catch (err) {
+            console.error('Friend list refresh failed.', err);
+        }
+        if (friends.has(friendId)) {
+            return friends.get(friendId);
+        }
+        if (!message) {
+            return null;
+        }
+        const fallbackName = message.senderId === friendId
+            ? (message.senderName || message.senderId)
+            : (message.receiverName || message.receiverId);
+        const friend = {
+            userId: friendId,
+            displayName: fallbackName,
+            avatarUrl: null,
+            statusMessage: '',
+            presence: 2,
+            isInvisible: false,
+            unreadCount: 0
+        };
+        friends.set(friendId, friend);
+        if (friendsList) {
+            friendsList.appendChild(createFriendElement(friend));
+            applyFriendFilter();
+            updateUnreadBadge();
+        }
+        applyPendingPresence();
+        return friend;
+    }
+
     function renderFriends(accepted) {
         if (!friendsList) return;
         friendsList.innerHTML = '';
-        accepted.forEach((friend) => {
+        const ordered = accepted.slice().sort((a, b) => {
+            const unreadDiff = (b.unreadCount || 0) - (a.unreadCount || 0);
+            if (unreadDiff !== 0) {
+                return unreadDiff;
+            }
+            const priorityDiff = presencePriority(a) - presencePriority(b);
+            if (priorityDiff !== 0) {
+                return priorityDiff;
+            }
+            return a.displayName.localeCompare(b.displayName);
+        });
+        ordered.forEach((friend) => {
             friendsList.appendChild(createFriendElement(friend));
         });
         applyFriendFilter();
         updateUnreadBadge();
         applyPendingPresence();
+        ordered.forEach((friend) => flushPendingMessages(friend.userId));
     }
 
     function renderRequests(incoming, outgoing) {
@@ -539,7 +620,7 @@
         }
     }
 
-    function ensureConversation(friendId) {
+    function ensureConversation(friendId, options = {}) {
         let conversation = conversations.get(friendId);
         const friend = friends.get(friendId);
         if (!friend) {
@@ -547,19 +628,25 @@
         }
 
         if (!conversation) {
-            conversation = createConversation(friend);
+            conversation = createConversation(friend, options);
             conversations.set(friendId, conversation);
         }
 
         conversation.element.classList.remove('chat-window--collapsed');
         windowsContainer.appendChild(conversation.element);
         updateConversationHeader(conversation);
-        markThreadRead(friendId);
-        conversation.input.focus();
+        const shouldAutoRead = options.autoRead === true;
+        const shouldFocus = options.focus !== false;
+        if (shouldAutoRead) {
+            markThreadRead(friendId);
+        }
+        if (shouldFocus && conversation.input) {
+            conversation.input.focus();
+        }
         return conversation;
     }
 
-    function createConversation(friend) {
+    function createConversation(friend, options = {}) {
         const element = document.createElement('section');
         element.className = 'chat-window';
         element.dataset.friendId = friend.userId;
@@ -712,14 +799,32 @@
         };
 
         updateConversationHeader(conversation);
-        loadHistory(conversation).catch((err) => console.error('Failed to load chat history.', err));
+        loadHistory(conversation, { markRead: options.autoRead === true })
+            .catch((err) => console.error('Failed to load chat history.', err));
 
         return conversation;
     }
 
-    function formatTime(value) {
-        if (!value) return '';
-        return new Date(value + 'Z').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    function toUtcDate(value) {
+        if (!value) return null;
+        if (value instanceof Date) {
+            return value;
+        }
+        const str = typeof value === 'string' && value.endsWith('Z') ? value : `${value}Z`;
+        const date = new Date(str);
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function formatDateTime(value) {
+        const date = toUtcDate(value);
+        if (!date) return '';
+        return date.toLocaleString([], {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     }
 
     function renderMessage(conversation, message) {
@@ -735,10 +840,14 @@
 
         const meta = document.createElement('div');
         meta.className = 'chat-message__meta';
-        const sentLabel = formatTime(message.sentAtUtc);
+        const sentLabel = formatDateTime(message.sentAtUtc);
         let label = sentLabel;
-        if (fromSelf && message.isRead && message.readAtUtc) {
-            label += ` · ${strings.readReceiptLabel} ${formatTime(message.readAtUtc)}`;
+        if (fromSelf) {
+            if (message.isRead && message.readAtUtc) {
+                label += ` · ${strings.readReceiptLabel} ${formatDateTime(message.readAtUtc)}`;
+            } else {
+                label += ` · ${strings.deliveredReceiptLabel}`;
+            }
         }
         meta.textContent = label;
         wrapper.appendChild(meta);
@@ -753,7 +862,7 @@
         conversation.body.scrollTop = conversation.body.scrollHeight;
     }
 
-    async function loadHistory(conversation) {
+    async function loadHistory(conversation, options = {}) {
         if (conversation.loaded) return;
         conversation.loaded = true;
         try {
@@ -763,7 +872,9 @@
             }
             const history = await res.json();
             history.forEach((msg) => renderMessage(conversation, msg));
-            markThreadRead(conversation.friendId);
+            if (options.markRead) {
+                markThreadRead(conversation.friendId);
+            }
         } catch (err) {
             console.error('Chat history failed.', err);
         }
@@ -774,16 +885,13 @@
         if (!friend) {
             return;
         }
-        const conversation = ensureConversation(friendId);
+        const conversation = ensureConversation(friendId, { focus: false, autoRead: false });
         renderMessage(conversation, message);
         if (!message.fromSelf) {
-            if (conversation.element.classList.contains('chat-window--collapsed') || document.visibilityState === 'hidden') {
-                friend.unreadCount = (friend.unreadCount || 0) + 1;
-                updateFriendVisual(friend);
-                updateUnreadBadge();
-            } else {
-                markThreadRead(friendId);
-            }
+            friend.unreadCount = (friend.unreadCount || 0) + 1;
+            updateFriendVisual(friend);
+            updateUnreadBadge();
+            conversation.element.classList.add('chat-window--attention');
         }
     }
 
@@ -797,8 +905,8 @@
             if (entry && entry.data) {
                 entry.data.isRead = true;
                 entry.data.readAtUtc = payload.readAtUtc;
-                const timeLabel = formatTime(entry.data.sentAtUtc);
-                const readLabel = formatTime(payload.readAtUtc);
+                const timeLabel = formatDateTime(entry.data.sentAtUtc);
+                const readLabel = formatDateTime(payload.readAtUtc);
                 entry.meta.textContent = `${timeLabel} · ${strings.readReceiptLabel} ${readLabel}`;
             }
         });
@@ -810,6 +918,10 @@
         friend.unreadCount = 0;
         updateFriendVisual(friend);
         updateUnreadBadge();
+        const conversation = conversations.get(friendId);
+        if (conversation) {
+            conversation.element.classList.remove('chat-window--attention');
+        }
         ensureConnectionStarted().then((conn) => {
             if (!conn || conn.state !== 'Connected') {
                 return;
@@ -819,66 +931,78 @@
     }
 
     async function loadFriends() {
-        if (friendsList) {
-            friendsList.innerHTML = '';
-        }
-        if (requestsList) {
-            requestsList.innerHTML = '';
+        if (loadFriendsPromise) {
+            return loadFriendsPromise;
         }
 
-        const previousUnread = new Map();
-        friends.forEach((friend) => {
-            previousUnread.set(friend.userId, friend.unreadCount || 0);
-        });
+        loadFriendsPromise = (async () => {
+            if (friendsList) {
+                friendsList.innerHTML = '';
+            }
+            if (requestsList) {
+                requestsList.innerHTML = '';
+            }
 
-        friends.clear();
+            const previousUnread = new Map();
+            friends.forEach((friend) => {
+                previousUnread.set(friend.userId, friend.unreadCount || 0);
+            });
+
+            friends.clear();
+
+            try {
+                const res = await fetch('/api/friends');
+                if (!res.ok) {
+                    throw new Error('Request failed');
+                }
+                const data = await res.json();
+                const accepted = [];
+                const incoming = [];
+                const outgoing = [];
+                data.forEach((row) => {
+                    if (row.status === 1) {
+                        const friend = {
+                            userId: row.userId,
+                            displayName: row.displayName,
+                            avatarUrl: row.avatarUrl,
+                            statusMessage: row.statusMessage,
+                            presence: typeof row.presence === 'number' ? row.presence : parseInt(row.presence, 10) || 0,
+                            isInvisible: !!row.isInvisible,
+                            unreadCount: previousUnread.get(row.userId) || row.unreadCount || 0
+                        };
+                        friends.set(row.userId, friend);
+                        accepted.push(friend);
+                    } else if (row.status === 0 && row.outgoingRequest) {
+                        outgoing.push(row);
+                    } else if (row.status === 0) {
+                        incoming.push(row);
+                    }
+                });
+
+                renderFriends(accepted);
+                renderRequests(incoming, outgoing);
+                conversations.forEach((conversation, id) => {
+                    if (friends.has(id)) {
+                        updateConversationHeader(conversation);
+                    } else {
+                        conversation.element.remove();
+                        conversations.delete(id);
+                    }
+                });
+            } catch (err) {
+                console.error('Failed to load friends.', err);
+                if (friendsEmpty) {
+                    friendsEmpty.textContent = strings.noFriends;
+                    friendsEmpty.style.display = 'block';
+                }
+            
+            }
+        })();
 
         try {
-            const res = await fetch('/api/friends');
-            if (!res.ok) {
-                throw new Error('Request failed');
-            }
-            const data = await res.json();
-            const accepted = [];
-            const incoming = [];
-            const outgoing = [];
-            data.forEach((row) => {
-                if (row.status === 1) {
-                    const friend = {
-                        userId: row.userId,
-                        displayName: row.displayName,
-                        avatarUrl: row.avatarUrl,
-                        statusMessage: row.statusMessage,
-                        presence: typeof row.presence === 'number' ? row.presence : parseInt(row.presence, 10) || 0,
-                        isInvisible: !!row.isInvisible,
-                        unreadCount: previousUnread.get(row.userId) || row.unreadCount || 0
-                    };
-                    friends.set(row.userId, friend);
-                    accepted.push(friend);
-                } else if (row.status === 0 && row.outgoingRequest) {
-                    outgoing.push(row);
-                } else if (row.status === 0) {
-                    incoming.push(row);
-                }
-            });
-
-            accepted.sort((a, b) => a.displayName.localeCompare(b.displayName));
-            renderFriends(accepted);
-            renderRequests(incoming, outgoing);
-            conversations.forEach((conversation, id) => {
-                if (friends.has(id)) {
-                    updateConversationHeader(conversation);
-                } else {
-                    conversation.element.remove();
-                    conversations.delete(id);
-                }
-            });
-        } catch (err) {
-            console.error('Failed to load friends.', err);
-            if (friendsEmpty) {
-                friendsEmpty.textContent = strings.noFriends;
-                friendsEmpty.style.display = 'block';
-            }
+            await loadFriendsPromise;
+        } finally {
+            loadFriendsPromise = null;
         }
     }
 
@@ -905,7 +1029,11 @@
             .build();
 
         connection.on('ReceiveMessage', (msg) => {
-            const friendId = friends.has(msg.senderId) ? msg.senderId : msg.receiverId;
+            const friendId = friends.has(msg.senderId)
+                ? msg.senderId
+                : (friends.has(msg.receiverId)
+                    ? msg.receiverId
+                    : (msg.senderId === currentUserId ? msg.receiverId : msg.senderId));
             if (!friendId) {
                 return;
             }
@@ -914,12 +1042,25 @@
                 id: msg.id,
                 senderId: msg.senderId,
                 receiverId: msg.receiverId,
+                senderName: msg.senderName,
+                receiverName: msg.receiverName,
                 content: msg.content,
                 sentAtUtc: msg.sentAtUtc,
                 fromSelf: msg.senderId !== friendId,
                 isRead: msg.isRead,
                 readAtUtc: msg.readAtUtc
             };
+
+            if (!friends.has(friendId)) {
+                queuePendingMessage(friendId, normalized);
+                ensureFriendLoaded(friendId, normalized).then((friend) => {
+                    if (friend) {
+                        flushPendingMessages(friendId);
+                    }
+                });
+                return;
+            }
+
             addIncomingMessage(friendId, normalized);
         });
 
@@ -1006,7 +1147,7 @@
                     applyPresenceSnapshot(userId, pendingPresence.get(userId));
                 }
             }
-            ensureConversation(userId);
+            ensureConversation(userId, { focus: true, autoRead: true });
         },
         openWithMessage: async (userId, displayName, presetMessage) => {
             window.bgpChat.open(userId, displayName);

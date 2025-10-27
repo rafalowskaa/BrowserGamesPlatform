@@ -761,9 +761,13 @@
 		<value>Read</value>
 	</data>
 
+	<data name="Chat_Receipt_Delivered" xml:space="preserve">
+                <value>Delivered</value>
+        </data>
+
 	<data name="Chat_Status_Available" xml:space="preserve">
-		<value>Available</value>
-	</data>
+                <value>Available</value>
+        </data>
 
 	<data name="Chat_Status_Unavailable" xml:space="preserve">
 		<value>Busy</value>
