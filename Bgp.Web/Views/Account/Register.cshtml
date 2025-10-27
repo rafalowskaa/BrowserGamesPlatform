@@ -34,11 +34,29 @@
             <span asp-validation-for="Email" class="val"></span>
 
             <label for="RegisterPassword">@L["Auth_Register_Password"].Value</label>
-            <input asp-for="Password" id="RegisterPassword" type="password" autocomplete="new-password" />
+            <div class="password-field">
+                <input asp-for="Password" id="RegisterPassword" type="password" autocomplete="new-password" />
+                <button type="button"
+                        class="password-toggle"
+                        data-password-toggle="RegisterPassword"
+                        data-password-show="@L["Auth_Password_Show"].Value"
+                        data-password-hide="@L["Auth_Password_Hide"].Value">
+                    @L["Auth_Password_Show"].Value
+                </button>
+            </div>
             <span asp-validation-for="Password" class="val"></span>
 
             <label for="RegisterConfirm">@L["Auth_Register_ConfirmPassword"].Value</label>
-            <input asp-for="ConfirmPassword" id="RegisterConfirm" type="password" autocomplete="new-password" />
+            <div class="password-field">
+                <input asp-for="ConfirmPassword" id="RegisterConfirm" type="password" autocomplete="new-password" />
+                <button type="button"
+                        class="password-toggle"
+                        data-password-toggle="RegisterConfirm"
+                        data-password-show="@L["Auth_Password_Show"].Value"
+                        data-password-hide="@L["Auth_Password_Hide"].Value">
+                    @L["Auth_Password_Show"].Value
+                </button>
+            </div>
             <span asp-validation-for="ConfirmPassword" class="val"></span>
 
             <button class="btn-primary" type="submit">@L["Auth_Register_Create"].Value</button>

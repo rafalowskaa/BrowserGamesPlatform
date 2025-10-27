@@ -1,13 +1,19 @@
-﻿@using System.Text.Json
+﻿@using System.Security.Claims
+@using System.Text.Json
+@using Bgp.Domain.Enums
 @{
+    var currentUserId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
     var chatStrings = new
     {
         readReceipt = L["Chat_ReadReceipt"].Value,
         readReceiptLabel = L["Chat_ReadReceipt_Label"].Value,
         statusAvailable = L["Chat_Status_Available"].Value,
-        statusUnavailable = L["Chat_Status_Unavailable"].Value,
+        statusAway = L["Chat_Status_Away"].Value,
         statusInvisible = L["Chat_Status_Invisible"].Value,
-        statusUnknown = L["Chat_Status_Unknown"].Value,
+        statusOffline = L["Chat_Status_Offline"].Value,
+        statusUnknown = L["Chat_Status_Offline"].Value,
+        statusSaved = L["Chat_Status_Saved"].Value,
+        statusError = L["Chat_Status_Error"].Value,
         newMessage = L["Chat_NewMessage_Notification"].Value,
         accept = L["Chat_Request_Accept"].Value,
         decline = L["Chat_Request_Decline"].Value,
@@ -23,7 +29,7 @@
     };
 }
 
-<div id="chatDock" class="chat-dock">
+<div id="chatDock" class="chat-dock" data-chat-user="@currentUserId">
     <button id="chatToggle"
             class="chat-toggle"
             type="button"
@@ -53,6 +59,32 @@
         </div>
 
         <div class="chat-panel__body">
+            <section class="chat-panel__section chat-panel__section--status">
+                <h4>@L["Chat_Status_Header"].Value</h4>
+                <form class="chat-status-form" data-chat-status-form>
+                    <label for="chatStatusMessage">@L["Chat_Status_MessageLabel"].Value</label>
+                    <input id="chatStatusMessage"
+                           data-chat-status-message
+                           maxlength="160"
+                           placeholder="@L["Chat_Status_MessagePlaceholder"].Value"
+                           autocomplete="off" />
+                    <div class="chat-status-form__row">
+                        <label for="chatPresence">@L["Chat_Status_PresenceLabel"].Value</label>
+                        <select id="chatPresence" data-chat-presence>
+                            <option value="@((int)UserPresenceStatus.Available)">@L["Chat_Status_Available"].Value</option>
+                            <option value="@((int)UserPresenceStatus.Away)">@L["Chat_Status_Away"].Value</option>
+                        </select>
+                    </div>
+                    <label class="check chat-status-form__invisible">
+                        <input type="checkbox" data-chat-invisible />
+                        @L["Chat_Status_InvisibleLabel"].Value
+                    </label>
+                    <div class="chat-status-form__actions">
+                        <button type="submit" class="btn-primary btn-compact" data-chat-status-submit>@L["Chat_Status_Save"].Value</button>
+                        <span class="chat-status__feedback" data-chat-status-feedback hidden></span>
+                    </div>
+                </form>
+            </section>
             <section class="chat-panel__section">
                 <h4>@L["Chat_Friends"].Value</h4>
                 <ul class="chat-contacts" data-chat-friends></ul>

@@ -103,7 +103,7 @@ public class FriendsController : ControllerBase
 
         UserPresenceStatus ResolvePresence(string id) => profileLookup.TryGetValue(id, out var profile)
             ? profile.PresenceStatus
-            : UserPresenceStatus.Available;
+            : UserPresenceStatus.Offline;
 
         bool ResolveInvisible(string id) => profileLookup.TryGetValue(id, out var profile) && profile.IsInvisible;
 

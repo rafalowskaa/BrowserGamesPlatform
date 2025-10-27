@@ -1,4 +1,28 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿(function () {
+    const toggles = document.querySelectorAll('[data-password-toggle]');
+    toggles.forEach((btn) => {
+        const targetId = btn.getAttribute('data-password-toggle');
+        if (!targetId) {
+            return;
+        }
+        const input = document.getElementById(targetId);
+        if (!input) {
+            return;
+        }
+        const showLabel = btn.getAttribute('data-password-show') || 'Show';
+        const hideLabel = btn.getAttribute('data-password-hide') || 'Hide';
 
-// Write your JavaScript code.
+        function updateLabel(isVisible) {
+            btn.textContent = isVisible ? hideLabel : showLabel;
+            btn.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
+        }
+
+        btn.addEventListener('click', () => {
+            const isMasked = input.getAttribute('type') === 'password';
+            input.setAttribute('type', isMasked ? 'text' : 'password');
+            updateLabel(isMasked);
+        });
+
+        updateLabel(false);
+    });
+})();

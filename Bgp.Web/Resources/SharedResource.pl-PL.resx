@@ -463,7 +463,13 @@
     </data>
 
 
+	<data name="Auth_Password_Show" xml:space="preserve">
+        <value>Pokaż</value>
+	</data>
 
+	<data name="Auth_Password_Hide" xml:space="preserve">
+        <value>Ukryj</value>
+	</data>
 
 	<data name="Auth_Register_Title" xml:space="preserve">
         
@@ -768,9 +774,49 @@
 		<value>Niewidoczny</value>
 	</data>
 
+	<data name="Chat_Status_Away" xml:space="preserve">
+                <value>Zaraz wracam</value>
+        </data>
+
+	<data name="Chat_Status_Offline" xml:space="preserve">
+                <value>Niedostępny</value>
+        </data>
+
 	<data name="Chat_Status_Unknown" xml:space="preserve">
-		<value>Offline</value>
-	</data>
+                <value>Offline</value>
+        </data>
+
+	<data name="Chat_Status_Header" xml:space="preserve">
+                <value>Status</value>
+        </data>
+
+	<data name="Chat_Status_MessageLabel" xml:space="preserve">
+                <value>Wiadomość statusu</value>
+        </data>
+
+	<data name="Chat_Status_MessagePlaceholder" xml:space="preserve">
+                <value>Co u Ciebie?</value>
+        </data>
+
+	<data name="Chat_Status_PresenceLabel" xml:space="preserve">
+                <value>Dostępność</value>
+        </data>
+
+	<data name="Chat_Status_InvisibleLabel" xml:space="preserve">
+                <value>Pokaż mnie jako niewidocznego</value>
+        </data>
+
+	<data name="Chat_Status_Save" xml:space="preserve">
+                <value>Zapisz status</value>
+        </data>
+
+	<data name="Chat_Status_Saved" xml:space="preserve">
+                <value>Status zaktualizowany</value>
+        </data>
+
+	<data name="Chat_Status_Error" xml:space="preserve">
+                <value>Nie udało się zaktualizować statusu. Spróbuj ponownie.</value>
+        </data>
 
 	<data name="Chat_NewMessage_Notification" xml:space="preserve">
 		<value>Nowa wiadomość</value>
@@ -2045,11 +2091,14 @@
     <value>Zaproś do gry</value>
   </data>
 	<data name="Dashboard_Friends_InviteMessage" xml:space="preserve">
-      <value>Zagrajmy razem!</value>
-    </data>
+                <value>Zagrajmy razem!</value>
+        </data>
+	<data name="Dashboard_Friends_Chat" xml:space="preserve">
+                <value>Czat</value>
+        </data>
 	<data name="Dashboard_Friends_Report" xml:space="preserve">
-      <value>Zgłoś</value>
-    </data>
+                <value>Zgłoś</value>
+        </data>
 	<data name="Dashboard_Friends_ReportPrompt" xml:space="preserve">
       <value>Opisz problem z {0} (opcjonalnie):</value>
     </data>

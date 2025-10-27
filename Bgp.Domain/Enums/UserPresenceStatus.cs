@@ -3,5 +3,6 @@
 public enum UserPresenceStatus
 {
     Available = 0,
-    Unavailable = 1
+    Away = 1,
+    Offline = 2
 }

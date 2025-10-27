@@ -2,6 +2,8 @@
 using System.ComponentModel.DataAnnotations;
 using Bgp.Infrastructure.Identity;
 using Bgp.Web.Resources;
+using Bgp.Domain.Enums;
+using Bgp.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,12 +17,14 @@ public class AccountController : Controller
     private readonly SignInManager<ApplicationUser> _signIn;
     private readonly UserManager<ApplicationUser> _users;
     private readonly IStringLocalizer<SharedResource> _localizer;
+    private readonly IPresenceNotifier _presenceNotifier;
 
-    public AccountController(SignInManager<ApplicationUser> signIn, UserManager<ApplicationUser> users, IStringLocalizer<SharedResource> localizer)
+    public AccountController(SignInManager<ApplicationUser> signIn, UserManager<ApplicationUser> users, IStringLocalizer<SharedResource> localizer, IPresenceNotifier presenceNotifier)
     {
         _signIn = signIn;
         _users = users;
         _localizer = localizer;
+        _presenceNotifier = presenceNotifier;
     }
 
     [AllowAnonymous]
@@ -59,9 +63,34 @@ public class AccountController : Controller
             return View(vm);
         }
 
-        var res = await _signIn.PasswordSignInAsync(userName, vm.Password, vm.RememberMe, lockoutOnFailure: true);
+        var res = signInUser is not null
+            ? await _signIn.PasswordSignInAsync(signInUser, vm.Password, vm.RememberMe, lockoutOnFailure: true)
+            : await _signIn.PasswordSignInAsync(userName, vm.Password, vm.RememberMe, lockoutOnFailure: true);
         if (res.Succeeded)
         {
+            signInUser ??= await _users.FindByNameAsync(userName);
+            if (signInUser is not null)
+            {
+                var updated = false;
+                if (signInUser.PresenceStatus != UserPresenceStatus.Available)
+                {
+                    signInUser.PresenceStatus = UserPresenceStatus.Available;
+                    updated = true;
+                }
+                if (signInUser.IsInvisible)
+                {
+                    signInUser.IsInvisible = false;
+                    updated = true;
+                }
+
+                if (updated)
+                {
+                    await _users.UpdateAsync(signInUser);
+                }
+
+                await _presenceNotifier.BroadcastAsync(signInUser.Id, signInUser.StatusMessage, signInUser.PresenceStatus, signInUser.IsInvisible);
+            }
+
             var target = vm.ReturnUrl;
             if (string.IsNullOrWhiteSpace(target))
             {
@@ -95,7 +124,9 @@ public class AccountController : Controller
             Email = vm.Email,
             DisplayName = DisplayNameFormatter.Format(vm.Login),
             EmailConfirmed = true, // DEV: w produkcji – wysyłka maila weryfikacyjnego
-            DisplayNameLastApprovedAtUtc = DateTime.UtcNow
+            DisplayNameLastApprovedAtUtc = DateTime.UtcNow,
+            PresenceStatus = UserPresenceStatus.Available,
+            IsInvisible = false
         };
 
         var result = await _users.CreateAsync(user, vm.Password);
@@ -113,6 +144,7 @@ public class AccountController : Controller
         }
 
         await _signIn.SignInAsync(user, isPersistent: false);
+        await _presenceNotifier.BroadcastAsync(user.Id, user.StatusMessage, user.PresenceStatus, user.IsInvisible);
         var target = vm.ReturnUrl;
         if (string.IsNullOrWhiteSpace(target))
         {
@@ -125,8 +157,16 @@ public class AccountController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout(string? returnUrl = "/")
     {
+        var user = await _users.GetUserAsync(User);
+        if (user is not null)
+        {
+            user.PresenceStatus = UserPresenceStatus.Offline;
+            await _users.UpdateAsync(user);
+            await _presenceNotifier.BroadcastAsync(user.Id, user.StatusMessage, user.PresenceStatus, user.IsInvisible);
+        }
+
         await _signIn.SignOutAsync();
-        return LocalRedirect(returnUrl!);
+        return LocalRedirect(returnUrl ?? "/");
     }
 }
 

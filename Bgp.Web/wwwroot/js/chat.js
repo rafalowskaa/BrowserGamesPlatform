@@ -15,19 +15,31 @@
     const windowsContainer = dock.querySelector('[data-chat-windows]');
     const unreadBadge = dock.querySelector('[data-chat-unread]');
     const stringsElement = document.getElementById('chatStrings');
+    const statusForm = panel ? panel.querySelector('[data-chat-status-form]') : null;
+    const statusMessageInput = statusForm ? statusForm.querySelector('[data-chat-status-message]') : null;
+    const statusSelect = statusForm ? statusForm.querySelector('[data-chat-presence]') : null;
+    const invisibleToggle = statusForm ? statusForm.querySelector('[data-chat-invisible]') : null;
+    const statusFeedback = statusForm ? statusForm.querySelector('[data-chat-status-feedback]') : null;
+    const statusSubmit = statusForm ? statusForm.querySelector('[data-chat-status-submit]') : null;
+    const currentUserId = dock.dataset.chatUser || null;
 
     const friends = new Map();
     const conversations = new Map();
     let connection = null;
     let searchTerm = '';
+    let statusDirty = false;
+    let statusAwaitingConfirmation = false;
 
     const strings = {
         readReceipt: 'Read at {0}',
         readReceiptLabel: 'Read',
         statusAvailable: 'Available',
-        statusUnavailable: 'Unavailable',
+        statusAway: 'Be right back',
         statusInvisible: 'Invisible',
+        statusOffline: 'Offline',
         statusUnknown: 'Offline',
+        statusSaved: 'Status updated',
+        statusError: 'Unable to update status',
         newMessage: 'New message',
         accept: 'Accept',
         decline: 'Decline',
@@ -82,6 +94,103 @@
         }
     });
 
+    function showStatusFeedback(message, isError) {
+        if (!statusFeedback) {
+            return;
+        }
+        const text = message || '';
+        statusFeedback.textContent = text;
+        statusFeedback.hidden = !text;
+        statusFeedback.classList.toggle('is-error', !!isError);
+    }
+
+    function setStatusBusy(busy) {
+        if (!statusForm) {
+            return;
+        }
+        statusForm.classList.toggle('is-busy', !!busy);
+        if (statusSubmit) {
+            statusSubmit.disabled = !!busy;
+        }
+    }
+
+    async function loadSelfStatus() {
+        if (!statusForm || !statusMessageInput || !statusSelect || !invisibleToggle) {
+            return;
+        }
+        try {
+            const res = await fetch('/api/status', { credentials: 'same-origin' });
+            if (!res.ok) {
+                return;
+            }
+            const data = await res.json();
+            statusMessageInput.value = data.statusMessage || '';
+            statusSelect.value = String(data.presence ?? 0);
+            invisibleToggle.checked = !!data.isInvisible;
+            statusDirty = false;
+            showStatusFeedback('', false);
+        } catch (err) {
+            console.error('Failed to load status.', err);
+        }
+    }
+
+    if (statusForm) {
+        statusForm.addEventListener('input', () => {
+            statusDirty = true;
+            showStatusFeedback('', false);
+        });
+
+        statusForm.addEventListener('submit', async (evt) => {
+            evt.preventDefault();
+            if (!statusMessageInput || !statusSelect || !invisibleToggle) {
+                return;
+            }
+            const presenceValue = parseInt(statusSelect.value, 10);
+            const payload = {
+                statusMessage: statusMessageInput.value,
+                presence: Number.isNaN(presenceValue) ? 0 : presenceValue,
+                isInvisible: invisibleToggle.checked
+            };
+            statusAwaitingConfirmation = true;
+            setStatusBusy(true);
+            try {
+                const res = await fetch('/api/status', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) {
+                    let message = strings.statusError;
+                    try {
+                        const data = await res.json();
+                        if (data && typeof data.error === 'string' && data.error.trim()) {
+                            message = data.error;
+                        }
+                    } catch (_) {
+                        // ignore parse errors
+                    }
+                    statusAwaitingConfirmation = false;
+                    showStatusFeedback(message, true);
+                    return;
+                }
+                const data = await res.json();
+                if (data) {
+                    statusMessageInput.value = data.statusMessage || '';
+                    statusSelect.value = String(data.presence ?? 0);
+                    invisibleToggle.checked = !!data.isInvisible;
+                }
+                statusDirty = false;
+            } catch (err) {
+                console.error('Failed to update status.', err);
+                statusAwaitingConfirmation = false;
+                showStatusFeedback(strings.statusError, true);
+            } finally {
+                setStatusBusy(false);
+            }
+        });
+    }
+
     if (searchInput) {
         searchInput.addEventListener('input', (evt) => {
             searchTerm = (evt.target.value || '').toLowerCase().trim();
@@ -97,9 +206,9 @@
             case 0:
                 return strings.statusAvailable;
             case 1:
-                return strings.statusUnavailable;
+                return strings.statusAway;
             default:
-                return strings.statusUnknown;
+                return strings.statusOffline;
         }
     }
 
@@ -108,6 +217,22 @@
             return friend.statusMessage;
         }
         return presenceLabel(friend);
+    }
+
+    function applyStatusDot(dotEl, friend) {
+        if (!dotEl) {
+            return;
+        }
+        dotEl.classList.remove('is-online', 'is-away', 'is-offline', 'is-invisible');
+        if (friend.isInvisible) {
+            dotEl.classList.add('is-invisible');
+        } else if (friend.presence === 0) {
+            dotEl.classList.add('is-online');
+        } else if (friend.presence === 1) {
+            dotEl.classList.add('is-away');
+        } else {
+            dotEl.classList.add('is-offline');
+        }
     }
 
     function updateUnreadBadge() {
@@ -153,10 +278,7 @@
         if (statusEl) {
             statusEl.textContent = getStatusLine(friend);
         }
-        if (dotEl) {
-            dotEl.classList.toggle('is-online', !friend.isInvisible && friend.presence === 0);
-            dotEl.classList.toggle('is-invisible', !!friend.isInvisible);
-        }
+        applyStatusDot(dotEl, friend);
         friend.element.classList.toggle('is-unread', (friend.unreadCount || 0) > 0);
     }
 
@@ -169,10 +291,11 @@
         if (conversation.statusEl) {
             conversation.statusEl.textContent = getStatusLine(friend);
         }
-        if (conversation.dotEl) {
-            conversation.dotEl.classList.toggle('is-online', !friend.isInvisible && friend.presence === 0);
-            conversation.dotEl.classList.toggle('is-invisible', !!friend.isInvisible);
-        }
+        applyStatusDot(conversation.dotEl, friend);
+    }
+
+    function openConversation(friendId) {
+        ensureConversation(friendId);
     }
 
     function createFriendElement(friend) {
@@ -608,8 +731,8 @@
                         displayName: row.displayName,
                         avatarUrl: row.avatarUrl,
                         statusMessage: row.statusMessage,
-                        presence: row.presence,
-                        isInvisible: row.isInvisible,
+                        presence: typeof row.presence === 'number' ? row.presence : parseInt(row.presence, 10) || 0,
+                        isInvisible: !!row.isInvisible,
                         unreadCount: previousUnread.get(row.userId) || row.unreadCount || 0
                     };
                     friends.set(row.userId, friend);
@@ -671,6 +794,49 @@
 
         connection.on('MessagesRead', handleMessagesRead);
 
+        connection.on('PresenceUpdated', (payload) => {
+            if (!payload || !payload.userId) {
+                return;
+            }
+            const presenceValue = typeof payload.presence === 'number' ? payload.presence : parseInt(payload.presence, 10) || 0;
+            const isInvisible = !!payload.isInvisible;
+            const statusMessage = payload.statusMessage || '';
+
+            if (friends.has(payload.userId)) {
+                const friend = friends.get(payload.userId);
+                friend.statusMessage = statusMessage;
+                friend.presence = presenceValue;
+                friend.isInvisible = isInvisible;
+                updateFriendVisual(friend);
+                conversations.forEach((conversation) => {
+                    if (conversation.friendId === payload.userId) {
+                        updateConversationHeader(conversation);
+                    }
+                });
+            }
+
+            if (currentUserId && payload.userId === currentUserId) {
+                if (!statusDirty) {
+                    if (statusMessageInput) {
+                        statusMessageInput.value = statusMessage;
+                    }
+                    if (statusSelect) {
+                        statusSelect.value = String(presenceValue);
+                    }
+                    if (invisibleToggle) {
+                        invisibleToggle.checked = isInvisible;
+                    }
+                }
+                statusDirty = false;
+                if (statusAwaitingConfirmation) {
+                    showStatusFeedback(strings.statusSaved, false);
+                } else {
+                    showStatusFeedback('', false);
+                }
+                statusAwaitingConfirmation = false;
+            }
+        });
+
         try {
             await connection.start();
         } catch (err) {
@@ -711,6 +877,7 @@
         }
     });
 
+    loadSelfStatus();
     loadFriends();
     startConnection();
 })();

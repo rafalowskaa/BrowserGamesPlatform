@@ -5,6 +5,7 @@ using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Hubs;
 using Bgp.Web.Localization;
 using Bgp.Web.Resources;
+using Bgp.Web.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Identity;
@@ -30,6 +31,7 @@ builder.Services.AddRazorPages()
 
 // Infrastruktura (EF, Identity, us³ugi)
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddScoped<IPresenceNotifier, PresenceNotifier>();
 
 // CORS
 builder.Services.AddCors(o =>

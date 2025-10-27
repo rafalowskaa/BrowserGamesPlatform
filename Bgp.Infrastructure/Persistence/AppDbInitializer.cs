@@ -1,8 +1,9 @@
-﻿using Bgp.Infrastructure.Identity;
+﻿using Bgp.Domain.Enums;
+using Bgp.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 
 namespace Bgp.Infrastructure.Persistence;
 
@@ -39,7 +40,9 @@ public static class AppDbInitializer
                 Email = adminEmail,
                 EmailConfirmed = true,
                 DisplayName = "Admin",
-                DisplayNameLastApprovedAtUtc = DateTime.UtcNow
+                DisplayNameLastApprovedAtUtc = DateTime.UtcNow,
+                PresenceStatus = UserPresenceStatus.Offline,
+                IsInvisible = false
             };
             var result = await userMgr.CreateAsync(admin, adminPassword);
             if (!result.Succeeded)
@@ -83,6 +86,18 @@ public static class AppDbInitializer
             admin.LockoutEnd = null;
             admin.AccessFailedCount = 0;
             admin.IsBlocked = false;
+            adminStateChanged = true;
+        }
+
+        if (admin.PresenceStatus != UserPresenceStatus.Offline)
+        {
+            admin.PresenceStatus = UserPresenceStatus.Offline;
+            adminStateChanged = true;
+        }
+
+        if (admin.IsInvisible)
+        {
+            admin.IsInvisible = false;
             adminStateChanged = true;
         }
 

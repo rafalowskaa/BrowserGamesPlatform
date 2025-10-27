@@ -487,7 +487,7 @@ namespace Bgp.Infrastructure.Migrations
                     b.Property<int>("PresenceStatus")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasDefaultValue(2);
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");

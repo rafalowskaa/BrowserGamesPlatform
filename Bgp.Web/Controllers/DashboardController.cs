@@ -171,17 +171,6 @@ public class DashboardController : Controller
         user.BirthDateVisibility = input.BirthDateVisibility;
         user.EmailVisibility = input.EmailVisibility;
 
-        if (!Enum.IsDefined(typeof(UserPresenceStatus), input.PresenceStatus))
-        {
-            ModelState.AddModelError(nameof(input.PresenceStatus), Localize("Dashboard_Profile_Presence_Invalid"));
-            return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
-        }
-
-        user.StatusMessage = string.IsNullOrWhiteSpace(input.StatusMessage)
-            ? null
-            : input.StatusMessage.Trim();
-        user.PresenceStatus = input.PresenceStatus;
-        user.IsInvisible = input.IsInvisible;
 
         if (input.Avatar is not null && input.Avatar.Length > 0)
         {
@@ -802,7 +791,6 @@ public class DashboardController : Controller
         }
 
         var visibilityOptions = BuildVisibilityOptions();
-        var presenceOptions = BuildPresenceOptions();
 
         var formattedDisplayName = DisplayNameFormatter.Format(user);
 
@@ -826,8 +814,7 @@ public class DashboardController : Controller
             Rank = rank,
             BestGame = bestGame,
             Highlights = BuildHighlights(user, rank, bestGame),
-            VisibilityOptions = visibilityOptions,
-            PresenceOptions = presenceOptions
+            VisibilityOptions = visibilityOptions
         };
 
         return new DashboardViewModel
@@ -876,28 +863,6 @@ public class DashboardController : Controller
         {
             vm.Profile.BirthDay = dayValue;
         }
-
-        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.StatusMessage), out var statusState))
-        {
-            vm.Profile.StatusMessage = statusState.AttemptedValue;
-        }
-
-        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.PresenceStatus), out var presenceState) &&
-            int.TryParse(presenceState.AttemptedValue, out var presenceRaw) &&
-            Enum.IsDefined(typeof(UserPresenceStatus), presenceRaw))
-        {
-            vm.Profile.PresenceStatus = (UserPresenceStatus)presenceRaw;
-        }
-
-        if (Request.HasFormContentType &&
-            Request.Form.TryGetValue(nameof(UpdateProfileInputModel.IsInvisible), out var invisibilityValues))
-        {
-            vm.Profile.IsInvisible = invisibilityValues.Any(v =>
-                string.Equals(v, "true", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(v, "on", StringComparison.OrdinalIgnoreCase));
-        }
-
-        vm.Profile.PresenceOptions = BuildPresenceOptions();
 
 
         if (ModelState.TryGetValue(nameof(UpdateEmailInputModel.Email), out var emailState) &&
@@ -1075,23 +1040,6 @@ public class DashboardController : Controller
             }
         };
 
-    }
-
-    private IReadOnlyList<SelectListItem> BuildPresenceOptions()
-    {
-        return new List<SelectListItem>
-        {
-            new SelectListItem
-            {
-                Value = ((int)UserPresenceStatus.Available).ToString(CultureInfo.InvariantCulture),
-                Text = Localize("Dashboard_Profile_Presence_Available")
-            },
-            new SelectListItem
-            {
-                Value = ((int)UserPresenceStatus.Unavailable).ToString(CultureInfo.InvariantCulture),
-                Text = Localize("Dashboard_Profile_Presence_Unavailable")
-            }
-        };
     }
 
     private IReadOnlyList<SelectListItem> BuildCategoryOptions(IReadOnlyCollection<string>? selectedValues = null)

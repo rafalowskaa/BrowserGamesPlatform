@@ -579,6 +579,85 @@ body {
     color: rgba(148, 163, 184, 0.9);
 }
 
+.chat-panel__section--status {
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 14px;
+    padding: 14px;
+    background: rgba(30, 41, 59, 0.65);
+}
+
+.chat-status-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+    .chat-status-form input,
+    .chat-status-form select {
+        width: 100%;
+    }
+
+.chat-status-form__row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.chat-status-form__invisible {
+    font-size: 13px;
+    color: rgba(148, 163, 184, 0.9);
+}
+
+.chat-status-form__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.chat-status__feedback {
+    font-size: 12px;
+    color: #22c55e;
+}
+
+    .chat-status__feedback.is-error {
+        color: #f87171;
+    }
+
+.chat-status-form.is-busy {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.password-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+    .password-field input {
+        width: 100%;
+        padding-right: 48px;
+    }
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: rgba(148, 163, 184, 0.85);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+}
+
+    .password-toggle:focus-visible {
+        outline: 2px solid rgba(59, 130, 246, 0.6);
+        outline-offset: 2px;
+    }
+
 .chat-empty {
     margin: 0;
     font-size: 13px;
@@ -624,7 +703,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    overflow: hidden;
+    overflow: visible;
     border: 2px solid rgba(15, 23, 42, 0.9);
     background: rgba(30, 41, 59, 0.8);
     display: flex;
@@ -636,6 +715,7 @@ body {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        border-radius: 50%;
     }
 
 .chat-status-dot {
@@ -652,6 +732,16 @@ body {
     .chat-status-dot.is-online {
         background: #22c55e;
         box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+    }
+
+    .chat-status-dot.is-away {
+        background: #facc15;
+        box-shadow: 0 0 6px rgba(250, 204, 21, 0.55);
+    }
+
+    .chat-status-dot.is-offline {
+        background: rgba(100, 116, 139, 0.8);
+        box-shadow: none;
     }
 
     .chat-status-dot.is-invisible {
@@ -755,7 +845,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow: visible;
     font-weight: 600;
     color: rgba(226, 232, 240, 0.9);
 }
@@ -764,6 +854,7 @@ body {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        border-radius: 50%;
     }
 
     .chat-window__avatar .chat-status-dot {

@@ -55,7 +55,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         b.Entity<ApplicationUser>()
             .Property(u => u.PresenceStatus)
             .HasConversion<int>()
-            .HasDefaultValue(UserPresenceStatus.Available);
+            .HasDefaultValue(UserPresenceStatus.Offline);
 
         b.Entity<ApplicationUser>()
             .Property(u => u.IsInvisible)

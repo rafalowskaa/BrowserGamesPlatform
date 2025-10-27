@@ -30,7 +30,16 @@
             <span asp-validation-for="LoginOrEmail" class="val"></span>
 
             <label for="Password">@L["Auth_Login_Password"].Value</label>
-            <input asp-for="Password" id="Password" type="password" autocomplete="current-password" />
+            <div class="password-field">
+                <input asp-for="Password" id="Password" type="password" autocomplete="current-password" />
+                <button type="button"
+                        class="password-toggle"
+                        data-password-toggle="Password"
+                        data-password-show="@L["Auth_Password_Show"].Value"
+                        data-password-hide="@L["Auth_Password_Hide"].Value">
+                    @L["Auth_Password_Show"].Value
+                </button>
+            </div>
             <span asp-validation-for="Password" class="val"></span>
 
             <label class="check"><input asp-for="RememberMe" /> @L["Auth_Login_RememberMe"].Value</label>

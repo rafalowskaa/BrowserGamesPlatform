@@ -35,7 +35,7 @@ public class ApplicationUser : IdentityUser
     [MaxLength(160)]
     public string? StatusMessage { get; set; }
 
-    public UserPresenceStatus PresenceStatus { get; set; } = UserPresenceStatus.Available;
+    public UserPresenceStatus PresenceStatus { get; set; } = UserPresenceStatus.Offline;
 
     public bool IsInvisible { get; set; }
 }
