@@ -40,8 +40,10 @@
                         class="password-toggle"
                         data-password-toggle="RegisterPassword"
                         data-password-show="@L["Auth_Password_Show"].Value"
-                        data-password-hide="@L["Auth_Password_Hide"].Value">
-                    @L["Auth_Password_Show"].Value
+                        data-password-hide="@L["Auth_Password_Hide"].Value"
+                        aria-label="@L["Auth_Password_Show"].Value">
+                    <span class="password-toggle__icon" aria-hidden="true">🔍</span>
+                    <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
                 </button>
             </div>
             <span asp-validation-for="Password" class="val"></span>
@@ -53,8 +55,10 @@
                         class="password-toggle"
                         data-password-toggle="RegisterConfirm"
                         data-password-show="@L["Auth_Password_Show"].Value"
-                        data-password-hide="@L["Auth_Password_Hide"].Value">
-                    @L["Auth_Password_Show"].Value
+                        data-password-hide="@L["Auth_Password_Hide"].Value"
+                        aria-label="@L["Auth_Password_Show"].Value">
+                    <span class="password-toggle__icon" aria-hidden="true">🔍</span>
+                    <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
                 </button>
             </div>
             <span asp-validation-for="ConfirmPassword" class="val"></span>

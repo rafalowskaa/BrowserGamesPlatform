@@ -26,19 +26,33 @@
         el.style.display = hasItems ? 'none' : 'block';
     }
 
-    function createActionButton(text, handler, css, style) {
+    function createActionButton(action) {
+        if (!action) {
+            return null;
+        }
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = css || 'btn-link btn-small';
-        btn.innerText = text;
-        if (style && typeof style === 'object') {
-            Object.entries(style).forEach(([key, value]) => {
+        btn.className = action.className || 'btn-link btn-small';
+        if (action.icon) {
+            const icon = document.createElement('span');
+            icon.className = 'btn-icon-leading';
+            icon.setAttribute('aria-hidden', 'true');
+            icon.textContent = action.icon;
+            btn.appendChild(icon);
+            const label = document.createElement('span');
+            label.textContent = action.label;
+            btn.appendChild(label);
+        } else {
+            btn.textContent = action.label;
+        }
+        if (action.style && typeof action.style === 'object') {
+            Object.entries(action.style).forEach(([key, value]) => {
                 if (typeof value === 'string' && value.trim()) {
                     btn.style.setProperty(key, value);
                 }
             });
         }
-        btn.addEventListener('click', handler);
+        btn.addEventListener('click', action.handler);
         return btn;
     }
 
@@ -85,10 +99,10 @@
         const actions = document.createElement('div');
         actions.className = 'friend-actions';
         (options.actions || []).forEach(action => {
-            if (!action) {
-                return;
+            const button = createActionButton(action);
+            if (button) {
+                actions.appendChild(button);
             }
-            actions.appendChild(createActionButton(action.label, action.handler, action.className, action.style));
         });
         li.appendChild(actions);
 
@@ -128,7 +142,7 @@
             const accent = f.rankAccentColor || '#38bdf8';
             buildFriendItem(acceptedList, f, {
                 actions: [
-                    { label: labels.chat, handler: () => openChat(f.userId, f.displayName), className: 'btn-link btn-small' },
+                    { label: labels.chat, handler: () => openChat(f.userId, f.displayName), className: 'btn-primary btn-small btn-chat', icon: '💬' },
                     { label: labels.invite, handler: () => inviteToGame(f.userId, f.displayName), className: 'btn-rank', style: { '--accent-color': accent } },
                     { label: labels.report, handler: () => reportUser(f.userId, f.displayName), className: 'btn-ghost btn-small' },
                     { label: labels.block, handler: () => blockUser(f.userId, f.displayName), className: 'btn-danger btn-small' },
@@ -188,7 +202,7 @@
                     showRank: false,
                     actions: [
                         { label: labels.add, handler: () => sendInvite(r.id), className: 'btn-primary btn-small' },
-                        { label: labels.chat, handler: () => openChat(r.id, r.name), className: 'btn-link btn-small' },
+                        { label: labels.chat, handler: () => openChat(r.id, r.name), className: 'btn-primary btn-small btn-chat', icon: '💬' },
                         { label: labels.report, handler: () => reportUser(r.id, r.name), className: 'btn-ghost btn-small' },
                         { label: labels.block, handler: () => blockUser(r.id, r.name), className: 'btn-danger btn-small' }
                     ]

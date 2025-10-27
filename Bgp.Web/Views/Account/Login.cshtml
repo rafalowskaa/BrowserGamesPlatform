@@ -36,8 +36,10 @@
                         class="password-toggle"
                         data-password-toggle="Password"
                         data-password-show="@L["Auth_Password_Show"].Value"
-                        data-password-hide="@L["Auth_Password_Hide"].Value">
-                    @L["Auth_Password_Show"].Value
+                        data-password-hide="@L["Auth_Password_Hide"].Value"
+                        aria-label="@L["Auth_Password_Show"].Value">
+                    <span class="password-toggle__icon" aria-hidden="true">🔍</span>
+                    <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
                 </button>
             </div>
             <span asp-validation-for="Password" class="val"></span>
@@ -47,7 +49,5 @@
             <button class="btn-primary" type="submit">@L["Auth_Login_LoginButton"].Value</button>
         </form>
         <p class="auth-card__hint">@Html.Raw(string.Format(L["Auth_Login_PolicyHint"].Value, Url.Action("Policy", "Home")))</p>
-        @* Informational hint about the seeded administrator account for local testing *@
-        <p class="auth-card__hint auth-card__hint--dev">@L["Auth_Login_AdminHint"].Value</p>
     </div>
 </section>

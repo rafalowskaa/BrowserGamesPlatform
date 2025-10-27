@@ -21,14 +21,23 @@
     const invisibleToggle = statusForm ? statusForm.querySelector('[data-chat-invisible]') : null;
     const statusFeedback = statusForm ? statusForm.querySelector('[data-chat-status-feedback]') : null;
     const statusSubmit = statusForm ? statusForm.querySelector('[data-chat-status-submit]') : null;
+    const statusContainer = panel ? panel.querySelector('[data-chat-status]') : null;
+    const statusToggle = panel ? panel.querySelector('[data-chat-status-toggle]') : null;
+    const statusMessageDisplay = panel ? panel.querySelector('[data-chat-status-text]') : null;
+    const statusPresenceDisplay = panel ? panel.querySelector('[data-chat-status-presence]') : null;
+    const selfStatusDot = panel ? panel.querySelector('[data-chat-self-dot]') : null;
+    const panelHeader = panel ? panel.querySelector('.chat-panel__header') : null;
     const currentUserId = dock.dataset.chatUser || null;
 
     const friends = new Map();
     const conversations = new Map();
     let connection = null;
+    let connectionPromise = null;
     let searchTerm = '';
     let statusDirty = false;
     let statusAwaitingConfirmation = false;
+    let statusMenuOpen = false;
+    const pendingPresence = new Map();
 
     const strings = {
         readReceipt: 'Read at {0}',
@@ -40,6 +49,7 @@
         statusUnknown: 'Offline',
         statusSaved: 'Status updated',
         statusError: 'Unable to update status',
+        statusPrompt: 'Change status',
         newMessage: 'New message',
         accept: 'Accept',
         decline: 'Decline',
@@ -63,6 +73,48 @@
         console.warn('Unable to parse chat strings.', err);
     }
 
+    function presenceLabelFromValues(presence, isInvisible) {
+        if (isInvisible) {
+            return strings.statusInvisible;
+        }
+        if (presence === 0) {
+            return strings.statusAvailable;
+        }
+        if (presence === 1) {
+            return strings.statusAway;
+        }
+        return strings.statusOffline;
+    }
+
+    function updateSelfStatusDisplay(message, presence, isInvisible) {
+        if (statusPresenceDisplay) {
+            statusPresenceDisplay.textContent = presenceLabelFromValues(presence, isInvisible);
+        }
+        if (statusMessageDisplay) {
+            if (message && message.trim()) {
+                statusMessageDisplay.textContent = message;
+                statusMessageDisplay.classList.remove('is-empty');
+            } else {
+                statusMessageDisplay.textContent = strings.statusPrompt;
+                statusMessageDisplay.classList.add('is-empty');
+            }
+        }
+        applyStatusDot(selfStatusDot, { presence, isInvisible });
+    }
+
+    function setStatusMenu(open) {
+        if (!statusContainer || !statusForm || !statusToggle) {
+            return;
+        }
+        statusMenuOpen = !!open;
+        statusForm.hidden = !statusMenuOpen;
+        statusContainer.classList.toggle('is-open', statusMenuOpen);
+        statusToggle.setAttribute('aria-expanded', statusMenuOpen ? 'true' : 'false');
+        if (statusMenuOpen && statusMessageInput) {
+            statusMessageInput.focus();
+        }
+    }
+
     function togglePanel(force) {
         if (!panel) return;
         const shouldOpen = typeof force === 'boolean' ? force : !dock.classList.contains('is-open');
@@ -77,6 +129,7 @@
             dock.classList.remove('is-open');
             toggle.setAttribute('aria-expanded', 'false');
             panel.hidden = true;
+            setStatusMenu(false);
         }
     }
 
@@ -93,6 +146,33 @@
             togglePanel(false);
         }
     });
+
+    if (panelHeader) {
+        panelHeader.addEventListener('click', (evt) => {
+            if (evt.target.closest('button')) {
+                return;
+            }
+            togglePanel();
+        });
+    }
+
+    if (statusToggle) {
+        statusToggle.addEventListener('click', (evt) => {
+            evt.preventDefault();
+            setStatusMenu(!statusMenuOpen);
+        });
+    }
+
+    if (statusContainer) {
+        document.addEventListener('click', (evt) => {
+            if (!statusMenuOpen) {
+                return;
+            }
+            if (!statusContainer.contains(evt.target)) {
+                setStatusMenu(false);
+            }
+        });
+    }
 
     function showStatusFeedback(message, isError) {
         if (!statusFeedback) {
@@ -125,8 +205,10 @@
             }
             const data = await res.json();
             statusMessageInput.value = data.statusMessage || '';
-            statusSelect.value = String(data.presence ?? 0);
+            const presence = typeof data.presence === 'number' ? data.presence : parseInt(data.presence, 10) || 0;
+            statusSelect.value = String(presence);
             invisibleToggle.checked = !!data.isInvisible;
+            updateSelfStatusDisplay(statusMessageInput.value, presence, invisibleToggle.checked);
             statusDirty = false;
             showStatusFeedback('', false);
         } catch (err) {
@@ -177,10 +259,13 @@
                 const data = await res.json();
                 if (data) {
                     statusMessageInput.value = data.statusMessage || '';
-                    statusSelect.value = String(data.presence ?? 0);
+                    const updatedPresence = typeof data.presence === 'number' ? data.presence : parseInt(data.presence, 10) || 0;
+                    statusSelect.value = String(updatedPresence);
                     invisibleToggle.checked = !!data.isInvisible;
+                    updateSelfStatusDisplay(statusMessageInput.value, updatedPresence, invisibleToggle.checked);
                 }
                 statusDirty = false;
+                setStatusMenu(false);
             } catch (err) {
                 console.error('Failed to update status.', err);
                 statusAwaitingConfirmation = false;
@@ -199,17 +284,7 @@
     }
 
     function presenceLabel(friend) {
-        if (friend.isInvisible) {
-            return strings.statusInvisible;
-        }
-        switch (friend.presence) {
-            case 0:
-                return strings.statusAvailable;
-            case 1:
-                return strings.statusAway;
-            default:
-                return strings.statusOffline;
-        }
+        return presenceLabelFromValues(friend.presence, friend.isInvisible);
     }
 
     function getStatusLine(friend) {
@@ -233,6 +308,36 @@
         } else {
             dotEl.classList.add('is-offline');
         }
+    }
+
+    function applyPresenceSnapshot(friendId, snapshot) {
+        if (!snapshot) {
+            return;
+        }
+        const friend = friends.get(friendId);
+        if (!friend) {
+            pendingPresence.set(friendId, snapshot);
+            return;
+        }
+        friend.statusMessage = snapshot.statusMessage;
+        friend.presence = snapshot.presence;
+        friend.isInvisible = snapshot.isInvisible;
+        updateFriendVisual(friend);
+        conversations.forEach((conversation) => {
+            if (conversation.friendId === friendId) {
+                updateConversationHeader(conversation);
+            }
+        });
+        pendingPresence.delete(friendId);
+    }
+
+    function applyPendingPresence() {
+        if (pendingPresence.size === 0) {
+            return;
+        }
+        Array.from(pendingPresence.entries()).forEach(([friendId, snapshot]) => {
+            applyPresenceSnapshot(friendId, snapshot);
+        });
     }
 
     function updateUnreadBadge() {
@@ -351,6 +456,7 @@
         });
         applyFriendFilter();
         updateUnreadBadge();
+        applyPendingPresence();
     }
 
     function renderRequests(incoming, outgoing) {
@@ -553,7 +659,10 @@
             conversations.delete(friend.userId);
         });
 
-        header.addEventListener('dblclick', () => {
+        header.addEventListener('click', (evt) => {
+            if (evt.target.closest('button')) {
+                return;
+            }
             const collapsed = element.classList.toggle('chat-window--collapsed');
             minimizeBtn.textContent = collapsed ? '▴' : '▾';
             minimizeBtn.title = collapsed ? strings.restore : strings.minimize;
@@ -562,19 +671,24 @@
             }
         });
 
-        const send = () => {
+        const send = async () => {
             const message = input.value.trim();
-            if (!message || !connection) {
+            if (!message) {
                 return;
             }
             input.value = '';
-            connection.invoke('SendPrivateMessage', friend.userId, message).catch((err) => {
+            const conn = await ensureConnectionStarted();
+            if (!conn || conn.state !== 'Connected') {
+                console.warn('Chat connection is not ready.');
+                return;
+            }
+            conn.invoke('SendPrivateMessage', friend.userId, message).catch((err) => {
                 console.error('Failed to send message.', err);
             });
 
         };
 
-        sendBtn.addEventListener('click', send);
+        sendBtn.addEventListener('click', () => { send(); });
         input.addEventListener('keydown', (evt) => {
             if (evt.key === 'Enter' && !evt.shiftKey) {
                 evt.preventDefault();
@@ -696,8 +810,12 @@
         friend.unreadCount = 0;
         updateFriendVisual(friend);
         updateUnreadBadge();
-        if (!connection) return;
-        connection.invoke('MarkThreadRead', friendId).catch(() => { /* ignore */ });
+        ensureConnectionStarted().then((conn) => {
+            if (!conn || conn.state !== 'Connected') {
+                return;
+            }
+            conn.invoke('MarkThreadRead', friendId).catch(() => { /* ignore */ });
+        });
     }
 
     async function loadFriends() {
@@ -766,8 +884,21 @@
 
     async function startConnection() {
         if (typeof signalR === 'undefined') {
-            return;
+            return null;
         }
+        if (connection) {
+            if (connection.state === 'Disconnected') {
+                try {
+                    await connection.start();
+                } catch (err) {
+                    console.error('Chat connection failed to restart.', err);
+                    connection = null;
+                    return null;
+                }
+            }
+            return connection;
+        }
+
         connection = new signalR.HubConnectionBuilder()
             .withUrl('/hubs/chat')
             .withAutomaticReconnect()
@@ -802,17 +933,14 @@
             const isInvisible = !!payload.isInvisible;
             const statusMessage = payload.statusMessage || '';
 
-            if (friends.has(payload.userId)) {
-                const friend = friends.get(payload.userId);
-                friend.statusMessage = statusMessage;
-                friend.presence = presenceValue;
-                friend.isInvisible = isInvisible;
-                updateFriendVisual(friend);
-                conversations.forEach((conversation) => {
-                    if (conversation.friendId === payload.userId) {
-                        updateConversationHeader(conversation);
-                    }
-                });
+            const snapshot = {
+                statusMessage,
+                presence: presenceValue,
+                isInvisible
+            };
+
+            if (!currentUserId || payload.userId !== currentUserId) {
+                applyPresenceSnapshot(payload.userId, snapshot);
             }
 
             if (currentUserId && payload.userId === currentUserId) {
@@ -827,6 +955,7 @@
                         invisibleToggle.checked = isInvisible;
                     }
                 }
+                updateSelfStatusDisplay(statusMessage, presenceValue, isInvisible);
                 statusDirty = false;
                 if (statusAwaitingConfirmation) {
                     showStatusFeedback(strings.statusSaved, false);
@@ -839,9 +968,24 @@
 
         try {
             await connection.start();
+            return connection;
         } catch (err) {
             console.error('Chat connection failed to start.', err);
+            connection = null;
+            return null;
         }
+    }
+
+    function ensureConnectionStarted() {
+        if (!connectionPromise) {
+            connectionPromise = startConnection().then((conn) => {
+                if (!conn) {
+                    connectionPromise = null;
+                }
+                return conn;
+            });
+        }
+        return connectionPromise;
     }
 
     window.bgpChat = {
@@ -858,6 +1002,9 @@
             };
             if (!friends.has(userId)) {
                 friends.set(userId, friend);
+                if (pendingPresence.has(userId)) {
+                    applyPresenceSnapshot(userId, pendingPresence.get(userId));
+                }
             }
             ensureConversation(userId);
         },
@@ -879,5 +1026,5 @@
 
     loadSelfStatus();
     loadFriends();
-    startConnection();
+    ensureConnectionStarted();
 })();

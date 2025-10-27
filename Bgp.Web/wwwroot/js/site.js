@@ -12,9 +12,16 @@
         const showLabel = btn.getAttribute('data-password-show') || 'Show';
         const hideLabel = btn.getAttribute('data-password-hide') || 'Hide';
 
+        const labelTarget = btn.querySelector('[data-password-label]');
+
         function updateLabel(isVisible) {
-            btn.textContent = isVisible ? hideLabel : showLabel;
+            const text = isVisible ? hideLabel : showLabel;
+            if (labelTarget) {
+                labelTarget.textContent = text;
+            }
+            btn.setAttribute('aria-label', text);
             btn.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
+            btn.classList.toggle('is-active', isVisible);
         }
 
         btn.addEventListener('click', () => {

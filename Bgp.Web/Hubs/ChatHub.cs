@@ -1,10 +1,13 @@
-﻿using System.Security.Claims;
+﻿using System.Collections.Concurrent;
+using System.Security.Claims;
 using System.Linq;
 using Bgp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Bgp.Web.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Bgp.Web.Services;
+using Bgp.Domain.Enums;
 
 namespace Bgp.Web.Hubs;
 
@@ -12,7 +15,14 @@ namespace Bgp.Web.Hubs;
 public class ChatHub : Hub
 {
     private readonly AppDbContext _db;
-    public ChatHub(AppDbContext db) => _db = db;
+    private readonly IPresenceNotifier _presenceNotifier;
+    private static readonly ConcurrentDictionary<string, int> ConnectionCounts = new();
+
+    public ChatHub(AppDbContext db, IPresenceNotifier presenceNotifier)
+    {
+        _db = db;
+        _presenceNotifier = presenceNotifier;
+    }
 
     private string? UserId => Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -21,6 +31,11 @@ public class ChatHub : Hub
         if (UserId is not null)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, $"user-{UserId}");
+            var count = ConnectionCounts.AddOrUpdate(UserId, 1, (_, current) => current + 1);
+            if (count == 1)
+            {
+                await BroadcastPresenceAsync(UserId);
+            }
         }
         await base.OnConnectedAsync();
     }
@@ -30,6 +45,12 @@ public class ChatHub : Hub
         if (UserId is not null)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user-{UserId}");
+            var remaining = ConnectionCounts.AddOrUpdate(UserId, 0, (_, current) => Math.Max(current - 1, 0));
+            if (remaining <= 0)
+            {
+                ConnectionCounts.TryRemove(UserId, out _);
+                await SetOfflineAsync(UserId);
+            }
         }
         await base.OnDisconnectedAsync(exception);
     }
@@ -43,7 +64,7 @@ public class ChatHub : Hub
         // prosta kontrola blokady: jeśli którykolwiek zablokował – przerwij
         var blocked = await _db.Friendships.AnyAsync(f =>
             (f.RequesterId == UserId && f.AddresseeId == toUserId || f.RequesterId == toUserId && f.AddresseeId == UserId)
-            && f.Status == Domain.Enums.FriendshipStatus.Blocked);
+            && f.Status == FriendshipStatus.Blocked);
         if (blocked) throw new HubException("User is blocked.");
 
         var m = new Bgp.Domain.Entities.ChatMessage
@@ -122,5 +143,33 @@ public class ChatHub : Hub
 
         await Clients.Group($"user-{otherUserId}").SendAsync("MessagesRead", payload);
         await Clients.Group($"user-{UserId}").SendAsync("MessagesRead", payload);
+    }
+
+    private async Task BroadcastPresenceAsync(string userId)
+    {
+        var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+        if (user is null)
+        {
+            return;
+        }
+
+        await _presenceNotifier.BroadcastAsync(user.Id, user.StatusMessage, user.PresenceStatus, user.IsInvisible);
+    }
+
+    private async Task SetOfflineAsync(string userId)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user is null)
+        {
+            return;
+        }
+
+        if (user.PresenceStatus != UserPresenceStatus.Offline)
+        {
+            user.PresenceStatus = UserPresenceStatus.Offline;
+        }
+
+        await _db.SaveChangesAsync();
+        await _presenceNotifier.BroadcastAsync(user.Id, user.StatusMessage, user.PresenceStatus, user.IsInvisible);
     }
 }

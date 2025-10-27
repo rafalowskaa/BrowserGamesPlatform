@@ -1,8 +1,18 @@
 ﻿@using System.Security.Claims
 @using System.Text.Json
 @using Bgp.Domain.Enums
+@using Bgp.Infrastructure.Identity
+@using Bgp.Web.Helpers
+@inject UserManager<ApplicationUser> UserManager
 @{
     var currentUserId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
+    var currentUser = currentUserId is not null ? await UserManager.FindByIdAsync(currentUserId) : null;
+    var displayName = DisplayNameFormatter.Format(currentUser?.DisplayName, currentUser?.Email, currentUser?.UserName, currentUser?.Id);
+    var fallbackName = currentUser?.UserName ?? User?.Identity?.Name ?? "?";
+    var initialsSource = string.IsNullOrWhiteSpace(displayName) ? fallbackName : displayName;
+    var avatarInitial = string.IsNullOrWhiteSpace(initialsSource)
+        ? "?"
+        : initialsSource.Trim()[0].ToString().ToUpperInvariant();
     var chatStrings = new
     {
         readReceipt = L["Chat_ReadReceipt"].Value,
@@ -14,6 +24,7 @@
         statusUnknown = L["Chat_Status_Offline"].Value,
         statusSaved = L["Chat_Status_Saved"].Value,
         statusError = L["Chat_Status_Error"].Value,
+        statusPrompt = L["Chat_Status_MessagePlaceholder"].Value,
         newMessage = L["Chat_NewMessage_Notification"].Value,
         accept = L["Chat_Request_Accept"].Value,
         decline = L["Chat_Request_Decline"].Value,
@@ -59,32 +70,52 @@
         </div>
 
         <div class="chat-panel__body">
-            <section class="chat-panel__section chat-panel__section--status">
-                <h4>@L["Chat_Status_Header"].Value</h4>
-                <form class="chat-status-form" data-chat-status-form>
+            <div class="chat-panel__profile" data-chat-status>
+                <button type="button"
+                        class="chat-status-toggle"
+                        data-chat-status-toggle
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-label="@L["Chat_Status_Header"].Value">
+                    <span class="chat-status-toggle__avatar">
+                        @if (!string.IsNullOrEmpty(currentUser?.AvatarUrl))
+                        {
+                            <img src="@currentUser.AvatarUrl" alt="@displayName ?? fallbackName" />
+                        }
+                        else
+                        {
+                            <span>@avatarInitial</span>
+                        }
+                        <span class="chat-status-dot" data-chat-self-dot></span>
+                    </span>
+                    <span class="chat-status-toggle__details">
+                        <span class="chat-status-toggle__presence" data-chat-status-presence>@L["Chat_Status_Offline"].Value</span>
+                        <span class="chat-status-toggle__message is-empty" data-chat-status-text>@L["Chat_Status_MessagePlaceholder"].Value</span>
+                    </span>
+                    <span class="chat-status-toggle__chevron" aria-hidden="true">▾</span>
+                </button>
+                <form class="chat-status-form chat-status-popover" data-chat-status-form hidden>
                     <label for="chatStatusMessage">@L["Chat_Status_MessageLabel"].Value</label>
                     <input id="chatStatusMessage"
                            data-chat-status-message
                            maxlength="160"
                            placeholder="@L["Chat_Status_MessagePlaceholder"].Value"
                            autocomplete="off" />
-                    <div class="chat-status-form__row">
-                        <label for="chatPresence">@L["Chat_Status_PresenceLabel"].Value</label>
-                        <select id="chatPresence" data-chat-presence>
-                            <option value="@((int)UserPresenceStatus.Available)">@L["Chat_Status_Available"].Value</option>
-                            <option value="@((int)UserPresenceStatus.Away)">@L["Chat_Status_Away"].Value</option>
-                        </select>
-                    </div>
-                    <label class="check chat-status-form__invisible">
+                    <label for="chatPresence">@L["Chat_Status_PresenceLabel"].Value</label>
+                    <select id="chatPresence" data-chat-presence>
+                        <option value="@((int)UserPresenceStatus.Available)">@L["Chat_Status_Available"].Value</option>
+                        <option value="@((int)UserPresenceStatus.Away)">@L["Chat_Status_Away"].Value</option>
+                    </select>
+                    <label class="check chat-status-popover__invisible">
                         <input type="checkbox" data-chat-invisible />
                         @L["Chat_Status_InvisibleLabel"].Value
                     </label>
-                    <div class="chat-status-form__actions">
+                    <div class="chat-status-popover__actions">
                         <button type="submit" class="btn-primary btn-compact" data-chat-status-submit>@L["Chat_Status_Save"].Value</button>
                         <span class="chat-status__feedback" data-chat-status-feedback hidden></span>
                     </div>
                 </form>
-            </section>
+            </div>
             <section class="chat-panel__section">
                 <h4>@L["Chat_Friends"].Value</h4>
                 <ul class="chat-contacts" data-chat-friends></ul>
