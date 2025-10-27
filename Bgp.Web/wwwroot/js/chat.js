@@ -151,14 +151,18 @@
         const shouldOpen = typeof force === 'boolean' ? force : !dock.classList.contains('is-open');
         if (shouldOpen) {
             dock.classList.add('is-open');
-            toggle.setAttribute('aria-expanded', 'true');
+            if (toggle) {
+                toggle.setAttribute('aria-expanded', 'true');
+            }
             panel.hidden = false;
             if (searchInput) {
                 searchInput.focus();
             }
         } else {
             dock.classList.remove('is-open');
-            toggle.setAttribute('aria-expanded', 'false');
+            if (toggle) {
+                toggle.setAttribute('aria-expanded', 'false');
+            }
             panel.hidden = true;
             setStatusMenu(false);
         }
@@ -601,6 +605,8 @@
     }
 
     function openConversation(friendId) {
+        togglePanel(false);
+        ensureConnectionStarted();
         ensureConversation(friendId, { focus: true, autoRead: true });
     }
 
@@ -808,7 +814,9 @@
         }
 
         conversation.element.classList.remove('chat-window--collapsed');
-        windowsContainer.appendChild(conversation.element);
+        if (windowsContainer) {
+            windowsContainer.appendChild(conversation.element);
+        }
         updateConversationHeader(conversation);
         const shouldAutoRead = options.autoRead === true;
         const shouldFocus = options.focus !== false;
