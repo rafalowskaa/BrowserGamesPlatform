@@ -423,14 +423,10 @@
     }
 
     function updateUnreadBadge() {
-        const total = Array.from(friends.values()).reduce((sum, friend) => sum + (friend.unreadCount || 0), 0);
         if (!unreadBadge) return;
-        if (total > 0) {
-            unreadBadge.textContent = String(total);
-            unreadBadge.hidden = false;
-        } else {
-            unreadBadge.hidden = true;
-        }
+        const total = Array.from(friends.values()).reduce((sum, friend) => sum + (friend.unreadCount || 0), 0);
+        unreadBadge.textContent = String(total);
+        unreadBadge.hidden = total === 0;
     }
 
     function queuePendingMessage(friendId, message) {
@@ -601,13 +597,16 @@
     }
 
     async function runPollingCycle() {
-        if (pollInFlight || conversations.size === 0) {
+        if (pollInFlight) {
             return;
         }
         pollInFlight = true;
         try {
-            for (const [friendId] of conversations) {
-                await pollConversation(friendId);
+            await loadFriends();
+            if (conversations.size > 0) {
+                for (const [friendId] of conversations) {
+                    await pollConversation(friendId);
+                }
             }
         } finally {
             pollInFlight = false;
@@ -902,7 +901,7 @@
     }
 
     function openConversation(friendId) {
-        togglePanel(false);
+        togglePanel(true);
         ensureConnectionStarted();
         ensureConversation(friendId, { focus: true, autoRead: true });
     }
@@ -1110,7 +1109,6 @@
             conversations.set(friendId, conversation);
         }
 
-        conversation.element.classList.remove('chat-window--collapsed');
         if (windowsContainer) {
             windowsContainer.appendChild(conversation.element);
         }
@@ -1148,10 +1146,6 @@
             avatar.textContent = friend.displayName.slice(0, 1).toUpperCase();
         }
 
-        const dot = document.createElement('span');
-        dot.className = 'chat-status-dot';
-        avatar.appendChild(dot);
-
         const labelWrap = document.createElement('div');
 
         const name = document.createElement('span');
@@ -1168,11 +1162,9 @@
         const controls = document.createElement('div');
         controls.className = 'chat-window__controls';
 
-        const minimizeBtn = document.createElement('button');
-        minimizeBtn.type = 'button';
-        minimizeBtn.className = 'btn-icon';
-        minimizeBtn.title = strings.minimize;
-        minimizeBtn.textContent = '▾';
+        const statusDot = document.createElement('span');
+        statusDot.className = 'chat-window__status-dot';
+        controls.appendChild(statusDot);
 
         const closeBtn = document.createElement('button');
         closeBtn.type = 'button';
@@ -1180,7 +1172,6 @@
         closeBtn.title = strings.close;
         closeBtn.textContent = '✕';
 
-        controls.appendChild(minimizeBtn);
         controls.appendChild(closeBtn);
 
         header.appendChild(title);
@@ -1219,18 +1210,8 @@
             loaded: false,
             nameEl: name,
             statusEl: status,
-            dotEl: dot
+            dotEl: statusDot
         };
-
-        minimizeBtn.addEventListener('click', (evt) => {
-            evt.stopPropagation();
-            const collapsed = element.classList.toggle('chat-window--collapsed');
-            minimizeBtn.textContent = collapsed ? '▴' : '▾';
-            minimizeBtn.title = collapsed ? strings.restore : strings.minimize;
-            if (!collapsed) {
-                markThreadRead(friend.userId);
-            }
-        });
 
         closeBtn.addEventListener('click', (evt) => {
             evt.stopPropagation();
@@ -1242,12 +1223,10 @@
             if (evt.target.closest('button')) {
                 return;
             }
-            const collapsed = element.classList.toggle('chat-window--collapsed');
-            minimizeBtn.textContent = collapsed ? '▴' : '▾';
-            minimizeBtn.title = collapsed ? strings.restore : strings.minimize;
-            if (!collapsed) {
-                markThreadRead(friend.userId);
+            if (conversation.input) {
+                conversation.input.focus();
             }
+            markThreadRead(friend.userId);
         });
 
         const send = async () => {
@@ -1290,6 +1269,19 @@
             .catch((err) => console.error('Failed to load chat history.', err));
 
         return conversation;
+    }
+
+    function isConversationActive(conversation) {
+        if (!conversation || !conversation.element) {
+            return false;
+        }
+        if (conversation.element.classList.contains('chat-window--collapsed')) {
+            return false;
+        }
+        if (document.visibilityState === 'hidden') {
+            return false;
+        }
+        return true;
     }
 
     function toUtcDate(value) {
@@ -1379,10 +1371,14 @@
         }
         renderMessage(conversation, message);
         if (!message.fromSelf) {
-            friend.unreadCount = (friend.unreadCount || 0) + 1;
-            updateFriendVisual(friend);
-            updateUnreadBadge();
-            conversation.element.classList.add('chat-window--attention');
+            if (isConversationActive(conversation)) {
+                markThreadRead(friendId);
+            } else {
+                friend.unreadCount = (friend.unreadCount || 0) + 1;
+                updateFriendVisual(friend);
+                updateUnreadBadge();
+                conversation.element.classList.add('chat-window--attention');
+            }
         }
     }
 
@@ -1603,7 +1599,7 @@
 
     window.bgpChat = {
         open: (userId, displayName) => {
-            togglePanel(false);
+            togglePanel(true);
             const friend = friends.get(userId) || {
                 userId,
                 displayName,

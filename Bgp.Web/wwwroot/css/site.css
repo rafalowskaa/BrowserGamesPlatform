@@ -518,6 +518,22 @@ body {
     gap: 12px;
 }
 
+.chat-workspace {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+    .chat-workspace .chat-panel {
+        order: 2;
+    }
+
+    .chat-workspace .chat-windows {
+        order: 1;
+    }
+
 .chat-toggle {
     display: inline-flex;
     align-items: center;
@@ -1115,8 +1131,38 @@ body {
 
 .chat-window__controls {
     display: flex;
-    gap: 6px;
+    align-items: center;
+    gap: 8px;
 }
+
+.chat-window__status-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(15, 23, 42, 0.95);
+    background: rgba(100, 116, 139, 0.8);
+    box-shadow: none;
+}
+
+    .chat-window__status-dot.is-online {
+        background: #22c55e;
+        box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+    }
+
+    .chat-window__status-dot.is-away {
+        background: #facc15;
+        box-shadow: 0 0 6px rgba(250, 204, 21, 0.55);
+    }
+
+    .chat-window__status-dot.is-offline {
+        background: rgba(100, 116, 139, 0.8);
+        box-shadow: none;
+    }
+
+    .chat-window__status-dot.is-invisible {
+        background: rgba(148, 163, 184, 0.7);
+        box-shadow: none;
+    }
 
 .chat-window__body {
     display: flex;

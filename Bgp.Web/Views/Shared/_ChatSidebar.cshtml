@@ -60,87 +60,90 @@
         <span class="sr-only">@L["Chat_Open"].Value</span>
     </button>
 
-    <div id="chatPanel" class="chat-panel" hidden>
-        <header class="chat-panel__header">
-            <strong>@L["Chat_Title"].Value</strong>
-            <button type="button"
-                    class="btn-icon"
-                    data-chat-close
-                    aria-label="@L["Chat_Close"].Value">
-                ✕
-            </button>
-        </header>
-        <div class="chat-panel__search">
-            <input id="chatSearch"
-                   data-chat-search
-                   placeholder="@L["Chat_SearchPlaceholder"].Value"
-                   autocomplete="off" />
-        </div>
-
-        <div class="chat-panel__body">
-            <div class="chat-panel__profile" data-chat-status>
+    <div class="chat-workspace">
+        <div id="chatPanel" class="chat-panel" hidden>
+            <header class="chat-panel__header">
+                <strong>@L["Chat_Title"].Value</strong>
                 <button type="button"
-                        class="chat-status-toggle"
-                        data-chat-status-toggle
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        aria-label="@L["Chat_Status_Header"].Value">
-                    <span class="chat-status-toggle__avatar">
-                        @if (!string.IsNullOrEmpty(currentUser?.AvatarUrl))
-                        {
-                            <img src="@currentUser.AvatarUrl" alt="@displayName ?? fallbackName" />
-                        }
-                        else
-                        {
-                            <span>@avatarInitial</span>
-                        }
-                        <span class="chat-status-dot" data-chat-self-dot></span>
-                    </span>
-                    <span class="chat-status-toggle__details">
-                        <span class="chat-status-toggle__presence" data-chat-status-presence>@L["Chat_Status_Offline"].Value</span>
-                        <span class="chat-status-toggle__message is-empty" data-chat-status-text>@L["Chat_Status_MessagePlaceholder"].Value</span>
-                    </span>
-                    <span class="chat-status-toggle__chevron" aria-hidden="true">▾</span>
+                        class="btn-icon"
+                        data-chat-close
+                        aria-label="@L["Chat_Close"].Value">
+                    ✕
                 </button>
-                <form class="chat-status-form chat-status-popover" data-chat-status-form hidden>
-                    <label for="chatStatusMessage">@L["Chat_Status_MessageLabel"].Value</label>
-                    <input id="chatStatusMessage"
-                           data-chat-status-message
-                           maxlength="160"
-                           placeholder="@L["Chat_Status_MessagePlaceholder"].Value"
-                           autocomplete="off" />
-                    <label for="chatPresence">@L["Chat_Status_PresenceLabel"].Value</label>
-                    <select id="chatPresence" data-chat-presence>
-                        <option value="available">@L["Chat_Status_Available"].Value</option>
-                        <option value="away">@L["Chat_Status_Away"].Value</option>
-                        <option value="invisible">@L["Chat_Status_Invisible"].Value</option>
-                    </select>
-                    <div class="chat-status-popover__actions">
-                        <button type="submit" class="btn-primary btn-compact" data-chat-status-submit>@L["Chat_Status_Save"].Value</button>
-                        <button type="button" class="btn-outline btn-compact" data-chat-status-cancel>@L["Chat_Status_Cancel"].Value</button>
-                        <span class="chat-status__feedback" data-chat-status-feedback hidden></span>
-                    </div>
-                </form>
+            </header>
+            <div class="chat-panel__search">
+                <input id="chatSearch"
+                       data-chat-search
+                       placeholder="@L["Chat_SearchPlaceholder"].Value"
+                       autocomplete="off" />
             </div>
-            <section class="chat-panel__section">
-                <h4>@L["Chat_Friends"].Value</h4>
-                <ul class="chat-contacts" data-chat-friends></ul>
-                <p class="chat-empty" data-chat-friends-empty>@L["Chat_NoFriends"].Value</p>
-            </section>
-            <section class="chat-panel__section">
-                <h4>@L["Chat_Strangers"].Value</h4>
-                <ul class="chat-contacts chat-contacts--strangers" data-chat-strangers></ul>
-                <p class="chat-empty" data-chat-strangers-empty>@L["Chat_SearchHint"].Value</p>
-            </section>
-            <section class="chat-panel__section">
-                <h4>@L["Chat_Invites"].Value</h4>
-                <ul class="chat-requests" data-chat-requests></ul>
-                <p class="chat-empty" data-chat-requests-empty>@L["Chat_NoInvites"].Value</p>
-            </section>
-        </div>
+
+            <div class="chat-panel__body">
+                <div class="chat-panel__profile" data-chat-status>
+                    <button type="button"
+                            class="chat-status-toggle"
+                            data-chat-status-toggle
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-label="@L["Chat_Status_Header"].Value">
+                        <span class="chat-status-toggle__avatar">
+                            @if (!string.IsNullOrEmpty(currentUser?.AvatarUrl))
+                            {
+                                <img src="@currentUser.AvatarUrl" alt="@displayName ?? fallbackName" />
+                            }
+                            else
+                            {
+                                <span>@avatarInitial</span>
+                            }
+                            <span class="chat-status-dot" data-chat-self-dot></span>
+                        </span>
+                        <span class="chat-status-toggle__details">
+                            <span class="chat-status-toggle__presence" data-chat-status-presence>@L["Chat_Status_Offline"].Value</span>
+                            <span class="chat-status-toggle__message is-empty" data-chat-status-text>@L["Chat_Status_MessagePlaceholder"].Value</span>
+                        </span>
+                        <span class="chat-status-toggle__chevron" aria-hidden="true">▾</span>
+                    </button>
+                    <form class="chat-status-form chat-status-popover" data-chat-status-form hidden>
+                        <label for="chatStatusMessage">@L["Chat_Status_MessageLabel"].Value</label>
+                        <input id="chatStatusMessage"
+                               data-chat-status-message
+                               maxlength="160"
+                               placeholder="@L["Chat_Status_MessagePlaceholder"].Value"
+                               autocomplete="off" />
+                        <label for="chatPresence">@L["Chat_Status_PresenceLabel"].Value</label>
+                        <select id="chatPresence" data-chat-presence>
+                            <option value="available">@L["Chat_Status_Available"].Value</option>
+                            <option value="away">@L["Chat_Status_Away"].Value</option>
+                            <option value="invisible">@L["Chat_Status_Invisible"].Value</option>
+                        </select>
+                        <div class="chat-status-popover__actions">
+                            <button type="submit" class="btn-primary btn-compact" data-chat-status-submit>@L["Chat_Status_Save"].Value</button>
+                            <button type="button" class="btn-outline btn-compact" data-chat-status-cancel>@L["Chat_Status_Cancel"].Value</button>
+                            <span class="chat-status__feedback" data-chat-status-feedback hidden></span>
+                        </div>
+                    </form>
+                </div>
+                <section class="chat-panel__section">
+                    <h4>@L["Chat_Friends"].Value</h4>
+                    <ul class="chat-contacts" data-chat-friends></ul>
+                    <p class="chat-empty" data-chat-friends-empty>@L["Chat_NoFriends"].Value</p>
+                </section>
+                <section class="chat-panel__section">
+                    <h4>@L["Chat_Strangers"].Value</h4>
+                    <ul class="chat-contacts chat-contacts--strangers" data-chat-strangers></ul>
+                    <p class="chat-empty" data-chat-strangers-empty>@L["Chat_SearchHint"].Value</p>
+                </section>
+                <section class="chat-panel__section">
+                    <h4>@L["Chat_Invites"].Value</h4>
+                    <ul class="chat-requests" data-chat-requests></ul>
+                    <p class="chat-empty" data-chat-requests-empty>@L["Chat_NoInvites"].Value</p>
+                </section>
+            </div>   
+        
     </div>
 
-    <div class="chat-windows" data-chat-windows></div>
+        <div class="chat-windows" data-chat-windows></div>
+    </div>
 </div>
 
 <script type="application/json" id="chatStrings">@Html.Raw(JsonSerializer.Serialize(chatStrings))</script>
