@@ -32,6 +32,7 @@ builder.Services.AddRazorPages()
 // Infrastruktura (EF, Identity, us³ugi)
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IPresenceNotifier, PresenceNotifier>();
+builder.Services.AddScoped<IChatMessageService, ChatMessageService>();
 
 // CORS
 builder.Services.AddCors(o =>

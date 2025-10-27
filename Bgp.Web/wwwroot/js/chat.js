@@ -46,6 +46,10 @@
     let searchController = null;
     let searchRequestId = 0;
     const pendingPresence = new Map();
+    let pollTimer = null;
+    let pollInFlight = false;
+    const POLL_INTERVAL_MS = 7000;
+    let pollErrorLogged = false;
 
     const strings = {
         readReceipt: 'Read at {0}',
@@ -516,6 +520,169 @@
         entry.meta.textContent = getMessageMeta(entry.data, true);
         conversation.messages.set(message.id, entry);
         return true;
+    }
+
+    function deliverMessageFromServer(raw, friendHint) {
+        if (!raw) {
+            return;
+        }
+
+        const friendId = friendHint
+            || (friends.has(raw.senderId)
+                ? raw.senderId
+                : (friends.has(raw.receiverId)
+                    ? raw.receiverId
+                    : (raw.senderId === currentUserId ? raw.receiverId : raw.senderId)));
+
+        if (!friendId) {
+            return;
+        }
+
+        const normalized = {
+            id: raw.id,
+            senderId: raw.senderId || (raw.fromSelf ? currentUserId : friendId),
+            receiverId: raw.receiverId || (raw.fromSelf ? friendId : currentUserId),
+            senderName: raw.senderName || '',
+            receiverName: raw.receiverName || '',
+            content: raw.content,
+            sentAtUtc: raw.sentAtUtc,
+            fromSelf: raw.fromSelf === true || (raw.senderId ? raw.senderId !== friendId : true),
+            isRead: raw.isRead,
+            readAtUtc: raw.readAtUtc
+        };
+
+        if (!friends.has(friendId)) {
+            queuePendingMessage(friendId, normalized);
+            ensureFriendLoaded(friendId, normalized).then((friend) => {
+                if (friend) {
+                    flushPendingMessages(friendId);
+                }
+            });
+            return;
+        }
+
+        const conversation = conversations.get(friendId);
+        if (conversation && resolvePendingMessage(conversation, normalized)) {
+            return;
+        }
+
+        if (conversation && conversation.messages.has(normalized.id)) {
+            const entry = conversation.messages.get(normalized.id);
+            if (entry && entry.data) {
+                const updated = Object.assign({}, entry.data, {
+                    isRead: normalized.isRead,
+                    readAtUtc: normalized.readAtUtc
+                });
+                entry.data = updated;
+                entry.meta.textContent = getMessageMeta(updated, updated.senderId !== friendId);
+            }
+            return;
+        }
+
+        addIncomingMessage(friendId, normalized);
+    }
+
+    function ensurePolling() {
+        if (pollTimer !== null) {
+            return;
+        }
+        pollTimer = window.setInterval(() => {
+            runPollingCycle().catch((err) => console.warn('Chat polling failed.', err));
+        }, POLL_INTERVAL_MS);
+        runPollingCycle().catch(() => { /* ignored */ });
+    }
+
+    function stopPolling() {
+        if (pollTimer === null) {
+            return;
+        }
+        window.clearInterval(pollTimer);
+        pollTimer = null;
+    }
+
+    async function runPollingCycle() {
+        if (pollInFlight || conversations.size === 0) {
+            return;
+        }
+        pollInFlight = true;
+        try {
+            for (const [friendId] of conversations) {
+                await pollConversation(friendId);
+            }
+        } finally {
+            pollInFlight = false;
+        }
+    }
+
+    async function pollConversation(friendId) {
+        try {
+            const res = await fetch(`/api/chat/history/${encodeURIComponent(friendId)}?take=20`, { credentials: 'same-origin' });
+            if (!res.ok) {
+                return;
+            }
+            const items = await res.json();
+            pollErrorLogged = false;
+            items.forEach((msg) => deliverMessageFromServer(msg, friendId));
+        } catch (err) {
+            if (!pollErrorLogged) {
+                console.warn('Failed to poll chat history.', err);
+                pollErrorLogged = true;
+            }
+        }
+    }
+
+    async function trySendViaSignalR(friendId, message) {
+        try {
+            const conn = await ensureConnectionStarted();
+            if (!conn || conn.state !== 'Connected') {
+                return false;
+            }
+            await conn.invoke('SendPrivateMessage', friendId, message);
+            return true;
+        } catch (err) {
+            console.warn('SignalR delivery failed, falling back to HTTP.', err);
+            return false;
+        }
+    }
+
+    async function sendMessageViaHttp(friendId, message) {
+        const res = await fetch('/api/chat/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ toUserId: friendId, content: message })
+        });
+        if (!res.ok) {
+            throw new Error(await extractErrorMessage(res));
+        }
+        const payload = await res.json();
+        payload.fromSelf = true;
+        deliverMessageFromServer(payload, friendId);
+    }
+
+    async function extractErrorMessage(res) {
+        try {
+            const data = await res.clone().json();
+            if (data) {
+                if (typeof data.error === 'string' && data.error.trim()) {
+                    return data.error;
+                }
+                if (typeof data.message === 'string' && data.message.trim()) {
+                    return data.message;
+                }
+            }
+        } catch (err) {
+            // ignore JSON errors
+        }
+        try {
+            const text = await res.text();
+            if (text && text.trim()) {
+                return text;
+            }
+        } catch (err) {
+            // ignore text errors
+        }
+        return res.statusText || 'Request failed';
     }
 
     function markPendingMessageFailed(conversation, pendingId, content) {
@@ -1090,12 +1257,12 @@
             }
             input.value = '';
             const pendingId = registerPendingMessage(conversation, message);
+            const sentViaSignalR = await trySendViaSignalR(friend.userId, message);
+            if (sentViaSignalR) {
+                return;
+            }
             try {
-                const conn = await ensureConnectionStarted();
-                if (!conn || conn.state !== 'Connected') {
-                    throw new Error('Chat connection is not ready.');
-                }
-                await conn.invoke('SendPrivateMessage', friend.userId, message);
+                await sendMessageViaHttp(friend.userId, message);
             } catch (err) {
                 console.error('Failed to send message.', err);
 
@@ -1330,6 +1497,7 @@
 
     async function startConnection() {
         if (typeof signalR === 'undefined') {
+            ensurePolling();
             return null;
         }
         if (connection) {
@@ -1339,6 +1507,7 @@
                 } catch (err) {
                     console.error('Chat connection failed to restart.', err);
                     connection = null;
+                    ensurePolling();
                     return null;
                 }
             }
@@ -1350,40 +1519,22 @@
             .withAutomaticReconnect()
             .build();
 
+        connection.onclose(() => {
+            ensurePolling();
+            connection = null;
+            connectionPromise = null;
+        });
+
+        connection.onreconnecting(() => {
+            ensurePolling();
+        });
+
+        connection.onreconnected(() => {
+            stopPolling();
+        });
+
         connection.on('ReceiveMessage', (msg) => {
-            const friendId = friends.has(msg.senderId)
-                ? msg.senderId
-                : (friends.has(msg.receiverId)
-                    ? msg.receiverId
-                    : (msg.senderId === currentUserId ? msg.receiverId : msg.senderId));
-            if (!friendId) {
-                return;
-            }
-
-            const normalized = {
-                id: msg.id,
-                senderId: msg.senderId,
-                receiverId: msg.receiverId,
-                senderName: msg.senderName,
-                receiverName: msg.receiverName,
-                content: msg.content,
-                sentAtUtc: msg.sentAtUtc,
-                fromSelf: msg.senderId !== friendId,
-                isRead: msg.isRead,
-                readAtUtc: msg.readAtUtc
-            };
-
-            if (!friends.has(friendId)) {
-                queuePendingMessage(friendId, normalized);
-                ensureFriendLoaded(friendId, normalized).then((friend) => {
-                    if (friend) {
-                        flushPendingMessages(friendId);
-                    }
-                });
-                return;
-            }
-
-            addIncomingMessage(friendId, normalized);
+            deliverMessageFromServer(msg);
         });
 
         connection.on('MessagesRead', handleMessagesRead);
@@ -1428,10 +1579,12 @@
 
         try {
             await connection.start();
+            stopPolling();
             return connection;
         } catch (err) {
             console.error('Chat connection failed to start.', err);
             connection = null;
+            ensurePolling();
             return null;
         }
     }

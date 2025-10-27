@@ -95,6 +95,8 @@
         <span>@string.Format(L["Footer_Legal"].Value, DateTime.UtcNow.Year)</span>
     </footer>
 
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @if (SignInManager.IsSignedIn(User))
     {
         <!-- SignalR + Chat -->

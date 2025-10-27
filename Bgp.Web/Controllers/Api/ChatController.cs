@@ -1,10 +1,14 @@
-﻿using System.Security.Claims;
+﻿using System.Collections.Generic;
+using System.Security.Claims;
 using Bgp.Application.Dtos;
 using Bgp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Bgp.Web.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using Bgp.Web.Hubs;
+using Bgp.Web.Services;
 
 namespace Bgp.Web.Controllers.Api;
 
@@ -14,7 +18,15 @@ namespace Bgp.Web.Controllers.Api;
 public class ChatController : ControllerBase
 {
     private readonly AppDbContext _db;
-    public ChatController(AppDbContext db) => _db = db;
+    private readonly IChatMessageService _chatMessages;
+    private readonly IHubContext<ChatHub> _hub;
+
+    public ChatController(AppDbContext db, IChatMessageService chatMessages, IHubContext<ChatHub> hub)
+    {
+        _db = db;
+        _chatMessages = chatMessages;
+        _hub = hub;
+    }
 
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
@@ -54,5 +66,46 @@ public class ChatController : ControllerBase
             m.ReadAtUtc));
 
         return Ok(dto);
+    }
+
+    [HttpPost("messages")]
+    public async Task<ActionResult<ChatMessageDto>> SendMessage([FromBody] SendMessageRequest request)
+    {
+        if (request is null || string.IsNullOrWhiteSpace(request.ToUserId) || string.IsNullOrWhiteSpace(request.Content))
+        {
+            return BadRequest(new { error = "Invalid payload." });
+        }
+
+        var senderId = UserId;
+        if (string.IsNullOrWhiteSpace(senderId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var payload = await _chatMessages.CreateAsync(senderId, request.ToUserId, request.Content);
+
+            await _hub.Clients.Group($"user-{request.ToUserId}").SendAsync("ReceiveMessage", payload);
+            await _hub.Clients.Group($"user-{senderId}").SendAsync("ReceiveMessage", payload);
+
+            var dto = new ChatMessageDto(
+                payload.Id,
+                payload.SenderId,
+                payload.ReceiverId,
+                payload.SenderName,
+                payload.ReceiverName,
+                payload.Content,
+                payload.SentAtUtc,
+                true,
+                payload.IsRead,
+                payload.ReadAtUtc);
+
+            return Ok(dto);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 }

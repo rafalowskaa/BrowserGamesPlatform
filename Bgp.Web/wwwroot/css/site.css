@@ -20,6 +20,32 @@ body {
     background: var(--bg)
 }
 
+.theme-dark {
+    scrollbar-color: rgba(59, 130, 246, 0.35) transparent;
+    scrollbar-width: thin;
+}
+
+    .theme-dark::-webkit-scrollbar,
+    .chat-panel__body::-webkit-scrollbar,
+    .chat-window__body::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .theme-dark::-webkit-scrollbar-track,
+    .chat-panel__body::-webkit-scrollbar-track,
+    .chat-window__body::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .theme-dark::-webkit-scrollbar-thumb,
+    .chat-panel__body::-webkit-scrollbar-thumb,
+    .chat-window__body::-webkit-scrollbar-thumb {
+        background: rgba(59, 130, 246, 0.35);
+        border-radius: 999px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+    }
+
 .container {
     max-width: 1100px;
     margin: 0 auto;
@@ -736,6 +762,10 @@ body {
     gap: 12px;
 }
 
+    .chat-status-form[hidden] {
+        display: none !important;
+    }
+
     .chat-status-form input,
     .chat-status-form select {
         width: 100%;
@@ -796,8 +826,8 @@ body {
     top: 50%;
     transform: translateY(-50%);
     border: none;
-    background: rgba(148, 163, 184, 0.18);
-    color: rgba(148, 163, 184, 0.85);
+    background: rgba(59, 130, 246, 0.16);
+    color: rgba(191, 219, 254, 0.85);
     cursor: pointer;
     border-radius: 999px;
     width: 34px;
@@ -810,7 +840,7 @@ body {
 
     .password-toggle:hover,
     .password-toggle.is-active {
-        background: var(--accent);
+        background: rgba(59, 130, 246, 0.45);
         color: #0f172a;
     }
 
@@ -818,6 +848,29 @@ body {
         outline: 2px solid rgba(59, 130, 246, 0.6);
         outline-offset: 2px;
     }
+
+.password-toggle__icon {
+    display: inline-flex;
+    position: relative;
+}
+
+    .password-toggle__icon svg {
+        width: 18px;
+        height: 18px;
+        transition: opacity 0.2s ease;
+    }
+
+.password-toggle__icon-eye-off {
+    opacity: 0;
+}
+
+.password-toggle.is-active .password-toggle__icon-eye {
+    opacity: 0;
+}
+
+.password-toggle.is-active .password-toggle__icon-eye-off {
+    opacity: 1;
+}
 
 .password-toggle__icon {
     font-size: 16px;

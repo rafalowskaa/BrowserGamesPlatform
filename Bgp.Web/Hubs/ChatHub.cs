@@ -16,12 +16,14 @@ public class ChatHub : Hub
 {
     private readonly AppDbContext _db;
     private readonly IPresenceNotifier _presenceNotifier;
+    private readonly IChatMessageService _chatMessages;
     private static readonly ConcurrentDictionary<string, int> ConnectionCounts = new();
 
-    public ChatHub(AppDbContext db, IPresenceNotifier presenceNotifier)
+    public ChatHub(AppDbContext db, IPresenceNotifier presenceNotifier, IChatMessageService chatMessages)
     {
         _db = db;
         _presenceNotifier = presenceNotifier;
+        _chatMessages = chatMessages;
     }
 
     private string? UserId => Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -61,50 +63,19 @@ public class ChatHub : Hub
             return;
         if (UserId is null) throw new HubException("Unauthorized");
 
-        // prosta kontrola blokady: jeśli którykolwiek zablokował – przerwij
-        var blocked = await _db.Friendships.AnyAsync(f =>
-            (f.RequesterId == UserId && f.AddresseeId == toUserId || f.RequesterId == toUserId && f.AddresseeId == UserId)
-            && f.Status == FriendshipStatus.Blocked);
-        if (blocked) throw new HubException("User is blocked.");
-
-        var m = new Bgp.Domain.Entities.ChatMessage
+        try
         {
-            SenderId = UserId,
-            ReceiverId = toUserId,
-            Content = message.Trim(),
-            SentAtUtc = DateTime.UtcNow
-        };
-        _db.ChatMessages.Add(m);
-        await _db.SaveChangesAsync();
+            var payload = await _chatMessages.CreateAsync(UserId, toUserId, message, Context.ConnectionAborted);
 
-        var sender = await _db.Users.FindAsync(UserId);
-        var receiver = await _db.Users.FindAsync(toUserId);
-
-        var senderName = DisplayNameFormatter.Format(sender);
-        if (string.IsNullOrWhiteSpace(senderName))
-        {
-            senderName = "Me";
+            await Clients.Group($"user-{toUserId}").SendAsync("ReceiveMessage", payload);
+            await Clients.Group($"user-{UserId}").SendAsync("ReceiveMessage", payload);
         }
 
-        var receiverName = DisplayNameFormatter.Format(receiver);
-
-
-        var dto = new
+        catch (InvalidOperationException ex)
+        
         {
-            id = m.Id,
-            senderId = m.SenderId,
-            receiverId = m.ReceiverId,
-            senderName,
-            receiverName = string.IsNullOrWhiteSpace(receiverName) ? string.Empty : receiverName,
-            content = m.Content,
-            sentAtUtc = m.SentAtUtc,
-            isRead = m.IsRead,
-            readAtUtc = m.ReadAtUtc
-        };
-
-        // Wyślij do obu stron (grupy per użytkownik)
-        await Clients.Group($"user-{toUserId}").SendAsync("ReceiveMessage", dto);
-        await Clients.Group($"user-{UserId}").SendAsync("ReceiveMessage", dto);
+            throw new HubException(ex.Message);
+        }
     }
 
     public async Task MarkThreadRead(string otherUserId)
