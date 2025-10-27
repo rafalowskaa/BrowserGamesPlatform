@@ -3,6 +3,7 @@
 @using Bgp.Domain.Enums
 @using Bgp.Infrastructure.Identity
 @using Bgp.Web.Helpers
+@using Microsoft.AspNetCore.Identity
 @inject UserManager<ApplicationUser> UserManager
 @{
     var currentUserId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
