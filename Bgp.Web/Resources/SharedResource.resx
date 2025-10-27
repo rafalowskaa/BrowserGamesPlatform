@@ -673,7 +673,17 @@
         
         <value>Search player...</value>
         
-        
+        <data name="Chat_SearchHint" xml:space="preserve">
+
+
+
+
+        <value>Start typing to find players</value>
+
+
+
+
+    </data>
   
     
     </data>
@@ -773,9 +783,17 @@
 		<value>Busy</value>
 	</data>
 
+	<data name="Chat_Strangers" xml:space="preserve">
+                <value>Other players</value>
+        </data>
+
+	<data name="Chat_Strangers_Prompt" xml:space="preserve">
+                <value>Start a conversation</value>
+        </data>
+
 	<data name="Chat_Status_Invisible" xml:space="preserve">
-		<value>Invisible</value>
-	</data>
+                <value>Invisible</value>
+        </data>
 
 	<data name="Chat_Status_Away" xml:space="preserve">
                 <value>Be right back</value>
@@ -846,8 +864,12 @@
 	</data>
 
 	<data name="Chat_NoMatches" xml:space="preserve">
-		<value>No friends match your search</value>
-	</data>
+                <value>No friends match your search</value>
+        </data>
+
+	<data name="Chat_NoStrangers" xml:space="preserve">
+                <value>No players match your search</value>
+        </data>
 
 	<data name="Chat_Minimize" xml:space="preserve">
 		<value>Minimize chat window</value>

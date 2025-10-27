@@ -659,7 +659,13 @@
         <value>Search player...</value>
         
         
-  
+  </data>
+	<data name="Chat_SearchHint" xml:space="preserve">
+
+
+
+
+        <value>Start typing to find players</value>
     
     </data>
 
@@ -755,6 +761,9 @@
       </data>
 	<data name="Chat_NoMatches" xml:space="preserve">
           <value>No friends match your search</value>
+		</data>
+	<data name="Chat_NoStrangers" xml:space="preserve">
+          <value>No players match your search</value>
       </data>
 	<data name="Chat_ReadReceipt" xml:space="preserve">
           <value>Read at {0}</value>
@@ -791,6 +800,12 @@
       </data>
 	<data name="Chat_Status_Unavailable" xml:space="preserve">
           <value>Busy</value>
+      </data>
+	<data name="Chat_Strangers" xml:space="preserve">
+          <value>Other players</value>
+      </data>
+	<data name="Chat_Strangers_Prompt" xml:space="preserve">
+          <value>Start a conversation</value>
       </data>
 	<data name="Chat_Status_Unknown" xml:space="preserve">
           <value>Offline</value>

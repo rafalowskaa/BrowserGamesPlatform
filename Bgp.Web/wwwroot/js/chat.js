@@ -12,13 +12,14 @@
     const friendsEmpty = panel ? panel.querySelector('[data-chat-friends-empty]') : null;
     const requestsList = panel ? panel.querySelector('[data-chat-requests]') : null;
     const requestsEmpty = panel ? panel.querySelector('[data-chat-requests-empty]') : null;
+    const strangersList = panel ? panel.querySelector('[data-chat-strangers]') : null;
+    const strangersEmpty = panel ? panel.querySelector('[data-chat-strangers-empty]') : null;
     const windowsContainer = dock.querySelector('[data-chat-windows]');
     const unreadBadge = dock.querySelector('[data-chat-unread]');
     const stringsElement = document.getElementById('chatStrings');
     const statusForm = panel ? panel.querySelector('[data-chat-status-form]') : null;
     const statusMessageInput = statusForm ? statusForm.querySelector('[data-chat-status-message]') : null;
     const statusSelect = statusForm ? statusForm.querySelector('[data-chat-presence]') : null;
-    const invisibleToggle = statusForm ? statusForm.querySelector('[data-chat-invisible]') : null;
     const statusFeedback = statusForm ? statusForm.querySelector('[data-chat-status-feedback]') : null;
     const statusSubmit = statusForm ? statusForm.querySelector('[data-chat-status-submit]') : null;
     const statusContainer = panel ? panel.querySelector('[data-chat-status]') : null;
@@ -39,6 +40,9 @@
     let statusDirty = false;
     let statusAwaitingConfirmation = false;
     let statusMenuOpen = false;
+    let searchDebounceTimer = null;
+    let searchController = null;
+    let searchRequestId = 0;
     const pendingPresence = new Map();
 
     const strings = {
@@ -59,6 +63,10 @@
         noFriends: 'No friends yet',
         noInvites: 'No invitations',
         noMatches: 'No friends match your search',
+        strangers: 'Other players',
+        noStrangers: 'No players match your search',
+        searchHint: 'Start typing to find players',
+        strangersPrompt: 'Start a conversation',
         minimize: 'Minimize chat window',
         restore: 'Restore chat window',
         close: 'Close chat window',
@@ -87,6 +95,26 @@
             return strings.statusAway;
         }
         return strings.statusOffline;
+    }
+
+    function selectionValueFromPresence(presence, isInvisible) {
+        if (isInvisible) {
+            return 'invisible';
+        }
+        if (presence === 1) {
+            return 'away';
+        }
+        return 'available';
+    }
+
+    function parsePresenceSelection(value) {
+        if (value === 'invisible') {
+            return { presence: 0, isInvisible: true };
+        }
+        if (value === 'away') {
+            return { presence: 1, isInvisible: false };
+        }
+        return { presence: 0, isInvisible: false };
     }
 
     function updateSelfStatusDisplay(message, presence, isInvisible) {
@@ -198,7 +226,7 @@
     }
 
     async function loadSelfStatus() {
-        if (!statusForm || !statusMessageInput || !statusSelect || !invisibleToggle) {
+        if (!statusForm || !statusMessageInput || !statusSelect) {
             return;
         }
         try {
@@ -209,9 +237,9 @@
             const data = await res.json();
             statusMessageInput.value = data.statusMessage || '';
             const presence = typeof data.presence === 'number' ? data.presence : parseInt(data.presence, 10) || 0;
-            statusSelect.value = String(presence);
-            invisibleToggle.checked = !!data.isInvisible;
-            updateSelfStatusDisplay(statusMessageInput.value, presence, invisibleToggle.checked);
+            const isInvisible = !!data.isInvisible;
+            statusSelect.value = selectionValueFromPresence(presence, isInvisible);
+            updateSelfStatusDisplay(statusMessageInput.value, presence, isInvisible);
             statusDirty = false;
             showStatusFeedback('', false);
         } catch (err) {
@@ -227,14 +255,14 @@
 
         statusForm.addEventListener('submit', async (evt) => {
             evt.preventDefault();
-            if (!statusMessageInput || !statusSelect || !invisibleToggle) {
+            if (!statusMessageInput || !statusSelect) {
                 return;
             }
-            const presenceValue = parseInt(statusSelect.value, 10);
+            const selection = parsePresenceSelection(statusSelect.value);
             const payload = {
                 statusMessage: statusMessageInput.value,
-                presence: Number.isNaN(presenceValue) ? 0 : presenceValue,
-                isInvisible: invisibleToggle.checked
+                presence: selection.presence,
+                isInvisible: selection.isInvisible
             };
             statusAwaitingConfirmation = true;
             setStatusBusy(true);
@@ -263,9 +291,9 @@
                 if (data) {
                     statusMessageInput.value = data.statusMessage || '';
                     const updatedPresence = typeof data.presence === 'number' ? data.presence : parseInt(data.presence, 10) || 0;
-                    statusSelect.value = String(updatedPresence);
-                    invisibleToggle.checked = !!data.isInvisible;
-                    updateSelfStatusDisplay(statusMessageInput.value, updatedPresence, invisibleToggle.checked);
+                    const updatedInvisible = !!data.isInvisible;
+                    statusSelect.value = selectionValueFromPresence(updatedPresence, updatedInvisible);
+                    updateSelfStatusDisplay(statusMessageInput.value, updatedPresence, updatedInvisible);
                 }
                 statusDirty = false;
                 setStatusMenu(false);
@@ -281,8 +309,10 @@
 
     if (searchInput) {
         searchInput.addEventListener('input', (evt) => {
-            searchTerm = (evt.target.value || '').toLowerCase().trim();
+            const value = evt.target.value || '';
+            searchTerm = value.toLowerCase().trim();
             applyFriendFilter();
+            scheduleSearch(value);
         });
     }
 
@@ -402,6 +432,145 @@
             friendsEmpty.textContent = searchTerm && hasFriends ? strings.noMatches : strings.noFriends;
             friendsEmpty.style.display = visible > 0 ? 'none' : 'block';
         }
+    }
+
+    function clearStrangerResults() {
+        if (strangersList) {
+            strangersList.innerHTML = '';
+        }
+    }
+
+    function showStrangerMessage(message) {
+        if (!strangersEmpty) {
+            return;
+        }
+        const text = message ? message.trim() : '';
+        strangersEmpty.textContent = text;
+        strangersEmpty.style.display = text ? 'block' : 'none';
+    }
+
+    function renderStrangers(results) {
+        if (!strangersList) {
+            return;
+        }
+        clearStrangerResults();
+        const fragment = document.createDocumentFragment();
+        results.forEach((player) => {
+            const displayName = player.name || player.Name || player.id;
+            const li = document.createElement('li');
+            li.className = 'chat-contact';
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'chat-contact__button chat-contact__button--ghost';
+            button.addEventListener('click', () => {
+                if (window.bgpChat && typeof window.bgpChat.open === 'function') {
+                    window.bgpChat.open(player.id, displayName);
+                }
+            });
+
+            const avatar = document.createElement('span');
+            avatar.className = 'chat-contact__avatar';
+            if (player.avatarUrl) {
+                const img = document.createElement('img');
+                img.src = player.avatarUrl;
+                img.alt = '';
+                avatar.appendChild(img);
+            } else {
+                const source = (displayName || player.id || '?').trim();
+                avatar.textContent = source ? source.slice(0, 1).toUpperCase() : '?';
+            }
+
+            const meta = document.createElement('span');
+            meta.className = 'chat-contact__meta';
+
+            const name = document.createElement('span');
+            name.className = 'chat-contact__name';
+            name.textContent = displayName;
+            meta.appendChild(name);
+
+            const prompt = document.createElement('span');
+            prompt.className = 'chat-contact__status';
+            prompt.textContent = strings.strangersPrompt;
+            meta.appendChild(prompt);
+
+            button.appendChild(avatar);
+            button.appendChild(meta);
+            li.appendChild(button);
+            fragment.appendChild(li);
+        });
+        strangersList.appendChild(fragment);
+        showStrangerMessage('');
+    }
+
+    function updateSearchResults(value) {
+        if (!strangersList || !strangersEmpty) {
+            return;
+        }
+        if (searchController) {
+            searchController.abort();
+            searchController = null;
+        }
+        const controller = new AbortController();
+        searchController = controller;
+        const requestId = ++searchRequestId;
+        fetch(`/api/friends/search?q=${encodeURIComponent(value)}`, {
+            credentials: 'same-origin',
+            signal: controller.signal
+        })
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error('Search failed');
+                }
+                return res.json();
+            })
+            .then((results) => {
+                if (searchRequestId !== requestId) {
+                    return;
+                }
+                const list = Array.isArray(results) ? results : [];
+                if (list.length === 0) {
+                    clearStrangerResults();
+                    showStrangerMessage(strings.noStrangers);
+                    return;
+                }
+                renderStrangers(list);
+            })
+            .catch((err) => {
+                if (err && err.name === 'AbortError') {
+                    return;
+                }
+                console.error('Player search failed.', err);
+                clearStrangerResults();
+                showStrangerMessage(strings.noStrangers);
+            })
+            .finally(() => {
+                if (searchController === controller) {
+                    searchController = null;
+                }
+            });
+    }
+
+    function scheduleSearch(rawValue) {
+        const value = (rawValue || '').trim();
+        if (searchDebounceTimer) {
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = null;
+        }
+        if (!value || value.length < 2) {
+            if (searchController) {
+                searchController.abort();
+                searchController = null;
+            }
+            clearStrangerResults();
+            showStrangerMessage(strings.searchHint);
+            return;
+        }
+        clearStrangerResults();
+        showStrangerMessage(strings.searchHint);
+        searchDebounceTimer = setTimeout(() => {
+            updateSearchResults(value);
+        }, 250);
     }
 
     function updateFriendVisual(friend) {
@@ -1090,10 +1259,7 @@
                         statusMessageInput.value = statusMessage;
                     }
                     if (statusSelect) {
-                        statusSelect.value = String(presenceValue);
-                    }
-                    if (invisibleToggle) {
-                        invisibleToggle.checked = isInvisible;
+                        statusSelect.value = selectionValueFromPresence(presenceValue, isInvisible);
                     }
                 }
                 updateSelfStatusDisplay(statusMessage, presenceValue, isInvisible);
@@ -1166,6 +1332,9 @@
     });
 
     loadSelfStatus();
+    if (strangersEmpty) {
+        showStrangerMessage(strings.searchHint);
+    }
     loadFriends();
     ensureConnectionStarted();
 })();

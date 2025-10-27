@@ -33,6 +33,10 @@
         noFriends = L["Chat_NoFriends"].Value,
         noInvites = L["Chat_NoInvites"].Value,
         noMatches = L["Chat_NoMatches"].Value,
+        strangers = L["Chat_Strangers"].Value,
+        noStrangers = L["Chat_NoStrangers"].Value,
+        searchHint = L["Chat_SearchHint"].Value,
+        strangersPrompt = L["Chat_Strangers_Prompt"].Value,
         minimize = L["Chat_Minimize"].Value,
         restore = L["Chat_Restore"].Value,
         close = L["Chat_CloseWindow"].Value,
@@ -105,13 +109,10 @@
                            autocomplete="off" />
                     <label for="chatPresence">@L["Chat_Status_PresenceLabel"].Value</label>
                     <select id="chatPresence" data-chat-presence>
-                        <option value="@((int)UserPresenceStatus.Available)">@L["Chat_Status_Available"].Value</option>
-                        <option value="@((int)UserPresenceStatus.Away)">@L["Chat_Status_Away"].Value</option>
+                        <option value="available">@L["Chat_Status_Available"].Value</option>
+                        <option value="away">@L["Chat_Status_Away"].Value</option>
+                        <option value="invisible">@L["Chat_Status_Invisible"].Value</option>
                     </select>
-                    <label class="check chat-status-popover__invisible">
-                        <input type="checkbox" data-chat-invisible />
-                        @L["Chat_Status_InvisibleLabel"].Value
-                    </label>
                     <div class="chat-status-popover__actions">
                         <button type="submit" class="btn-primary btn-compact" data-chat-status-submit>@L["Chat_Status_Save"].Value</button>
                         <span class="chat-status__feedback" data-chat-status-feedback hidden></span>
@@ -122,6 +123,11 @@
                 <h4>@L["Chat_Friends"].Value</h4>
                 <ul class="chat-contacts" data-chat-friends></ul>
                 <p class="chat-empty" data-chat-friends-empty>@L["Chat_NoFriends"].Value</p>
+            </section>
+            <section class="chat-panel__section">
+                <h4>@L["Chat_Strangers"].Value</h4>
+                <ul class="chat-contacts chat-contacts--strangers" data-chat-strangers></ul>
+                <p class="chat-empty" data-chat-strangers-empty>@L["Chat_SearchHint"].Value</p>
             </section>
             <section class="chat-panel__section">
                 <h4>@L["Chat_Invites"].Value</h4>

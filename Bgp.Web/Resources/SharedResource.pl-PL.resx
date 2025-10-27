@@ -674,7 +674,13 @@
         
         <value>Szukaj gracza...</value>
         
-        
+        </data>
+	<data name="Chat_SearchHint" xml:space="preserve">
+
+
+
+
+        <value>Zacznij wpisywać, aby znaleźć graczy</value>
   
     
     </data>
@@ -773,10 +779,17 @@
 	<data name="Chat_Status_Unavailable" xml:space="preserve">
 		<value>Niedostępny</value>
 	</data>
+	<data name="Chat_Strangers" xml:space="preserve">
+                <value>Nieznajomi</value>
+        </data>
+
+	<data name="Chat_Strangers_Prompt" xml:space="preserve">
+                <value>Rozpocznij rozmowę</value>
+        </data>
 
 	<data name="Chat_Status_Invisible" xml:space="preserve">
-		<value>Niewidoczny</value>
-	</data>
+                <value>Niewidoczny</value>
+        </data>
 
 	<data name="Chat_Status_Away" xml:space="preserve">
                 <value>Zaraz wracam</value>
@@ -847,8 +860,12 @@
 	</data>
 
 	<data name="Chat_NoMatches" xml:space="preserve">
-		<value>Brak pasujących znajomych</value>
-	</data>
+                <value>Brak pasujących znajomych</value>
+        </data>
+
+	<data name="Chat_NoStrangers" xml:space="preserve">
+                <value>Brak wyników dla tego wyszukiwania</value>
+        </data>
 
 	<data name="Chat_Minimize" xml:space="preserve">
 		<value>Zminimalizuj okno czatu</value>
