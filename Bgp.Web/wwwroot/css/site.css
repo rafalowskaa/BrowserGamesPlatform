@@ -826,21 +826,27 @@ body {
 }
 
 .password-field {
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.password-field__header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 12px;
 }
+
+    .password-field__header label {
+        margin: 0;
+    }
 
     .password-field input {
         width: 100%;
-        padding-right: 48px;
     }
 
 .password-toggle {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
     border: none;
     background: transparent;
     color: rgba(148, 163, 184, 0.85);
@@ -853,6 +859,7 @@ body {
     align-items: center;
     justify-content: center;
     transition: background 0.2s ease, color 0.2s ease;
+    flex-shrink: 0;
 }
 
     .password-toggle:hover,
