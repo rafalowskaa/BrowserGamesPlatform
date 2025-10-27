@@ -827,6 +827,10 @@
                 <value>Zapisz status</value>
         </data>
 
+	<data name="Chat_Status_Cancel" xml:space="preserve">
+                <value>Anuluj</value>
+        </data>
+
 	<data name="Chat_Status_Saved" xml:space="preserve">
                 <value>Status zaktualizowany</value>
         </data>
@@ -848,8 +852,16 @@
 	</data>
 
 	<data name="Chat_Request_Pending" xml:space="preserve">
-		<value>Zaproszenie wysłane</value>
-	</data>
+                <value>Zaproszenie wysłane</value>
+        </data>
+
+	<data name="Chat_Sending" xml:space="preserve">
+                <value>Wysyłanie…</value>
+        </data>
+
+	<data name="Chat_SendFailed" xml:space="preserve">
+                <value>Nie udało się wysłać wiadomości</value>
+        </data>
 
 	<data name="Chat_NoFriends" xml:space="preserve">
 		<value>Brak znajomych</value>

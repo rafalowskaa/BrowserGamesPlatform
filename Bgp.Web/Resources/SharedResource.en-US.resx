@@ -783,6 +783,12 @@
 	<data name="Chat_Request_Pending" xml:space="preserve">
           <value>Invitation sent</value>
       </data>
+	<data name="Chat_Sending" xml:space="preserve">
+          <value>Sending…</value>
+      </data>
+	<data name="Chat_SendFailed" xml:space="preserve">
+          <value>Failed to send message</value>
+      </data>
 	<data name="Chat_Restore" xml:space="preserve">
           <value>Restore chat window</value>
       </data>
@@ -828,6 +834,9 @@
       </data>
 	<data name="Chat_Status_Save" xml:space="preserve">
           <value>Update status</value>
+      </data>
+	<data name="Chat_Status_Cancel" xml:space="preserve">
+          <value>Cancel</value>
       </data>
 	<data name="Chat_Status_Saved" xml:space="preserve">
           <value>Status updated</value>

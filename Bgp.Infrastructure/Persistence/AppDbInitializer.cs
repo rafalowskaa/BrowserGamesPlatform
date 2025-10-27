@@ -25,7 +25,7 @@ public static class AppDbInitializer
         if (!await roleMgr.RoleExistsAsync("User"))
             await roleMgr.CreateAsync(new IdentityRole("User"));
 
-        // Konto admina DEV (zmień hasło przed wdrożeniem!)
+        // Konto admina DEV 
         var adminUserName = "admin";
         var adminEmail = "admin@bgp.local";
         var admin = await userMgr.FindByNameAsync(adminUserName) ?? await userMgr.FindByEmailAsync(adminEmail);

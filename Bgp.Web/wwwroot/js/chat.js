@@ -22,6 +22,7 @@
     const statusSelect = statusForm ? statusForm.querySelector('[data-chat-presence]') : null;
     const statusFeedback = statusForm ? statusForm.querySelector('[data-chat-status-feedback]') : null;
     const statusSubmit = statusForm ? statusForm.querySelector('[data-chat-status-submit]') : null;
+    const statusCancel = statusForm ? statusForm.querySelector('[data-chat-status-cancel]') : null;
     const statusContainer = panel ? panel.querySelector('[data-chat-status]') : null;
     const statusToggle = panel ? panel.querySelector('[data-chat-status-toggle]') : null;
     const statusMessageDisplay = panel ? panel.querySelector('[data-chat-status-text]') : null;
@@ -33,6 +34,7 @@
     const friends = new Map();
     const conversations = new Map();
     const pendingMessages = new Map();
+    const pendingOutgoing = new Map();
     let connection = null;
     let loadFriendsPromise = null;
     let connectionPromise = null;
@@ -72,7 +74,9 @@
         close: 'Close chat window',
         writePlaceholder: 'Write a message…',
         send: 'Send',
-        deliveredReceiptLabel: 'Delivered'
+        deliveredReceiptLabel: 'Delivered',
+        sending: 'Sending…',
+        sendError: 'Failed to send message'
     };
 
     try {
@@ -138,7 +142,13 @@
             return;
         }
         statusMenuOpen = !!open;
-        statusForm.hidden = !statusMenuOpen;
+        if (typeof statusForm.toggleAttribute === 'function') {
+            statusForm.toggleAttribute('hidden', !statusMenuOpen);
+        } else if (statusMenuOpen) {
+            statusForm.hidden = false;
+        } else {
+            statusForm.hidden = true;
+        }
         statusContainer.classList.toggle('is-open', statusMenuOpen);
         statusToggle.setAttribute('aria-expanded', statusMenuOpen ? 'true' : 'false');
         if (statusMenuOpen && statusMessageInput) {
@@ -177,8 +187,14 @@
     }
 
     document.addEventListener('keydown', (evt) => {
-        if (evt.key === 'Escape' && dock.classList.contains('is-open')) {
-            togglePanel(false);
+        if (evt.key === 'Escape') {
+            if (statusMenuOpen) {
+                setStatusMenu(false);
+                return;
+            }
+            if (dock.classList.contains('is-open')) {
+                togglePanel(false);
+            }
         }
     });
 
@@ -203,7 +219,12 @@
             if (!statusMenuOpen) {
                 return;
             }
-            if (!statusContainer.contains(evt.target)) {
+            const target = evt.target;
+            if (!target || !(target instanceof Node)) {
+                setStatusMenu(false);
+                return;
+            }
+            if (!statusContainer.contains(target)) {
                 setStatusMenu(false);
             }
         });
@@ -309,6 +330,13 @@
                 setStatusBusy(false);
             }
         });
+
+        if (statusCancel) {
+            statusCancel.addEventListener('click', (evt) => {
+                evt.preventDefault();
+                setStatusMenu(false);
+            });
+        }
     }
 
     if (searchInput) {
@@ -415,6 +443,108 @@
         }
         queued.forEach((msg) => addIncomingMessage(friendId, msg));
         pendingMessages.delete(friendId);
+    }
+
+    function getPendingQueue(friendId, create) {
+        if (!pendingOutgoing.has(friendId) && create) {
+            pendingOutgoing.set(friendId, []);
+        }
+        return pendingOutgoing.get(friendId) || null;
+    }
+
+    function getMessageMeta(message, fromSelf) {
+        const sentLabel = formatDateTime(message.sentAtUtc);
+        const baseLabel = sentLabel || '';
+        if (!fromSelf) {
+            return baseLabel;
+        }
+        if (message.sendError) {
+            return baseLabel ? `${baseLabel} · ${strings.sendError}` : strings.sendError;
+        }
+        if (message.isPending) {
+            return baseLabel ? `${baseLabel} · ${strings.sending}` : strings.sending;
+        }
+        if (message.isRead && message.readAtUtc) {
+            const readLabel = formatDateTime(message.readAtUtc);
+            return readLabel ? `${baseLabel} · ${strings.readReceiptLabel} ${readLabel}` : `${baseLabel} · ${strings.readReceiptLabel}`;
+        }
+        return baseLabel ? `${baseLabel} · ${strings.deliveredReceiptLabel}` : strings.deliveredReceiptLabel;
+    }
+
+    function registerPendingMessage(conversation, content) {
+        const localId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const queue = getPendingQueue(conversation.friendId, true);
+        if (queue) {
+            queue.push(localId);
+        }
+        const pending = {
+            id: localId,
+            senderId: currentUserId,
+            receiverId: conversation.friendId,
+            content,
+            sentAtUtc: new Date().toISOString(),
+            fromSelf: true,
+            isPending: true,
+            isRead: false,
+            readAtUtc: null
+        };
+        renderMessage(conversation, pending);
+        return localId;
+    }
+
+    function resolvePendingMessage(conversation, message) {
+        const queue = getPendingQueue(conversation.friendId, false);
+        if (!queue || queue.length === 0) {
+            return false;
+        }
+        const pendingId = queue.shift();
+        if (queue.length === 0) {
+            pendingOutgoing.delete(conversation.friendId);
+        }
+        const entry = conversation.messages.get(pendingId);
+        if (!entry) {
+            return false;
+        }
+        conversation.messages.delete(pendingId);
+        entry.data = Object.assign({}, message, { isPending: false, sendError: false });
+        entry.element.dataset.messageId = message.id;
+        entry.element.classList.remove('chat-message--pending', 'chat-message--error');
+        const bubble = entry.element.querySelector('.chat-message__bubble');
+        if (bubble) {
+            bubble.textContent = message.content;
+        }
+        entry.meta.textContent = getMessageMeta(entry.data, true);
+        conversation.messages.set(message.id, entry);
+        return true;
+    }
+
+    function markPendingMessageFailed(conversation, pendingId, content) {
+        const queue = getPendingQueue(conversation.friendId, false);
+        if (queue) {
+            const index = queue.indexOf(pendingId);
+            if (index !== -1) {
+                queue.splice(index, 1);
+            }
+            if (queue.length === 0) {
+                pendingOutgoing.delete(conversation.friendId);
+            }
+        }
+        const entry = conversation.messages.get(pendingId);
+        if (!entry) {
+            return;
+        }
+        entry.data.isPending = false;
+        entry.data.sendError = true;
+        if (typeof content === 'string' && content.trim()) {
+            entry.data.content = content;
+            const bubble = entry.element.querySelector('.chat-message__bubble');
+            if (bubble) {
+                bubble.textContent = content;
+            }
+        }
+        entry.element.classList.remove('chat-message--pending');
+        entry.element.classList.add('chat-message--error');
+        entry.meta.textContent = getMessageMeta(entry.data, true);
     }
 
     function applyFriendFilter() {
@@ -913,6 +1043,18 @@
         element.appendChild(body);
         element.appendChild(inputWrap);
 
+        const conversation = {
+            friendId: friend.userId,
+            element,
+            body,
+            input,
+            messages: new Map(),
+            loaded: false,
+            nameEl: name,
+            statusEl: status,
+            dotEl: dot
+        };
+
         minimizeBtn.addEventListener('click', (evt) => {
             evt.stopPropagation();
             const collapsed = element.classList.toggle('chat-window--collapsed');
@@ -947,14 +1089,20 @@
                 return;
             }
             input.value = '';
-            const conn = await ensureConnectionStarted();
-            if (!conn || conn.state !== 'Connected') {
-                console.warn('Chat connection is not ready.');
-                return;
-            }
-            conn.invoke('SendPrivateMessage', friend.userId, message).catch((err) => {
+            const pendingId = registerPendingMessage(conversation, message);
+            try {
+                const conn = await ensureConnectionStarted();
+                if (!conn || conn.state !== 'Connected') {
+                    throw new Error('Chat connection is not ready.');
+                }
+                await conn.invoke('SendPrivateMessage', friend.userId, message);
+            } catch (err) {
                 console.error('Failed to send message.', err);
-            });
+
+                markPendingMessageFailed(conversation, pendingId, message);
+                input.value = message;
+                input.focus();
+            }
 
         };
 
@@ -969,18 +1117,7 @@
         input.addEventListener('focus', () => markThreadRead(friend.userId));
         body.addEventListener('mouseenter', () => markThreadRead(friend.userId));
 
-        const conversation = {
-            friendId: friend.userId,
-            element,
-            body,
-            input,
-            messages: new Map(),
-            loaded: false,
-            nameEl: name,
-            statusEl: status,
-            dotEl: dot
-        };
-
+        
         updateConversationHeader(conversation);
         loadHistory(conversation, { markRead: options.autoRead === true })
             .catch((err) => console.error('Failed to load chat history.', err));
@@ -1013,7 +1150,14 @@
     function renderMessage(conversation, message) {
         const fromSelf = message.fromSelf === true || message.senderId === undefined || message.senderId !== conversation.friendId;
         const wrapper = document.createElement('div');
-        wrapper.className = `chat-message ${fromSelf ? 'chat-message--me' : 'chat-message--peer'}`;
+        const classNames = ['chat-message', fromSelf ? 'chat-message--me' : 'chat-message--peer'];
+        if (message.isPending) {
+            classNames.push('chat-message--pending');
+        }
+        if (message.sendError) {
+            classNames.push('chat-message--error');
+        }
+        wrapper.className = classNames.join(' ');
         wrapper.dataset.messageId = message.id;
 
         const bubble = document.createElement('div');
@@ -1023,16 +1167,7 @@
 
         const meta = document.createElement('div');
         meta.className = 'chat-message__meta';
-        const sentLabel = formatDateTime(message.sentAtUtc);
-        let label = sentLabel;
-        if (fromSelf) {
-            if (message.isRead && message.readAtUtc) {
-                label += ` · ${strings.readReceiptLabel} ${formatDateTime(message.readAtUtc)}`;
-            } else {
-                label += ` · ${strings.deliveredReceiptLabel}`;
-            }
-        }
-        meta.textContent = label;
+        meta.textContent = getMessageMeta(message, fromSelf);
         wrapper.appendChild(meta);
 
         if (!fromSelf) {
@@ -1069,6 +1204,12 @@
             return;
         }
         const conversation = ensureConversation(friendId, { focus: false, autoRead: false });
+        if (!conversation) {
+            return;
+        }
+        if (message.fromSelf && resolvePendingMessage(conversation, message)) {
+            return;
+        }
         renderMessage(conversation, message);
         if (!message.fromSelf) {
             friend.unreadCount = (friend.unreadCount || 0) + 1;
@@ -1088,9 +1229,7 @@
             if (entry && entry.data) {
                 entry.data.isRead = true;
                 entry.data.readAtUtc = payload.readAtUtc;
-                const timeLabel = formatDateTime(entry.data.sentAtUtc);
-                const readLabel = formatDateTime(payload.readAtUtc);
-                entry.meta.textContent = `${timeLabel} · ${strings.readReceiptLabel} ${readLabel}`;
+                entry.meta.textContent = getMessageMeta(entry.data, true);
             }
         });
     }

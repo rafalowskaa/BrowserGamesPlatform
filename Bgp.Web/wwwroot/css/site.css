@@ -1137,6 +1137,28 @@ body {
     animation: chatAttention 1.4s ease-in-out 3;
 }
 
+.chat-message--pending .chat-message__bubble {
+    opacity: 0.65;
+}
+
+.chat-message--pending .chat-message__meta {
+    color: rgba(148, 163, 184, 0.6);
+}
+
+.chat-message--error .chat-message__bubble {
+    background: rgba(239, 68, 68, 0.85);
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(239, 68, 68, 0.35);
+}
+
+.chat-message--error.chat-message--me .chat-message__bubble {
+    background: rgba(239, 68, 68, 0.85);
+}
+
+.chat-message--error .chat-message__meta {
+    color: #fca5a5;
+}
+
 .chat-window--collapsed .chat-window__body,
 .chat-window--collapsed .chat-window__input {
     display: none;

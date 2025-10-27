@@ -42,7 +42,9 @@
         close = L["Chat_CloseWindow"].Value,
         writePlaceholder = L["Chat_WriteMessage"].Value,
         send = L["Chat_Send"].Value,
-        deliveredReceiptLabel = L["Chat_Receipt_Delivered"].Value
+        deliveredReceiptLabel = L["Chat_Receipt_Delivered"].Value,
+        sending = L["Chat_Sending"].Value,
+        sendError = L["Chat_SendFailed"].Value
     };
 }
 
@@ -115,6 +117,7 @@
                     </select>
                     <div class="chat-status-popover__actions">
                         <button type="submit" class="btn-primary btn-compact" data-chat-status-submit>@L["Chat_Status_Save"].Value</button>
+                        <button type="button" class="btn-outline btn-compact" data-chat-status-cancel>@L["Chat_Status_Cancel"].Value</button>
                         <span class="chat-status__feedback" data-chat-status-feedback hidden></span>
                     </div>
                 </form>
