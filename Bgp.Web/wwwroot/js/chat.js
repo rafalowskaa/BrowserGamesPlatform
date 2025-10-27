@@ -740,7 +740,10 @@
             acceptBtn.className = 'btn-primary btn-compact';
             acceptBtn.textContent = strings.accept;
             acceptBtn.addEventListener('click', async () => {
-                await fetch(`/api/friends/accept/${encodeURIComponent(request.userId)}`, { method: 'POST' });
+                await fetch(`/api/friends/accept/${encodeURIComponent(request.userId)}`, {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
                 await loadFriends();
             });
 
@@ -749,7 +752,10 @@
             declineBtn.className = 'btn-outline btn-compact';
             declineBtn.textContent = strings.decline;
             declineBtn.addEventListener('click', async () => {
-                await fetch(`/api/friends/${encodeURIComponent(request.userId)}`, { method: 'DELETE' });
+                await fetch(`/api/friends/${encodeURIComponent(request.userId)}`, {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                });
                 await loadFriends();
             });
 
@@ -1035,7 +1041,7 @@
         if (conversation.loaded) return;
         conversation.loaded = true;
         try {
-            const res = await fetch(`/api/chat/history/${encodeURIComponent(conversation.friendId)}?take=50`);
+            const res = await fetch(`/api/chat/history/${encodeURIComponent(conversation.friendId)}?take=50`, { credentials: 'same-origin' });
             if (!res.ok) {
                 return;
             }
@@ -1120,7 +1126,7 @@
             friends.clear();
 
             try {
-                const res = await fetch('/api/friends');
+                const res = await fetch('/api/friends', { credentials: 'same-origin' });
                 if (!res.ok) {
                     throw new Error('Request failed');
                 }
