@@ -2159,6 +2159,21 @@
 	<data name="Dashboard_Friends_BlockError" xml:space="preserve">
       <value>Nie udało się zablokować gracza.</value>
     </data>
+	<data name="Dashboard_Friends_RemoveConfirm" xml:space="preserve">
+      <value>Czy na pewno chcesz usunąć tego znajomego?</value>
+    </data>
+	<data name="Dashboard_Friends_BlockedHeading" xml:space="preserve">
+      <value>Zablokowani gracze</value>
+    </data>
+	<data name="Dashboard_Friends_NoBlocked" xml:space="preserve">
+      <value>Brak zablokowanych graczy</value>
+    </data>
+	<data name="Dashboard_Friends_Unblock" xml:space="preserve">
+      <value>Odblokuj</value>
+    </data>
+	<data name="Dashboard_Friends_UnblockConfirm" xml:space="preserve">
+      <value>Czy na pewno chcesz odblokować tego gracza?</value>
+    </data>
 	<data name="Admin_Nav_Users" xml:space="preserve">
     <value>Użytkownicy</value>
   </data>

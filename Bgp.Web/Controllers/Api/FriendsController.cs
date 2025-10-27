@@ -50,9 +50,17 @@ public class FriendsController : ControllerBase
             .Select(f => f.RequesterId)
             .ToListAsync();
 
+        var blocked = await _db.Friendships
+            .Where(f => (f.RequesterId == uid || f.AddresseeId == uid)
+                        && f.Status == FriendshipStatus.Blocked
+                        && f.BlockedByUserId == uid)
+            .Select(f => f.RequesterId == uid ? f.AddresseeId : f.RequesterId)
+            .ToListAsync();
+
         var allIds = friendIds
             .Concat(outgoing)
             .Concat(incoming)
+            .Concat(blocked)
             .Distinct()
             .ToList();
 
@@ -75,7 +83,7 @@ public class FriendsController : ControllerBase
                 .ToListAsync())
                 .ToDictionary(u => u.Id, u => (u.DisplayName, u.Email, u.UserName, u.AvatarUrl, u.StatusMessage, u.PresenceStatus, u.IsInvisible));
 
-        var rankLookup = await BuildRankSnapshotsAsync(friendIds);
+        var rankLookup = await BuildRankSnapshotsAsync(friendIds.Concat(blocked).ToList());
 
         var unreadLookup = friendIds.Count == 0
             ? new Dictionary<string, int>()
@@ -176,7 +184,26 @@ public class FriendsController : ControllerBase
             })
             .ToList();
 
-        return Ok(acceptedDtos.Concat(outgoingDtos).Concat(incomingDtos));
+        var blockedDtos = blocked
+            .Select(id =>
+            {
+                var rank = ResolveRank(id);
+                return new FriendDto(
+                    id,
+                    ResolveName(id),
+                    rank.Title,
+                    ResolveAvatar(id),
+                    rank.AccentColor,
+                    FriendshipStatus.Blocked,
+                    false,
+                    ResolveStatusMessage(id),
+                    ResolvePresence(id),
+                    ResolveInvisible(id),
+                    0);
+            })
+            .ToList();
+
+        return Ok(acceptedDtos.Concat(outgoingDtos).Concat(incomingDtos).Concat(blockedDtos));
 
         static string? NormalizeStatus(string? value)
         {

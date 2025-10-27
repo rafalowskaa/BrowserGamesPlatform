@@ -9,6 +9,10 @@
     const acceptedEmpty = document.getElementById('friendsAcceptedEmpty');
     const incomingEmpty = document.getElementById('friendsIncomingEmpty');
     const outgoingEmpty = document.getElementById('friendsOutgoingEmpty');
+    const blockedPanel = document.getElementById('friendsBlockedPanel');
+    const blockedList = document.getElementById('friendsBlocked');
+    const blockedEmpty = document.getElementById('friendsBlockedEmpty');
+    const blockedCount = blockedPanel ? blockedPanel.querySelector('[data-friends-blocked-count]') : null;
     const stringsEl = document.getElementById('friendStrings');
 
     if (!searchInput || !searchBtn || !stringsEl) {
@@ -133,10 +137,14 @@
         const accepted = items.filter(x => x.status === 1);
         const incoming = items.filter(x => x.status === 0 && !x.outgoingRequest);
         const outgoing = items.filter(x => x.status === 0 && x.outgoingRequest);
+        const blocked = items.filter(x => x.status === 2);
 
         clearList(acceptedList);
         clearList(incomingList);
         clearList(outgoingList);
+        if (blockedList) {
+            clearList(blockedList);
+        }
 
         accepted.forEach(f => {
             const accent = f.rankAccentColor || '#38bdf8';
@@ -174,9 +182,31 @@
             });
         });
 
+        if (blockedList) {
+            blocked.forEach(f => {
+                buildFriendItem(blockedList, f, {
+                    showRank: false,
+                    actions: [
+                        { label: labels.unblock, handler: () => unblockUser(f.userId), className: 'btn-primary btn-small' }
+                    ]
+                });
+            });
+        }
+
         setEmptyState(acceptedEmpty, accepted.length > 0);
         setEmptyState(incomingEmpty, incoming.length > 0);
         setEmptyState(outgoingEmpty, outgoing.length > 0);
+        setEmptyState(blockedEmpty, blocked.length > 0);
+        if (blockedEmpty && labels.blockedEmpty) {
+            blockedEmpty.textContent = labels.blockedEmpty;
+        }
+        if (blockedCount) {
+            blockedCount.textContent = String(blocked.length);
+            blockedCount.hidden = blocked.length === 0;
+        }
+        if (blockedPanel && blocked.length === 0) {
+            blockedPanel.open = false;
+        }
     }
 
     async function searchFriends() {
@@ -237,9 +267,14 @@
     }
 
     async function removeFriend(userId) {
+        const confirmMessage = labels.removeConfirm || 'Are you sure you want to remove this friend?';
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
         try {
             await apiCall(`/api/friends/${encodeURIComponent(userId)}`, { method: 'DELETE' });
             await loadFriends();
+            await searchFriends();
         } catch (err) {
             console.error(err);
         }
@@ -262,6 +297,21 @@
             if (labels.blockError) {
                 alert(labels.blockError);
             }
+        }
+    }
+
+    async function unblockUser(userId) {
+        const confirmMessage = labels.unblockConfirm || 'Unblock this player?';
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        try {
+            await apiCall(`/api/friends/unblock/${encodeURIComponent(userId)}`, { method: 'POST' });
+            await loadFriends();
+            await searchFriends();
+        } catch (err) {
+            console.error(err);
         }
     }
 

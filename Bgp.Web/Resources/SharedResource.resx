@@ -2343,7 +2343,27 @@
         <value>Users</value>
     </data>
 
-	<data name="Admin_Nav_Games" xml:space="preserve">
+	<data name="Dashboard_Friends_RemoveConfirm" xml:space="preserve">
+        <value>Are you sure you want to remove this friend?</value>
+    </data>
+
+	<data name="Dashboard_Friends_BlockedHeading" xml:space="preserve">
+        <value>Blocked players</value>
+    </data>
+
+	<data name="Dashboard_Friends_NoBlocked" xml:space="preserve">
+        <value>No blocked players</value>
+    </data>
+
+	<data name="Dashboard_Friends_Unblock" xml:space="preserve">
+        <value>Unblock</value>
+    </data>
+
+	<data name="Dashboard_Friends_UnblockConfirm" xml:space="preserve">
+        <value>Unblock this player?</value>
+    </data>
+
+	<data name="Admin_Nav_Users" xml:space="preserve">
         <value>Games</value>
     </data>
 

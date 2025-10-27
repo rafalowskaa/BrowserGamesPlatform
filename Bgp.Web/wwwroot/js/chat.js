@@ -31,10 +31,15 @@
     const panelHeader = panel ? panel.querySelector('.chat-panel__header') : null;
     const currentUserId = dock.dataset.chatUser || null;
 
+    const PRESENCE_AVAILABLE = 0;
+    const PRESENCE_AWAY = 1;
+    const PRESENCE_OFFLINE = 2;
+
     const friends = new Map();
     const conversations = new Map();
     const pendingMessages = new Map();
     const pendingOutgoing = new Map();
+    const strangerContacts = new Map();
     let connection = null;
     let loadFriendsPromise = null;
     let connectionPromise = null;
@@ -45,6 +50,8 @@
     let searchDebounceTimer = null;
     let searchController = null;
     let searchRequestId = 0;
+    let strangerMessage = '';
+    let strangerMessageForced = false;
     const pendingPresence = new Map();
     let pollTimer = null;
     let pollInFlight = false;
@@ -96,10 +103,10 @@
         if (isInvisible) {
             return strings.statusInvisible;
         }
-        if (presence === 0) {
+        if (presence === PRESENCE_AVAILABLE) {
             return strings.statusAvailable;
         }
-        if (presence === 1) {
+        if (presence === PRESENCE_AWAY) {
             return strings.statusAway;
         }
         return strings.statusOffline;
@@ -109,7 +116,7 @@
         if (isInvisible) {
             return 'invisible';
         }
-        if (presence === 1) {
+        if (presence === PRESENCE_AWAY) {
             return 'away';
         }
         return 'available';
@@ -117,12 +124,20 @@
 
     function parsePresenceSelection(value) {
         if (value === 'invisible') {
-            return { presence: 0, isInvisible: true };
+            return { presence: PRESENCE_AVAILABLE, isInvisible: true };
         }
         if (value === 'away') {
-            return { presence: 1, isInvisible: false };
+            return { presence: PRESENCE_AWAY, isInvisible: false };
         }
-        return { presence: 0, isInvisible: false };
+        return { presence: PRESENCE_AVAILABLE, isInvisible: false };
+    }
+
+    function normalizePresence(value) {
+        if (typeof value === 'number' && !Number.isNaN(value)) {
+            return value;
+        }
+        const parsed = parseInt(value, 10);
+        return Number.isNaN(parsed) ? PRESENCE_OFFLINE : parsed;
     }
 
     function updateSelfStatusDisplay(message, presence, isInvisible) {
@@ -265,7 +280,7 @@
             }
             const data = await res.json();
             statusMessageInput.value = data.statusMessage || '';
-            const presence = typeof data.presence === 'number' ? data.presence : parseInt(data.presence, 10) || 0;
+            const presence = normalizePresence(data.presence);
             const isInvisible = !!data.isInvisible;
             statusSelect.value = selectionValueFromPresence(presence, isInvisible);
             updateSelfStatusDisplay(statusMessageInput.value, presence, isInvisible);
@@ -319,7 +334,7 @@
                 const data = await res.json();
                 if (data) {
                     statusMessageInput.value = data.statusMessage || '';
-                    const updatedPresence = typeof data.presence === 'number' ? data.presence : parseInt(data.presence, 10) || 0;
+                    const updatedPresence = normalizePresence(data.presence);
                     const updatedInvisible = !!data.isInvisible;
                     statusSelect.value = selectionValueFromPresence(updatedPresence, updatedInvisible);
                     updateSelfStatusDisplay(statusMessageInput.value, updatedPresence, updatedInvisible);
@@ -357,10 +372,10 @@
     }
 
     function presencePriority(friend) {
-        if (!friend.isInvisible && friend.presence === 0) {
+        if (!friend.isInvisible && friend.presence === PRESENCE_AVAILABLE) {
             return 0;
         }
-        if (!friend.isInvisible && friend.presence === 1) {
+        if (!friend.isInvisible && friend.presence === PRESENCE_AVAILABLE) {
             return 1;
         }
         if (friend.isInvisible) {
@@ -383,9 +398,9 @@
         dotEl.classList.remove('is-online', 'is-away', 'is-offline', 'is-invisible');
         if (friend.isInvisible) {
             dotEl.classList.add('is-invisible');
-        } else if (friend.presence === 0) {
+        } else if (friend.presence === PRESENCE_AVAILABLE) {
             dotEl.classList.add('is-online');
-        } else if (friend.presence === 1) {
+        } else if (friend.presence === PRESENCE_AWAY) {
             dotEl.classList.add('is-away');
         } else {
             dotEl.classList.add('is-offline');
@@ -714,58 +729,144 @@
     }
 
     function applyFriendFilter() {
-        let visible = 0;
+        let visibleFriends = 0;
+        let visibleStrangers = 0;
         friends.forEach((friend) => {
             if (!friend.element) {
                 return;
             }
-            const matches = !searchTerm || friend.displayName.toLowerCase().includes(searchTerm) ||
-                (friend.statusMessage && friend.statusMessage.toLowerCase().includes(searchTerm));
+            const matches = !searchTerm || friend.displayName.toLowerCase().includes(searchTerm)
+                || (friend.statusMessage && friend.statusMessage.toLowerCase().includes(searchTerm));
             friend.element.hidden = !matches;
             if (matches) {
-                visible++;
+                if (friend.isFriend) {
+                    visibleFriends++;
+                } else {
+                    visibleStrangers++;
+                }
             }
         });
 
         if (friendsEmpty) {
-            const hasFriends = friends.size > 0;
+            const hasFriends = Array.from(friends.values()).some((f) => f.isFriend);
             friendsEmpty.textContent = searchTerm && hasFriends ? strings.noMatches : strings.noFriends;
-            friendsEmpty.style.display = visible > 0 ? 'none' : 'block';
+            friendsEmpty.style.display = visibleFriends > 0 ? 'none' : 'block';
         }
+
+        updateStrangerEmptyState(visibleStrangers);
+    }
+
+    function renderStrangerContacts() {
+        if (!strangersList) {
+            return;
+        }
+        const expected = new Set();
+        strangerContacts.forEach((contact) => {
+            if (!contact || !contact.element) {
+                return;
+            }
+            expected.add(contact.element);
+            if (!contact.element.parentElement) {
+                strangersList.insertBefore(contact.element, strangersList.firstChild);
+            }
+            contact.element.dataset.strangerContact = '';
+        });
+
+        Array.from(strangersList.querySelectorAll('[data-stranger-contact]')).forEach((node) => {
+            if (!expected.has(node)) {
+                node.remove();
+            }
+        });
+
+        updateStrangerEmptyState();
+    }
+
+    function ensureStrangerContact(friend) {
+        if (!friend || !strangersList) {
+            return;
+        }
+        let contact = strangerContacts.get(friend.userId);
+        if (!contact) {
+            const element = createFriendElement(friend, { ghost: true });
+            contact = { element };
+            strangerContacts.set(friend.userId, contact);
+        }
+        friend.element = contact.element;
+        friend.isFriend = false;
+        updateFriendVisual(friend);
+        renderStrangerContacts();
+        applyFriendFilter();
+        updateUnreadBadge();
+    }
+
+    function removeStrangerContact(friendId) {
+        const contact = strangerContacts.get(friendId);
+        if (contact && contact.element) {
+            contact.element.remove();
+        }
+        strangerContacts.delete(friendId);
+        updateStrangerEmptyState();
     }
 
     function clearStrangerResults() {
-        if (strangersList) {
-            strangersList.innerHTML = '';
+        if (!strangersList) {
+            return;
         }
+
+        Array.from(strangersList.querySelectorAll('[data-stranger-search]')).forEach((node) => node.remove());
+        updateStrangerEmptyState();
     }
 
-    function showStrangerMessage(message) {
+    function showStrangerMessage(message, forceVisible = false) {
+        strangerMessage = message ? message.trim() : '';
+        strangerMessageForced = forceVisible;
+        updateStrangerEmptyState();
+    }
+
+    function updateStrangerEmptyState(visibleContacts) {
         if (!strangersEmpty) {
             return;
         }
-        const text = message ? message.trim() : '';
-        strangersEmpty.textContent = text;
-        strangersEmpty.style.display = text ? 'block' : 'none';
+        const visibleCount = typeof visibleContacts === 'number'
+            ? visibleContacts
+            : Array.from(friends.values()).filter((f) => !f.isFriend && f.element && !f.element.hidden).length;
+        const hasSearchResults = !!(strangersList && strangersList.querySelector('[data-stranger-search]'));
+        const shouldShow = strangerMessageForced || ((visibleCount === 0) && !hasSearchResults && strangerMessage);
+        strangersEmpty.textContent = strangerMessage;
+        strangersEmpty.style.display = shouldShow ? 'block' : 'none';
     }
 
     function renderStrangers(results) {
         if (!strangersList) {
             return;
         }
+        renderStrangerContacts();
+
         clearStrangerResults();
         const fragment = document.createDocumentFragment();
         results.forEach((player) => {
             const displayName = player.name || player.Name || player.id;
+            const identifier = player.id;
+            if (!identifier) {
+                return;
+            }
+            const existing = friends.get(identifier);
+            if (existing) {
+                if (!existing.isFriend) {
+                    ensureStrangerContact(existing);
+                }
+                return;
+            }
             const li = document.createElement('li');
             li.className = 'chat-contact';
+            li.dataset.strangerSearch = '';
 
             const button = document.createElement('button');
             button.type = 'button';
             button.className = 'chat-contact__button chat-contact__button--ghost';
             button.addEventListener('click', () => {
                 if (window.bgpChat && typeof window.bgpChat.open === 'function') {
-                    window.bgpChat.open(player.id, displayName);
+                    window.bgpChat.open(identifier, displayName);
                 }
             });
 
@@ -777,7 +878,7 @@
                 img.alt = '';
                 avatar.appendChild(img);
             } else {
-                const source = (displayName || player.id || '?').trim();
+                const source = (displayName || identifier || '?').trim();
                 avatar.textContent = source ? source.slice(0, 1).toUpperCase() : '?';
             }
 
@@ -800,7 +901,8 @@
             fragment.appendChild(li);
         });
         strangersList.appendChild(fragment);
-        showStrangerMessage('');
+        showStrangerMessage('', false);
+        updateStrangerEmptyState();
     }
 
     function updateSearchResults(value) {
@@ -831,7 +933,7 @@
                 const list = Array.isArray(results) ? results : [];
                 if (list.length === 0) {
                     clearStrangerResults();
-                    showStrangerMessage(strings.noStrangers);
+                    showStrangerMessage(strings.noStrangers, true);
                     return;
                 }
                 renderStrangers(list);
@@ -842,7 +944,7 @@
                 }
                 console.error('Player search failed.', err);
                 clearStrangerResults();
-                showStrangerMessage(strings.noStrangers);
+                showStrangerMessage(strings.noStrangers, true);
             })
             .finally(() => {
                 if (searchController === controller) {
@@ -863,11 +965,11 @@
                 searchController = null;
             }
             clearStrangerResults();
-            showStrangerMessage(strings.searchHint);
+            showStrangerMessage(strings.searchHint, false);
             return;
         }
         clearStrangerResults();
-        showStrangerMessage(strings.searchHint);
+        showStrangerMessage(strings.searchHint, true);
         searchDebounceTimer = setTimeout(() => {
             updateSearchResults(value);
         }, 250);
@@ -885,7 +987,12 @@
             statusEl.textContent = getStatusLine(friend);
         }
         applyStatusDot(dotEl, friend);
-        friend.element.classList.toggle('is-unread', (friend.unreadCount || 0) > 0);
+        const shouldFlagUnread = (friend.unreadCount || 0) > 0;
+        if (shouldFlagUnread && friend.element.classList.contains('is-unread')) {
+            friend.element.classList.remove('is-unread');
+            void friend.element.offsetWidth;
+        }
+        friend.element.classList.toggle('is-unread', shouldFlagUnread);
     }
 
     function updateConversationHeader(conversation) {
@@ -906,12 +1013,16 @@
         ensureConversation(friendId, { focus: true, autoRead: true });
     }
 
-    function createFriendElement(friend) {
+    function createFriendElement(friend, options = {}) {
         const li = document.createElement('li');
         li.className = 'chat-contact';
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'chat-contact__button';
+        const buttonClasses = ['chat-contact__button'];
+        if (options.ghost) {
+            buttonClasses.push('chat-contact__button--ghost');
+        }
+        button.className = buttonClasses.join(' ');
         button.addEventListener('click', () => openConversation(friend.userId));
 
         const avatar = document.createElement('span');
@@ -974,15 +1085,18 @@
             displayName: fallbackName,
             avatarUrl: null,
             statusMessage: '',
-            presence: 2,
+            presence: PRESENCE_OFFLINE,
             isInvisible: false,
-            unreadCount: 0
+            unreadCount: 0,
+            isFriend: false
         };
         friends.set(friendId, friend);
-        if (friendsList) {
+        if (friend.isFriend && friendsList) {
             friendsList.appendChild(createFriendElement(friend));
             applyFriendFilter();
             updateUnreadBadge();
+        } else {
+            ensureStrangerContact(friend);
         }
         applyPendingPresence();
         return friend;
@@ -1377,6 +1491,10 @@
                 friend.unreadCount = (friend.unreadCount || 0) + 1;
                 updateFriendVisual(friend);
                 updateUnreadBadge();
+                if (conversation.element.classList.contains('chat-window--attention')) {
+                    conversation.element.classList.remove('chat-window--attention');
+                    void conversation.element.offsetWidth;
+                }
                 conversation.element.classList.add('chat-window--attention');
             }
         }
@@ -1429,8 +1547,12 @@
             }
 
             const previousUnread = new Map();
+            const preservedStrangers = [];
             friends.forEach((friend) => {
                 previousUnread.set(friend.userId, friend.unreadCount || 0);
+                if (friend && friend.isFriend === false) {
+                    preservedStrangers.push(friend);
+                }
             });
 
             friends.clear();
@@ -1451,9 +1573,10 @@
                             displayName: row.displayName,
                             avatarUrl: row.avatarUrl,
                             statusMessage: row.statusMessage,
-                            presence: typeof row.presence === 'number' ? row.presence : parseInt(row.presence, 10) || 0,
+                            presence: normalizePresence(row.presence),
                             isInvisible: !!row.isInvisible,
-                            unreadCount: previousUnread.get(row.userId) || row.unreadCount || 0
+                            unreadCount: previousUnread.get(row.userId) || row.unreadCount || 0,
+                            isFriend: true
                         };
                         friends.set(row.userId, friend);
                         accepted.push(friend);
@@ -1466,6 +1589,18 @@
 
                 renderFriends(accepted);
                 renderRequests(incoming, outgoing);
+                preservedStrangers.forEach((stranger) => {
+                    if (friends.has(stranger.userId)) {
+                        removeStrangerContact(stranger.userId);
+                        return;
+                    }
+                    stranger.unreadCount = previousUnread.get(stranger.userId) || stranger.unreadCount || 0;
+                    stranger.isFriend = false;
+                    friends.set(stranger.userId, stranger);
+                    ensureStrangerContact(stranger);
+                    flushPendingMessages(stranger.userId);
+                });
+                applyPendingPresence();
                 conversations.forEach((conversation, id) => {
                     if (friends.has(id)) {
                         updateConversationHeader(conversation);
@@ -1539,7 +1674,7 @@
             if (!payload || !payload.userId) {
                 return;
             }
-            const presenceValue = typeof payload.presence === 'number' ? payload.presence : parseInt(payload.presence, 10) || 0;
+            const presenceValue = normalizePresence(payload.presence);
             const isInvisible = !!payload.isInvisible;
             const statusMessage = payload.statusMessage || '';
 
@@ -1600,20 +1735,32 @@
     window.bgpChat = {
         open: (userId, displayName) => {
             togglePanel(true);
-            const friend = friends.get(userId) || {
-                userId,
-                displayName,
-                avatarUrl: null,
-                statusMessage: '',
-                presence: 0,
-                isInvisible: false,
-                unreadCount: 0
-            };
-            if (!friends.has(userId)) {
+            let friend = friends.get(userId);
+            if (!friend) {
+                friend = {
+                    userId,
+                    displayName,
+                    avatarUrl: null,
+                    statusMessage: '',
+                    presence: PRESENCE_OFFLINE,
+                    isInvisible: false,
+                    unreadCount: 0,
+                    isFriend: false
+                };
                 friends.set(userId, friend);
-                if (pendingPresence.has(userId)) {
-                    applyPresenceSnapshot(userId, pendingPresence.get(userId));
+                ensureStrangerContact(friend);
+            }
+            if (displayName && displayName.trim() && friend.displayName !== displayName) {
+                friend.displayName = displayName;
+                updateFriendVisual(friend);
+                const conversation = conversations.get(userId);
+                if (conversation) {
+                    updateConversationHeader(conversation);
                 }
+            }
+
+            if (pendingPresence.has(userId)) {
+                applyPresenceSnapshot(userId, pendingPresence.get(userId));
             }
             ensureConversation(userId, { focus: true, autoRead: true });
         },

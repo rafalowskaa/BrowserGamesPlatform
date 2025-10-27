@@ -579,6 +579,18 @@
                         <p id="friendsIncomingEmpty" class="empty">@L["Dashboard_Friends_NoIncoming"].Value</p>
                     </div>
                 </article>
+
+                <article class="friends-section">
+                    <details id="friendsBlockedPanel" class="friends-blocked">
+                        <summary>
+                            <span>@L["Dashboard_Friends_BlockedHeading"].Value</span>
+                            <span class="friends-blocked__count" data-friends-blocked-count>0</span>
+                        </summary>
+                        <ul id="friendsBlocked" class="friends-list friends-list--compact"></ul>
+                        <p id="friendsBlockedEmpty" class="empty">@L["Dashboard_Friends_NoBlocked"].Value</p>
+                    </details>
+                </article>
+
                 @{
                     var friendStrings = new
                     {
@@ -599,7 +611,11 @@
                         block = L["Dashboard_Friends_Block"].Value,
                         blockConfirm = L["Dashboard_Friends_BlockConfirm"].Value,
                         blockSuccess = L["Dashboard_Friends_BlockSuccess"].Value,
-                        blockError = L["Dashboard_Friends_BlockError"].Value
+                        blockError = L["Dashboard_Friends_BlockError"].Value,
+                        removeConfirm = L["Dashboard_Friends_RemoveConfirm"].Value,
+                        unblock = L["Dashboard_Friends_Unblock"].Value,
+                        unblockConfirm = L["Dashboard_Friends_UnblockConfirm"].Value,
+                        blockedEmpty = L["Dashboard_Friends_NoBlocked"].Value
                     };
 
                 }
