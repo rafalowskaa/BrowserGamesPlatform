@@ -1,4 +1,5 @@
-﻿@using System.Linq
+﻿@using System.Collections.Generic
+@using System.Linq
 @using System.Security.Claims
 @using Bgp.Web.Models
 @model AdminUsersViewModel
@@ -103,25 +104,42 @@
                             <td>@user.Email</td>
                             <td>@user.CreatedAtUtc.ToLocalTime().ToString("g")</td>
                             <td>
-                                <span class="status-pill @(user.IsBlocked ? "status-rejected" : "status-approved")">
-                                    @(user.IsBlocked? L["Admin_Users_Status_Blocked"].Value : L["Admin_Users_Status_Active"].Value)
-                                </span>
-                                @if (user.IsBlocked)
-                                {
-                                    if (user.BlockedUntilUtc.HasValue)
+                                @{
+                                    var statusPillClass = user.IsBlocked ? "status-rejected" : "status-approved";
+                                    string blockedTooltip = null;
+                                    string statusTitleAttribute = string.Empty;
+
+                                    if (user.IsBlocked)
                                     {
-                                        <div class="muted admin-status-note">@L["Admin_Users_Status_Blocked_Until", user.BlockedUntilUtc.Value.ToLocalTime().ToString("g")].Value</div>
-                                    }
-                                    else
-                                    {
-                                        <div class="muted admin-status-note">@L["Admin_Users_Status_Blocked_Permanent"].Value</div>
+                                        var blockedTooltipParts = new List<string>();
+
+                                        if (user.BlockedUntilUtc.HasValue)
+                                        {
+                                            blockedTooltipParts.Add(L["Admin_Users_Status_Blocked_Until", user.BlockedUntilUtc.Value.ToLocalTime().ToString("g")].Value);
+                                        }
+                                        else
+                                        {
+                                            blockedTooltipParts.Add(L["Admin_Users_Status_Blocked_Permanent"].Value);
+                                        }
+
+                                        if (!string.IsNullOrWhiteSpace(user.BlockReason))
+                                        {
+                                            blockedTooltipParts.Add(L["Admin_Users_Status_Blocked_Reason", user.BlockReason].Value);
+                                        }
+
+                                        blockedTooltip = string.Join("\n", blockedTooltipParts);
                                     }
 
-                                    if (!string.IsNullOrWhiteSpace(user.BlockReason))
+                                    if (!string.IsNullOrEmpty(blockedTooltip))
                                     {
-                                        <div class="muted admin-status-note">@L["Admin_Users_Status_Blocked_Reason", user.BlockReason].Value</div>
+                                        statusTitleAttribute = $" title=\"{Html.AttributeEncode(blockedTooltip)}\"";
                                     }
                                 }
+
+                                <span class="status-pill @statusPillClass" @Html.Raw(statusTitleAttribute)>
+                                    @(user.IsBlocked? L["Admin_Users_Status_Blocked"].Value : L["Admin_Users_Status_Active"].Value)
+                                </span>
+
                             </td>
                             <td>
                                 @{
