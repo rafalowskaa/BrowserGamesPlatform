@@ -1,6 +1,7 @@
 ﻿@using System.Collections.Generic
 @using System.Linq
 @using System.Security.Claims
+@using System.Text.Encodings.Web
 @using Bgp.Web.Models
 @model AdminUsersViewModel
 @{
@@ -132,7 +133,7 @@
 
                                     if (!string.IsNullOrEmpty(blockedTooltip))
                                     {
-                                        statusTitleAttribute = $" title=\"{Html.AttributeEncode(blockedTooltip)}\"";
+                                        statusTitleAttribute = $" title=\"{HtmlEncoder.Default.Encode(blockedTooltip)}\"";
                                     }
                                 }
 
