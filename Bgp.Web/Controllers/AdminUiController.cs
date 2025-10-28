@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Bgp.Web.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,Moderator")]
 public class AdminUiController : Controller
 {
     private readonly AppDbContext _db;
@@ -42,15 +42,25 @@ public class AdminUiController : Controller
                 EF.Functions.Like(u.UserName ?? string.Empty, term));
         }
 
-        var adminRoleId = await _db.Roles.AsNoTracking()
-            .Where(r => r.Name == "Admin")
-            .Select(r => r.Id)
-            .FirstOrDefaultAsync();
+        var managedRoles = await _db.Roles.AsNoTracking()
+            .Where(r => r.Name == "Admin" || r.Name == "Moderator")
+            .Select(r => new { r.Id, r.Name })
+            .ToListAsync();
+
+        var adminRoleId = managedRoles.FirstOrDefault(r => r.Name == "Admin")?.Id;
+        var moderatorRoleId = managedRoles.FirstOrDefault(r => r.Name == "Moderator")?.Id;
 
         var adminIds = adminRoleId is null
             ? new HashSet<string>()
             : (await _db.UserRoles.AsNoTracking()
                 .Where(ur => ur.RoleId == adminRoleId)
+                .Select(ur => ur.UserId)
+                .ToListAsync()).ToHashSet();
+
+        var moderatorIds = moderatorRoleId is null
+            ? new HashSet<string>()
+            : (await _db.UserRoles.AsNoTracking()
+                .Where(ur => ur.RoleId == moderatorRoleId)
                 .Select(ur => ur.UserId)
                 .ToListAsync()).ToHashSet();
 
@@ -64,7 +74,8 @@ public class AdminUiController : Controller
                 u.UserName,
                 u.CreatedAtUtc,
                 u.IsBlocked,
-                u.BlockedUntilUtc
+                u.BlockedUntilUtc,
+                u.BlockReason
             })
             .ToListAsync();
 
@@ -85,6 +96,7 @@ public class AdminUiController : Controller
             {
                 expired.IsBlocked = false;
                 expired.BlockedUntilUtc = null;
+                expired.BlockReason = null;
             }
 
             await _db.SaveChangesAsync();
@@ -99,7 +111,8 @@ public class AdminUiController : Controller
                         u.UserName,
                         u.CreatedAtUtc,
                         IsBlocked = false,
-                        BlockedUntilUtc = (DateTime?)null
+                        BlockedUntilUtc = (DateTime?)null,
+                        BlockReason = (string?)null
                     }
                     : u)
                 .ToList();
@@ -126,6 +139,12 @@ public class AdminUiController : Controller
                     blockedUntil = null;
                 }
 
+                var accessLevel = adminIds.Contains(u.Id)
+                    ? AdminUserAccessLevel.Admin
+                    : moderatorIds.Contains(u.Id)
+                        ? AdminUserAccessLevel.Moderator
+                        : AdminUserAccessLevel.User;
+
                 return new AdminUserRowViewModel(
                     u.Id,
                     DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
@@ -133,7 +152,8 @@ public class AdminUiController : Controller
                     u.CreatedAtUtc,
                     isBlocked,
                     blockedUntil,
-                    adminIds.Contains(u.Id));
+                    u.BlockReason,
+                    accessLevel);
             })
             .ToList();
 
@@ -166,6 +186,50 @@ public class AdminUiController : Controller
             return RedirectToAction(nameof(Users));
         }
 
+        var currentUserId = _users.GetUserId(User);
+        var isCurrentAdmin = User.IsInRole("Admin");
+        var isCurrentModerator = User.IsInRole("Moderator");
+        var targetIsAdmin = await _users.IsInRoleAsync(user, "Admin");
+        var targetIsModerator = await _users.IsInRoleAsync(user, "Moderator");
+
+        var desiredAccess = input.AccessLevel;
+
+        if (!isCurrentAdmin)
+        {
+            if (!isCurrentModerator)
+            {
+                return Forbid();
+            }
+
+            if (targetIsAdmin)
+            {
+                TempData["AdminUsersError"] = "Admin_Users_CannotModifyAdmin";
+                return RedirectToAction(nameof(Users));
+            }
+
+            var isEditingSelf = string.Equals(user.Id, currentUserId, StringComparison.Ordinal);
+
+            if (targetIsModerator && !isEditingSelf)
+            {
+                TempData["AdminUsersError"] = "Admin_Users_CannotModifyModerator";
+                return RedirectToAction(nameof(Users));
+            }
+
+            if (targetIsModerator)
+            {
+                if (desiredAccess != AdminUserAccessLevel.Moderator)
+                {
+                    TempData["AdminUsersError"] = "Admin_Users_CannotChangeRole";
+                    return RedirectToAction(nameof(Users));
+                }
+            }
+            else if (desiredAccess != AdminUserAccessLevel.User)
+            {
+                TempData["AdminUsersError"] = "Admin_Users_CannotChangeRole";
+                return RedirectToAction(nameof(Users));
+            }
+        }
+
         var emailChanged = !string.Equals(user.Email, input.Email.Trim(), StringComparison.OrdinalIgnoreCase);
         if (emailChanged)
         {
@@ -185,6 +249,95 @@ public class AdminUiController : Controller
         {
             TempData["AdminUsersError"] = result.Errors.FirstOrDefault()?.Description ?? "Admin_Users_Update_Error";
             return RedirectToAction(nameof(Users));
+        }
+
+        if (!await _users.IsInRoleAsync(user, "User"))
+        {
+            var addUserRole = await _users.AddToRoleAsync(user, "User");
+            if (!addUserRole.Succeeded)
+            {
+                TempData["AdminUsersError"] = addUserRole.Errors.FirstOrDefault()?.Description ?? "Admin_Users_Role_Update_Error";
+                return RedirectToAction(nameof(Users));
+            }
+        }
+
+        if (isCurrentAdmin || string.Equals(user.Id, currentUserId, StringComparison.Ordinal))
+        {
+            async Task<bool> RemoveRoleAsync(string role)
+            {
+                if (!await _users.IsInRoleAsync(user, role))
+                {
+                    return true;
+                }
+
+                var remove = await _users.RemoveFromRoleAsync(user, role);
+                if (!remove.Succeeded)
+                {
+                    TempData["AdminUsersError"] = remove.Errors.FirstOrDefault()?.Description ?? "Admin_Users_Role_Update_Error";
+                    return false;
+                }
+
+                return true;
+            }
+
+            async Task<bool> AddRoleAsync(string role)
+            {
+                if (await _users.IsInRoleAsync(user, role))
+                {
+                    return true;
+                }
+
+                var add = await _users.AddToRoleAsync(user, role);
+                if (!add.Succeeded)
+                {
+                    TempData["AdminUsersError"] = add.Errors.FirstOrDefault()?.Description ?? "Admin_Users_Role_Update_Error";
+                    return false;
+                }
+
+                return true;
+            }
+
+            switch (desiredAccess)
+            {
+                case AdminUserAccessLevel.Admin:
+                    if (!await AddRoleAsync("Admin"))
+                    {
+                        return RedirectToAction(nameof(Users));
+                    }
+
+                    if (!await RemoveRoleAsync("Moderator"))
+                    {
+                        return RedirectToAction(nameof(Users));
+                    }
+
+                    break;
+
+                case AdminUserAccessLevel.Moderator:
+                    if (!await RemoveRoleAsync("Admin"))
+                    {
+                        return RedirectToAction(nameof(Users));
+                    }
+
+                    if (!await AddRoleAsync("Moderator"))
+                    {
+                        return RedirectToAction(nameof(Users));
+                    }
+
+                    break;
+
+                default:
+                    if (!await RemoveRoleAsync("Admin"))
+                    {
+                        return RedirectToAction(nameof(Users));
+                    }
+
+                    if (!await RemoveRoleAsync("Moderator"))
+                    {
+                        return RedirectToAction(nameof(Users));
+                    }
+
+                    break;
+            }
         }
 
         TempData["AdminUsersSuccess"] = "Admin_Users_Update_Success";
@@ -214,13 +367,33 @@ public class AdminUiController : Controller
             return RedirectToAction(nameof(Users));
         }
 
-        if (await _users.IsInRoleAsync(user, "Admin"))
+        var currentUserId = _users.GetUserId(User);
+        var isCurrentAdmin = User.IsInRole("Admin");
+        var isCurrentModerator = User.IsInRole("Moderator");
+        var targetIsAdmin = await _users.IsInRoleAsync(user, "Admin");
+        var targetIsModerator = await _users.IsInRoleAsync(user, "Moderator");
+
+        if (targetIsAdmin)
         {
             TempData["AdminUsersError"] = "Admin_Users_CannotBlockAdmin";
             return RedirectToAction(nameof(Users));
         }
 
-        if (user.Id == _users.GetUserId(User))
+        if (!isCurrentAdmin)
+        {
+            if (!isCurrentModerator)
+            {
+                return Forbid();
+            }
+
+            if (targetIsModerator && !string.Equals(user.Id, currentUserId, StringComparison.Ordinal))
+            {
+                TempData["AdminUsersError"] = "Admin_Users_CannotBlockModerator";
+                return RedirectToAction(nameof(Users));
+            }
+        }
+
+        if (user.Id == currentUserId)
         {
             TempData["AdminUsersError"] = "Admin_Users_CannotBlockSelf";
             return RedirectToAction(nameof(Users));
@@ -239,8 +412,16 @@ public class AdminUiController : Controller
             }
         }
 
+        var reason = input.Reason?.Trim();
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            TempData["AdminUsersError"] = "Admin_Users_Validation";
+            return RedirectToAction(nameof(Users));
+        }
+
         user.IsBlocked = true;
         user.BlockedUntilUtc = blockedUntilUtc;
+        user.BlockReason = reason;
         var result = await _users.UpdateAsync(user);
         if (!result.Succeeded)
         {
@@ -270,8 +451,35 @@ public class AdminUiController : Controller
             return RedirectToAction(nameof(Users));
         }
 
+        var currentUserId = _users.GetUserId(User);
+        var isCurrentAdmin = User.IsInRole("Admin");
+        var isCurrentModerator = User.IsInRole("Moderator");
+        var targetIsAdmin = await _users.IsInRoleAsync(user, "Admin");
+        var targetIsModerator = await _users.IsInRoleAsync(user, "Moderator");
+
+        if (targetIsAdmin && !isCurrentAdmin)
+        {
+            TempData["AdminUsersError"] = "Admin_Users_CannotModifyAdmin";
+            return RedirectToAction(nameof(Users));
+        }
+
+        if (!isCurrentAdmin)
+        {
+            if (!isCurrentModerator)
+            {
+                return Forbid();
+            }
+
+            if (targetIsModerator && !string.Equals(user.Id, currentUserId, StringComparison.Ordinal))
+            {
+                TempData["AdminUsersError"] = "Admin_Users_CannotModifyModerator";
+                return RedirectToAction(nameof(Users));
+            }
+        }
+
         user.IsBlocked = false;
         user.BlockedUntilUtc = null;
+        user.BlockReason = null;
         var result = await _users.UpdateAsync(user);
         if (!result.Succeeded)
         {
@@ -300,10 +508,30 @@ public class AdminUiController : Controller
             return RedirectToAction(nameof(Users));
         }
 
-        if (await _users.IsInRoleAsync(user, "Admin"))
+        var currentUserId = _users.GetUserId(User);
+        var isCurrentAdmin = User.IsInRole("Admin");
+        var isCurrentModerator = User.IsInRole("Moderator");
+        var targetIsAdmin = await _users.IsInRoleAsync(user, "Admin");
+        var targetIsModerator = await _users.IsInRoleAsync(user, "Moderator");
+
+        if (targetIsAdmin && !isCurrentAdmin)
         {
             TempData["AdminUsersError"] = "Admin_Users_CannotDeleteAdmin";
             return RedirectToAction(nameof(Users));
+        }
+
+        if (!isCurrentAdmin)
+        {
+            if (!isCurrentModerator)
+            {
+                return Forbid();
+            }
+
+            if (targetIsModerator && !string.Equals(user.Id, currentUserId, StringComparison.Ordinal))
+            {
+                TempData["AdminUsersError"] = "Admin_Users_CannotDeleteModerator";
+                return RedirectToAction(nameof(Users));
+            }
         }
 
         var result = await _users.DeleteAsync(user);

@@ -13,6 +13,13 @@ public class AdminUsersViewModel
     public IReadOnlyList<DisplayNameRequestViewModel> DisplayNameRequests { get; init; } = Array.Empty<DisplayNameRequestViewModel>();
 }
 
+public enum AdminUserAccessLevel
+{
+    User,
+    Moderator,
+    Admin
+}
+
 public record AdminUserRowViewModel(
     string Id,
     string DisplayName,
@@ -20,7 +27,8 @@ public record AdminUserRowViewModel(
     DateTime CreatedAtUtc,
     bool IsBlocked,
     DateTime? BlockedUntilUtc,
-    bool IsAdmin);
+    string? BlockReason,
+    AdminUserAccessLevel AccessLevel);
 
 public record DisplayNameRequestViewModel(string UserId, string CurrentDisplayName, string RequestedDisplayName, DateTime? RequestedAtUtc);
 
@@ -34,12 +42,19 @@ public class AdminUpdateUserInputModel
 
     [Required, EmailAddress]
     public string Email { get; set; } = string.Empty;
+
+
+    [Required]
+    public AdminUserAccessLevel AccessLevel { get; set; } = AdminUserAccessLevel.User;
 }
 
 public class AdminBlockUserInputModel
 {
     [Required]
     public string Id { get; set; } = string.Empty;
+
+    [Required, MaxLength(250)]
+    public string Reason { get; set; } = string.Empty;
 
     public DateTime? BlockedUntil { get; set; }
 }

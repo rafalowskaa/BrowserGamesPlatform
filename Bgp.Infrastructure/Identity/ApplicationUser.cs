@@ -16,6 +16,9 @@ public class ApplicationUser : IdentityUser
     public bool IsBlocked { get; set; }
     public DateTime? BlockedUntilUtc { get; set; }
 
+    [MaxLength(250)]
+    public string? BlockReason { get; set; }
+
     public int? BirthMonth { get; set; }
 
     public int? BirthDay { get; set; }

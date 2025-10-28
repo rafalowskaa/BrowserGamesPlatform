@@ -1,9 +1,12 @@
 ﻿@using System.Linq
 @using System.Security.Claims
+@using Bgp.Web.Models
 @model AdminUsersViewModel
 @{
     ViewData["Title"] = L["Admin_Users_Title"].Value;
     var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var isCurrentAdmin = User.IsInRole("Admin");
+    var isCurrentModerator = User.IsInRole("Moderator");
 }
 
 <section class="admin-section">
@@ -84,6 +87,7 @@
                     <th>@L["Admin_Users_Table_Email"].Value</th>
                     <th>@L["Admin_Users_Table_Created"].Value</th>
                     <th>@L["Admin_Users_Table_Status"].Value</th>
+                    <th>@L["Admin_Users_Table_AccessLevel"].Value</th>
                     <th class="min">@L["Admin_Users_Table_Actions"].Value</th>
                 </tr>
             </thead>
@@ -93,17 +97,10 @@
                     foreach (var user in Model.Users)
                     {
                         var isCurrent = string.Equals(user.Id, currentUserId, StringComparison.Ordinal);
+                        var canManage = isCurrentAdmin || (isCurrentModerator && (user.AccessLevel == AdminUserAccessLevel.User || isCurrent));
                         <tr>
-                            <td>
-                                <div class="admin-inline-form">
-                                    <input type="text" name="DisplayName" form="update-user-@user.Id" value="@user.DisplayName" maxlength="120" />
-                                </div>
-                            </td>
-                            <td>
-                                <div class="admin-inline-form">
-                                    <input type="email" name="Email" form="update-user-@user.Id" value="@user.Email" />
-                                </div>
-                            </td>
+                            <td>@user.DisplayName</td>
+                            <td>@user.Email</td>
                             <td>@user.CreatedAtUtc.ToLocalTime().ToString("g")</td>
                             <td>
                                 <span class="status-pill @(user.IsBlocked ? "status-rejected" : "status-approved")">
@@ -119,39 +116,56 @@
                                     {
                                         <div class="muted admin-status-note">@L["Admin_Users_Status_Blocked_Permanent"].Value</div>
                                     }
-                                }
-                                @if (user.IsAdmin)
-                                {
-                                    <span class="badge subtle">@L["Admin_Users_AdminBadge"].Value</span>
+
+                                    if (!string.IsNullOrWhiteSpace(user.BlockReason))
+                                    {
+                                        <div class="muted admin-status-note">@L["Admin_Users_Status_Blocked_Reason", user.BlockReason].Value</div>
+                                    }
                                 }
                             </td>
                             <td>
-                                <div class="admin-actions vertical">
-                                    @if (!user.IsAdmin)
+                                @{
+                                    var accessKey = user.AccessLevel switch
                                     {
-                                        <form asp-action="UpdateUser" method="post" id="update-user-@user.Id" class="admin-inline-form">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="Id" value="@user.Id" />
-                                            <button class="btn-primary btn-small" type="submit">@L["Admin_Users_Save"].Value</button>
-                                        </form>
-                                        if (user.IsBlocked)
+                                        AdminUserAccessLevel.Admin => "Admin_Users_Access_Admin",
+                                        AdminUserAccessLevel.Moderator => "Admin_Users_Access_Moderator",
+                                        _ => "Admin_Users_Access_User"
+                                    };
+                                }
+                                <span>@L[accessKey].Value</span>
+                            </td>
+                            <td>
+                                <div class="admin-actions vertical">
+                                    @if (canManage)
+                                    {
+                                        <button class="btn-primary btn-small" type="button"
+                                                data-user-edit
+                                                data-user-id="@user.Id"
+                                                data-user-display-name="@user.DisplayName"
+                                                data-user-email="@user.Email"
+                                                data-user-access="@user.AccessLevel">
+                                            @L["Admin_Users_Edit"].Value
+                                        </button>
+
+                                        if (!isCurrent)
                                         {
-                                            <form asp-action="UnblockUser" method="post">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@user.Id" />
-                                                <button class="btn-ghost btn-small" type="submit">@L["Admin_Users_Unblock"].Value</button>
-                                            </form>
-                                        }
-                                        else
-                                        {
-                                            <form asp-action="BlockUser" method="post" class="admin-inline-form admin-block-form">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="Id" value="@user.Id" />
-                                                <label class="admin-block-form__label" for="block-until-@user.Id">@L["Admin_Users_Block_Until_Label"].Value</label>
-                                                <input type="datetime-local" id="block-until-@user.Id" name="BlockedUntil" />
-                                                <span class="muted admin-block-form__hint">@L["Admin_Users_Block_Help"].Value</span>
-                                                <button class="btn-ghost btn-small" type="submit">@L["Admin_Users_Block"].Value</button>
-                                            </form>
+                                            if (user.IsBlocked)
+                                            {
+                                                <form asp-action="UnblockUser" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@user.Id" />
+                                                    <button class="btn-ghost btn-small" type="submit">@L["Admin_Users_Unblock"].Value</button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn-ghost btn-small" type="button"
+                                                        data-user-block
+                                                        data-user-id="@user.Id"
+                                                        data-user-display-name="@user.DisplayName">
+                                                    @L["Admin_Users_Block"].Value
+                                                </button>
+                                            }
                                         }
                                         if (!isCurrent)
                                         {
@@ -174,10 +188,78 @@
                 else
                 {
                     <tr>
-                        <td colspan="5" class="empty">@L["Admin_Users_Empty"].Value</td>
+                        <td colspan="6" class="empty">@L["Admin_Users_Empty"].Value</td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
+<div class="modal-backdrop" id="userEditModal" hidden>
+        <div class="modal-backdrop__overlay" data-modal-close></div>
+        <div class="modal-dialog">
+            <form asp-action="UpdateUser" method="post" class="modal-dialog__content" id="userEditForm">
+                @Html.AntiForgeryToken()
+                <h3>@L["Admin_Users_Edit_Title"].Value</h3>
+                <input type="hidden" name="Id" value="" data-modal-input="id" />
+                <div class="modal-dialog__control">
+                    <label class="modal-dialog__label" for="modalDisplayName">@L["Admin_Users_Edit_DisplayName"].Value</label>
+                    <input class="modal-dialog__input" id="modalDisplayName" name="DisplayName" maxlength="120" data-modal-input="displayName" required />
+                </div>
+                <div class="modal-dialog__control">
+                    <label class="modal-dialog__label" for="modalEmail">@L["Admin_Users_Edit_Email"].Value</label>
+                    <input class="modal-dialog__input" id="modalEmail" name="Email" type="email" data-modal-input="email" required />
+                </div>
+                @if (isCurrentAdmin)
+                {
+                    <div class="modal-dialog__control">
+                        <label class="modal-dialog__label" for="modalAccessLevel">@L["Admin_Users_Edit_AccessLevel"].Value</label>
+                        <select class="modal-dialog__input" id="modalAccessLevel" name="AccessLevel" data-modal-input="access">
+                            <option value="Admin">@L["Admin_Users_Access_Admin"].Value</option>
+                            <option value="Moderator">@L["Admin_Users_Access_Moderator"].Value</option>
+                            <option value="User">@L["Admin_Users_Access_User"].Value</option>
+                        </select>
+                    </div>
+                }
+                else
+                {
+                    <input type="hidden" name="AccessLevel" value="User" data-modal-input="access" />
+                    <p class="modal-dialog__message">@L["Admin_Users_Edit_RoleInfo"].Value</p>
+                }
+                <div class="modal-dialog__actions">
+                    <button type="button" class="btn-outline" data-modal-close>@L["Admin_Users_Edit_Cancel"].Value</button>
+                    <button type="submit" class="btn-primary">@L["Admin_Users_Save"].Value</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="userBlockModal" hidden>
+        <div class="modal-backdrop__overlay" data-modal-close></div>
+        <div class="modal-dialog">
+            <form asp-action="BlockUser" method="post" class="modal-dialog__content" id="userBlockForm">
+                @Html.AntiForgeryToken()
+                <h3>@L["Admin_Users_Block_Title"].Value</h3>
+                <input type="hidden" name="Id" data-modal-input="id" />
+                <p class="modal-dialog__message" data-block-message data-template="@L["Admin_Users_Block_Message"].Value"></p>
+                <div class="modal-dialog__control">
+                    <label class="modal-dialog__label" for="modalBlockReason">@L["Admin_Users_Block_Reason_Label"].Value</label>
+                    <textarea class="modal-dialog__input" id="modalBlockReason" name="Reason" maxlength="250" data-modal-input="reason" required></textarea>
+                    <span class="muted admin-block-form__hint">@L["Admin_Users_Block_Reason_Help"].Value</span>
+                </div>
+                <div class="modal-dialog__control">
+                    <label class="modal-dialog__label" for="modalBlockedUntil">@L["Admin_Users_Block_Until_Label"].Value</label>
+                    <input class="modal-dialog__input" id="modalBlockedUntil" name="BlockedUntil" type="datetime-local" data-modal-input="until" />
+                    <span class="muted admin-block-form__hint">@L["Admin_Users_Block_Help"].Value</span>
+                </div>
+                <div class="modal-dialog__actions">
+                    <button type="button" class="btn-outline" data-modal-close>@L["Admin_Users_Block_Cancel"].Value</button>
+                    <button type="submit" class="btn-danger">@L["Admin_Users_Block_Confirm"].Value</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </section>
+
+@section Scripts {
+    <script src="~/js/admin-users.js" asp-append-version="true"></script>
+}

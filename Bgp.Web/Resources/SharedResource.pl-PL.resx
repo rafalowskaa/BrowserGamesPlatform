@@ -2209,13 +2209,44 @@
     <value>Data rejestracji</value>
   </data>
 	<data name="Admin_Users_Table_Status" xml:space="preserve">
-    <value>Status</value>
-  </data>
+      <value>Status</value>
+    </data>
+
+	<data name="Admin_Users_Table_AccessLevel" xml:space="preserve">
+      <value>Poziom dostępu</value>
+    </data>
 	<data name="Admin_Users_Table_Actions" xml:space="preserve">
     <value>Akcje</value>
   </data>
 	<data name="Admin_Users_Save" xml:space="preserve">
     <value>Zapisz</value>
+  </data>
+	<data name="Admin_Users_Edit" xml:space="preserve">
+    <value>Edytuj</value>
+  </data>
+
+	<data name="Admin_Users_Edit_Title" xml:space="preserve">
+    <value>Edytuj użytkownika</value>
+  </data>
+
+	<data name="Admin_Users_Edit_DisplayName" xml:space="preserve">
+    <value>Nazwa wyświetlana</value>
+  </data>
+
+	<data name="Admin_Users_Edit_Email" xml:space="preserve">
+    <value>Adres e-mail</value>
+  </data>
+
+	<data name="Admin_Users_Edit_AccessLevel" xml:space="preserve">
+    <value>Poziom dostępu</value>
+  </data>
+
+	<data name="Admin_Users_Edit_RoleInfo" xml:space="preserve">
+    <value>Nie możesz zmieniać poziomu dostępu.</value>
+  </data>
+
+	<data name="Admin_Users_Edit_Cancel" xml:space="preserve">
+    <value>Anuluj</value>
   </data>
 	<data name="Admin_Users_Status_Active" xml:space="preserve">
     <value>Aktywny</value>
@@ -2226,8 +2257,42 @@
 	<data name="Admin_Users_AdminBadge" xml:space="preserve">
     <value>Administrator</value>
   </data>
+	<data name="Admin_Users_Access_Admin" xml:space="preserve">
+    <value>Administrator</value>
+  </data>
+
+	<data name="Admin_Users_Access_Moderator" xml:space="preserve">
+    <value>Moderator</value>
+  </data>
+
+	<data name="Admin_Users_Access_User" xml:space="preserve">
+    <value>Użytkownik</value>
+  </data>
 	<data name="Admin_Users_Block" xml:space="preserve">
     <value>Zablokuj</value>
+  </data>
+	<data name="Admin_Users_Block_Title" xml:space="preserve">
+    <value>Zablokuj użytkownika</value>
+  </data>
+
+	<data name="Admin_Users_Block_Reason_Label" xml:space="preserve">
+    <value>Powód</value>
+  </data>
+
+	<data name="Admin_Users_Block_Reason_Help" xml:space="preserve">
+    <value>Wyjaśnij, dlaczego konto jest blokowane. Informacja widoczna tylko dla administracji.</value>
+  </data>
+
+	<data name="Admin_Users_Block_Message" xml:space="preserve">
+    <value>Blokowanie użytkownika {0}</value>
+  </data>
+
+	<data name="Admin_Users_Block_Cancel" xml:space="preserve">
+    <value>Anuluj</value>
+  </data>
+
+	<data name="Admin_Users_Block_Confirm" xml:space="preserve">
+    <value>Zablokuj użytkownika</value>
   </data>
 	<data name="Admin_Users_Unblock" xml:space="preserve">
     <value>Odblokuj</value>
@@ -2239,7 +2304,7 @@
     <value>Na pewno chcesz usunąć tego użytkownika? Operacji nie można cofnąć.</value>
   </data>
 	<data name="Admin_Users_AdminProtected" xml:space="preserve">
-    <value>Konta administracyjne są chronione.</value>
+    <value>Nie masz uprawnień do zarządzania tym kontem.</value>
   </data>
 	<data name="Admin_Users_Empty" xml:space="preserve">
     <value>Brak użytkowników spełniających warunki.</value>
@@ -2276,6 +2341,9 @@
 	<data name="Admin_Users_Status_Blocked_Permanent" xml:space="preserve">
     <value>Blokada bezterminowa</value>
   </data>
+	<data name="Admin_Users_Status_Blocked_Reason" xml:space="preserve">
+    <value>Powód: {0}</value>
+  </data>
 
 	<data name="Admin_Users_Block_Until_Label" xml:space="preserve">
     <value>Zablokuj do (opcjonalnie)</value>
@@ -2298,6 +2366,30 @@
   </data>
 	<data name="Admin_Users_CannotDeleteAdmin" xml:space="preserve">
     <value>Nie możesz usunąć administratora.</value>
+  </data>
+
+	<data name="Admin_Users_CannotModifyAdmin" xml:space="preserve">
+    <value>Nie możesz modyfikować kont administratorów.</value>
+  </data>
+
+	<data name="Admin_Users_CannotModifyModerator" xml:space="preserve">
+    <value>Nie możesz modyfikować kont innych moderatorów.</value>
+  </data>
+
+	<data name="Admin_Users_CannotChangeRole" xml:space="preserve">
+    <value>Nie masz uprawnień do zmiany poziomu dostępu.</value>
+  </data>
+
+	<data name="Admin_Users_CannotBlockModerator" xml:space="preserve">
+    <value>Nie możesz blokować innych moderatorów.</value>
+  </data>
+
+	<data name="Admin_Users_CannotDeleteModerator" xml:space="preserve">
+    <value>Nie możesz usuwać innych moderatorów.</value>
+  </data>
+
+	<data name="Admin_Users_Role_Update_Error" xml:space="preserve">
+    <value>Nie udało się zaktualizować ról użytkownika.</value>
   </data>
 	<data name="Admin_Games_Title" xml:space="preserve">
     <value>Weryfikacja gier</value>

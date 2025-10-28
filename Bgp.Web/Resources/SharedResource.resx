@@ -2406,6 +2406,9 @@
 	<data name="Admin_Users_Table_Status" xml:space="preserve">
         <value>Status</value>
     </data>
+	<data name="Admin_Users_Table_AccessLevel" xml:space="preserve">
+        <value>Access level</value>
+    </data>
 
 	<data name="Admin_Users_Table_Actions" xml:space="preserve">
         <value>Actions</value>
@@ -2413,6 +2416,34 @@
 
 	<data name="Admin_Users_Save" xml:space="preserve">
         <value>Save</value>
+    </data>
+
+	<data name="Admin_Users_Edit" xml:space="preserve">
+        <value>Edit</value>
+    </data>
+
+	<data name="Admin_Users_Edit_Title" xml:space="preserve">
+        <value>Edit user</value>
+    </data>
+
+	<data name="Admin_Users_Edit_DisplayName" xml:space="preserve">
+        <value>Display name</value>
+    </data>
+
+	<data name="Admin_Users_Edit_Email" xml:space="preserve">
+        <value>Email address</value>
+    </data>
+
+	<data name="Admin_Users_Edit_AccessLevel" xml:space="preserve">
+        <value>Access level</value>
+    </data>
+
+	<data name="Admin_Users_Edit_RoleInfo" xml:space="preserve">
+        <value>You cannot change access level.</value>
+    </data>
+
+	<data name="Admin_Users_Edit_Cancel" xml:space="preserve">
+        <value>Cancel</value>
     </data>
 
 	<data name="Admin_Users_Status_Active" xml:space="preserve">
@@ -2427,8 +2458,44 @@
         <value>Administrator</value>
     </data>
 
+	<data name="Admin_Users_Access_Admin" xml:space="preserve">
+        <value>Administrator</value>
+    </data>
+
+	<data name="Admin_Users_Access_Moderator" xml:space="preserve">
+        <value>Moderator</value>
+    </data>
+
+	<data name="Admin_Users_Access_User" xml:space="preserve">
+        <value>User</value>
+    </data>
+
 	<data name="Admin_Users_Block" xml:space="preserve">
         <value>Block</value>
+    </data>
+
+	<data name="Admin_Users_Block_Title" xml:space="preserve">
+        <value>Block user</value>
+    </data>
+
+	<data name="Admin_Users_Block_Reason_Label" xml:space="preserve">
+        <value>Reason</value>
+    </data>
+
+	<data name="Admin_Users_Block_Reason_Help" xml:space="preserve">
+        <value>Explain why this account is being blocked. This information is only visible to administrators.</value>
+    </data>
+
+	<data name="Admin_Users_Block_Message" xml:space="preserve">
+        <value>Block user {0}</value>
+    </data>
+
+	<data name="Admin_Users_Block_Cancel" xml:space="preserve">
+        <value>Cancel</value>
+    </data>
+
+	<data name="Admin_Users_Block_Confirm" xml:space="preserve">
+        <value>Block user</value>
     </data>
 
 	<data name="Admin_Users_Unblock" xml:space="preserve">
@@ -2444,7 +2511,7 @@
     </data>
 
 	<data name="Admin_Users_AdminProtected" xml:space="preserve">
-        <value>Administrative accounts are protected.</value>
+        <value>You don't have permission to manage this account.</value>
     </data>
 
 	<data name="Admin_Users_Empty" xml:space="preserve">
@@ -2490,6 +2557,10 @@
         <value>Blocked indefinitely</value>
     </data>
 
+	<data name="Admin_Users_Status_Blocked_Reason" xml:space="preserve">
+        <value>Reason: {0}</value>
+    </data>
+
 	<data name="Admin_Users_Block_Until_Label" xml:space="preserve">
         <value>Block until (optional)</value>
     </data>
@@ -2516,6 +2587,30 @@
 
 	<data name="Admin_Users_CannotDeleteAdmin" xml:space="preserve">
         <value>You cannot delete an administrator.</value>
+    </data>
+
+	<data name="Admin_Users_CannotModifyAdmin" xml:space="preserve">
+        <value>You cannot modify administrator accounts.</value>
+    </data>
+
+	<data name="Admin_Users_CannotModifyModerator" xml:space="preserve">
+        <value>You cannot modify other moderator accounts.</value>
+    </data>
+
+	<data name="Admin_Users_CannotChangeRole" xml:space="preserve">
+        <value>You are not allowed to change the access level.</value>
+    </data>
+
+	<data name="Admin_Users_CannotBlockModerator" xml:space="preserve">
+        <value>You cannot block other moderators.</value>
+    </data>
+
+	<data name="Admin_Users_CannotDeleteModerator" xml:space="preserve">
+        <value>You cannot delete other moderators.</value>
+    </data>
+
+	<data name="Admin_Users_Role_Update_Error" xml:space="preserve">
+        <value>Updating user roles failed.</value>
     </data>
 
 	<data name="Admin_Games_Title" xml:space="preserve">

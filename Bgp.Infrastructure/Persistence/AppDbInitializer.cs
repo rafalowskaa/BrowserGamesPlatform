@@ -23,6 +23,9 @@ public static class AppDbInitializer
         if (!await roleMgr.RoleExistsAsync("Admin"))
             await roleMgr.CreateAsync(new IdentityRole("Admin"));
 
+        if (!await roleMgr.RoleExistsAsync("Moderator"))
+            await roleMgr.CreateAsync(new IdentityRole("Moderator"));
+
         if (!await roleMgr.RoleExistsAsync("User"))
             await roleMgr.CreateAsync(new IdentityRole("User"));
 
@@ -107,6 +110,7 @@ public static class AppDbInitializer
             admin.LockoutEnd = null;
             admin.AccessFailedCount = 0;
             admin.IsBlocked = false;
+            admin.BlockReason = null;
             adminStateChanged = true;
         }
 

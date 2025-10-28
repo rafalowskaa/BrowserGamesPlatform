@@ -418,6 +418,10 @@ namespace Bgp.Infrastructure.Migrations
                     b.Property<int?>("BirthMonth")
                         .HasColumnType("int");
 
+                    b.Property<string>("BlockReason")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
                     b.Property<DateTime?>("BlockedUntilUtc")
                         .HasColumnType("datetime2");
 
