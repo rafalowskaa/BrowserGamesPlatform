@@ -1,4 +1,5 @@
-﻿using Bgp.Domain.Enums;
+﻿using System;
+using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,7 @@ public static class AppDbInitializer
         var admin = await userMgr.FindByNameAsync(adminUserName) ?? await userMgr.FindByEmailAsync(adminEmail);
 
         const string adminPassword = "admin123";
+        var adminStateChanged = false;
 
         if (admin is null)
         {
@@ -51,15 +53,35 @@ public static class AppDbInitializer
                 throw new InvalidOperationException($"Failed to create default admin user: {errors}");
             }
         }
-
-        else if (!await userMgr.CheckPasswordAsync(admin, adminPassword))
+        else
         {
-            var token = await userMgr.GeneratePasswordResetTokenAsync(admin);
-            var reset = await userMgr.ResetPasswordAsync(admin, token, adminPassword);
-            if (!reset.Succeeded)
+            if (!admin.EmailConfirmed)
             {
-                var errors = string.Join(", ", reset.Errors.Select(e => e.Description));
-                throw new InvalidOperationException($"Failed to reset default admin password: {errors}");
+                admin.EmailConfirmed = true;
+                adminStateChanged = true;
+            }
+
+            if (admin.UserName != adminUserName)
+            {
+                admin.UserName = adminUserName;
+                adminStateChanged = true;
+            }
+
+            if (admin.Email != adminEmail)
+            {
+                admin.Email = adminEmail;
+                adminStateChanged = true;
+            }
+
+            if (!await userMgr.CheckPasswordAsync(admin, adminPassword))
+            {
+                var token = await userMgr.GeneratePasswordResetTokenAsync(admin);
+                var reset = await userMgr.ResetPasswordAsync(admin, token, adminPassword);
+                if (!reset.Succeeded)
+                {
+                    var errors = string.Join(", ", reset.Errors.Select(e => e.Description));
+                    throw new InvalidOperationException($"Failed to reset default admin password: {errors}");
+                }
             }
         }
 
@@ -73,7 +95,6 @@ public static class AppDbInitializer
             await userMgr.AddToRoleAsync(admin, "User");
         }
 
-        var adminStateChanged = false;
 
         if (admin.LockoutEnabled)
         {
