@@ -63,9 +63,47 @@ public class AdminUiController : Controller
                 u.Email,
                 u.UserName,
                 u.CreatedAtUtc,
-                u.IsBlocked
+                u.IsBlocked,
+                u.BlockedUntilUtc
             })
             .ToListAsync();
+
+        var nowUtc = DateTime.UtcNow;
+        var expiredBlocks = userRows
+            .Where(u => u.IsBlocked && u.BlockedUntilUtc.HasValue && u.BlockedUntilUtc.Value <= nowUtc)
+            .Select(u => u.Id)
+            .ToList();
+
+        if (expiredBlocks.Count > 0)
+        {
+            var expiredBlockSet = expiredBlocks.ToHashSet();
+            var expiredUsers = await _db.Users
+                .Where(u => expiredBlockSet.Contains(u.Id))
+                .ToListAsync();
+
+            foreach (var expired in expiredUsers)
+            {
+                expired.IsBlocked = false;
+                expired.BlockedUntilUtc = null;
+            }
+
+            await _db.SaveChangesAsync();
+
+            userRows = userRows
+                .Select(u => expiredBlockSet.Contains(u.Id)
+                    ? new
+                    {
+                        u.Id,
+                        u.DisplayName,
+                        u.Email,
+                        u.UserName,
+                        u.CreatedAtUtc,
+                        IsBlocked = false,
+                        BlockedUntilUtc = (DateTime?)null
+                    }
+                    : u)
+                .ToList();
+        }
 
         var pendingDisplayNames = await _db.Users
             .AsNoTracking()
@@ -79,13 +117,24 @@ public class AdminUiController : Controller
             .ToListAsync();
 
         var users = userRows
-            .Select(u => new AdminUserRowViewModel(
-                u.Id,
-                DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
-                u.Email ?? string.Empty,
-                u.CreatedAtUtc,
-                u.IsBlocked,
-                adminIds.Contains(u.Id)))
+            .Select(u =>
+            {
+                var isBlocked = u.IsBlocked;
+                var blockedUntil = u.BlockedUntilUtc;
+                if (!isBlocked)
+                {
+                    blockedUntil = null;
+                }
+
+                return new AdminUserRowViewModel(
+                    u.Id,
+                    DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
+                    u.Email ?? string.Empty,
+                    u.CreatedAtUtc,
+                    isBlocked,
+                    blockedUntil,
+                    adminIds.Contains(u.Id));
+            })
             .ToList();
 
         var vm = new AdminUsersViewModel
@@ -144,15 +193,21 @@ public class AdminUiController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> BlockUser(string id)
+    public async Task<IActionResult> BlockUser(AdminBlockUserInputModel input)
     {
-        if (string.IsNullOrWhiteSpace(id))
+        if (!ModelState.IsValid)
+        {
+            TempData["AdminUsersError"] = "Admin_Users_Validation";
+            return RedirectToAction(nameof(Users));
+        }
+
+        if (string.IsNullOrWhiteSpace(input.Id))
         {
             TempData["AdminUsersError"] = "Admin_Users_NotFound";
             return RedirectToAction(nameof(Users));
         }
 
-        var user = await _users.FindByIdAsync(id);
+        var user = await _users.FindByIdAsync(input.Id);
         if (user is null)
         {
             TempData["AdminUsersError"] = "Admin_Users_NotFound";
@@ -171,7 +226,21 @@ public class AdminUiController : Controller
             return RedirectToAction(nameof(Users));
         }
 
+        DateTime? blockedUntilUtc = null;
+        if (input.BlockedUntil.HasValue)
+        {
+            var local = DateTime.SpecifyKind(input.BlockedUntil.Value, DateTimeKind.Local);
+            blockedUntilUtc = local.ToUniversalTime();
+
+            if (blockedUntilUtc <= DateTime.UtcNow)
+            {
+                TempData["AdminUsersError"] = "Admin_Users_Block_InvalidUntil";
+                return RedirectToAction(nameof(Users));
+            }
+        }
+
         user.IsBlocked = true;
+        user.BlockedUntilUtc = blockedUntilUtc;
         var result = await _users.UpdateAsync(user);
         if (!result.Succeeded)
         {
@@ -180,7 +249,7 @@ public class AdminUiController : Controller
         }
 
         await _users.UpdateSecurityStampAsync(user);
-        TempData["AdminUsersSuccess"] = "Admin_Users_Block_Success";
+        TempData["AdminUsersSuccess"] = blockedUntilUtc.HasValue ? "Admin_Users_Block_Success_Until" : "Admin_Users_Block_Success";
         return RedirectToAction(nameof(Users));
     }
 
@@ -202,6 +271,7 @@ public class AdminUiController : Controller
         }
 
         user.IsBlocked = false;
+        user.BlockedUntilUtc = null;
         var result = await _users.UpdateAsync(user);
         if (!result.Succeeded)
         {

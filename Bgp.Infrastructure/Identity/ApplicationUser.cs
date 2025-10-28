@@ -14,6 +14,7 @@ public class ApplicationUser : IdentityUser
     public string? AvatarUrl { get; set; }
 
     public bool IsBlocked { get; set; }
+    public DateTime? BlockedUntilUtc { get; set; }
 
     public int? BirthMonth { get; set; }
 

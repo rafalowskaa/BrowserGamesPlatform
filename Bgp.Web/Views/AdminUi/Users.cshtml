@@ -95,37 +95,45 @@
                         var isCurrent = string.Equals(user.Id, currentUserId, StringComparison.Ordinal);
                         <tr>
                             <td>
-                                <form asp-action="UpdateUser" method="post" class="admin-inline-form">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="Id" value="@user.Id" />
-                                    <input type="hidden" name="Email" value="@user.Email" />
-                                    <input type="text" name="DisplayName" value="@user.DisplayName" maxlength="120" />
-                                    <button class="btn-primary btn-small" type="submit">@L["Admin_Users_Save"].Value</button>
-                                </form>
+                                <div class="admin-inline-form">
+                                    <input type="text" name="DisplayName" form="update-user-@user.Id" value="@user.DisplayName" maxlength="120" />
+                                </div>
                             </td>
                             <td>
-                                <form asp-action="UpdateUser" method="post" class="admin-inline-form">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="Id" value="@user.Id" />
-                                    <input type="hidden" name="DisplayName" value="@user.DisplayName" />
-                                    <input type="email" name="Email" value="@user.Email" />
-                                    <button class="btn-primary btn-small" type="submit">@L["Admin_Users_Save"].Value</button>
-                                </form>
+                                <div class="admin-inline-form">
+                                    <input type="email" name="Email" form="update-user-@user.Id" value="@user.Email" />
+                                </div>
                             </td>
                             <td>@user.CreatedAtUtc.ToLocalTime().ToString("g")</td>
                             <td>
                                 <span class="status-pill @(user.IsBlocked ? "status-rejected" : "status-approved")">
                                     @(user.IsBlocked? L["Admin_Users_Status_Blocked"].Value : L["Admin_Users_Status_Active"].Value)
                                 </span>
+                                @if (user.IsBlocked)
+                                {
+                                    if (user.BlockedUntilUtc.HasValue)
+                                    {
+                                        <div class="muted admin-status-note">@L["Admin_Users_Status_Blocked_Until", user.BlockedUntilUtc.Value.ToLocalTime().ToString("g")].Value</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="muted admin-status-note">@L["Admin_Users_Status_Blocked_Permanent"].Value</div>
+                                    }
+                                }
                                 @if (user.IsAdmin)
                                 {
                                     <span class="badge subtle">@L["Admin_Users_AdminBadge"].Value</span>
                                 }
                             </td>
                             <td>
-                                <div class="admin-actions">
+                                <div class="admin-actions vertical">
                                     @if (!user.IsAdmin)
                                     {
+                                        <form asp-action="UpdateUser" method="post" id="update-user-@user.Id" class="admin-inline-form">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="Id" value="@user.Id" />
+                                            <button class="btn-primary btn-small" type="submit">@L["Admin_Users_Save"].Value</button>
+                                        </form>
                                         if (user.IsBlocked)
                                         {
                                             <form asp-action="UnblockUser" method="post">
@@ -136,15 +144,18 @@
                                         }
                                         else
                                         {
-                                            <form asp-action="BlockUser" method="post">
+                                            <form asp-action="BlockUser" method="post" class="admin-inline-form admin-block-form">
                                                 @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@user.Id" />
+                                                <input type="hidden" name="Id" value="@user.Id" />
+                                                <label class="admin-block-form__label" for="block-until-@user.Id">@L["Admin_Users_Block_Until_Label"].Value</label>
+                                                <input type="datetime-local" id="block-until-@user.Id" name="BlockedUntil" />
+                                                <span class="muted admin-block-form__hint">@L["Admin_Users_Block_Help"].Value</span>
                                                 <button class="btn-ghost btn-small" type="submit">@L["Admin_Users_Block"].Value</button>
                                             </form>
                                         }
                                         if (!isCurrent)
                                         {
-                                            <form asp-action="DeleteUser" method="post" onsubmit="return confirm('@L["Admin_Users_Delete_Confirm"].Value');">
+                                            <form asp-action="DeleteUser" method="post" class="admin-inline-form" onsubmit="return confirm('@L["Admin_Users_Delete_Confirm"].Value');">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@user.Id" />
                                                 <button class="btn-danger btn-small" type="submit">@L["Admin_Users_Delete"].Value</button>

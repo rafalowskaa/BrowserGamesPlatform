@@ -635,7 +635,11 @@
 
 
 	<data name="Account_Blocked" xml:space="preserve">
-        <value>Twoje konto zostało zablokowane. Skontaktuj się z administratorem.</value>
+        <value>Twoje konto zostało zablokowane. Skontaktuj się z administratorem pod adresem admin@bgp.local.</value>
+    </data>
+
+	<data name="Account_Blocked_Until" xml:space="preserve">
+        <value>Twoje konto zostało zablokowane do {0}. W razie zażalenia prosimy o kontakt z administratorem pod adresem admin@bgp.local.</value>
     </data>
 	<data name="Chat_Title" xml:space="preserve">
         
@@ -2255,8 +2259,30 @@
 	<data name="Admin_Users_Block_Success" xml:space="preserve">
     <value>Użytkownik został zablokowany.</value>
   </data>
+	<data name="Admin_Users_Block_Success_Until" xml:space="preserve">
+    <value>Użytkownik został zablokowany do wskazanego terminu.</value>
+  </data>
+
+	<data name="Admin_Users_Block_InvalidUntil" xml:space="preserve">
+    <value>Podaj przyszłą datę zakończenia blokady.</value>
+  </data>
 	<data name="Admin_Users_Unblock_Success" xml:space="preserve">
     <value>Użytkownik został odblokowany.</value>
+  </data>
+	<data name="Admin_Users_Status_Blocked_Until" xml:space="preserve">
+    <value>Zablokowany do {0}</value>
+  </data>
+
+	<data name="Admin_Users_Status_Blocked_Permanent" xml:space="preserve">
+    <value>Blokada bezterminowa</value>
+  </data>
+
+	<data name="Admin_Users_Block_Until_Label" xml:space="preserve">
+    <value>Zablokuj do (opcjonalnie)</value>
+  </data>
+
+	<data name="Admin_Users_Block_Help" xml:space="preserve">
+    <value>Pozostaw puste, aby zablokować bezterminowo.</value>
   </data>
 	<data name="Admin_Users_Delete_Success" xml:space="preserve">
     <value>Użytkownik został usunięty.</value>

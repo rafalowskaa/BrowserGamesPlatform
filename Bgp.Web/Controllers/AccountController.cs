@@ -59,8 +59,21 @@ public class AccountController : Controller
 
         if (signInUser is not null && signInUser.IsBlocked)
         {
-            ModelState.AddModelError(string.Empty, _localizer["Account_Blocked"]);
-            return View(vm);
+            if (signInUser.BlockedUntilUtc.HasValue && signInUser.BlockedUntilUtc.Value <= DateTime.UtcNow)
+            {
+                signInUser.IsBlocked = false;
+                signInUser.BlockedUntilUtc = null;
+                await _users.UpdateAsync(signInUser);
+            }
+            else
+            {
+                var message = signInUser.BlockedUntilUtc.HasValue
+                    ? _localizer["Account_Blocked_Until", signInUser.BlockedUntilUtc.Value.ToLocalTime().ToString("f")]
+                    : _localizer["Account_Blocked"];
+
+                ModelState.AddModelError(string.Empty, message);
+                return View(vm);
+            }
         }
 
         var res = signInUser is not null

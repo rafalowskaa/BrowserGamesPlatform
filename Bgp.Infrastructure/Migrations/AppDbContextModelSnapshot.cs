@@ -418,6 +418,9 @@ namespace Bgp.Infrastructure.Migrations
                     b.Property<int?>("BirthMonth")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("BlockedUntilUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");

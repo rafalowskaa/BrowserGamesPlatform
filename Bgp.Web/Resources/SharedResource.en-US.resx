@@ -625,7 +625,11 @@
     </data>
 
 	<data name="Account_Blocked" xml:space="preserve">
-        <value>Your account has been blocked. Please contact support.</value>
+        <value>Your account has been blocked. Please contact the administrator at admin@bgp.local.</value>
+    </data>
+
+	<data name="Account_Blocked_Until" xml:space="preserve">
+        <value>Your account has been blocked until {0}. If you believe this is a mistake, please contact the administrator at admin@bgp.local.</value>
     </data>
 	<data name="Chat_Title" xml:space="preserve">
         
@@ -2181,8 +2185,30 @@
 	<data name="Admin_Users_Block_Success" xml:space="preserve">
     <value>User blocked.</value>
   </data>
+	<data name="Admin_Users_Block_Success_Until" xml:space="preserve">
+    <value>User blocked until the selected date.</value>
+  </data>
+
+	<data name="Admin_Users_Block_InvalidUntil" xml:space="preserve">
+    <value>Provide a future date for the block duration.</value>
+  </data>
 	<data name="Admin_Users_Unblock_Success" xml:space="preserve">
     <value>User unblocked.</value>
+  </data>
+	<data name="Admin_Users_Status_Blocked_Until" xml:space="preserve">
+    <value>Blocked until {0}</value>
+  </data>
+
+	<data name="Admin_Users_Status_Blocked_Permanent" xml:space="preserve">
+    <value>Blocked indefinitely</value>
+  </data>
+
+	<data name="Admin_Users_Block_Until_Label" xml:space="preserve">
+    <value>Block until (optional)</value>
+  </data>
+
+	<data name="Admin_Users_Block_Help" xml:space="preserve">
+    <value>Leave empty to block indefinitely.</value>
   </data>
 	<data name="Admin_Users_Delete_Success" xml:space="preserve">
     <value>User deleted.</value>
