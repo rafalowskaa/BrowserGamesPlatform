@@ -41,7 +41,7 @@
                         <a class="nav-tab" asp-controller="Dashboard" asp-action="Index">@L["Navigation_Dashboard"].Value</a>
                         <a class="nav-tab" asp-controller="Games" asp-action="Index">@L["Navigation_Games"].Value</a>
                         <a class="nav-tab" href="/swagger" title="@L["Navigation_Api_Tooltip"].Value">@L["Navigation_Api"].Value</a>
-                        @if (User.IsInRole("Admin"))
+                        @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
                         {
                             <a class="nav-tab" asp-controller="AdminUi" asp-action="Users">@L["Navigation_Admin"].Value</a>
                         }

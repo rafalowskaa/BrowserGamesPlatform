@@ -193,6 +193,23 @@ public class AdminUiController : Controller
         var targetIsModerator = await _users.IsInRoleAsync(user, "Moderator");
 
         var desiredAccess = input.AccessLevel;
+        var isEditingSelf = string.Equals(user.Id, currentUserId, StringComparison.Ordinal);
+
+        if (targetIsAdmin)
+        {
+            if (!isEditingSelf)
+            {
+                TempData["AdminUsersError"] = "Admin_Users_CannotModifyAdmin";
+                return RedirectToAction(nameof(Users));
+            }
+
+            desiredAccess = AdminUserAccessLevel.Admin;
+        }
+        else if (desiredAccess == AdminUserAccessLevel.Admin)
+        {
+            TempData["AdminUsersError"] = "Admin_Users_CannotChangeRole";
+            return RedirectToAction(nameof(Users));
+        }
 
         if (!isCurrentAdmin)
         {
@@ -200,14 +217,6 @@ public class AdminUiController : Controller
             {
                 return Forbid();
             }
-
-            if (targetIsAdmin)
-            {
-                TempData["AdminUsersError"] = "Admin_Users_CannotModifyAdmin";
-                return RedirectToAction(nameof(Users));
-            }
-
-            var isEditingSelf = string.Equals(user.Id, currentUserId, StringComparison.Ordinal);
 
             if (targetIsModerator && !isEditingSelf)
             {
@@ -223,7 +232,7 @@ public class AdminUiController : Controller
                     return RedirectToAction(nameof(Users));
                 }
             }
-            else if (desiredAccess != AdminUserAccessLevel.User)
+            else if (desiredAccess != AdminUserAccessLevel.User && desiredAccess != AdminUserAccessLevel.Moderator)
             {
                 TempData["AdminUsersError"] = "Admin_Users_CannotChangeRole";
                 return RedirectToAction(nameof(Users));
@@ -261,7 +270,7 @@ public class AdminUiController : Controller
             }
         }
 
-        if (isCurrentAdmin || string.Equals(user.Id, currentUserId, StringComparison.Ordinal))
+        if (isCurrentAdmin || isCurrentModerator)
         {
             async Task<bool> RemoveRoleAsync(string role)
             {
@@ -341,7 +350,7 @@ public class AdminUiController : Controller
         }
 
         TempData["AdminUsersSuccess"] = "Admin_Users_Update_Success";
-        return RedirectToAction(nameof(Users), new { search = input.Id });
+        return RedirectToAction(nameof(Users));
     }
 
     [HttpPost]

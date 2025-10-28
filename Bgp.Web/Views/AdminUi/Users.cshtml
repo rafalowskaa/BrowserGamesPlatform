@@ -99,7 +99,35 @@
                     foreach (var user in Model.Users)
                     {
                         var isCurrent = string.Equals(user.Id, currentUserId, StringComparison.Ordinal);
-                        var canManage = isCurrentAdmin || (isCurrentModerator && (user.AccessLevel == AdminUserAccessLevel.User || isCurrent));
+                        var allowedAccessLevels = new List<AdminUserAccessLevel>();
+
+                        if (user.AccessLevel == AdminUserAccessLevel.Admin)
+                        {
+                            if (isCurrent && isCurrentAdmin)
+                            {
+                                allowedAccessLevels.Add(AdminUserAccessLevel.Admin);
+                            }
+                        }
+                        else if (isCurrentAdmin)
+                        {
+                            allowedAccessLevels.Add(AdminUserAccessLevel.Moderator);
+                            allowedAccessLevels.Add(AdminUserAccessLevel.User);
+                        }
+                        else if (isCurrentModerator)
+                        {
+                            if (isCurrent)
+                            {
+                                allowedAccessLevels.Add(AdminUserAccessLevel.Moderator);
+                            }
+                            else if (user.AccessLevel == AdminUserAccessLevel.User)
+                            {
+                                allowedAccessLevels.Add(AdminUserAccessLevel.Moderator);
+                                allowedAccessLevels.Add(AdminUserAccessLevel.User);
+                            }
+                        }
+
+                        var canManage = allowedAccessLevels.Count > 0;
+                        var allowedAccessAttribute = string.Join(',', allowedAccessLevels.Select(level => level.ToString()));
                         <tr>
                             <td>@user.DisplayName</td>
                             <td>@user.Email</td>
@@ -162,7 +190,8 @@
                                                 data-user-id="@user.Id"
                                                 data-user-display-name="@user.DisplayName"
                                                 data-user-email="@user.Email"
-                                                data-user-access="@user.AccessLevel">
+                                                data-user-access="@user.AccessLevel"
+                                                data-user-access-allowed="@allowedAccessAttribute">
                                             @L["Admin_Users_Edit"].Value
                                         </button>
 
@@ -228,22 +257,15 @@
                     <label class="modal-dialog__label" for="modalEmail">@L["Admin_Users_Edit_Email"].Value</label>
                     <input class="modal-dialog__input" id="modalEmail" name="Email" type="email" data-modal-input="email" required />
                 </div>
-                @if (isCurrentAdmin)
-                {
-                    <div class="modal-dialog__control">
-                        <label class="modal-dialog__label" for="modalAccessLevel">@L["Admin_Users_Edit_AccessLevel"].Value</label>
-                        <select class="modal-dialog__input" id="modalAccessLevel" name="AccessLevel" data-modal-input="access">
-                            <option value="Admin">@L["Admin_Users_Access_Admin"].Value</option>
-                            <option value="Moderator">@L["Admin_Users_Access_Moderator"].Value</option>
-                            <option value="User">@L["Admin_Users_Access_User"].Value</option>
-                        </select>
-                    </div>
-                }
-                else
-                {
-                    <input type="hidden" name="AccessLevel" value="User" data-modal-input="access" />
-                    <p class="modal-dialog__message">@L["Admin_Users_Edit_RoleInfo"].Value</p>
-                }
+                <div class="modal-dialog__control">
+                    <label class="modal-dialog__label" for="modalAccessLevel">@L["Admin_Users_Edit_AccessLevel"].Value</label>
+                    <select class="modal-dialog__input" id="modalAccessLevel" name="AccessLevel" data-modal-input="access" data-access-select>
+                        <option value="Admin">@L["Admin_Users_Access_Admin"].Value</option>
+                        <option value="Moderator">@L["Admin_Users_Access_Moderator"].Value</option>
+                        <option value="User">@L["Admin_Users_Access_User"].Value</option>
+                    </select>
+                </div>
+                <p class="modal-dialog__message" data-role-info hidden>@L["Admin_Users_Edit_RoleInfo"].Value</p>
                 <div class="modal-dialog__actions">
                     <button type="button" class="btn-outline" data-modal-close>@L["Admin_Users_Edit_Cancel"].Value</button>
                     <button type="submit" class="btn-primary">@L["Admin_Users_Save"].Value</button>

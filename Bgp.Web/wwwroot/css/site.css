@@ -2008,6 +2008,12 @@ body {
     color: var(--text);
 }
 
+.modal-dialog__input--readonly {
+    background: rgba(15, 23, 42, 0.7);
+    color: rgba(148, 163, 184, 0.9);
+    cursor: not-allowed;
+}
+
 .catalog-filters .btn-primary {
     display: inline-flex;
     align-items: center;

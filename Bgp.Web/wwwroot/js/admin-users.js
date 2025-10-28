@@ -43,6 +43,7 @@
             const nameInput = editForm.querySelector('[data-modal-input="displayName"]');
             const emailInput = editForm.querySelector('[data-modal-input="email"]');
             const accessInput = editForm.querySelector('[data-modal-input="access"]');
+            const roleInfoMessage = editModal.querySelector('[data-role-info]');
 
             const resetEditForm = () => {
                 if (idInput) {
@@ -56,6 +57,13 @@
                 }
                 if (accessInput) {
                     accessInput.value = 'User';
+                    accessInput.classList.remove('modal-dialog__input--readonly');
+                    Array.from(accessInput.options).forEach((option) => {
+                        option.disabled = false;
+                    });
+                }
+                if (roleInfoMessage) {
+                    roleInfoMessage.hidden = true;
                 }
             };
 
@@ -67,6 +75,11 @@
                     const displayName = button.getAttribute('data-user-display-name') || '';
                     const email = button.getAttribute('data-user-email') || '';
                     const accessLevel = button.getAttribute('data-user-access') || 'User';
+                    const allowedAccess = button.getAttribute('data-user-access-allowed') || '';
+                    const allowedAccessValues = allowedAccess
+                        .split(',')
+                        .map((value) => value.trim())
+                        .filter((value) => value.length > 0);
 
                     if (idInput) {
                         idInput.value = userId;
@@ -79,12 +92,59 @@
                         emailInput.value = email;
                     }
                     if (accessInput) {
-                        accessInput.value = accessLevel;
+                        const options = Array.from(accessInput.options);
+                        const hasRestrictions = allowedAccessValues.length > 0;
+
+                        options.forEach((option) => {
+                            if (hasRestrictions) {
+                                option.disabled = !allowedAccessValues.includes(option.value);
+                            }
+                            else {
+                                option.disabled = false;
+                            }
+                        });
+
+                        let nextAccessValue = accessLevel;
+                        if (hasRestrictions && !allowedAccessValues.includes(nextAccessValue)) {
+                            nextAccessValue = allowedAccessValues[0] || nextAccessValue;
+                        }
+
+                        accessInput.value = nextAccessValue;
+
+                        const isLocked = hasRestrictions && allowedAccessValues.length <= 1;
+                        if (isLocked) {
+                            accessInput.classList.add('modal-dialog__input--readonly');
+                            if (roleInfoMessage) {
+                                roleInfoMessage.hidden = false;
+                            }
+                        }
+                        else {
+                            accessInput.classList.remove('modal-dialog__input--readonly');
+                            if (roleInfoMessage) {
+                                roleInfoMessage.hidden = true;
+                            }
+                        }
                     }
 
                     openModal(editModal);
                 });
             });
+        }
+
+        const adminSearchForm = document.querySelector('form.admin-search');
+        if (adminSearchForm) {
+            const submitButton = adminSearchForm.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    if (typeof adminSearchForm.requestSubmit === 'function') {
+                        adminSearchForm.requestSubmit(submitButton);
+                    }
+                    else {
+                        adminSearchForm.submit();
+                    }
+                });
+            }
         }
 
         const blockForm = document.getElementById('userBlockForm');
