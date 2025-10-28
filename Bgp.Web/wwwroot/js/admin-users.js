@@ -1,5 +1,5 @@
 ﻿(function () {
-    document.addEventListener('DOMContentLoaded', function () {
+    const init = () => {
         const editModal = document.getElementById('userEditModal');
         const blockModal = document.getElementById('userBlockModal');
 
@@ -142,5 +142,12 @@
                 });
             });
         }
-    });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    }
+    else {
+        init();
+    }
 })();

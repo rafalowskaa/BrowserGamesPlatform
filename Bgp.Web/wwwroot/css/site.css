@@ -3019,12 +3019,14 @@ body {
         }
 
 .admin-actions.vertical {
-    align-items: flex-start;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
 }
 
     .admin-actions.vertical form,
     .admin-actions.vertical .muted {
-        width: 100%;
+        width: auto;
     }
 
 .admin-block-form {
@@ -3054,8 +3056,8 @@ body {
     }
 
         .admin-actions.vertical {
-            flex-direction: column;
-            align-items: flex-start;
+            flex-direction: row;
+            align-items: center;
         }
 
     .muted {
