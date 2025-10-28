@@ -30,6 +30,21 @@ public class AdminUiController : Controller
         _logger = logger;
     }
 
+    private IActionResult RedirectToUsers(string? search, string? fallbackSearch = null)
+    {
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            return RedirectToAction(nameof(Users), new { search });
+        }
+
+        if (!string.IsNullOrWhiteSpace(fallbackSearch))
+        {
+            return RedirectToAction(nameof(Users), new { search = fallbackSearch });
+        }
+
+        return RedirectToAction(nameof(Users));
+    }
+
     public async Task<IActionResult> Users(string? search = null)
     {
         var query = _db.Users.AsNoTracking();
@@ -171,19 +186,19 @@ public class AdminUiController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateUser(AdminUpdateUserInputModel input)
+    public async Task<IActionResult> UpdateUser(AdminUpdateUserInputModel input, string? search)
     {
         if (!ModelState.IsValid)
         {
             TempData["AdminUsersError"] = "Admin_Users_Validation";
-            return RedirectToAction(nameof(Users), new { search = input.Id });
+            return RedirectToUsers(search, input.Id);
         }
 
         var user = await _users.FindByIdAsync(input.Id);
         if (user is null)
         {
             TempData["AdminUsersError"] = "Admin_Users_NotFound";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         var currentUserId = _users.GetUserId(User);
@@ -200,7 +215,7 @@ public class AdminUiController : Controller
             if (!isEditingSelf)
             {
                 TempData["AdminUsersError"] = "Admin_Users_CannotModifyAdmin";
-                return RedirectToAction(nameof(Users));
+                return RedirectToUsers(search);
             }
 
             desiredAccess = AdminUserAccessLevel.Admin;
@@ -208,7 +223,7 @@ public class AdminUiController : Controller
         else if (desiredAccess == AdminUserAccessLevel.Admin)
         {
             TempData["AdminUsersError"] = "Admin_Users_CannotChangeRole";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         if (!isCurrentAdmin)
@@ -221,7 +236,7 @@ public class AdminUiController : Controller
             if (targetIsModerator && !isEditingSelf)
             {
                 TempData["AdminUsersError"] = "Admin_Users_CannotModifyModerator";
-                return RedirectToAction(nameof(Users));
+                return RedirectToUsers(search);
             }
 
             if (targetIsModerator)
@@ -229,13 +244,13 @@ public class AdminUiController : Controller
                 if (desiredAccess != AdminUserAccessLevel.Moderator)
                 {
                     TempData["AdminUsersError"] = "Admin_Users_CannotChangeRole";
-                    return RedirectToAction(nameof(Users));
+                    return RedirectToUsers(search);
                 }
             }
             else if (desiredAccess != AdminUserAccessLevel.User && desiredAccess != AdminUserAccessLevel.Moderator)
             {
                 TempData["AdminUsersError"] = "Admin_Users_CannotChangeRole";
-                return RedirectToAction(nameof(Users));
+                return RedirectToUsers(search);
             }
         }
 
@@ -246,7 +261,7 @@ public class AdminUiController : Controller
             if (!setEmail.Succeeded)
             {
                 TempData["AdminUsersError"] = setEmail.Errors.FirstOrDefault()?.Description ?? "Admin_Users_Update_Error";
-                return RedirectToAction(nameof(Users));
+                return RedirectToUsers(search);
             }
             user.EmailConfirmed = true;
         }
@@ -257,7 +272,7 @@ public class AdminUiController : Controller
         if (!result.Succeeded)
         {
             TempData["AdminUsersError"] = result.Errors.FirstOrDefault()?.Description ?? "Admin_Users_Update_Error";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         if (!await _users.IsInRoleAsync(user, "User"))
@@ -266,7 +281,7 @@ public class AdminUiController : Controller
             if (!addUserRole.Succeeded)
             {
                 TempData["AdminUsersError"] = addUserRole.Errors.FirstOrDefault()?.Description ?? "Admin_Users_Role_Update_Error";
-                return RedirectToAction(nameof(Users));
+                return RedirectToUsers(search);
             }
         }
 
@@ -311,12 +326,12 @@ public class AdminUiController : Controller
                 case AdminUserAccessLevel.Admin:
                     if (!await AddRoleAsync("Admin"))
                     {
-                        return RedirectToAction(nameof(Users));
+                        return RedirectToUsers(search);
                     }
 
                     if (!await RemoveRoleAsync("Moderator"))
                     {
-                        return RedirectToAction(nameof(Users));
+                        return RedirectToUsers(search);
                     }
 
                     break;
@@ -324,12 +339,12 @@ public class AdminUiController : Controller
                 case AdminUserAccessLevel.Moderator:
                     if (!await RemoveRoleAsync("Admin"))
                     {
-                        return RedirectToAction(nameof(Users));
+                        return RedirectToUsers(search);
                     }
 
                     if (!await AddRoleAsync("Moderator"))
                     {
-                        return RedirectToAction(nameof(Users));
+                        return RedirectToUsers(search);
                     }
 
                     break;
@@ -337,12 +352,12 @@ public class AdminUiController : Controller
                 default:
                     if (!await RemoveRoleAsync("Admin"))
                     {
-                        return RedirectToAction(nameof(Users));
+                        return RedirectToUsers(search);
                     }
 
                     if (!await RemoveRoleAsync("Moderator"))
                     {
-                        return RedirectToAction(nameof(Users));
+                        return RedirectToUsers(search);
                     }
 
                     break;
@@ -350,30 +365,30 @@ public class AdminUiController : Controller
         }
 
         TempData["AdminUsersSuccess"] = "Admin_Users_Update_Success";
-        return RedirectToAction(nameof(Users));
+        return RedirectToUsers(search);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> BlockUser(AdminBlockUserInputModel input)
+    public async Task<IActionResult> BlockUser(AdminBlockUserInputModel input, string? search)
     {
         if (!ModelState.IsValid)
         {
             TempData["AdminUsersError"] = "Admin_Users_Validation";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         if (string.IsNullOrWhiteSpace(input.Id))
         {
             TempData["AdminUsersError"] = "Admin_Users_NotFound";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         var user = await _users.FindByIdAsync(input.Id);
         if (user is null)
         {
             TempData["AdminUsersError"] = "Admin_Users_NotFound";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         var currentUserId = _users.GetUserId(User);
@@ -385,7 +400,7 @@ public class AdminUiController : Controller
         if (targetIsAdmin)
         {
             TempData["AdminUsersError"] = "Admin_Users_CannotBlockAdmin";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         if (!isCurrentAdmin)
@@ -405,7 +420,7 @@ public class AdminUiController : Controller
         if (user.Id == currentUserId)
         {
             TempData["AdminUsersError"] = "Admin_Users_CannotBlockSelf";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         DateTime? blockedUntilUtc = null;
@@ -417,7 +432,7 @@ public class AdminUiController : Controller
             if (blockedUntilUtc <= DateTime.UtcNow)
             {
                 TempData["AdminUsersError"] = "Admin_Users_Block_InvalidUntil";
-                return RedirectToAction(nameof(Users));
+                return RedirectToUsers(search);
             }
         }
 
@@ -425,7 +440,7 @@ public class AdminUiController : Controller
         if (string.IsNullOrWhiteSpace(reason))
         {
             TempData["AdminUsersError"] = "Admin_Users_Validation";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         user.IsBlocked = true;
@@ -435,29 +450,29 @@ public class AdminUiController : Controller
         if (!result.Succeeded)
         {
             TempData["AdminUsersError"] = result.Errors.FirstOrDefault()?.Description ?? "Admin_Users_Update_Error";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         await _users.UpdateSecurityStampAsync(user);
         TempData["AdminUsersSuccess"] = blockedUntilUtc.HasValue ? "Admin_Users_Block_Success_Until" : "Admin_Users_Block_Success";
-        return RedirectToAction(nameof(Users));
+        return RedirectToUsers(search);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UnblockUser(string id)
+    public async Task<IActionResult> UnblockUser(string id, string? search)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
             TempData["AdminUsersError"] = "Admin_Users_NotFound";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         var user = await _users.FindByIdAsync(id);
         if (user is null)
         {
             TempData["AdminUsersError"] = "Admin_Users_NotFound";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         var currentUserId = _users.GetUserId(User);
@@ -469,7 +484,7 @@ public class AdminUiController : Controller
         if (targetIsAdmin && !isCurrentAdmin)
         {
             TempData["AdminUsersError"] = "Admin_Users_CannotModifyAdmin";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         if (!isCurrentAdmin)
@@ -482,7 +497,7 @@ public class AdminUiController : Controller
             if (targetIsModerator && !string.Equals(user.Id, currentUserId, StringComparison.Ordinal))
             {
                 TempData["AdminUsersError"] = "Admin_Users_CannotModifyModerator";
-                return RedirectToAction(nameof(Users));
+                return RedirectToUsers(search);
             }
         }
 
@@ -493,28 +508,28 @@ public class AdminUiController : Controller
         if (!result.Succeeded)
         {
             TempData["AdminUsersError"] = result.Errors.FirstOrDefault()?.Description ?? "Admin_Users_Update_Error";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         TempData["AdminUsersSuccess"] = "Admin_Users_Unblock_Success";
-        return RedirectToAction(nameof(Users));
+        return RedirectToUsers(search);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteUser(string id)
+    public async Task<IActionResult> DeleteUser(string id, string? search)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
             TempData["AdminUsersError"] = "Admin_Users_NotFound";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         var user = await _users.FindByIdAsync(id);
         if (user is null)
         {
             TempData["AdminUsersError"] = "Admin_Users_NotFound";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         var currentUserId = _users.GetUserId(User);
@@ -526,7 +541,7 @@ public class AdminUiController : Controller
         if (targetIsAdmin && !isCurrentAdmin)
         {
             TempData["AdminUsersError"] = "Admin_Users_CannotDeleteAdmin";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         if (!isCurrentAdmin)
@@ -539,7 +554,7 @@ public class AdminUiController : Controller
             if (targetIsModerator && !string.Equals(user.Id, currentUserId, StringComparison.Ordinal))
             {
                 TempData["AdminUsersError"] = "Admin_Users_CannotDeleteModerator";
-                return RedirectToAction(nameof(Users));
+                return RedirectToUsers(search);
             }
         }
 
@@ -547,28 +562,28 @@ public class AdminUiController : Controller
         if (!result.Succeeded)
         {
             TempData["AdminUsersError"] = result.Errors.FirstOrDefault()?.Description ?? "Admin_Users_Delete_Error";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         TempData["AdminUsersSuccess"] = "Admin_Users_Delete_Success";
-        return RedirectToAction(nameof(Users));
+        return RedirectToUsers(search);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ApproveDisplayName(string id)
+    public async Task<IActionResult> ApproveDisplayName(string id, string? search)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
             TempData["AdminUsersError"] = "Admin_Users_DisplayName_NotFound";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         var user = await _users.FindByIdAsync(id);
         if (user is null || string.IsNullOrWhiteSpace(user.PendingDisplayName))
         {
             TempData["AdminUsersError"] = "Admin_Users_DisplayName_NotFound";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         user.DisplayName = user.PendingDisplayName;
@@ -580,28 +595,28 @@ public class AdminUiController : Controller
         if (!result.Succeeded)
         {
             TempData["AdminUsersError"] = result.Errors.FirstOrDefault()?.Description ?? "Admin_Users_DisplayName_UpdateError";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         TempData["AdminUsersSuccess"] = "Admin_Users_DisplayNameApproved";
-        return RedirectToAction(nameof(Users));
+        return RedirectToUsers(search);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RejectDisplayName(string id)
+    public async Task<IActionResult> RejectDisplayName(string id, string? search)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
             TempData["AdminUsersError"] = "Admin_Users_DisplayName_NotFound";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         var user = await _users.FindByIdAsync(id);
         if (user is null || string.IsNullOrWhiteSpace(user.PendingDisplayName))
         {
             TempData["AdminUsersError"] = "Admin_Users_DisplayName_NotFound";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         user.PendingDisplayName = null;
@@ -611,11 +626,11 @@ public class AdminUiController : Controller
         if (!result.Succeeded)
         {
             TempData["AdminUsersError"] = result.Errors.FirstOrDefault()?.Description ?? "Admin_Users_DisplayName_UpdateError";
-            return RedirectToAction(nameof(Users));
+            return RedirectToUsers(search);
         }
 
         TempData["AdminUsersSuccess"] = "Admin_Users_DisplayNameRejected";
-        return RedirectToAction(nameof(Users));
+        return RedirectToUsers(search);
     }
 
     public async Task<IActionResult> Games(string? status = null)

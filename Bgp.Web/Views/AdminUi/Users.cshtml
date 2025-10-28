@@ -23,7 +23,7 @@
             <h1>@L["Admin_Users_Title"].Value</h1>
             <p>@L["Admin_Users_Subtitle"].Value</p>
         </div>
-        <form method="get" class="admin-search">
+        <form asp-action="Users" method="get" class="admin-search">
             <input type="search" name="search" value="@Model.Search" placeholder="@L["Admin_Users_SearchPlaceholder"].Value" />
             <button class="btn-primary btn-compact" type="submit">@L["Admin_Users_SearchButton"].Value</button>
         </form>
@@ -64,11 +64,13 @@
                                         <form asp-action="ApproveDisplayName" method="post">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@request.UserId" />
+                                            <input type="hidden" name="search" value="@Model.Search" />
                                             <button class="btn-primary btn-small" type="submit">@L["Admin_Users_DisplayName_Approve"].Value</button>
                                         </form>
                                         <form asp-action="RejectDisplayName" method="post">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@request.UserId" />
+                                            <input type="hidden" name="search" value="@Model.Search" />
                                             <button class="btn-ghost btn-small" type="submit">@L["Admin_Users_DisplayName_Reject"].Value</button>
                                         </form>
                                     </div>
@@ -202,6 +204,7 @@
                                                 <form asp-action="UnblockUser" method="post">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@user.Id" />
+                                                    <input type="hidden" name="search" value="@Model.Search" />
                                                     <button class="btn-ghost btn-small" type="submit">@L["Admin_Users_Unblock"].Value</button>
                                                 </form>
                                             }
@@ -220,6 +223,7 @@
                                             <form asp-action="DeleteUser" method="post" class="admin-inline-form" onsubmit="return confirm('@L["Admin_Users_Delete_Confirm"].Value');">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@user.Id" />
+                                                <input type="hidden" name="search" value="@Model.Search" />
                                                 <button class="btn-danger btn-small" type="submit">@L["Admin_Users_Delete"].Value</button>
                                             </form>
                                         }
@@ -247,6 +251,7 @@
         <div class="modal-dialog">
             <form asp-action="UpdateUser" method="post" class="modal-dialog__content" id="userEditForm">
                 @Html.AntiForgeryToken()
+                <input type="hidden" name="search" value="@Model.Search" />
                 <h3>@L["Admin_Users_Edit_Title"].Value</h3>
                 <input type="hidden" name="Id" value="" data-modal-input="id" />
                 <div class="modal-dialog__control">
@@ -279,6 +284,7 @@
         <div class="modal-dialog">
             <form asp-action="BlockUser" method="post" class="modal-dialog__content" id="userBlockForm">
                 @Html.AntiForgeryToken()
+                <input type="hidden" name="search" value="@Model.Search" />
                 <h3>@L["Admin_Users_Block_Title"].Value</h3>
                 <input type="hidden" name="Id" data-modal-input="id" />
                 <p class="modal-dialog__message" data-block-message data-template="@L["Admin_Users_Block_Message"].Value"></p>

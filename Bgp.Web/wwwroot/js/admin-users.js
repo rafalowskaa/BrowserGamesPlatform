@@ -150,6 +150,13 @@
                 }
             };
 
+            if (submitButton) {
+                submitButton.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    submitAdminSearch();
+                });
+            }
+
             if (searchInput) {
                 searchInput.addEventListener('search', () => {
                     if (searchInput.value === '') {
