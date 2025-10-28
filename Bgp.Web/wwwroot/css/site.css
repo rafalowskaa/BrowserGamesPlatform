@@ -831,75 +831,72 @@ body {
     pointer-events: none;
 }
 
-.password-field {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
+.password-field { display: flex; flex-direction: column; gap: 8px; }
+.password-field__input { position: relative; display: flex; align-items: center; }
+.password-field__input input { width: 100%; padding-right: 44px; }
 
-.password-field__input {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-    .password-field__input input {
-        width: 100%;
-        padding-right: 60px;
-    }
 
 .password-toggle {
     position: absolute;
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
-    border: 2px solid #ef4444;
-    background: #0f172a;
-    color: #e2e8f0;
-    cursor: pointer;
-    border-radius: 8px;
-    width: 36px;
-    height: 36px;
-    padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    margin: 0;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: #94a3b8;
+    appearance: none;
+    cursor: pointer;
+    z-index: 1;
 }
 
-
-    .password-toggle:hover,
-    .password-toggle.is-active {
-        background: rgba(15, 23, 42, 0.85);
-        color: #fef2f2;
-        border-color: #fca5a5;
-        box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.25);
+    .password-toggle:hover {
+        color: #e2e8f0;
     }
+
+    .password-toggle.is-active {
+        color: #e2e8f0;
+    }
+
 
     .password-toggle:focus-visible {
-        outline: 2px solid rgba(248, 113, 113, 0.65);
+        outline: 2px solid #60a5fa;
         outline-offset: 2px;
+        border-radius: 6px;
     }
 
-    .password-toggle svg {
-        width: 20px;
-        height: 20px;
-        transition: opacity 0.2s ease;
-    }
-
-  
+.password-field__input .password-toggle svg {
+    display: block !important;
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    width: 20px !important;
+    height: 20px !important;
+    max-width: none !important;
+    max-height: none !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    opacity: 1 !important;
+    pointer-events: none;
+}
 
 .password-toggle__icon-eye-off {
-    opacity: 0;
+    display: none;
 }
 
 .password-toggle.is-active .password-toggle__icon-eye {
-    opacity: 0;
+    display: none;
 }
 
 .password-toggle.is-active .password-toggle__icon-eye-off {
-    opacity: 1;
+    display: inline;
 }
 
 .chat-empty {

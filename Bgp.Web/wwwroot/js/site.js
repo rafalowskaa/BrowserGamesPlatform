@@ -1,39 +1,31 @@
 ﻿(function () {
-    const toggles = document.querySelectorAll('[data-password-toggle]');
-    toggles.forEach((btn) => {
-        const targetId = btn.getAttribute('data-password-toggle');
-        if (!targetId) {
-            return;
-        }
-        const input = document.getElementById(targetId);
-        if (!input) {
-            return;
-        }
-        const showLabel = btn.getAttribute('data-password-show') || 'Show';
-        const hideLabel = btn.getAttribute('data-password-hide') || 'Hide';
+    document.querySelectorAll('.password-toggle').forEach(function (btn) {
+        var id = btn.getAttribute('data-password-toggle');
+        var input = document.getElementById(id);
+        if (!input) return;
 
-        const labelTarget = btn.querySelector('[data-password-label]');
-
-        if (!btn.hasAttribute('tabindex')) {
-            btn.setAttribute('tabindex', '-1');
-        }
-
-        function updateLabel(isVisible) {
-            const text = isVisible ? hideLabel : showLabel;
-            if (labelTarget) {
-                labelTarget.textContent = text;
+        var lbl = btn.querySelector('[data-password-label]');
+        var show = btn.getAttribute('data-password-show') || 'Pokaż hasło';
+        var hide = btn.getAttribute('data-password-hide') || 'Ukryj hasło';
+            function setVisible(v) {
+                input.type = v ? 'text' : 'password';
+                btn.classList.toggle('is-active', v);
+                btn.setAttribute('aria-label', v ? hide : show);
+                if (lbl) lbl.textContent = v ? hide : show;
             }
-            btn.setAttribute('aria-label', text);
-            btn.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
-            btn.classList.toggle('is-active', isVisible);
-        }
+            setVisible(false);
 
-        btn.addEventListener('click', () => {
-            const isMasked = input.getAttribute('type') === 'password';
-            input.setAttribute('type', isMasked ? 'text' : 'password');
-            updateLabel(isMasked);
-        });
+                btn.addEventListener('click', function () {
+                    setVisible(input.type === 'password');
+                    input.focus();
+                });
 
-        updateLabel(false);
-    });
+                input.addEventListener('keydown', function (e) {
+                    if (e.altKey && e.key.toLowerCase() === 'p') {
+                        e.preventDefault();
+                        btn.click();
+                    }
+                });
+            });
+        })();
 })();
