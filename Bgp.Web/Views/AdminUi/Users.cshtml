@@ -128,7 +128,14 @@
                             }
                         }
 
-                        var canManage = allowedAccessLevels.Count > 0;
+                        var canEditUser = allowedAccessLevels.Count > 0;
+                        var canModerateAsAdmin = isCurrentAdmin;
+                        var canModerateAsModerator = isCurrentModerator && user.AccessLevel == AdminUserAccessLevel.User;
+                        var canBlockUser = !isCurrent
+                            && user.AccessLevel != AdminUserAccessLevel.Admin
+                            && (canModerateAsAdmin || canModerateAsModerator);
+                        var canDeleteUser = !isCurrent && (canModerateAsAdmin || canModerateAsModerator);
+                        var hasAnyActions = canEditUser || canBlockUser || canDeleteUser;
                         var allowedAccessAttribute = string.Join(',', allowedAccessLevels.Select(level => level.ToString()));
                         <tr>
                             <td>@user.DisplayName</td>
@@ -185,19 +192,22 @@
                             </td>
                             <td>
                                 <div class="admin-actions vertical">
-                                    @if (canManage)
+                                    @if (hasAnyActions)
                                     {
-                                        <button class="btn-primary btn-small" type="button"
-                                                data-user-edit
-                                                data-user-id="@user.Id"
-                                                data-user-display-name="@user.DisplayName"
-                                                data-user-email="@user.Email"
-                                                data-user-access="@user.AccessLevel"
-                                                data-user-access-allowed="@allowedAccessAttribute">
-                                            @L["Admin_Users_Edit"].Value
-                                        </button>
+                                        if (canEditUser)
+                                        {
+                                            <button class="btn-primary btn-small" type="button"
+                                                    data-user-edit
+                                                    data-user-id="@user.Id"
+                                                    data-user-display-name="@user.DisplayName"
+                                                    data-user-email="@user.Email"
+                                                    data-user-access="@user.AccessLevel"
+                                                    data-user-access-allowed="@allowedAccessAttribute">
+                                                @L["Admin_Users_Edit"].Value
+                                            </button>
+                                        }
 
-                                        if (!isCurrent)
+                                        if (canBlockUser)
                                         {
                                             if (user.IsBlocked)
                                             {
@@ -218,7 +228,7 @@
                                                 </button>
                                             }
                                         }
-                                        if (!isCurrent)
+                                        if (canDeleteUser)
                                         {
                                             <form asp-action="DeleteUser"
                                                   asp-controller="AdminUi"
