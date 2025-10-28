@@ -34,14 +34,17 @@
             <span asp-validation-for="Email" class="val"></span>
 
             <div class="password-field">
-                <div class="password-field__header">
-                    <label for="RegisterPassword">@L["Auth_Register_Password"].Value</label>
+                <label for="RegisterPassword">@L["Auth_Register_Password"].Value</label>
+                <div class="password-field__input">
+                    <input asp-for="Password" id="RegisterPassword" type="password" autocomplete="new-password" aria-describedby="RegisterPasswordToggleHint" />
                     <button type="button"
                             class="password-toggle"
                             data-password-toggle="RegisterPassword"
                             data-password-show="@L["Auth_Password_Show"].Value"
                             data-password-hide="@L["Auth_Password_Hide"].Value"
-                            aria-label="@L["Auth_Password_Show"].Value">
+                            data-password-shortcut="Alt+P"
+                            aria-label="@L["Auth_Password_Show"].Value"
+                            tabindex="-1">
                         <span class="password-toggle__icon" aria-hidden="true">
                             <svg class="password-toggle__icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
@@ -57,21 +60,23 @@
                         <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
                     </button>
                 </div>
-                <input asp-for="Password" id="RegisterPassword" type="password" autocomplete="new-password" />
                 
             </div>
             <span asp-validation-for="Password" class="val"></span>
 
             
             <div class="password-field">
-                <div class="password-field__header">
-                    <label for="RegisterConfirm">@L["Auth_Register_ConfirmPassword"].Value</label>
+                <label for="RegisterConfirm">@L["Auth_Register_ConfirmPassword"].Value</label>
+                <div class="password-field__input">
+                    <input asp-for="ConfirmPassword" id="RegisterConfirm" type="password" autocomplete="new-password" aria-describedby="RegisterConfirmToggleHint" />
                     <button type="button"
                             class="password-toggle"
                             data-password-toggle="RegisterConfirm"
                             data-password-show="@L["Auth_Password_Show"].Value"
                             data-password-hide="@L["Auth_Password_Hide"].Value"
-                            aria-label="@L["Auth_Password_Show"].Value">
+                            data-password-shortcut="Alt+P"
+                            aria-label="@L["Auth_Password_Show"].Value"
+                            tabindex="-1">
                         <span class="password-toggle__icon" aria-hidden="true">
                             <svg class="password-toggle__icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
@@ -87,7 +92,6 @@
                         <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
                     </button>
                 </div>
-                <input asp-for="ConfirmPassword" id="RegisterConfirm" type="password" autocomplete="new-password" />
                 
             </div>
             <span asp-validation-for="ConfirmPassword" class="val"></span>

@@ -16,6 +16,7 @@
     const strangersEmpty = panel ? panel.querySelector('[data-chat-strangers-empty]') : null;
     const windowsContainer = dock.querySelector('[data-chat-windows]');
     const unreadBadge = dock.querySelector('[data-chat-unread]');
+    const liveRegion = dock.querySelector('[data-chat-live]');
     const stringsElement = document.getElementById('chatStrings');
     const statusForm = panel ? panel.querySelector('[data-chat-status-form]') : null;
     const statusMessageInput = statusForm ? statusForm.querySelector('[data-chat-status-message]') : null;
@@ -53,6 +54,8 @@
     let strangerMessage = '';
     let strangerMessageForced = false;
     const pendingPresence = new Map();
+    const STORAGE_LAST_SEEN_KEY = 'bgp.chat.lastSeen';
+    const lastSeenMessages = loadLastSeenMessages();
     let pollTimer = null;
     let pollInFlight = false;
     const POLL_INTERVAL_MS = 7000;
@@ -97,6 +100,80 @@
         }
     } catch (err) {
         console.warn('Unable to parse chat strings.', err);
+    }
+
+    function loadLastSeenMessages() {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return new Map();
+        }
+        try {
+            const raw = window.localStorage.getItem(STORAGE_LAST_SEEN_KEY);
+            if (!raw) {
+                return new Map();
+            }
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== 'object') {
+                return new Map();
+            }
+            const entries = Object.entries(parsed).map(([key, value]) => [
+                normalizeId(key),
+                normalizeLastSeenValue(value)
+            ]);
+            return new Map(entries);
+        } catch (err) {
+            console.warn('Unable to load chat last seen state.', err);
+            return new Map();
+        }
+    }
+
+    function normalizeLastSeenValue(value) {
+        if (!value || typeof value !== 'object') {
+            return { id: null, sentAtUtc: null };
+        }
+        const id = typeof value.id === 'string' && value.id ? value.id : null;
+        const sentAtUtc = typeof value.sentAtUtc === 'string' && value.sentAtUtc ? value.sentAtUtc : null;
+        return { id, sentAtUtc };
+    }
+
+    function persistLastSeenMessages() {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return;
+        }
+        try {
+            const payload = {};
+            lastSeenMessages.forEach((value, key) => {
+                payload[key] = value;
+            });
+            window.localStorage.setItem(STORAGE_LAST_SEEN_KEY, JSON.stringify(payload));
+        } catch (err) {
+            console.warn('Unable to persist chat last seen state.', err);
+        }
+    }
+
+    function getLastSeenEntry(friendId) {
+        if (!friendId) {
+            return null;
+        }
+        return lastSeenMessages.get(normalizeId(friendId)) || null;
+    }
+
+    function setLastSeenEntry(friendId, messageId, sentAtUtc) {
+        if (!friendId) {
+            return;
+        }
+        lastSeenMessages.set(normalizeId(friendId), {
+            id: typeof messageId === 'string' && messageId ? messageId : null,
+            sentAtUtc: typeof sentAtUtc === 'string' && sentAtUtc ? sentAtUtc : null
+        });
+        persistLastSeenMessages();
+    }
+
+    function clearLastSeenEntry(friendId) {
+        if (!friendId) {
+            return;
+        }
+        lastSeenMessages.delete(normalizeId(friendId));
+        persistLastSeenMessages();
     }
 
     function normalizeId(id) {
@@ -514,6 +591,24 @@
         });
     }
 
+    function announceNewMessage(friend) {
+        if (!liveRegion || !strings.newMessage) {
+            return;
+        }
+        const label = friend && friend.displayName
+            ? `${strings.newMessage}: ${friend.displayName}`
+            : strings.newMessage;
+        liveRegion.textContent = '';
+        const writer = () => {
+            liveRegion.textContent = label;
+        };
+        if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+            window.requestAnimationFrame(writer);
+        } else {
+            writer();
+        }
+    }
+
     function updateUnreadBadge() {
         if (!unreadBadge) return;
         const total = Array.from(friends.values()).reduce((sum, friend) => sum + (friend.unreadCount || 0), 0);
@@ -609,6 +704,7 @@
         }
         entry.meta.textContent = getMessageMeta(entry.data, true);
         conversation.messages.set(message.id, entry);
+        updateConversationLatest(conversation, entry.data);
         return true;
     }
 
@@ -665,6 +761,7 @@
                 });
                 entry.data = updated;
                 entry.meta.textContent = getMessageMeta(updated, updated.senderId !== friendId);
+                updateConversationLatest(conversation, updated);
             }
             return;
         }
@@ -1067,11 +1164,13 @@
         }
         applyStatusDot(dotEl, friend);
         const shouldFlagUnread = (friend.unreadCount || 0) > 0;
-        if (shouldFlagUnread && friend.element.classList.contains('is-unread')) {
-            friend.element.classList.remove('is-unread');
-            void friend.element.offsetWidth;
+        const hasUnreadClass = friend.element.classList.contains('is-unread');
+        if (shouldFlagUnread && !hasUnreadClass) {
+            friend.element.classList.add('is-unread');
         }
-        friend.element.classList.toggle('is-unread', shouldFlagUnread);
+        if (!shouldFlagUnread && hasUnreadClass) {
+            friend.element.classList.remove('is-unread');
+        }
     }
 
     function updateConversationHeader(conversation) {
@@ -1167,7 +1266,8 @@
             presence: PRESENCE_OFFLINE,
             isInvisible: false,
             unreadCount: 0,
-            isFriend: false
+            isFriend: false,
+            lastNotifiedMessageId: null
         };
         setFriend(friend);
         if (friend.isFriend && friendsList) {
@@ -1196,6 +1296,7 @@
             return a.displayName.localeCompare(b.displayName);
         });
         ordered.forEach((friend) => {
+            removeStrangerContact(friend.userId);
             friendsList.appendChild(createFriendElement(friend));
         });
         applyFriendFilter();
@@ -1403,7 +1504,10 @@
             loaded: false,
             nameEl: name,
             statusEl: status,
-            dotEl: statusDot
+            dotEl: statusDot,
+            latestSentAtMs: null,
+            latestMessageId: null,
+            lastAttentionMessageId: null
         };
 
         closeBtn.addEventListener('click', (evt) => {
@@ -1499,7 +1603,79 @@
         });
     }
 
-    function renderMessage(conversation, message) {
+    function getMessageTimestamp(message) {
+        if (!message) {
+            return null;
+        }
+        const sentAt = toUtcDate(message.sentAtUtc);
+        return sentAt ? sentAt.getTime() : null;
+    }
+
+    function updateConversationLatest(conversation, message) {
+        if (!conversation || !message) {
+            return;
+        }
+        const timestamp = getMessageTimestamp(message);
+        if (timestamp && (!conversation.latestSentAtMs || timestamp > conversation.latestSentAtMs)) {
+            conversation.latestSentAtMs = timestamp;
+            conversation.latestMessageId = message.id || conversation.latestMessageId || null;
+            return;
+        }
+        if (!conversation.latestMessageId && message.id) {
+            conversation.latestMessageId = message.id;
+        }
+    }
+
+    function isMessageAlreadySeen(friendId, message) {
+        if (!message) {
+            return false;
+        }
+        const entry = getLastSeenEntry(friendId);
+        if (!entry) {
+            return false;
+        }
+        if (entry.id && message.id && entry.id === message.id) {
+            return true;
+        }
+        if (entry.sentAtUtc) {
+            const seenDate = toUtcDate(entry.sentAtUtc);
+            const messageDate = toUtcDate(message.sentAtUtc);
+            if (seenDate && messageDate) {
+                return messageDate.getTime() <= seenDate.getTime();
+            }
+        }
+        return false;
+    }
+
+    function recordConversationSeen(conversation) {
+        if (!conversation) {
+            return;
+        }
+        const iso = conversation.latestSentAtMs
+            ? new Date(conversation.latestSentAtMs).toISOString()
+            : null;
+        setLastSeenEntry(conversation.friendId, conversation.latestMessageId || null, iso);
+        const friend = getFriend(conversation.friendId);
+        if (friend) {
+            friend.lastNotifiedMessageId = null;
+        }
+    }
+
+    function triggerConversationAttention(conversation, message) {
+        if (!conversation || !conversation.element) {
+            return;
+        }
+        const messageId = message && message.id ? message.id : null;
+        if (messageId && conversation.lastAttentionMessageId === messageId) {
+            return;
+        }
+        conversation.lastAttentionMessageId = messageId;
+        conversation.element.classList.remove('chat-window--attention');
+        void conversation.element.offsetWidth;
+        conversation.element.classList.add('chat-window--attention');
+    }
+
+    function renderMessage(conversation, message, options = {}) {
         const fromSelf = message.fromSelf === true || message.senderId === undefined || message.senderId !== conversation.friendId;
         const wrapper = document.createElement('div');
         const classNames = ['chat-message', fromSelf ? 'chat-message--me' : 'chat-message--peer'];
@@ -1522,7 +1698,8 @@
         meta.textContent = getMessageMeta(message, fromSelf);
         wrapper.appendChild(meta);
 
-        if (!fromSelf) {
+        const shouldHighlight = !fromSelf && options.highlight !== false;
+        if (shouldHighlight) {
             wrapper.classList.add('chat-message--highlight');
             setTimeout(() => wrapper.classList.remove('chat-message--highlight'), 2400);
         }
@@ -1530,6 +1707,7 @@
         conversation.body.appendChild(wrapper);
         conversation.messages.set(message.id, { element: wrapper, meta, data: message });
         conversation.body.scrollTop = conversation.body.scrollHeight;
+        updateConversationLatest(conversation, message);
     }
 
     async function loadHistory(conversation, options = {}) {
@@ -1541,7 +1719,7 @@
                 return;
             }
             const history = await res.json();
-            history.forEach((msg) => renderMessage(conversation, msg));
+            history.forEach((msg) => renderMessage(conversation, msg, { highlight: false }));
             if (options.markRead) {
                 markThreadRead(conversation.friendId);
             }
@@ -1562,28 +1740,33 @@
         if (message.fromSelf && resolvePendingMessage(conversation, message)) {
             return;
         }
-        renderMessage(conversation, message);
+        const alreadySeen = isMessageAlreadySeen(friend.userId, message);
+        const shouldHighlightBubble = !message.fromSelf && !alreadySeen;
+        renderMessage(conversation, message, { highlight: shouldHighlightBubble });
         const senderMatchesFriend = typeof message.senderId === 'string'
             ? normalizeId(message.senderId) === normalizeId(friend.userId)
             : !message.fromSelf;
         const receiverMatchesSelf = typeof message.receiverId === 'string'
             ? !currentUserKey || normalizeId(message.receiverId) === currentUserKey
             : true;
-        const shouldFlagUnread = !message.fromSelf && senderMatchesFriend && receiverMatchesSelf;
+        const shouldFlagUnread = !message.fromSelf && senderMatchesFriend && receiverMatchesSelf && !alreadySeen;
 
         if (shouldFlagUnread) {
             if (isConversationActive(conversation)) {
                 markThreadRead(friendId);
             } else {
+                const wasUnread = (friend.unreadCount || 0) > 0;
                 friend.unreadCount = (friend.unreadCount || 0) + 1;
+                friend.lastNotifiedMessageId = message.id || friend.lastNotifiedMessageId || null;
                 updateFriendVisual(friend);
                 updateUnreadBadge();
-                if (conversation.element.classList.contains('chat-window--attention')) {
-                    conversation.element.classList.remove('chat-window--attention');
-                    void conversation.element.offsetWidth;
+                if (!wasUnread) {
+                    announceNewMessage(friend);
                 }
-                conversation.element.classList.add('chat-window--attention');
+                triggerConversationAttention(conversation, message);
             }
+        } else if (!message.fromSelf) {
+            updateFriendVisual(friend);
         }
     }
 
@@ -1606,11 +1789,16 @@
         const friend = getFriend(friendId);
         if (!friend) return;
         friend.unreadCount = 0;
+        friend.lastNotifiedMessageId = null;
         updateFriendVisual(friend);
         updateUnreadBadge();
         const conversation = getConversation(friend.userId);
         if (conversation) {
             conversation.element.classList.remove('chat-window--attention');
+            conversation.lastAttentionMessageId = null;
+            recordConversationSeen(conversation);
+        } else {
+            setLastSeenEntry(friend.userId, null, new Date().toISOString());
         }
         ensureConnectionStarted().then((conn) => {
             if (!conn || conn.state !== 'Connected') {
@@ -1663,7 +1851,8 @@
                             presence: normalizePresence(row.presence),
                             isInvisible: !!row.isInvisible,
                             unreadCount: previousUnread.get(normalizeId(row.userId)) || row.unreadCount || 0,
-                            isFriend: true
+                            isFriend: true,
+                            lastNotifiedMessageId: null
                         };
                         setFriend(friend);
                         accepted.push(friend);
@@ -1832,7 +2021,8 @@
                     presence: PRESENCE_OFFLINE,
                     isInvisible: false,
                     unreadCount: 0,
-                    isFriend: false
+                    isFriend: false,
+                    lastNotifiedMessageId: null
                 };
                 setFriend(friend);
                 ensureStrangerContact(friend);

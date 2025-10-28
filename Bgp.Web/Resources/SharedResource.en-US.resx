@@ -470,6 +470,8 @@
 	<data name="Auth_Password_Hide" xml:space="preserve">
         <value>Hide</value>
 	</data>
+	
+	
 
 	<data name="Auth_Register_Title" xml:space="preserve">
         

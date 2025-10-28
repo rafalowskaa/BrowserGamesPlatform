@@ -14,6 +14,10 @@
 
         const labelTarget = btn.querySelector('[data-password-label]');
 
+        if (!btn.hasAttribute('tabindex')) {
+            btn.setAttribute('tabindex', '-1');
+        }
+
         function updateLabel(isVisible) {
             const text = isVisible ? hideLabel : showLabel;
             if (labelTarget) {
