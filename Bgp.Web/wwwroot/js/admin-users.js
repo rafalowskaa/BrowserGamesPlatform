@@ -138,24 +138,23 @@
 
             const submitAdminSearch = () => {
                 if (typeof adminSearchForm.requestSubmit === 'function') {
-                    if (submitButton) {
-                        adminSearchForm.requestSubmit(submitButton);
+                    try {
+                        const acceptsSubmitter = adminSearchForm.requestSubmit.length > 0;
+                        if (acceptsSubmitter && submitButton) {
+                            adminSearchForm.requestSubmit(submitButton);
+                        }
+                        else {
+                            adminSearchForm.requestSubmit();
+                        }
+                        return;
                     }
-                    else {
-                        adminSearchForm.requestSubmit();
+                    catch (error) {
                     }
                 }
-                else {
-                    adminSearchForm.submit();
-                }
-            };
+                
 
-            if (submitButton) {
-                submitButton.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    submitAdminSearch();
-                });
-            }
+                adminSearchForm.submit();
+            };
 
             if (searchInput) {
                 searchInput.addEventListener('search', () => {

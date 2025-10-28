@@ -3061,6 +3061,17 @@ body {
         flex-wrap: wrap;
     }
 
+        .admin-actions form {
+            display: inline-flex;
+            align-items: center;
+            margin: 0;
+        }
+
+        .admin-actions button {
+            position: relative;
+            z-index: 1;
+        }
+
         .admin-actions.vertical {
             flex-direction: row;
             align-items: center;
