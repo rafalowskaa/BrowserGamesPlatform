@@ -845,53 +845,50 @@ body {
 
     .password-field__input input {
         width: 100%;
-        padding-right: 48px;
+        padding-right: 60px;
     }
 
 .password-toggle {
-    border: none;
-    background: transparent;
-    color: rgba(148, 163, 184, 0.85);
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 2px solid #ef4444;
+    background: #0f172a;
+    color: #e2e8f0;
     cursor: pointer;
-    border-radius: 999px;
+    border-radius: 8px;
     width: 36px;
     height: 36px;
     padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s ease, color 0.2s ease;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
     flex-shrink: 0;
 }
 
-.password-field__input .password-toggle {
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-}
 
     .password-toggle:hover,
     .password-toggle.is-active {
-        background: rgba(59, 130, 246, 0.3);
-        color: #f8fafc;
+        background: rgba(15, 23, 42, 0.85);
+        color: #fef2f2;
+        border-color: #fca5a5;
+        box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.25);
     }
 
     .password-toggle:focus-visible {
-        outline: 2px solid rgba(59, 130, 246, 0.65);
+        outline: 2px solid rgba(248, 113, 113, 0.65);
         outline-offset: 2px;
     }
 
-.password-toggle__icon {
-    display: inline-flex;
-    position: relative;
-}
-
-    .password-toggle__icon svg {
-        width: 18px;
-        height: 18px;
+    .password-toggle svg {
+        width: 20px;
+        height: 20px;
         transition: opacity 0.2s ease;
     }
+
+  
 
 .password-toggle__icon-eye-off {
     opacity: 0;
@@ -903,10 +900,6 @@ body {
 
 .password-toggle.is-active .password-toggle__icon-eye-off {
     opacity: 1;
-}
-
-.password-toggle__icon {
-    font-size: 16px;
 }
 
 .chat-empty {
@@ -2743,12 +2736,12 @@ body {
             }
     }
 
-    .form-vertical {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        margin-bottom: 24px;
-    }
+.form-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+}
 
         .form-vertical label {
             font-size: 14px;
