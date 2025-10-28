@@ -134,14 +134,26 @@
         const adminSearchForm = document.querySelector('form.admin-search');
         if (adminSearchForm) {
             const submitButton = adminSearchForm.querySelector('button[type="submit"]');
-            if (submitButton) {
-                submitButton.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    if (typeof adminSearchForm.requestSubmit === 'function') {
+            const searchInput = adminSearchForm.querySelector('input[type="search"]');
+
+            const submitAdminSearch = () => {
+                if (typeof adminSearchForm.requestSubmit === 'function') {
+                    if (submitButton) {
                         adminSearchForm.requestSubmit(submitButton);
                     }
                     else {
-                        adminSearchForm.submit();
+                        adminSearchForm.requestSubmit();
+                    }
+                }
+                else {
+                    adminSearchForm.submit();
+                }
+            };
+
+            if (searchInput) {
+                searchInput.addEventListener('search', () => {
+                    if (searchInput.value === '') {
+                        submitAdminSearch();
                     }
                 });
             }
