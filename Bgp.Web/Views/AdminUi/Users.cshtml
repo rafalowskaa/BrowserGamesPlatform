@@ -220,10 +220,14 @@
                                         }
                                         if (!isCurrent)
                                         {
-                                            <form asp-action="DeleteUser" method="post" class="admin-inline-form" onsubmit="return confirm('@L["Admin_Users_Delete_Confirm"].Value');">
+                                            <form asp-action="DeleteUser"
+                                                  asp-controller="AdminUi"
+                                                  asp-route-id="@user.Id"
+                                                  asp-route-search="@Model.Search"
+                                                  method="post"
+                                                  class="admin-inline-form"
+                                                  onsubmit="return confirm('@L["Admin_Users_Delete_Confirm"].Value');">
                                                 @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@user.Id" />
-                                                <input type="hidden" name="search" value="@Model.Search" />
                                                 <button class="btn-danger btn-small" type="submit">@L["Admin_Users_Delete"].Value</button>
                                             </form>
                                         }
