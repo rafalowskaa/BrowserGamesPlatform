@@ -14,7 +14,7 @@ public static class SecurityQuestionCatalog
             new SecurityQuestionOption("favoriteTeacher", "Auth_SecurityQuestion_FavoriteTeacher"),
             new SecurityQuestionOption("childhoodNickname", "Auth_SecurityQuestion_ChildhoodNickname"),
             new SecurityQuestionOption("birthCity", "Auth_SecurityQuestion_BirthCity"),
-            new SecurityQuestionOption(CustomKey, "Auth_SecurityQuestion_Custom", allowsCustomPrompt: true)
+            new SecurityQuestionOption(CustomKey, "Auth_SecurityQuestion_Custom", true)
         });
 
     public static IReadOnlyList<SecurityQuestionOption> Options => _options;

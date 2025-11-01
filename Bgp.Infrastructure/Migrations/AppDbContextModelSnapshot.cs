@@ -407,6 +407,9 @@ namespace Bgp.Infrastructure.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
 
+                    b.Property<DateTime?>("BirthDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("BirthDateVisibility")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -416,6 +419,9 @@ namespace Bgp.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("BirthMonth")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BirthYear")
                         .HasColumnType("int");
 
                     b.Property<string>("BlockReason")
@@ -495,6 +501,42 @@ namespace Bgp.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(2);
+
+                    b.Property<string>("SecurityQuestion1AnswerHash")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("SecurityQuestion1CustomPrompt")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("SecurityQuestion1Key")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("SecurityQuestion2AnswerHash")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("SecurityQuestion2CustomPrompt")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("SecurityQuestion2Key")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("SecurityQuestion3AnswerHash")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("SecurityQuestion3CustomPrompt")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("SecurityQuestion3Key")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");

@@ -111,7 +111,7 @@
                         <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                         @foreach (var option in Model.SecurityQuestionOptions)
                         {
-                            <option value="@option.Key" @(option.Key == Model.SecurityQuestion1 ? "selected" : null)>@option.Label</option>
+                            <option value="@option.Key">@option.Label</option>
                         }
                     </select>
                     <span asp-validation-for="SecurityQuestion1" class="val"></span>
@@ -129,7 +129,7 @@
                         <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                         @foreach (var option in Model.SecurityQuestionOptions)
                         {
-                            <option value="@option.Key" @(option.Key == Model.SecurityQuestion2 ? "selected" : null)>@option.Label</option>
+                            <option value="@option.Key">@option.Label</option>
                         }
                     </select>
                     <span asp-validation-for="SecurityQuestion2" class="val"></span>
@@ -147,7 +147,7 @@
                         <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                         @foreach (var option in Model.SecurityQuestionOptions)
                         {
-                            <option value="@option.Key" @(option.Key == Model.SecurityQuestion3 ? "selected" : null)>@option.Label</option>
+                            <option value="@option.Key">@option.Label</option>
                         }
                     </select>
                     <span asp-validation-for="SecurityQuestion3" class="val"></span>
