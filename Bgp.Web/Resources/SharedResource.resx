@@ -1229,7 +1229,9 @@
 
     
     </data>
-
+	<data name="Dashboard_Success_Recovery" xml:space="preserve">
+    <value>Your recovery questions have been updated.</value>
+  </data>
 
 
 
@@ -1497,7 +1499,21 @@
     
     </data>
 
-
+	<data name="Dashboard_Security_RecoveryTitle" xml:space="preserve">
+    <value>Password recovery questions</value>
+  </data>
+	<data name="Dashboard_Security_RecoveryDescription" xml:space="preserve">
+    <value>Set or update your security questions to make account recovery easier.</value>
+  </data>
+	<data name="Dashboard_Security_RecoveryStatus_Configured" xml:space="preserve">
+    <value>Recovery questions are configured. You can update them at any time.</value>
+  </data>
+	<data name="Dashboard_Security_RecoveryStatus_Missing" xml:space="preserve">
+    <value>You haven&#39;t set recovery questions yet. Add them to keep your account safe.</value>
+  </data>
+	<data name="Dashboard_Security_RecoverySave" xml:space="preserve">
+    <value>Save questions</value>
+  </data>
 
 
 	<data name="Dashboard_Stats_UploadedGames" xml:space="preserve">
@@ -3173,8 +3189,17 @@
 	<data name="Auth_SecurityQuestion_BirthCity" xml:space="preserve">
     <value>In which city were you born?</value>
   </data>
+	<data name="Auth_SecurityQuestion_FavoriteGame" xml:space="preserve">
+    <value>What is your favorite game?</value>
+  </data>
+	<data name="Auth_SecurityQuestion_FirstConsole" xml:space="preserve">
+    <value>What was your first console or computer?</value>
+  </data>
 	<data name="Auth_SecurityQuestion_Custom" xml:space="preserve">
     <value>Create your own question</value>
+  </data>
+	<data name="Auth_SecurityQuestions_CaseInsensitiveHint" xml:space="preserve">
+    <value>Answers are not case sensitive — use whichever capitalization you prefer.</value>
   </data>
 	<data name="Auth_Login_ForgotPassword" xml:space="preserve">
     <value>Forgot password?</value>

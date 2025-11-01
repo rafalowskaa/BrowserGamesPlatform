@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using Bgp.Domain.Enums;
+using Bgp.Web.Helpers;
+using Bgp.Web.Resources;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Localization;
 
 namespace Bgp.Web.Models;
 
@@ -84,6 +88,25 @@ public class ProfileBestGameViewModel
 public class SecuritySectionViewModel
 {
     public string Email { get; set; } = string.Empty;
+    public RecoverySettingsFormViewModel Recovery { get; set; } = new();
+    public bool HasRecoveryConfigured { get; set; }
+}
+
+public class RecoverySettingsFormViewModel
+{
+    public string SecurityQuestion1 { get; set; } = string.Empty;
+    public string? SecurityQuestion1Custom { get; set; }
+    public string SecurityAnswer1 { get; set; } = string.Empty;
+
+    public string SecurityQuestion2 { get; set; } = string.Empty;
+    public string? SecurityQuestion2Custom { get; set; }
+    public string SecurityAnswer2 { get; set; } = string.Empty;
+
+    public string SecurityQuestion3 { get; set; } = string.Empty;
+    public string? SecurityQuestion3Custom { get; set; }
+    public string SecurityAnswer3 { get; set; } = string.Empty;
+
+    public IReadOnlyList<SecurityQuestionOptionVm> SecurityQuestionOptions { get; set; } = Array.Empty<SecurityQuestionOptionVm>();
 }
 
 public class DashboardStatsViewModel
@@ -180,4 +203,86 @@ public class ChangePasswordInputModel
 
     [Compare(nameof(NewPassword))]
     public string ConfirmPassword { get; set; } = string.Empty;
+
+}
+
+public class UpdateRecoveryQuestionsInputModel : IValidatableObject
+{
+    [Required]
+    public string SecurityQuestion1 { get; set; } = string.Empty;
+
+    public string? SecurityQuestion1Custom { get; set; }
+
+    [Required]
+    public string SecurityAnswer1 { get; set; } = string.Empty;
+
+    [Required]
+    public string SecurityQuestion2 { get; set; } = string.Empty;
+
+    public string? SecurityQuestion2Custom { get; set; }
+
+    [Required]
+    public string SecurityAnswer2 { get; set; } = string.Empty;
+
+    [Required]
+    public string SecurityQuestion3 { get; set; } = string.Empty;
+
+    public string? SecurityQuestion3Custom { get; set; }
+
+    [Required]
+    public string SecurityAnswer3 { get; set; } = string.Empty;
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        var localizer = validationContext.GetService(typeof(IStringLocalizer<SharedResource>)) as IStringLocalizer<SharedResource>;
+        string Localize(string key) => localizer?[key].Value ?? key;
+
+        var questionKeys = new[] { SecurityQuestion1, SecurityQuestion2, SecurityQuestion3 };
+        if (questionKeys.Any(string.IsNullOrWhiteSpace))
+        {
+            yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Required"), new[]
+            {
+                nameof(SecurityQuestion1), nameof(SecurityQuestion2), nameof(SecurityQuestion3)
+            });
+            yield break;
+        }
+
+        if (questionKeys.GroupBy(x => x).Any(g => g.Count() > 1))
+        {
+            yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Distinct"), new[]
+            {
+                nameof(SecurityQuestion1), nameof(SecurityQuestion2), nameof(SecurityQuestion3)
+            });
+        }
+
+        IEnumerable<ValidationResult> ValidateCustom(string key, string? custom, string questionMemberName, string customMemberName)
+        {
+            var option = SecurityQuestionCatalog.Find(key);
+            if (option is null)
+            {
+                yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Invalid"), new[] { questionMemberName });
+                yield break;
+            }
+
+            if (option.AllowsCustomPrompt && string.IsNullOrWhiteSpace(custom))
+            {
+                yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_CustomRequired"), new[] { customMemberName });
+            }
+        }
+
+        foreach (var result in ValidateCustom(SecurityQuestion1, SecurityQuestion1Custom, nameof(SecurityQuestion1), nameof(SecurityQuestion1Custom)))
+        {
+            yield return result;
+        }
+
+        foreach (var result in ValidateCustom(SecurityQuestion2, SecurityQuestion2Custom, nameof(SecurityQuestion2), nameof(SecurityQuestion2Custom)))
+        {
+            yield return result;
+        }
+
+        foreach (var result in ValidateCustom(SecurityQuestion3, SecurityQuestion3Custom, nameof(SecurityQuestion3), nameof(SecurityQuestion3Custom)))
+        {
+            yield return result;
+        }
+    }
 }

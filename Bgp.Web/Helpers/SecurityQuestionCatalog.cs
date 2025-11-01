@@ -14,6 +14,8 @@ public static class SecurityQuestionCatalog
             new SecurityQuestionOption("favoriteTeacher", "Auth_SecurityQuestion_FavoriteTeacher"),
             new SecurityQuestionOption("childhoodNickname", "Auth_SecurityQuestion_ChildhoodNickname"),
             new SecurityQuestionOption("birthCity", "Auth_SecurityQuestion_BirthCity"),
+            new SecurityQuestionOption("favoriteGame", "Auth_SecurityQuestion_FavoriteGame"),
+            new SecurityQuestionOption("firstConsole", "Auth_SecurityQuestion_FirstConsole"),
             new SecurityQuestionOption(CustomKey, "Auth_SecurityQuestion_Custom", true)
         });
 

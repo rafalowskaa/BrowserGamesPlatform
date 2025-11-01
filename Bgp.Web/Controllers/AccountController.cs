@@ -4,6 +4,7 @@ using Bgp.Infrastructure.Identity;
 using Bgp.Web.Resources;
 using System.Collections.Generic;
 using System.Linq;
+using Bgp.Web.Models;
 using Bgp.Domain.Enums;
 using Bgp.Web.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -156,24 +157,33 @@ public class AccountController : Controller
             BirthDay = vm.BirthDate?.Day,
             BirthYear = vm.BirthDate?.Year,
             SecurityQuestion1Key = vm.SecurityQuestion1,
-            SecurityQuestion1CustomPrompt = vm.SecurityQuestion1Custom,
+            SecurityQuestion1CustomPrompt = string.IsNullOrWhiteSpace(vm.SecurityQuestion1Custom)
+                ? null
+                : vm.SecurityQuestion1Custom.Trim(),
             SecurityQuestion2Key = vm.SecurityQuestion2,
-            SecurityQuestion2CustomPrompt = vm.SecurityQuestion2Custom,
+            SecurityQuestion2CustomPrompt = string.IsNullOrWhiteSpace(vm.SecurityQuestion2Custom)
+                ? null
+                : vm.SecurityQuestion2Custom.Trim(),
             SecurityQuestion3Key = vm.SecurityQuestion3,
-            SecurityQuestion3CustomPrompt = vm.SecurityQuestion3Custom
+            SecurityQuestion3CustomPrompt = string.IsNullOrWhiteSpace(vm.SecurityQuestion3Custom)
+                ? null
+                : vm.SecurityQuestion3Custom.Trim()
         };
 
         if (!string.IsNullOrWhiteSpace(vm.SecurityAnswer1))
         {
-            user.SecurityQuestion1AnswerHash = _users.PasswordHasher.HashPassword(user, vm.SecurityAnswer1.Trim());
+            var normalizedAnswer = SecurityAnswerHelper.Normalize(vm.SecurityAnswer1);
+            user.SecurityQuestion1AnswerHash = _users.PasswordHasher.HashPassword(user, normalizedAnswer);
         }
         if (!string.IsNullOrWhiteSpace(vm.SecurityAnswer2))
         {
-            user.SecurityQuestion2AnswerHash = _users.PasswordHasher.HashPassword(user, vm.SecurityAnswer2.Trim());
+            var normalizedAnswer = SecurityAnswerHelper.Normalize(vm.SecurityAnswer2);
+            user.SecurityQuestion2AnswerHash = _users.PasswordHasher.HashPassword(user, normalizedAnswer);
         }
         if (!string.IsNullOrWhiteSpace(vm.SecurityAnswer3))
         {
-            user.SecurityQuestion3AnswerHash = _users.PasswordHasher.HashPassword(user, vm.SecurityAnswer3.Trim());
+            var normalizedAnswer = SecurityAnswerHelper.Normalize(vm.SecurityAnswer3);
+            user.SecurityQuestion3AnswerHash = _users.PasswordHasher.HashPassword(user, normalizedAnswer);
         }
 
         var result = await _users.CreateAsync(user, vm.Password);
@@ -277,9 +287,16 @@ public class AccountController : Controller
 
         if (!ModelState.IsValid) return View(vm);
 
-        bool IsAnswerValid(string? hash, string? answer) =>
-            !string.IsNullOrWhiteSpace(hash) && !string.IsNullOrWhiteSpace(answer) &&
-            _users.PasswordHasher.VerifyHashedPassword(user, hash, answer.Trim()) == PasswordVerificationResult.Success;
+        bool IsAnswerValid(string? hash, string? answer)
+        {
+            if (string.IsNullOrWhiteSpace(hash) || string.IsNullOrWhiteSpace(answer))
+            {
+                return false;
+            }
+
+            var normalized = SecurityAnswerHelper.Normalize(answer);
+            return _users.PasswordHasher.VerifyHashedPassword(user, hash, normalized) == PasswordVerificationResult.Success;
+        }
 
         var answersValid = IsAnswerValid(user.SecurityQuestion1AnswerHash, vm.Questions.ElementAtOrDefault(0)?.Answer)
                            && IsAnswerValid(user.SecurityQuestion2AnswerHash, vm.Questions.ElementAtOrDefault(1)?.Answer)
@@ -455,8 +472,6 @@ public class RegisterVm : IValidatableObject
         }
     }
 }
-
-public record SecurityQuestionOptionVm(string Key, string Label, bool AllowsCustomPrompt);
 
 public class ForgotPasswordVm
 {

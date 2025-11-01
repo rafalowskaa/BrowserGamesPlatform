@@ -1216,7 +1216,9 @@
 
     
     </data>
-
+	<data name="Dashboard_Success_Recovery" xml:space="preserve">
+    <value>Pytania zabezpieczające zostały zaktualizowane.</value>
+  </data>
 
 
 
@@ -1485,7 +1487,21 @@
     </data>
 
 
-
+	<data name="Dashboard_Security_RecoveryTitle" xml:space="preserve">
+    <value>Pytania odzyskiwania hasła</value>
+  </data>
+	<data name="Dashboard_Security_RecoveryDescription" xml:space="preserve">
+    <value>Ustaw lub zaktualizuj pytania zabezpieczające, aby łatwiej odzyskać dostęp do konta.</value>
+  </data>
+	<data name="Dashboard_Security_RecoveryStatus_Configured" xml:space="preserve">
+    <value>Masz już zapisane pytania zabezpieczające. Możesz je w każdej chwili zmienić.</value>
+  </data>
+	<data name="Dashboard_Security_RecoveryStatus_Missing" xml:space="preserve">
+    <value>Nie masz jeszcze ustawionych pytań zabezpieczających. Dodaj je, aby móc odzyskać konto.</value>
+  </data>
+	<data name="Dashboard_Security_RecoverySave" xml:space="preserve">
+    <value>Zapisz pytania</value>
+  </data>
 
 	<data name="Dashboard_Stats_UploadedGames" xml:space="preserve">
         
@@ -3035,8 +3051,17 @@
 	<data name="Auth_SecurityQuestion_BirthCity" xml:space="preserve">
     <value>W jakim mieście się urodziłeś/aś?</value>
   </data>
+	<data name="Auth_SecurityQuestion_FavoriteGame" xml:space="preserve">
+    <value>Jaką grę lubisz najbardziej?</value>
+  </data>
+	<data name="Auth_SecurityQuestion_FirstConsole" xml:space="preserve">
+    <value>Jaki był Twój pierwszy komputer lub konsola?</value>
+  </data>
 	<data name="Auth_SecurityQuestion_Custom" xml:space="preserve">
     <value>Utwórz własne pytanie</value>
+  </data>
+	<data name="Auth_SecurityQuestions_CaseInsensitiveHint" xml:space="preserve">
+    <value>Odpowiedzi nie rozróżniają wielkości liter – wpisz je tak, jak jest Ci wygodnie.</value>
   </data>
 	<data name="Auth_Login_ForgotPassword" xml:space="preserve">
     <value>Nie pamiętasz hasła?</value>

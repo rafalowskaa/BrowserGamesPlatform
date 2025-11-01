@@ -20,6 +20,7 @@ using SixLabors.ImageSharp.Processing;
 using Bgp.Web.Helpers;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -398,6 +399,58 @@ public class DashboardController : Controller
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogInformation("User {UserId} changed password.", user.Id);
         TempData["DashboardSuccess"] = "PasswordUpdated";
+        return RedirectToAction(nameof(Index), new { tab = "profile", panel = "security" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateRecoveryQuestions(UpdateRecoveryQuestionsInputModel input)
+    {
+        var user = await _users.GetUserAsync(User);
+        if (user is null)
+        {
+            return Challenge();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "security");
+        }
+
+        user.SecurityQuestion1Key = input.SecurityQuestion1;
+        user.SecurityQuestion1CustomPrompt = string.IsNullOrWhiteSpace(input.SecurityQuestion1Custom)
+            ? null
+            : input.SecurityQuestion1Custom.Trim();
+        user.SecurityQuestion2Key = input.SecurityQuestion2;
+        user.SecurityQuestion2CustomPrompt = string.IsNullOrWhiteSpace(input.SecurityQuestion2Custom)
+            ? null
+            : input.SecurityQuestion2Custom.Trim();
+        user.SecurityQuestion3Key = input.SecurityQuestion3;
+        user.SecurityQuestion3CustomPrompt = string.IsNullOrWhiteSpace(input.SecurityQuestion3Custom)
+            ? null
+            : input.SecurityQuestion3Custom.Trim();
+
+        var answer1 = SecurityAnswerHelper.Normalize(input.SecurityAnswer1);
+        var answer2 = SecurityAnswerHelper.Normalize(input.SecurityAnswer2);
+        var answer3 = SecurityAnswerHelper.Normalize(input.SecurityAnswer3);
+
+        user.SecurityQuestion1AnswerHash = _users.PasswordHasher.HashPassword(user, answer1);
+        user.SecurityQuestion2AnswerHash = _users.PasswordHasher.HashPassword(user, answer2);
+        user.SecurityQuestion3AnswerHash = _users.PasswordHasher.HashPassword(user, answer3);
+
+        var updateResult = await _users.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            foreach (var error in updateResult.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "security");
+        }
+
+        _logger.LogInformation("User {UserId} updated password recovery questions.", user.Id);
+        TempData["DashboardSuccess"] = "RecoveryUpdated";
         return RedirectToAction(nameof(Index), new { tab = "profile", panel = "security" });
     }
 
@@ -817,6 +870,25 @@ public class DashboardController : Controller
             VisibilityOptions = visibilityOptions
         };
 
+        var recoveryOptions = SecurityQuestionCatalog.Options
+            .Select(option => new SecurityQuestionOptionVm(option.Key, _localizer[option.ResourceKey].Value, option.AllowsCustomPrompt))
+            .ToList();
+
+        var recoveryForm = new RecoverySettingsFormViewModel
+        {
+            SecurityQuestion1 = user.SecurityQuestion1Key ?? string.Empty,
+            SecurityQuestion1Custom = user.SecurityQuestion1CustomPrompt,
+            SecurityQuestion2 = user.SecurityQuestion2Key ?? string.Empty,
+            SecurityQuestion2Custom = user.SecurityQuestion2CustomPrompt,
+            SecurityQuestion3 = user.SecurityQuestion3Key ?? string.Empty,
+            SecurityQuestion3Custom = user.SecurityQuestion3CustomPrompt,
+            SecurityQuestionOptions = recoveryOptions
+        };
+
+        var hasRecoveryConfigured = !string.IsNullOrWhiteSpace(user.SecurityQuestion1AnswerHash)
+                                     && !string.IsNullOrWhiteSpace(user.SecurityQuestion2AnswerHash)
+                                     && !string.IsNullOrWhiteSpace(user.SecurityQuestion3AnswerHash);
+
         return new DashboardViewModel
         {
             Games = games,
@@ -825,7 +897,9 @@ public class DashboardController : Controller
             Profile = profile,
             Security = new SecuritySectionViewModel
             {
-                Email = user.Email ?? string.Empty
+                Email = user.Email ?? string.Empty,
+                Recovery = recoveryForm,
+                HasRecoveryConfigured = hasRecoveryConfigured
             },
             Stats = stats,
             NewGame = BuildEmptyCreateGameForm(),
@@ -869,6 +943,51 @@ public class DashboardController : Controller
             !string.IsNullOrWhiteSpace(emailState.AttemptedValue))
         {
             vm.Security.Email = emailState.AttemptedValue!;
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion1), out var sq1State))
+        {
+            vm.Security.Recovery.SecurityQuestion1 = sq1State.AttemptedValue ?? string.Empty;
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion2), out var sq2State))
+        {
+            vm.Security.Recovery.SecurityQuestion2 = sq2State.AttemptedValue ?? string.Empty;
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion3), out var sq3State))
+        {
+            vm.Security.Recovery.SecurityQuestion3 = sq3State.AttemptedValue ?? string.Empty;
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion1Custom), out var sq1CustomState))
+        {
+            vm.Security.Recovery.SecurityQuestion1Custom = sq1CustomState.AttemptedValue;
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion2Custom), out var sq2CustomState))
+        {
+            vm.Security.Recovery.SecurityQuestion2Custom = sq2CustomState.AttemptedValue;
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion3Custom), out var sq3CustomState))
+        {
+            vm.Security.Recovery.SecurityQuestion3Custom = sq3CustomState.AttemptedValue;
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateRecoveryQuestionsInputModel.SecurityAnswer1), out var sa1State))
+        {
+            vm.Security.Recovery.SecurityAnswer1 = sa1State.AttemptedValue ?? string.Empty;
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateRecoveryQuestionsInputModel.SecurityAnswer2), out var sa2State))
+        {
+            vm.Security.Recovery.SecurityAnswer2 = sa2State.AttemptedValue ?? string.Empty;
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateRecoveryQuestionsInputModel.SecurityAnswer3), out var sa3State))
+        {
+            vm.Security.Recovery.SecurityAnswer3 = sa3State.AttemptedValue ?? string.Empty;
         }
 
         if (ModelState.TryGetValue(nameof(CreateGameFormViewModel.Title), out var titleState) &&

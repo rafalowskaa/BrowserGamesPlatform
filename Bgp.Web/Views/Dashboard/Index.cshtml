@@ -2,6 +2,7 @@
 @using System.Linq
 @using System.Text.Json
 @using Bgp.Domain.Enums
+@using Bgp.Web.Models
 @model DashboardViewModel
 @{
     ViewData["Title"] = L["Dashboard_Title"].Value;
@@ -12,6 +13,7 @@
         "ProfileUpdated" => L["Dashboard_Success_Profile"].Value,
         "EmailUpdated" => L["Dashboard_Success_Email"].Value,
         "PasswordUpdated" => L["Dashboard_Success_Password"].Value,
+        "RecoveryUpdated" => L["Dashboard_Success_Recovery"].Value,
         "GameCreated" => L["Dashboard_Success_Game"].Value,
         "DisplayNameRequested" => L["Dashboard_Success_DisplayNameRequested"].Value,
         _ => null
@@ -307,6 +309,16 @@
                     </div>
 
                     <div class="profile-actions__panel" data-action="security">
+                        @{
+                            bool RecoveryHasError(string key) => ViewData.ModelState.TryGetValue(key, out var state) && state.Errors.Count > 0;
+                            var recoveryOptions = Model.Security.Recovery.SecurityQuestionOptions;
+                            var recoveryQuestion1Option = recoveryOptions.FirstOrDefault(option => option.Key == Model.Security.Recovery.SecurityQuestion1);
+                            var recoveryQuestion2Option = recoveryOptions.FirstOrDefault(option => option.Key == Model.Security.Recovery.SecurityQuestion2);
+                            var recoveryQuestion3Option = recoveryOptions.FirstOrDefault(option => option.Key == Model.Security.Recovery.SecurityQuestion3);
+                            var showRecoveryQuestion1Custom = (recoveryQuestion1Option?.AllowsCustomPrompt ?? false) || RecoveryHasError(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion1Custom));
+                            var showRecoveryQuestion2Custom = (recoveryQuestion2Option?.AllowsCustomPrompt ?? false) || RecoveryHasError(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion2Custom));
+                            var showRecoveryQuestion3Custom = (recoveryQuestion3Option?.AllowsCustomPrompt ?? false) || RecoveryHasError(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion3Custom));
+                        }
                         <div class="profile-security-grid">
                             <div class="profile-security-grid__item">
                                 <h3>@L["Dashboard_Profile_EmailTitle"].Value</h3>
@@ -346,6 +358,170 @@
                                     @Html.ValidationMessage("ConfirmPassword", null, new { @class = "val" })
 
                                     <button class="btn-primary btn-compact" type="submit">@L["Dashboard_Security_ChangePassword"].Value</button>
+                                </form>
+                            </div>
+                            <div class="profile-security-grid__item">
+                                <h3>@L["Dashboard_Security_RecoveryTitle"].Value</h3>
+                                <p>@L["Dashboard_Security_RecoveryDescription"].Value</p>
+                                <form asp-action="UpdateRecoveryQuestions" method="post" class="profile-form">
+                                    @Html.AntiForgeryToken()
+                                    @Html.ValidationSummary(true, null, new { @class = "val-summary" })
+
+                                    @if (Model.Security.HasRecoveryConfigured)
+                                    {
+                                        <div class="form-hint form-hint--muted">@L["Dashboard_Security_RecoveryStatus_Configured"].Value</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="form-hint form-hint--warning">@L["Dashboard_Security_RecoveryStatus_Missing"].Value</div>
+                                    }
+
+                                    <div class="security-questions" data-security-questions data-sequential="false">
+                                        <div class="form-hint form-hint--muted">@L["Auth_SecurityQuestions_CaseInsensitiveHint"].Value</div>
+
+                                        <div class="security-question" data-question-index="1">
+                                            <label for="ProfileSecurityQuestion1">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 1)</label>
+                                            <select id="ProfileSecurityQuestion1" name="SecurityQuestion1" data-question-select>
+                                                <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
+                                                @foreach (var option in Model.Security.Recovery.SecurityQuestionOptions)
+                                                {
+                                                    var selected = option.Key == Model.Security.Recovery.SecurityQuestion1 ? "selected" : null;
+                                                    <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" @selected>@option.Label</option>
+                                                }
+                                            </select>
+                                            @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion1), null, new { @class = "val" })
+                                            <div class="security-question__custom-group" data-custom-container @((showRecoveryQuestion1Custom ? string.Empty : " hidden"))>
+                                                <label class="security-question__custom" for="ProfileSecurityQuestion1Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                                                <input id="ProfileSecurityQuestion1Custom" name="SecurityQuestion1Custom" value="@Model.Security.Recovery.SecurityQuestion1Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
+                                                @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion1Custom), null, new { @class = "val" })
+                                            </div>
+                                            <label class="security-question__answer" for="ProfileSecurityAnswer1">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
+                                            <div class="password-field password-field--answer">
+                                                <div class="password-field__input">
+                                                    <input id="ProfileSecurityAnswer1" name="SecurityAnswer1" type="text" autocomplete="off" value="@Model.Security.Recovery.SecurityAnswer1" data-answer-input />
+                                                    <button type="button"
+                                                            class="password-toggle"
+                                                            data-password-toggle="ProfileSecurityAnswer1"
+                                                            data-password-show="@L["Auth_Password_Show"].Value"
+                                                            data-password-hide="@L["Auth_Password_Hide"].Value"
+                                                            data-password-default="show"
+                                                            aria-label="@L["Auth_Password_Hide"].Value"
+                                                            tabindex="-1">
+                                                        <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                            <g class="password-toggle__icon-eye">
+                                                                <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
+                                                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            </g>
+                                                            <g class="password-toggle__icon-eye-off">
+                                                                <path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.676 3.948 5.35 6.75 9.806 6.75 1.73 0 3.37-.399 4.817-1.112" />
+                                                                <path d="M6.228 6.228A10.45 10.45 0 0111.74 5.25c4.456 0 8.13 2.802 9.806 6.75-.652 1.536-1.618 2.879-2.804 3.951" />
+                                                                <path d="M15 12a3 3 0 00-3-3" />
+                                                                <path d="M3 3l18 18" />
+                                                            </g>
+                                                        </svg>
+                                                        <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityAnswer1), null, new { @class = "val" })
+                                        </div>
+
+                                        <div class="security-question" data-question-index="2">
+                                            <label for="ProfileSecurityQuestion2">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 2)</label>
+                                            <select id="ProfileSecurityQuestion2" name="SecurityQuestion2" data-question-select>
+                                                <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
+                                                @foreach (var option in Model.Security.Recovery.SecurityQuestionOptions)
+                                                {
+                                                    var selected = option.Key == Model.Security.Recovery.SecurityQuestion2 ? "selected" : null;
+                                                    <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" @selected>@option.Label</option>
+                                                }
+                                            </select>
+                                            @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion2), null, new { @class = "val" })
+                                            <div class="security-question__custom-group" data-custom-container @((showRecoveryQuestion2Custom ? string.Empty : " hidden"))>
+                                                <label class="security-question__custom" for="ProfileSecurityQuestion2Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                                                <input id="ProfileSecurityQuestion2Custom" name="SecurityQuestion2Custom" value="@Model.Security.Recovery.SecurityQuestion2Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
+                                                @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion2Custom), null, new { @class = "val" })
+                                            </div>
+                                            <label class="security-question__answer" for="ProfileSecurityAnswer2">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
+                                            <div class="password-field password-field--answer">
+                                                <div class="password-field__input">
+                                                    <input id="ProfileSecurityAnswer2" name="SecurityAnswer2" type="text" autocomplete="off" value="@Model.Security.Recovery.SecurityAnswer2" data-answer-input />
+                                                    <button type="button"
+                                                            class="password-toggle"
+                                                            data-password-toggle="ProfileSecurityAnswer2"
+                                                            data-password-show="@L["Auth_Password_Show"].Value"
+                                                            data-password-hide="@L["Auth_Password_Hide"].Value"
+                                                            data-password-default="show"
+                                                            aria-label="@L["Auth_Password_Hide"].Value"
+                                                            tabindex="-1">
+                                                        <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                            <g class="password-toggle__icon-eye">
+                                                                <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
+                                                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            </g>
+                                                            <g class="password-toggle__icon-eye-off">
+                                                                <path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.676 3.948 5.35 6.75 9.806 6.75 1.73 0 3.37-.399 4.817-1.112" />
+                                                                <path d="M6.228 6.228A10.45 10.45 0 0111.74 5.25c4.456 0 8.13 2.802 9.806 6.75-.652 1.536-1.618 2.879-2.804 3.951" />
+                                                                <path d="M15 12a3 3 0 00-3-3" />
+                                                                <path d="M3 3l18 18" />
+                                                            </g>
+                                                        </svg>
+                                                        <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityAnswer2), null, new { @class = "val" })
+                                        </div>
+
+                                        <div class="security-question" data-question-index="3">
+                                            <label for="ProfileSecurityQuestion3">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 3)</label>
+                                            <select id="ProfileSecurityQuestion3" name="SecurityQuestion3" data-question-select>
+                                                <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
+                                                @foreach (var option in Model.Security.Recovery.SecurityQuestionOptions)
+                                                {
+                                                    var selected = option.Key == Model.Security.Recovery.SecurityQuestion3 ? "selected" : null;
+                                                    <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" @selected>@option.Label</option>
+                                                }
+                                            </select>
+                                            @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion3), null, new { @class = "val" })
+                                            <div class="security-question__custom-group" data-custom-container @((showRecoveryQuestion3Custom ? string.Empty : " hidden"))>
+                                                <label class="security-question__custom" for="ProfileSecurityQuestion3Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                                                <input id="ProfileSecurityQuestion3Custom" name="SecurityQuestion3Custom" value="@Model.Security.Recovery.SecurityQuestion3Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
+                                                @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion3Custom), null, new { @class = "val" })
+                                            </div>
+                                            <label class="security-question__answer" for="ProfileSecurityAnswer3">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
+                                            <div class="password-field password-field--answer">
+                                                <div class="password-field__input">
+                                                    <input id="ProfileSecurityAnswer3" name="SecurityAnswer3" type="text" autocomplete="off" value="@Model.Security.Recovery.SecurityAnswer3" data-answer-input />
+                                                    <button type="button"
+                                                            class="password-toggle"
+                                                            data-password-toggle="ProfileSecurityAnswer3"
+                                                            data-password-show="@L["Auth_Password_Show"].Value"
+                                                            data-password-hide="@L["Auth_Password_Hide"].Value"
+                                                            data-password-default="show"
+                                                            aria-label="@L["Auth_Password_Hide"].Value"
+                                                            tabindex="-1">
+                                                        <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                            <g class="password-toggle__icon-eye">
+                                                                <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
+                                                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            </g>
+                                                            <g class="password-toggle__icon-eye-off">
+                                                                <path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.676 3.948 5.35 6.75 9.806 6.75 1.73 0 3.37-.399 4.817-1.112" />
+                                                                <path d="M6.228 6.228A10.45 10.45 0 0111.74 5.25c4.456 0 8.13 2.802 9.806 6.75-.652 1.536-1.618 2.879-2.804 3.951" />
+                                                                <path d="M15 12a3 3 0 00-3-3" />
+                                                                <path d="M3 3l18 18" />
+                                                            </g>
+                                                        </svg>
+                                                        <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityAnswer3), null, new { @class = "val" })
+                                        </div>
+                                    </div>
+
+                                    <button class="btn-primary btn-compact" type="submit">@L["Dashboard_Security_RecoverySave"].Value</button>
                                 </form>
                             </div>
                         </div>
