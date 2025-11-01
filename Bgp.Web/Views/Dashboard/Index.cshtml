@@ -385,8 +385,9 @@
                                                 <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                                                 @foreach (var option in Model.Security.Recovery.SecurityQuestionOptions)
                                                 {
-                                                    var selected = option.Key == Model.Security.Recovery.SecurityQuestion1 ? "selected" : null;
-                                                    <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" @selected>@option.Label</option>
+                                                    <option value="@option.Key"
+                                                            data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")"
+                                                            selected="@(option.Key == Model.Security.Recovery.SecurityQuestion1 ? "selected" : null)">@option.Label</option>
                                                 }
                                             </select>
                                             @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion1), null, new { @class = "val" })
@@ -432,8 +433,9 @@
                                                 <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                                                 @foreach (var option in Model.Security.Recovery.SecurityQuestionOptions)
                                                 {
-                                                    var selected = option.Key == Model.Security.Recovery.SecurityQuestion2 ? "selected" : null;
-                                                    <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" @selected>@option.Label</option>
+                                                    <option value="@option.Key"
+                                                            data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")"
+                                                            selected="@(option.Key == Model.Security.Recovery.SecurityQuestion2 ? "selected" : null)">@option.Label</option>
                                                 }
                                             </select>
                                             @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion2), null, new { @class = "val" })
@@ -479,8 +481,9 @@
                                                 <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                                                 @foreach (var option in Model.Security.Recovery.SecurityQuestionOptions)
                                                 {
-                                                    var selected = option.Key == Model.Security.Recovery.SecurityQuestion3 ? "selected" : null;
-                                                    <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" @selected>@option.Label</option>
+                                                    <option value="@option.Key"
+                                                            data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")"
+                                                            selected="@(option.Key == Model.Security.Recovery.SecurityQuestion3 ? "selected" : null)">@option.Label</option>
                                                 }
                                             </select>
                                             @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion3), null, new { @class = "val" })
