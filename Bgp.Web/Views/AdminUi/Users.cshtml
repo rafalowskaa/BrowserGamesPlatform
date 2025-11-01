@@ -134,7 +134,17 @@
                         var canBlockUser = !isCurrent
                             && user.AccessLevel != AdminUserAccessLevel.Admin
                             && (canModerateAsAdmin || canModerateAsModerator);
-                        var canDeleteUser = !isCurrent && (canModerateAsAdmin || canModerateAsModerator);
+                        var canRequestDelete = canModerateAsAdmin || canModerateAsModerator;
+                        var canDeleteUser = canRequestDelete && !isCurrent && user.AccessLevel != AdminUserAccessLevel.Admin;
+                        var deleteDisabledTooltip = string.Empty;
+                        if (canRequestDelete && !canDeleteUser)
+                        {
+                            deleteDisabledTooltip = isCurrent
+                            ? L["Admin_Users_CannotDeleteSelf"].Value
+                            : user.AccessLevel == AdminUserAccessLevel.Admin
+                            ? L["Admin_Users_CannotDeleteAdmin"].Value
+                            : string.Empty;
+                        }
                         var hasAnyActions = canEditUser || canBlockUser || canDeleteUser;
                         var allowedAccessAttribute = string.Join(',', allowedAccessLevels.Select(level => level.ToString()));
                         <tr>
@@ -240,6 +250,12 @@
                                                 @Html.AntiForgeryToken()
                                                 <button class="btn-danger btn-small" type="submit">@L["Admin_Users_Delete"].Value</button>
                                             </form>
+                                        }
+                                        else if (canRequestDelete && !string.IsNullOrEmpty(deleteDisabledTooltip))
+                                        {
+                                            <button class="btn-danger btn-small" type="button" disabled aria-disabled="true" title="@deleteDisabledTooltip">
+                                                @L["Admin_Users_Delete"].Value
+                                            </button>
                                         }
                                     }
                                     else

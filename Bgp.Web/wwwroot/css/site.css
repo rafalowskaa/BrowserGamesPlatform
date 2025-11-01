@@ -2944,13 +2944,15 @@ body {
             color: #fff;
         }
 
-    .admin-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        flex-wrap: wrap;
-        gap: 16px;
-    }
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+    position: relative;
+    z-index: 0;
+}
 
 .admin-subpanel {
     margin-bottom: 24px;
@@ -3072,6 +3074,11 @@ body {
             z-index: 1;
         }
 
+            .admin-actions button[disabled] {
+                opacity: 0.55;
+                cursor: not-allowed;
+            }
+
         .admin-actions.vertical {
             flex-direction: row;
             align-items: center;
@@ -3186,13 +3193,15 @@ body {
         gap: 10px;
     }
 
-    .table-wrapper {
-        border-radius: var(--radius);
-        border: 1px solid rgba(148, 163, 184, 0.12);
-        background: rgba(15, 23, 42, 0.7);
-        overflow: hidden;
-        box-shadow: var(--shadow);
-    }
+.table-wrapper {
+    border-radius: var(--radius);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    background: rgba(15, 23, 42, 0.7);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    position: relative;
+    z-index: 1;
+}
 
     .admin-table {
         width: 100%;

@@ -2589,6 +2589,10 @@
         <value>You cannot delete an administrator.</value>
     </data>
 
+	<data name="Admin_Users_CannotDeleteSelf" xml:space="preserve">
+        <value>You cannot delete your own account.</value>
+    </data>
+
 	<data name="Admin_Users_CannotModifyAdmin" xml:space="preserve">
         <value>You cannot modify administrator accounts.</value>
     </data>

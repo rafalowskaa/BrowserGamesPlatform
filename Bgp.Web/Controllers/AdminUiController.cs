@@ -538,24 +538,27 @@ public class AdminUiController : Controller
         var targetIsAdmin = await _users.IsInRoleAsync(user, "Admin");
         var targetIsModerator = await _users.IsInRoleAsync(user, "Moderator");
 
-        if (targetIsAdmin && !isCurrentAdmin)
+        if (string.Equals(user.Id, currentUserId, StringComparison.Ordinal))
+        {
+            TempData["AdminUsersError"] = "Admin_Users_CannotDeleteSelf";
+            return RedirectToUsers(search);
+        }
+
+        if (targetIsAdmin)
         {
             TempData["AdminUsersError"] = "Admin_Users_CannotDeleteAdmin";
             return RedirectToUsers(search);
         }
 
-        if (!isCurrentAdmin)
+        if (!isCurrentAdmin && !isCurrentModerator)
         {
-            if (!isCurrentModerator)
-            {
-                return Forbid();
-            }
+            return Forbid();
+        }
 
-            if (targetIsModerator && !string.Equals(user.Id, currentUserId, StringComparison.Ordinal))
-            {
-                TempData["AdminUsersError"] = "Admin_Users_CannotDeleteModerator";
-                return RedirectToUsers(search);
-            }
+        if (!isCurrentAdmin && targetIsModerator && !string.Equals(user.Id, currentUserId, StringComparison.Ordinal))
+        {
+            TempData["AdminUsersError"] = "Admin_Users_CannotDeleteModerator";
+            return RedirectToUsers(search);
         }
 
         var result = await _users.DeleteAsync(user);

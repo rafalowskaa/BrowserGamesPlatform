@@ -163,6 +163,13 @@
                     }
                 });
             }
+
+            if (submitButton) {
+                submitButton.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    submitAdminSearch();
+                });
+            }
         }
 
         const blockForm = document.getElementById('userBlockForm');
