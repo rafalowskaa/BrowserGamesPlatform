@@ -1,6 +1,54 @@
 ﻿@model Bgp.Web.Controllers.RegisterVm
+@using System.Linq
 @{
     ViewData["Title"] = L["Auth_Register_Title"].Value;
+
+    bool HasError(string propertyName) => ViewData.ModelState.TryGetValue(propertyName, out var entry) && entry.Errors.Count > 0;
+    var hasCredentialErrors = HasError(nameof(Model.Login)) || HasError(nameof(Model.Password)) || HasError(nameof(Model.ConfirmPassword));
+
+    var showRecoveryStep = !hasCredentialErrors && (
+        HasError(nameof(Model.Email)) ||
+        HasError(nameof(Model.BirthDate)) ||
+        HasError(nameof(Model.SecurityQuestion1)) ||
+        HasError(nameof(Model.SecurityQuestion1Custom)) ||
+        HasError(nameof(Model.SecurityAnswer1)) ||
+        HasError(nameof(Model.SecurityQuestion2)) ||
+        HasError(nameof(Model.SecurityQuestion2Custom)) ||
+        HasError(nameof(Model.SecurityAnswer2)) ||
+        HasError(nameof(Model.SecurityQuestion3)) ||
+        HasError(nameof(Model.SecurityQuestion3Custom)) ||
+        HasError(nameof(Model.SecurityAnswer3)) ||
+        !string.IsNullOrWhiteSpace(Model.Email) ||
+        Model.BirthDate.HasValue ||
+        !string.IsNullOrWhiteSpace(Model.SecurityQuestion1) ||
+        !string.IsNullOrWhiteSpace(Model.SecurityAnswer1) ||
+        !string.IsNullOrWhiteSpace(Model.SecurityQuestion2) ||
+        !string.IsNullOrWhiteSpace(Model.SecurityAnswer2) ||
+        !string.IsNullOrWhiteSpace(Model.SecurityQuestion3) ||
+        !string.IsNullOrWhiteSpace(Model.SecurityAnswer3));
+
+    bool showQuestion2 = !string.IsNullOrWhiteSpace(Model.SecurityQuestion2) ||
+                         !string.IsNullOrWhiteSpace(Model.SecurityAnswer2) ||
+                         HasError(nameof(Model.SecurityQuestion2)) ||
+                         HasError(nameof(Model.SecurityQuestion2Custom)) ||
+                         HasError(nameof(Model.SecurityAnswer2));
+
+    bool showQuestion3 = !string.IsNullOrWhiteSpace(Model.SecurityQuestion3) ||
+                         !string.IsNullOrWhiteSpace(Model.SecurityAnswer3) ||
+                         HasError(nameof(Model.SecurityQuestion3)) ||
+                         HasError(nameof(Model.SecurityQuestion3Custom)) ||
+                         HasError(nameof(Model.SecurityAnswer3));
+
+    bool question2HasError = HasError(nameof(Model.SecurityQuestion2)) || HasError(nameof(Model.SecurityQuestion2Custom)) || HasError(nameof(Model.SecurityAnswer2));
+    bool question3HasError = HasError(nameof(Model.SecurityQuestion3)) || HasError(nameof(Model.SecurityQuestion3Custom)) || HasError(nameof(Model.SecurityAnswer3));
+
+    var question1Option = Model.SecurityQuestionOptions.FirstOrDefault(option => option.Key == Model.SecurityQuestion1);
+    var question2Option = Model.SecurityQuestionOptions.FirstOrDefault(option => option.Key == Model.SecurityQuestion2);
+    var question3Option = Model.SecurityQuestionOptions.FirstOrDefault(option => option.Key == Model.SecurityQuestion3);
+
+    bool showQuestion1Custom = (question1Option?.AllowsCustomPrompt ?? false) || HasError(nameof(Model.SecurityQuestion1Custom));
+    bool showQuestion2Custom = (question2Option?.AllowsCustomPrompt ?? false) || HasError(nameof(Model.SecurityQuestion2Custom));
+    bool showQuestion3Custom = (question3Option?.AllowsCustomPrompt ?? false) || HasError(nameof(Model.SecurityQuestion3Custom));
 }
 <section class="auth auth--register">
     <div class="auth-hero">
@@ -23,144 +71,316 @@
             <p>@L["Auth_Register_FormSubtitle"].Value</p>
         </div>
         <div asp-validation-summary="ModelOnly" class="val-summary"></div>
-        <form asp-action="Register" method="post" class="form-vertical">
+        <form asp-action="Register" method="post" class="form-vertical" id="RegisterForm" data-register-form>
             <input type="hidden" asp-for="ReturnUrl" />
-            <label for="RegisterLogin">@L["Auth_Register_Login"].Value</label>
-            <input asp-for="Login" id="RegisterLogin" autocomplete="username" />
-            <span asp-validation-for="Login" class="val"></span>
+            <div class="form-step" data-step="credentials" @((showRecoveryStep ? " hidden" : string.Empty))>
+                <label for="RegisterLogin">@L["Auth_Register_Login"].Value</label>
+                <input asp-for="Login" id="RegisterLogin" autocomplete="username" />
+                <span asp-validation-for="Login" class="val"></span>
 
-            <label for="RegisterEmail">@L["Auth_Register_Email"].Value</label>
-            <input asp-for="Email" id="RegisterEmail" type="email" autocomplete="email" />
-            <span asp-validation-for="Email" class="val"></span>
-
-            <label for="RegisterBirthDate">@L["Auth_Register_BirthDate"].Value</label>
-            <input asp-for="BirthDate" id="RegisterBirthDate" type="date" autocomplete="bday" />
-            <span class="form-hint">@L["Auth_Register_BirthDate_Hint"].Value</span>
-            <span asp-validation-for="BirthDate" class="val"></span>
-
-            <div class="password-field">
-                <label for="RegisterPassword">@L["Auth_Register_Password"].Value</label>
-                <div class="password-field__input">
-                    <input asp-for="Password" id="RegisterPassword" type="password" autocomplete="new-password" aria-describedby="RegisterPasswordToggleHint" />
-                    <button type="button"
-                            class="password-toggle"
-                            data-password-toggle="RegisterPassword"
-                            data-password-show="@L["Auth_Password_Show"].Value"
-                            data-password-hide="@L["Auth_Password_Hide"].Value"
-                            data-password-shortcut="Alt+P"
-                            aria-label="@L["Auth_Password_Show"].Value"
-                            tabindex="-1">
-                        <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <g class="password-toggle__icon-eye">
-                                <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
-                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </g>
-                            <g class="password-toggle__icon-eye-off">
-                                <path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.676 3.948 5.35 6.75 9.806 6.75 1.73 0 3.37-.399 4.817-1.112" />
-                                <path d="M6.228 6.228A10.45 10.45 0 0111.74 5.25c4.456 0 8.13 2.802 9.806 6.75-.652 1.536-1.618 2.879-2.804 3.951" />
-                                <path d="M15 12a3 3 0 00-3-3" />
-                                <path d="M3 3l18 18" />
-                            </g>
-                        </svg>
-                        <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
-                    </button>
-                </div>
-                
-            </div>
-            <span asp-validation-for="Password" class="val"></span>
-
-            
-            <div class="password-field">
-                <label for="RegisterConfirm">@L["Auth_Register_ConfirmPassword"].Value</label>
-                <div class="password-field__input">
-                    <input asp-for="ConfirmPassword" id="RegisterConfirm" type="password" autocomplete="new-password" aria-describedby="RegisterConfirmToggleHint" />
-                    <button type="button"
-                            class="password-toggle"
-                            data-password-toggle="RegisterConfirm"
-                            data-password-show="@L["Auth_Password_Show"].Value"
-                            data-password-hide="@L["Auth_Password_Hide"].Value"
-                            data-password-shortcut="Alt+P"
-                            aria-label="@L["Auth_Password_Show"].Value"
-                            tabindex="-1">
-                        <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <g class="password-toggle__icon-eye">
-                                <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
-                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </g>
-                            <g class="password-toggle__icon-eye-off">
-                                <path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.676 3.948 5.35 6.75 9.806 6.75 1.73 0 3.37-.399 4.817-1.112" />
-                                <path d="M6.228 6.228A10.45 10.45 0 0111.74 5.25c4.456 0 8.13 2.802 9.806 6.75-.652 1.536-1.618 2.879-2.804 3.951" />
-                                <path d="M15 12a3 3 0 00-3-3" />
-                                <path d="M3 3l18 18" />
-                            </g>
-                        </svg>
-                        <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
-                    </button>
-                </div>
-                
-            </div>
-            <span asp-validation-for="ConfirmPassword" class="val"></span>
-
-            <div class="security-questions">
-                <h3>@L["Auth_Register_SecurityQuestions_Title"].Value</h3>
-                <p class="form-hint">@L["Auth_Register_SecurityQuestions_Description"].Value</p>
-
-                <div class="security-question">
-                    <label for="SecurityQuestion1">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 1)</label>
-                    <select asp-for="SecurityQuestion1" id="SecurityQuestion1">
-                        <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
-                        @foreach (var option in Model.SecurityQuestionOptions)
-                        {
-                            <option value="@option.Key">@option.Label</option>
-                        }
-                    </select>
-                    <span asp-validation-for="SecurityQuestion1" class="val"></span>
-                    <label class="security-question__custom" for="SecurityQuestion1Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
-                    <input asp-for="SecurityQuestion1Custom" id="SecurityQuestion1Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
-                    <span asp-validation-for="SecurityQuestion1Custom" class="val"></span>
-                    <label class="security-question__answer" for="SecurityAnswer1">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
-                    <input asp-for="SecurityAnswer1" id="SecurityAnswer1" type="password" autocomplete="off" />
-                    <span asp-validation-for="SecurityAnswer1" class="val"></span>
+                <div class="password-field">
+                    <label for="RegisterPassword">@L["Auth_Register_Password"].Value</label>
+                    <div class="password-field__input">
+                        <input asp-for="Password" id="RegisterPassword" type="password" autocomplete="new-password" aria-describedby="RegisterPasswordToggleHint" />
+                        <button type="button"
+                                class="password-toggle"
+                                data-password-toggle="RegisterPassword"
+                                data-password-show="@L["Auth_Password_Show"].Value"
+                                data-password-hide="@L["Auth_Password_Hide"].Value"
+                                data-password-shortcut="Alt+P"
+                                aria-label="@L["Auth_Password_Show"].Value"
+                                tabindex="-1">
+                            <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <g class="password-toggle__icon-eye">
+                                    <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
+                                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </g>
+                                <g class="password-toggle__icon-eye-off">
+                                    <path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.676 3.948 5.35 6.75 9.806 6.75 1.73 0 3.37-.399 4.817-1.112" />
+                                    <path d="M6.228 6.228A10.45 10.45 0 0111.74 5.25c4.456 0 8.13 2.802 9.806 6.75-.652 1.536-1.618 2.879-2.804 3.951" />
+                                    <path d="M15 12a3 3 0 00-3-3" />
+                                    <path d="M3 3l18 18" />
+                                </g>
+                            </svg>
+                            <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="security-question">
-                    <label for="SecurityQuestion2">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 2)</label>
-                    <select asp-for="SecurityQuestion2" id="SecurityQuestion2">
-                        <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
-                        @foreach (var option in Model.SecurityQuestionOptions)
-                        {
-                            <option value="@option.Key">@option.Label</option>
-                        }
-                    </select>
-                    <span asp-validation-for="SecurityQuestion2" class="val"></span>
-                    <label class="security-question__custom" for="SecurityQuestion2Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
-                    <input asp-for="SecurityQuestion2Custom" id="SecurityQuestion2Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
-                    <span asp-validation-for="SecurityQuestion2Custom" class="val"></span>
-                    <label class="security-question__answer" for="SecurityAnswer2">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
-                    <input asp-for="SecurityAnswer2" id="SecurityAnswer2" type="password" autocomplete="off" />
-                    <span asp-validation-for="SecurityAnswer2" class="val"></span>
+                <span asp-validation-for="Password" class="val"></span>
+
+                <div class="password-field">
+                    <label for="RegisterConfirm">@L["Auth_Register_ConfirmPassword"].Value</label>
+                    <div class="password-field__input">
+                        <input asp-for="ConfirmPassword" id="RegisterConfirm" type="password" autocomplete="new-password" aria-describedby="RegisterConfirmToggleHint" />
+                        <button type="button"
+                                class="password-toggle"
+                                data-password-toggle="RegisterConfirm"
+                                data-password-show="@L["Auth_Password_Show"].Value"
+                                data-password-hide="@L["Auth_Password_Hide"].Value"
+                                data-password-shortcut="Alt+P"
+                                aria-label="@L["Auth_Password_Show"].Value"
+                                tabindex="-1">
+                            <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <g class="password-toggle__icon-eye">
+                                    <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
+                                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </g>
+                                <g class="password-toggle__icon-eye-off">
+                                    <path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.676 3.948 5.35 6.75 9.806 6.75 1.73 0 3.37-.399 4.817-1.112" />
+                                    <path d="M6.228 6.228A10.45 10.45 0 0111.74 5.25c4.456 0 8.13 2.802 9.806 6.75-.652 1.536-1.618 2.879-2.804 3.951" />
+                                    <path d="M15 12a3 3 0 00-3-3" />
+                                    <path d="M3 3l18 18" />
+                                </g>
+                            </svg>
+                            <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="security-question">
-                    <label for="SecurityQuestion3">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 3)</label>
-                    <select asp-for="SecurityQuestion3" id="SecurityQuestion3">
-                        <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
-                        @foreach (var option in Model.SecurityQuestionOptions)
-                        {
-                            <option value="@option.Key">@option.Label</option>
-                        }
-                    </select>
-                    <span asp-validation-for="SecurityQuestion3" class="val"></span>
-                    <label class="security-question__custom" for="SecurityQuestion3Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
-                    <input asp-for="SecurityQuestion3Custom" id="SecurityQuestion3Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
-                    <span asp-validation-for="SecurityQuestion3Custom" class="val"></span>
-                    <label class="security-question__answer" for="SecurityAnswer3">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
-                    <input asp-for="SecurityAnswer3" id="SecurityAnswer3" type="password" autocomplete="off" />
-                    <span asp-validation-for="SecurityAnswer3" class="val"></span>
+                <span asp-validation-for="ConfirmPassword" class="val"></span>
+
+                <div class="form-step__actions">
+                    <button type="button" class="btn-primary" data-register-next>@L["Auth_Register_NextStep"].Value</button>
                 </div>
             </div>
+            <div class="form-step" data-step="recovery" @((showRecoveryStep ? string.Empty : " hidden"))>
+                <label for="RegisterEmail">@L["Auth_Register_Email"].Value</label>
+                <input asp-for="Email" id="RegisterEmail" type="email" autocomplete="email" />
+                <span asp-validation-for="Email" class="val"></span>
 
-            <button class="btn-primary" type="submit">@L["Auth_Register_Create"].Value</button>
+                <label for="RegisterBirthDate">@L["Auth_Register_BirthDate"].Value</label>
+                <input asp-for="BirthDate" id="RegisterBirthDate" type="date" autocomplete="bday" />
+                <span class="form-hint">@L["Auth_Register_BirthDate_Hint"].Value</span>
+                <span asp-validation-for="BirthDate" class="val"></span>
+
+                <div class="security-questions">
+                    <h3>@L["Auth_Register_SecurityQuestions_Title"].Value</h3>
+                    <p class="form-hint">@L["Auth_Register_SecurityQuestions_Description"].Value</p>
+
+                    <div class="security-question" data-question-index="1">
+                        <label for="SecurityQuestion1">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 1)</label>
+                        <select asp-for="SecurityQuestion1" id="SecurityQuestion1" data-question-select>
+                            <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
+                            @foreach (var option in Model.SecurityQuestionOptions)
+                            {
+                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
+                            }
+                        </select>
+                        <span asp-validation-for="SecurityQuestion1" class="val"></span>
+                        <div class="security-question__custom-group" data-custom-container @((showQuestion1Custom ? string.Empty : " hidden"))>
+                            <label class="security-question__custom" for="SecurityQuestion1Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                            <input asp-for="SecurityQuestion1Custom" id="SecurityQuestion1Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
+                            <span asp-validation-for="SecurityQuestion1Custom" class="val"></span>
+                        </div>
+                        <label class="security-question__answer" for="SecurityAnswer1">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
+                        <input asp-for="SecurityAnswer1" id="SecurityAnswer1" type="password" autocomplete="off" data-answer-input />
+                        <span asp-validation-for="SecurityAnswer1" class="val"></span>
+                    </div>
+
+                    <div class="security-question" data-question-index="2" data-has-error="@(question2HasError ? "true" : "false")" @((showQuestion2 ? string.Empty : " hidden"))>
+                        <label for="SecurityQuestion2">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 2)</label>
+                        <select asp-for="SecurityQuestion2" id="SecurityQuestion2" data-question-select>
+                            <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
+                            @foreach (var option in Model.SecurityQuestionOptions)
+                            {
+                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
+                            }
+                        </select>
+                        <span asp-validation-for="SecurityQuestion2" class="val"></span>
+                        <div class="security-question__custom-group" data-custom-container @((showQuestion2Custom ? string.Empty : " hidden"))>
+                            <label class="security-question__custom" for="SecurityQuestion2Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                            <input asp-for="SecurityQuestion2Custom" id="SecurityQuestion2Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
+                            <span asp-validation-for="SecurityQuestion2Custom" class="val"></span>
+                        </div>
+                        <label class="security-question__answer" for="SecurityAnswer2">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
+                        <input asp-for="SecurityAnswer2" id="SecurityAnswer2" type="password" autocomplete="off" data-answer-input />
+                        <span asp-validation-for="SecurityAnswer2" class="val"></span>
+                    </div>
+
+                    <div class="security-question" data-question-index="3" data-has-error="@(question3HasError ? "true" : "false")" @((showQuestion3 ? string.Empty : " hidden"))>
+                        <label for="SecurityQuestion3">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 3)</label>
+                        <select asp-for="SecurityQuestion3" id="SecurityQuestion3" data-question-select>
+                            <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
+                            @foreach (var option in Model.SecurityQuestionOptions)
+                            {
+                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
+                            }
+                        </select>
+                        <span asp-validation-for="SecurityQuestion3" class="val"></span>
+                        <div class="security-question__custom-group" data-custom-container @((showQuestion3Custom ? string.Empty : " hidden"))>
+                            <label class="security-question__custom" for="SecurityQuestion3Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                            <input asp-for="SecurityQuestion3Custom" id="SecurityQuestion3Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
+                            <span asp-validation-for="SecurityQuestion3Custom" class="val"></span>
+                        </div>
+                        <label class="security-question__answer" for="SecurityAnswer3">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
+                        <input asp-for="SecurityAnswer3" id="SecurityAnswer3" type="password" autocomplete="off" data-answer-input />
+                        <span asp-validation-for="SecurityAnswer3" class="val"></span>
+                    </div>
+                </div>
+
+                <div class="form-step__actions">
+                    <button type="button" class="btn-outline" data-register-back>@L["Auth_Register_PreviousStep"].Value</button>
+                    <button class="btn-primary" type="submit">@L["Auth_Register_Create"].Value</button>
+                </div>
+            </div>
+
+
         </form>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        (function () {
+            const form = document.querySelector('[data-register-form]');
+            if (!form) {
+                return;
+            }
+
+            const steps = {
+                credentials: form.querySelector('[data-step="credentials"]'),
+                recovery: form.querySelector('[data-step="recovery"]')
+            };
+
+            const switchToStep = (stepKey) => {
+                const entries = Object.entries(steps);
+                for (const [key, element] of entries) {
+                    if (!element) {
+                        continue;
+                    }
+                    element.hidden = key !== stepKey;
+                }
+            };
+
+            const nextButton = form.querySelector('[data-register-next]');
+            if (nextButton) {
+                nextButton.addEventListener('click', () => {
+                    const credentialsStep = steps.credentials;
+                    if (!credentialsStep) {
+                        return;
+                    }
+
+                    const inputs = Array.from(credentialsStep.querySelectorAll('input'))
+                        .filter(input => input.type !== 'hidden' && !input.disabled);
+
+                    for (const input of inputs) {
+                        if (!input.reportValidity()) {
+                            input.focus();
+                            return;
+                        }
+                    }
+
+                    switchToStep('recovery');
+
+                    const firstRecoveryField = steps.recovery?.querySelector('input, select');
+                    if (firstRecoveryField) {
+                        firstRecoveryField.focus();
+                    }
+                });
+            }
+
+            const backButton = form.querySelector('[data-register-back]');
+            if (backButton) {
+                backButton.addEventListener('click', () => {
+                    switchToStep('credentials');
+                    const firstCredentialField = steps.credentials?.querySelector('input');
+                    if (firstCredentialField) {
+                        firstCredentialField.focus();
+                    }
+                });
+            }
+
+            const questionBlocks = Array.from(form.querySelectorAll('.security-question'));
+
+            const hideFollowingBlocks = (startIndex) => {
+                for (let i = startIndex; i < questionBlocks.length; i++) {
+                    const block = questionBlocks[i];
+                    if (!block) {
+                        continue;
+                    }
+
+                    if (block.dataset.hasError === 'true') {
+                        block.hidden = false;
+                        continue;
+                    }
+
+                    block.hidden = true;
+
+                    const select = block.querySelector('select');
+                    if (select) {
+                        select.selectedIndex = 0;
+                    }
+
+                    const answer = block.querySelector('[data-answer-input]');
+                    if (answer) {
+                        answer.value = '';
+                    }
+
+                    const customInput = block.querySelector('[data-custom-container] input');
+                    if (customInput) {
+                        customInput.value = '';
+                    }
+                }
+            };
+
+            const updateCustomVisibility = (select, container) => {
+                if (!select || !container) {
+                    return;
+                }
+
+                const selectedOption = select.options[select.selectedIndex];
+                const allowsCustom = selectedOption && selectedOption.dataset.allowsCustom === 'true';
+                container.hidden = !allowsCustom;
+                if (!allowsCustom) {
+                    const input = container.querySelector('input');
+                    if (input) {
+                        input.value = '';
+                    }
+                }
+            };
+
+            questionBlocks.forEach((block, index) => {
+                const select = block.querySelector('select');
+                const customContainer = block.querySelector('[data-custom-container]');
+                const answer = block.querySelector('[data-answer-input]');
+                const nextBlockIndex = index + 1;
+
+                const revealNextIfReady = () => {
+                    const hasQuestion = !!(select && select.value);
+                    const hasAnswer = !!(answer && answer.value.trim());
+                    if (nextBlockIndex < questionBlocks.length) {
+                        const nextBlock = questionBlocks[nextBlockIndex];
+                        if (!nextBlock) {
+                            return;
+                        }
+
+                        if (hasQuestion && hasAnswer) {
+                            nextBlock.hidden = false;
+                        } else if (nextBlock.dataset.hasError === 'true') {
+                            nextBlock.hidden = false;
+                        } else if (!hasQuestion) {
+                            hideFollowingBlocks(nextBlockIndex);
+                        } else {
+                            nextBlock.hidden = true;
+                        }
+                    }
+                };
+
+                if (select) {
+                    updateCustomVisibility(select, customContainer);
+                    select.addEventListener('change', () => {
+                        updateCustomVisibility(select, customContainer);
+                        revealNextIfReady();
+                    });
+                }
+
+                if (answer) {
+                    answer.addEventListener('input', revealNextIfReady);
+                }
+
+                revealNextIfReady();
+            });
+        })();
+    </script>
+}

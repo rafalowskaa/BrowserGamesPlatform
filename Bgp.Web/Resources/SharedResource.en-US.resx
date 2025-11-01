@@ -590,7 +590,16 @@
     
     </data>
 
+	<data name="Auth_Register_NextStep" xml:space="preserve">
+        <value>Next step</value>
+    </data>
 
+
+
+
+	<data name="Auth_Register_PreviousStep" xml:space="preserve">
+        <value>Back</value>
+    </data>
 
 
 	<data name="Footer_Legal" xml:space="preserve">

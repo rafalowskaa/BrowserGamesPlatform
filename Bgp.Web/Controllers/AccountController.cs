@@ -32,6 +32,9 @@ public class AccountController : Controller
     [AllowAnonymous]
     public IActionResult Login(string? returnUrl = null) => View(new LoginVm { ReturnUrl = returnUrl });
 
+    public IActionResult Login(string? returnUrl = null, string? prefillLogin = null)
+        => View(new LoginVm { ReturnUrl = returnUrl, LoginOrEmail = prefillLogin ?? string.Empty });
+
     [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginVm vm)
     {
@@ -187,15 +190,7 @@ public class AccountController : Controller
             return View(vm);
         }
 
-        await _signIn.SignInAsync(user, isPersistent: false);
-        await _presenceNotifier.BroadcastAsync(user.Id, user.StatusMessage, user.PresenceStatus, user.IsInvisible);
-        var target = vm.ReturnUrl;
-        if (string.IsNullOrWhiteSpace(target))
-        {
-            target = Url.Action("Index", "Dashboard") ?? "/";
-        }
-
-        return LocalRedirect(target);
+        return RedirectToAction(nameof(Login), new { returnUrl = vm.ReturnUrl, prefillLogin = vm.Login });
     }
 
     [AllowAnonymous]
