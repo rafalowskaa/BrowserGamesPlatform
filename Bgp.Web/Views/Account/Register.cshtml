@@ -33,6 +33,11 @@
             <input asp-for="Email" id="RegisterEmail" type="email" autocomplete="email" />
             <span asp-validation-for="Email" class="val"></span>
 
+            <label for="RegisterBirthDate">@L["Auth_Register_BirthDate"].Value</label>
+            <input asp-for="BirthDate" id="RegisterBirthDate" type="date" autocomplete="bday" />
+            <span class="form-hint">@L["Auth_Register_BirthDate_Hint"].Value</span>
+            <span asp-validation-for="BirthDate" class="val"></span>
+
             <div class="password-field">
                 <label for="RegisterPassword">@L["Auth_Register_Password"].Value</label>
                 <div class="password-field__input">
@@ -95,6 +100,65 @@
                 
             </div>
             <span asp-validation-for="ConfirmPassword" class="val"></span>
+
+            <div class="security-questions">
+                <h3>@L["Auth_Register_SecurityQuestions_Title"].Value</h3>
+                <p class="form-hint">@L["Auth_Register_SecurityQuestions_Description"].Value</p>
+
+                <div class="security-question">
+                    <label for="SecurityQuestion1">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 1)</label>
+                    <select asp-for="SecurityQuestion1" id="SecurityQuestion1">
+                        <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
+                        @foreach (var option in Model.SecurityQuestionOptions)
+                        {
+                            <option value="@option.Key" @(option.Key == Model.SecurityQuestion1 ? "selected" : null)>@option.Label</option>
+                        }
+                    </select>
+                    <span asp-validation-for="SecurityQuestion1" class="val"></span>
+                    <label class="security-question__custom" for="SecurityQuestion1Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                    <input asp-for="SecurityQuestion1Custom" id="SecurityQuestion1Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
+                    <span asp-validation-for="SecurityQuestion1Custom" class="val"></span>
+                    <label class="security-question__answer" for="SecurityAnswer1">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
+                    <input asp-for="SecurityAnswer1" id="SecurityAnswer1" type="password" autocomplete="off" />
+                    <span asp-validation-for="SecurityAnswer1" class="val"></span>
+                </div>
+
+                <div class="security-question">
+                    <label for="SecurityQuestion2">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 2)</label>
+                    <select asp-for="SecurityQuestion2" id="SecurityQuestion2">
+                        <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
+                        @foreach (var option in Model.SecurityQuestionOptions)
+                        {
+                            <option value="@option.Key" @(option.Key == Model.SecurityQuestion2 ? "selected" : null)>@option.Label</option>
+                        }
+                    </select>
+                    <span asp-validation-for="SecurityQuestion2" class="val"></span>
+                    <label class="security-question__custom" for="SecurityQuestion2Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                    <input asp-for="SecurityQuestion2Custom" id="SecurityQuestion2Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
+                    <span asp-validation-for="SecurityQuestion2Custom" class="val"></span>
+                    <label class="security-question__answer" for="SecurityAnswer2">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
+                    <input asp-for="SecurityAnswer2" id="SecurityAnswer2" type="password" autocomplete="off" />
+                    <span asp-validation-for="SecurityAnswer2" class="val"></span>
+                </div>
+
+                <div class="security-question">
+                    <label for="SecurityQuestion3">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 3)</label>
+                    <select asp-for="SecurityQuestion3" id="SecurityQuestion3">
+                        <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
+                        @foreach (var option in Model.SecurityQuestionOptions)
+                        {
+                            <option value="@option.Key" @(option.Key == Model.SecurityQuestion3 ? "selected" : null)>@option.Label</option>
+                        }
+                    </select>
+                    <span asp-validation-for="SecurityQuestion3" class="val"></span>
+                    <label class="security-question__custom" for="SecurityQuestion3Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                    <input asp-for="SecurityQuestion3Custom" id="SecurityQuestion3Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
+                    <span asp-validation-for="SecurityQuestion3Custom" class="val"></span>
+                    <label class="security-question__answer" for="SecurityAnswer3">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
+                    <input asp-for="SecurityAnswer3" id="SecurityAnswer3" type="password" autocomplete="off" />
+                    <span asp-validation-for="SecurityAnswer3" class="val"></span>
+                </div>
+            </div>
 
             <button class="btn-primary" type="submit">@L["Auth_Register_Create"].Value</button>
         </form>

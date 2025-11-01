@@ -19,9 +19,13 @@ public class ApplicationUser : IdentityUser
     [MaxLength(250)]
     public string? BlockReason { get; set; }
 
+    public DateTime? BirthDate { get; set; }
+
     public int? BirthMonth { get; set; }
 
     public int? BirthDay { get; set; }
+
+    public int? BirthYear { get; set; }
 
     [MaxLength(120)]
     public string? PendingDisplayName { get; set; }
@@ -42,4 +46,31 @@ public class ApplicationUser : IdentityUser
     public UserPresenceStatus PresenceStatus { get; set; } = UserPresenceStatus.Offline;
 
     public bool IsInvisible { get; set; }
+
+    [MaxLength(128)]
+    public string? SecurityQuestion1Key { get; set; }
+
+    [MaxLength(256)]
+    public string? SecurityQuestion1CustomPrompt { get; set; }
+
+    [MaxLength(512)]
+    public string? SecurityQuestion1AnswerHash { get; set; }
+
+    [MaxLength(128)]
+    public string? SecurityQuestion2Key { get; set; }
+
+    [MaxLength(256)]
+    public string? SecurityQuestion2CustomPrompt { get; set; }
+
+    [MaxLength(512)]
+    public string? SecurityQuestion2AnswerHash { get; set; }
+
+    [MaxLength(128)]
+    public string? SecurityQuestion3Key { get; set; }
+
+    [MaxLength(256)]
+    public string? SecurityQuestion3CustomPrompt { get; set; }
+
+    [MaxLength(512)]
+    public string? SecurityQuestion3AnswerHash { get; set; }
 }

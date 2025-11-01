@@ -2986,4 +2986,152 @@
 	<data name="Navigation_Api_Tooltip" xml:space="preserve">
                 <value>Dokumentacja API dla deweloperów korzystających z platformy.</value>
         </data>
+
+	<data name="Auth_Register_BirthDate" xml:space="preserve">
+    <value>Data urodzenia</value>
+  </data>
+	<data name="Auth_Register_BirthDate_Hint" xml:space="preserve">
+    <value>Używamy daty urodzenia do przygotowania niespodzianek. Informacja pozostaje prywatna, dopóki nie zmienisz widoczności.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Title" xml:space="preserve">
+    <value>Pytania zabezpieczające</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Description" xml:space="preserve">
+    <value>Wybierz trzy różne pytania. Jeśli wybierzesz własne, wpisz pytanie i odpowiedź.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestion_Label" xml:space="preserve">
+    <value>Pytanie {0}</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Select" xml:space="preserve">
+    <value>Wybierz pytanie</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Custom" xml:space="preserve">
+    <value>Własne pytanie</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_CustomPlaceholder" xml:space="preserve">
+    <value>Wpisz własne pytanie</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Answer" xml:space="preserve">
+    <value>Odpowiedź</value>
+  </data>
+	<data name="Auth_Register_BirthDate_Future" xml:space="preserve">
+    <value>Data urodzenia nie może być z przyszłości.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Required" xml:space="preserve">
+    <value>Wybierz trzy pytania zabezpieczające.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Distinct" xml:space="preserve">
+    <value>Pytania zabezpieczające muszą się różnić.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Invalid" xml:space="preserve">
+    <value>Wybrane pytanie jest niedostępne.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_CustomRequired" xml:space="preserve">
+    <value>Wpisz treść własnego pytania.</value>
+  </data>
+	<data name="Auth_SecurityQuestion_FirstPet" xml:space="preserve">
+    <value>Jak wabił się Twój pierwszy pupil?</value>
+  </data>
+	<data name="Auth_SecurityQuestion_FavoriteTeacher" xml:space="preserve">
+    <value>Który nauczyciel był Twoim ulubionym?</value>
+  </data>
+	<data name="Auth_SecurityQuestion_ChildhoodNickname" xml:space="preserve">
+    <value>Jakie przezwisko z dzieciństwa pamiętasz?</value>
+  </data>
+	<data name="Auth_SecurityQuestion_BirthCity" xml:space="preserve">
+    <value>W jakim mieście się urodziłeś/aś?</value>
+  </data>
+	<data name="Auth_SecurityQuestion_Custom" xml:space="preserve">
+    <value>Utwórz własne pytanie</value>
+  </data>
+	<data name="Auth_Login_ForgotPassword" xml:space="preserve">
+    <value>Nie pamiętasz hasła?</value>
+  </data>
+	<data name="Auth_Forgot_Title" xml:space="preserve">
+    <value>Przypomnienie hasła</value>
+  </data>
+	<data name="Auth_Forgot_Eyebrow" xml:space="preserve">
+    <value>Potrzebujesz pomocy?</value>
+  </data>
+	<data name="Auth_Forgot_Heading" xml:space="preserve">
+    <value>Odzyskaj dostęp</value>
+  </data>
+	<data name="Auth_Forgot_Lead" xml:space="preserve">
+    <value>Odpowiedz na pytania zabezpieczające i ustaw nowe hasło.</value>
+  </data>
+	<data name="Auth_Forgot_Remembered" xml:space="preserve">
+    <value>Jednak pamiętasz?</value>
+  </data>
+	<data name="Auth_Forgot_Back" xml:space="preserve">
+    <value>Wróć do logowania</value>
+  </data>
+	<data name="Auth_Forgot_FormTitle" xml:space="preserve">
+    <value>Zweryfikuj konto</value>
+  </data>
+	<data name="Auth_Forgot_FormSubtitle" xml:space="preserve">
+    <value>Podaj nazwę użytkownika lub e-mail, aby wyświetlić pytania.</value>
+  </data>
+	<data name="Auth_Forgot_LoginOrEmail" xml:space="preserve">
+    <value>Login lub e-mail</value>
+  </data>
+	<data name="Auth_Forgot_Submit" xml:space="preserve">
+    <value>Kontynuuj</value>
+  </data>
+	<data name="Auth_Recover_Title" xml:space="preserve">
+    <value>Odzyskiwanie hasła</value>
+  </data>
+	<data name="Auth_Recover_Eyebrow" xml:space="preserve">
+    <value>Już prawie!</value>
+  </data>
+	<data name="Auth_Recover_Heading" xml:space="preserve">
+    <value>Odpowiedz na pytania</value>
+  </data>
+	<data name="Auth_Recover_Lead" xml:space="preserve">
+    <value>Podaj odpowiedzi zapisane podczas rejestracji.</value>
+  </data>
+	<data name="Auth_Recover_Remembered" xml:space="preserve">
+    <value>Już wszystko wiesz?</value>
+  </data>
+	<data name="Auth_Recover_Back" xml:space="preserve">
+    <value>Wróć do logowania</value>
+  </data>
+	<data name="Auth_Recover_FormTitle" xml:space="preserve">
+    <value>Ustaw nowe hasło</value>
+  </data>
+	<data name="Auth_Recover_FormSubtitle" xml:space="preserve">
+    <value>Używamy odpowiedzi, aby potwierdzić Twoją tożsamość.</value>
+  </data>
+	<data name="Auth_Recover_NewPassword" xml:space="preserve">
+    <value>Nowe hasło</value>
+  </data>
+	<data name="Auth_Recover_ConfirmPassword" xml:space="preserve">
+    <value>Potwierdź nowe hasło</value>
+  </data>
+	<data name="Auth_Recover_Submit" xml:space="preserve">
+    <value>Zapisz nowe hasło</value>
+  </data>
+	<data name="Auth_Recover_Success_Title" xml:space="preserve">
+    <value>Hasło zaktualizowane</value>
+  </data>
+	<data name="Auth_Recover_Success_Heading" xml:space="preserve">
+    <value>Możesz się zalogować!</value>
+  </data>
+	<data name="Auth_Recover_Success_Message" xml:space="preserve">
+    <value>Możesz teraz zalogować się jako {0} z nowym hasłem.</value>
+  </data>
+	<data name="Auth_Recover_Success_Login" xml:space="preserve">
+    <value>Przejdź do logowania</value>
+  </data>
+	<data name="Account_PasswordRecovery_UserNotFound" xml:space="preserve">
+    <value>Nie znaleziono konta o podanej nazwie użytkownika lub adresie e-mail.</value>
+  </data>
+	<data name="Account_PasswordRecovery_NoQuestions" xml:space="preserve">
+    <value>To konto nie ma skonfigurowanych pytań zabezpieczających.</value>
+  </data>
+	<data name="Account_PasswordRecovery_AnswerRequired" xml:space="preserve">
+    <value>Wpisz odpowiedź.</value>
+  </data>
+	<data name="Account_PasswordRecovery_InvalidAnswers" xml:space="preserve">
+    <value>Podane odpowiedzi nie zgadzają się z naszymi danymi.</value>
+  </data>
 </root>

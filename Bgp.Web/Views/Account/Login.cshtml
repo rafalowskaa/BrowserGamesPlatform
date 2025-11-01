@@ -62,6 +62,7 @@
             <span asp-validation-for="Password" class="val"></span>
 
             <label class="check"><input asp-for="RememberMe" /> @L["Auth_Login_RememberMe"].Value</label>
+            <a class="auth-card__link" asp-action="ForgotPassword" asp-route-returnUrl="@Model.ReturnUrl">@L["Auth_Login_ForgotPassword"].Value</a>
 
             <button class="btn-primary" type="submit">@L["Auth_Login_LoginButton"].Value</button>
         </form>
