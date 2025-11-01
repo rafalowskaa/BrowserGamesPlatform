@@ -127,6 +127,7 @@
 
             var select = block.querySelector('select');
             var customContainer = block.querySelector('[data-custom-container]');
+            var customInput = customContainer ? customContainer.querySelector('input') : null;
             var answer = block.querySelector('[data-answer-input]');
             var nextIndex = index + 1;
 
@@ -148,8 +149,11 @@
 
                 var hasQuestion = select && !!select.value;
                 var hasAnswer = answer && !!answer.value.trim();
+                var requiresCustom = customContainer && !customContainer.hidden;
+                var hasCustomPrompt = !requiresCustom || (customInput && !!customInput.value.trim());
+                var isReadyForNext = hasQuestion && hasAnswer && hasCustomPrompt;
 
-                if (hasQuestion && hasAnswer) {
+                if (isReadyForNext) {
                     nextBlock.hidden = false;
                     return;
                 }
@@ -159,9 +163,7 @@
                     return;
                 }
 
-                if (!hasQuestion) {
-                    hideFollowingBlocks(nextIndex);
-                }
+                hideFollowingBlocks(nextIndex);
             }
 
             if (select) {
@@ -170,6 +172,10 @@
                     updateCustomVisibility(select, customContainer);
                     revealNextIfReady();
                 });
+            }
+
+            if (customInput) {
+                customInput.addEventListener('input', revealNextIfReady);
             }
 
             if (answer) {

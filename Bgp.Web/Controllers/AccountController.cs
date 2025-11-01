@@ -31,10 +31,13 @@ public class AccountController : Controller
     }
 
     [AllowAnonymous]
-    public IActionResult Login(string? returnUrl = null) => View(new LoginVm { ReturnUrl = returnUrl });
 
     public IActionResult Login(string? returnUrl = null, string? prefillLogin = null)
-        => View(new LoginVm { ReturnUrl = returnUrl, LoginOrEmail = prefillLogin ?? string.Empty });
+        => View(new LoginVm
+        {
+            ReturnUrl = returnUrl,
+            LoginOrEmail = prefillLogin ?? string.Empty
+        });
 
     [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginVm vm)
