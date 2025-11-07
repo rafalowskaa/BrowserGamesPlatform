@@ -156,145 +156,149 @@
 
                 <div class="security-questions" data-security-questions data-sequential="true" data-answer-minlength="3">
                     <h3>@L["Auth_Register_SecurityQuestions_Title"].Value</h3>
-                    <p class="form-hint">@L["Auth_Register_SecurityQuestions_Description"].Value</p>
-                    <div class="form-hint form-hint--muted">@L["Auth_SecurityQuestions_CaseInsensitiveHint"].Value</div>
+                    <div class="security-questions__progress" data-question-progress></div>
 
-                    <div class="security-question" data-question-index="1">
-                        <label for="SecurityQuestion1">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 1)</label>
-                        <select asp-for="SecurityQuestion1" id="SecurityQuestion1" data-question-select>
-                            <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
-                            @foreach (var option in Model.SecurityQuestionOptions)
-                            {
-                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
-                            }
-                        </select>
-                        <span asp-validation-for="SecurityQuestion1" class="val"></span>
-                        <div class="security-question__custom-group" data-custom-container @((showQuestion1Custom ? string.Empty : " hidden"))>
-                            <label class="security-question__custom" for="SecurityQuestion1Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
-                            <input asp-for="SecurityQuestion1Custom" id="SecurityQuestion1Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
-                            <span asp-validation-for="SecurityQuestion1Custom" class="val"></span>
-                        </div>
-                        <label class="security-question__answer" for="SecurityAnswer1">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
-                        <div class="password-field password-field--answer">
-                            <div class="password-field__input">
-                                <input asp-for="SecurityAnswer1" id="SecurityAnswer1" type="text" autocomplete="off" data-answer-input minlength="3" />
-                                <button type="button"
-                                        class="password-toggle"
-                                        data-password-toggle="SecurityAnswer1"
-                                        data-password-show="@L["Auth_Password_Show"].Value"
-                                        data-password-hide="@L["Auth_Password_Hide"].Value"
-                                        data-password-default="show"
-                                        aria-label="@L["Auth_Password_Hide"].Value"
-                                        tabindex="-1">
-                                    <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <g class="password-toggle__icon-eye">
-                                            <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
-                                            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </g>
-                                        <g class="password-toggle__icon-eye-off">
-                                            <path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.676 3.948 5.35 6.75 9.806 6.75 1.73 0 3.37-.399 4.817-1.112" />
-                                            <path d="M6.228 6.228A10.45 10.45 0 0111.74 5.25c4.456 0 8.13 2.802 9.806 6.75-.652 1.536-1.618 2.879-2.804 3.951" />
-                                            <path d="M15 12a3 3 0 00-3-3" />
-                                            <path d="M3 3l18 18" />
-                                        </g>
-                                    </svg>
-                                    <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
-                                </button>
+                    <div class="security-questions__stage" data-question-stage>
+                        <div class="security-question" data-question-index="1">
+                            <label for="SecurityQuestion1">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 1)</label>
+                            <select asp-for="SecurityQuestion1" id="SecurityQuestion1" data-question-select>
+                                <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
+                                @foreach (var option in Model.SecurityQuestionOptions)
+                                {
+                                    <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
+                                }
+                            </select>
+                            <span asp-validation-for="SecurityQuestion1" class="val"></span>
+                            <div class="security-question__custom-group" data-custom-container @((showQuestion1Custom ? string.Empty : " hidden"))>
+                                <label class="security-question__custom" for="SecurityQuestion1Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                                <input asp-for="SecurityQuestion1Custom" id="SecurityQuestion1Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
+                                <span asp-validation-for="SecurityQuestion1Custom" class="val"></span>
                             </div>
+                            <label class="security-question__answer" for="SecurityAnswer1">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
+                            <div class="password-field password-field--answer">
+                                <div class="password-field__input">
+                                    <input asp-for="SecurityAnswer1" id="SecurityAnswer1" type="text" autocomplete="off" data-answer-input minlength="3" />
+                                    <button type="button"
+                                            class="password-toggle"
+                                            data-password-toggle="SecurityAnswer1"
+                                            data-password-show="@L["Auth_Password_Show"].Value"
+                                            data-password-hide="@L["Auth_Password_Hide"].Value"
+                                            data-password-default="show"
+                                            aria-label="@L["Auth_Password_Hide"].Value"
+                                            tabindex="-1">
+                                        <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <g class="password-toggle__icon-eye">
+                                                <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
+                                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </g>
+                                            <g class="password-toggle__icon-eye-off">
+                                                <path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.676 3.948 5.35 6.75 9.806 6.75 1.73 0 3.37-.399 4.817-1.112" />
+                                                <path d="M6.228 6.228A10.45 10.45 0 0111.74 5.25c4.456 0 8.13 2.802 9.806 6.75-.652 1.536-1.618 2.879-2.804 3.951" />
+                                                <path d="M15 12a3 3 0 00-3-3" />
+                                                <path d="M3 3l18 18" />
+                                            </g>
+                                        </svg>
+                                        <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <span asp-validation-for="SecurityAnswer1" class="val"></span>
                         </div>
-                        <span asp-validation-for="SecurityAnswer1" class="val"></span>
-                    </div>
 
-                    <div class="security-question" data-question-index="2" data-has-error="@(question2HasError ? "true" : "false")" @((showQuestion2 ? string.Empty : " hidden"))>
-                        <label for="SecurityQuestion2">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 2)</label>
-                        <select asp-for="SecurityQuestion2" id="SecurityQuestion2" data-question-select>
-                            <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
-                            @foreach (var option in Model.SecurityQuestionOptions)
-                            {
-                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
-                            }
-                        </select>
-                        <span asp-validation-for="SecurityQuestion2" class="val"></span>
-                        <div class="security-question__custom-group" data-custom-container @((showQuestion2Custom ? string.Empty : " hidden"))>
-                            <label class="security-question__custom" for="SecurityQuestion2Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
-                            <input asp-for="SecurityQuestion2Custom" id="SecurityQuestion2Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
-                            <span asp-validation-for="SecurityQuestion2Custom" class="val"></span>
-                        </div>
-                        <label class="security-question__answer" for="SecurityAnswer2">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
-                        <div class="password-field password-field--answer">
-                            <div class="password-field__input">
-                                <input asp-for="SecurityAnswer2" id="SecurityAnswer2" type="text" autocomplete="off" data-answer-input minlength="3" />
-                                <button type="button"
-                                        class="password-toggle"
-                                        data-password-toggle="SecurityAnswer2"
-                                        data-password-show="@L["Auth_Password_Show"].Value"
-                                        data-password-hide="@L["Auth_Password_Hide"].Value"
-                                        data-password-default="show"
-                                        aria-label="@L["Auth_Password_Hide"].Value"
-                                        tabindex="-1">
-                                    <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <g class="password-toggle__icon-eye">
-                                            <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
-                                            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </g>
-                                        <g class="password-toggle__icon-eye-off">
-                                            <path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.676 3.948 5.35 6.75 9.806 6.75 1.73 0 3.37-.399 4.817-1.112" />
-                                            <path d="M6.228 6.228A10.45 10.45 0 0111.74 5.25c4.456 0 8.13 2.802 9.806 6.75-.652 1.536-1.618 2.879-2.804 3.951" />
-                                            <path d="M15 12a3 3 0 00-3-3" />
-                                            <path d="M3 3l18 18" />
-                                        </g>
-                                    </svg>
-                                    <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
-                                </button>
-                            </div>
-                        </div>
-                        <span asp-validation-for="SecurityAnswer2" class="val"></span>
-                    </div>
 
-                    <div class="security-question" data-question-index="3" data-has-error="@(question3HasError ? "true" : "false")" @((showQuestion3 ? string.Empty : " hidden"))>
-                        <label for="SecurityQuestion3">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 3)</label>
-                        <select asp-for="SecurityQuestion3" id="SecurityQuestion3" data-question-select>
-                            <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
-                            @foreach (var option in Model.SecurityQuestionOptions)
-                            {
-                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
-                            }
-                        </select>
-                        <span asp-validation-for="SecurityQuestion3" class="val"></span>
-                        <div class="security-question__custom-group" data-custom-container @((showQuestion3Custom ? string.Empty : " hidden"))>
-                            <label class="security-question__custom" for="SecurityQuestion3Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
-                            <input asp-for="SecurityQuestion3Custom" id="SecurityQuestion3Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
-                            <span asp-validation-for="SecurityQuestion3Custom" class="val"></span>
-                        </div>
-                        <label class="security-question__answer" for="SecurityAnswer3">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
-                        <div class="password-field password-field--answer">
-                            <div class="password-field__input">
-                                <input asp-for="SecurityAnswer3" id="SecurityAnswer3" type="text" autocomplete="off" data-answer-input minlength="3" />
-                                <button type="button"
-                                        class="password-toggle"
-                                        data-password-toggle="SecurityAnswer3"
-                                        data-password-show="@L["Auth_Password_Show"].Value"
-                                        data-password-hide="@L["Auth_Password_Hide"].Value"
-                                        data-password-default="show"
-                                        aria-label="@L["Auth_Password_Hide"].Value"
-                                        tabindex="-1">
-                                    <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <g class="password-toggle__icon-eye">
-                                            <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
-                                            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </g>
-                                        <g class="password-toggle__icon-eye-off">
-                                            <path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.676 3.948 5.35 6.75 9.806 6.75 1.73 0 3.37-.399 4.817-1.112" />
-                                            <path d="M6.228 6.228A10.45 10.45 0 0111.74 5.25c4.456 0 8.13 2.802 9.806 6.75-.652 1.536-1.618 2.879-2.804 3.951" />
-                                            <path d="M15 12a3 3 0 00-3-3" />
-                                            <path d="M3 3l18 18" />
-                                        </g>
-                                    </svg>
-                                    <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
-                                </button>
+                        <div class="security-question" data-question-index="2" data-has-error="@(question2HasError ? "true" : "false")" @((showQuestion2 ? string.Empty : " hidden"))>
+                            <label for="SecurityQuestion2">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 2)</label>
+                            <select asp-for="SecurityQuestion2" id="SecurityQuestion2" data-question-select>
+                                <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
+                                @foreach (var option in Model.SecurityQuestionOptions)
+                                {
+                                    <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
+                                }
+                            </select>
+                            <span asp-validation-for="SecurityQuestion2" class="val"></span>
+                            <div class="security-question__custom-group" data-custom-container @((showQuestion2Custom ? string.Empty : " hidden"))>
+                                <label class="security-question__custom" for="SecurityQuestion2Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                                <input asp-for="SecurityQuestion2Custom" id="SecurityQuestion2Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
+                                <span asp-validation-for="SecurityQuestion2Custom" class="val"></span>
                             </div>
+                            <label class="security-question__answer" for="SecurityAnswer2">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
+                            <div class="password-field password-field--answer">
+                                <div class="password-field__input">
+                                    <input asp-for="SecurityAnswer2" id="SecurityAnswer2" type="text" autocomplete="off" data-answer-input minlength="3" />
+                                    <button type="button"
+                                            class="password-toggle"
+                                            data-password-toggle="SecurityAnswer2"
+                                            data-password-show="@L["Auth_Password_Show"].Value"
+                                            data-password-hide="@L["Auth_Password_Hide"].Value"
+                                            data-password-default="show"
+                                            aria-label="@L["Auth_Password_Hide"].Value"
+                                            tabindex="-1">
+                                        <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <g class="password-toggle__icon-eye">
+                                                <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
+                                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </g>
+                                            <g class="password-toggle__icon-eye-off">
+                                                <path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.676 3.948 5.35 6.75 9.806 6.75 1.73 0 3.37-.399 4.817-1.112" />
+                                                <path d="M6.228 6.228A10.45 10.45 0 0111.74 5.25c4.456 0 8.13 2.802 9.806 6.75-.652 1.536-1.618 2.879-2.804 3.951" />
+                                                <path d="M15 12a3 3 0 00-3-3" />
+                                                <path d="M3 3l18 18" />
+                                            </g>
+                                        </svg>
+                                        <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <span asp-validation-for="SecurityAnswer2" class="val"></span>
                         </div>
-                        <span asp-validation-for="SecurityAnswer3" class="val"></span>
+
+
+                        <div class="security-question" data-question-index="3" data-has-error="@(question3HasError ? "true" : "false")" @((showQuestion3 ? string.Empty : " hidden"))>
+                            <label for="SecurityQuestion3">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 3)</label>
+                            <select asp-for="SecurityQuestion3" id="SecurityQuestion3" data-question-select>
+                                <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
+                                @foreach (var option in Model.SecurityQuestionOptions)
+                                {
+                                    <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
+                                }
+                            </select>
+                            <span asp-validation-for="SecurityQuestion3" class="val"></span>
+                            <div class="security-question__custom-group" data-custom-container @((showQuestion3Custom ? string.Empty : " hidden"))>
+                                <label class="security-question__custom" for="SecurityQuestion3Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                                <input asp-for="SecurityQuestion3Custom" id="SecurityQuestion3Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
+                                <span asp-validation-for="SecurityQuestion3Custom" class="val"></span>
+                            </div>
+                            <label class="security-question__answer" for="SecurityAnswer3">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
+                            <div class="password-field password-field--answer">
+                                <div class="password-field__input">
+                                    <input asp-for="SecurityAnswer3" id="SecurityAnswer3" type="text" autocomplete="off" data-answer-input minlength="3" />
+                                    <button type="button"
+                                            class="password-toggle"
+                                            data-password-toggle="SecurityAnswer3"
+                                            data-password-show="@L["Auth_Password_Show"].Value"
+                                            data-password-hide="@L["Auth_Password_Hide"].Value"
+                                            data-password-default="show"
+                                            aria-label="@L["Auth_Password_Hide"].Value"
+                                            tabindex="-1">
+                                        <svg class="password-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <g class="password-toggle__icon-eye">
+                                                <path d="M2.036 12.322c.125-.27 3.111-6.322 9.964-6.322 6.853 0 9.838 6.052 9.964 6.322a.75.75 0 010 .356c-.126.27-3.111 6.322-9.964 6.322-6.853 0-9.839-6.052-9.964-6.322a.75.75 0 010-.356z" />
+                                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </g>
+                                            <g class="password-toggle__icon-eye-off">
+                                                <path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.676 3.948 5.35 6.75 9.806 6.75 1.73 0 3.37-.399 4.817-1.112" />
+                                                <path d="M6.228 6.228A10.45 10.45 0 0111.74 5.25c4.456 0 8.13 2.802 9.806 6.75-.652 1.536-1.618 2.879-2.804 3.951" />
+                                                <path d="M15 12a3 3 0 00-3-3" />
+                                                <path d="M3 3l18 18" />
+                                            </g>
+                                        </svg>
+                                        <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <span asp-validation-for="SecurityAnswer3" class="val"></span>
+                        </div>
+                        
                     </div>
                 </div>
 
