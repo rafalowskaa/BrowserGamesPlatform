@@ -3103,5 +3103,14 @@
   </data>
 	<data name="Account_PasswordRecovery_InvalidAnswers" xml:space="preserve">
     <value>The provided answers don't match our records.</value>
+		</data>
+	<data name="Auth_Register_Password_RequireDigit" xml:space="preserve">
+    <value>Password must include at least one digit.</value>
+  </data>
+	<data name="Auth_Register_Password_Mismatch" xml:space="preserve">
+    <value>Passwords must match.</value>
+  </data>
+	<data name="Auth_SecurityQuestions_Answer_MinLength" xml:space="preserve">
+    <value>The answer must be at least 3 characters long.</value>
   </data>
 </root>

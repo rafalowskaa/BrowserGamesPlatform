@@ -505,7 +505,7 @@ body {
 .security-question {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .security-question__custom-group {
@@ -1777,7 +1777,7 @@ body {
 .profile-form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 
     .profile-form button[type="submit"] {
@@ -1863,9 +1863,9 @@ body {
 .profile-form select,
 .profile-form textarea {
     width: 100%;
-    padding: 8px 12px;
-    min-height: 44px;
-    line-height: 1.35;
+    padding: 6px 12px;
+    min-height: 0;
+    line-height: 1.4;
     border-radius: var(--radius);
     border: 1px solid rgba(148,163,184,0.35);
     background: rgba(15,23,42,0.9);
@@ -2464,12 +2464,12 @@ body {
 
 .profile-security-grid {
     display: grid;
-    gap: 24px;
+    gap: 18px;
     margin-top: 16px;
 }
 
     .profile-security-grid .profile-form {
-        gap: 12px;
+        gap: 10px;
     }
 
         .profile-security-grid .profile-form label {
@@ -2477,14 +2477,37 @@ body {
         }
 
         .profile-security-grid .profile-form input[type="email"],
-        .profile-security-grid .profile-form input[type="password"] {
-            padding: 10px 12px;
+        .profile-security-grid .profile-form input[type="password"],
+        .profile-security-grid .profile-form input[type="text"] {
+            padding: 6px 12px;
         }
+
+.profile-security-grid--split {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.profile-security-grid__column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.profile-security-grid__column--recovery {
+    gap: 0;
+}
+
+.profile-security-grid__item--stacked {
+    height: 100%;
+}
+
+    .profile-security-grid__item--stacked .profile-form {
+        gap: 10px;
+    }
 
 .profile-security-grid__item {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     padding: 20px;
     border-radius: var(--radius);
     background: rgba(15, 23, 42, 0.65);
@@ -2506,6 +2529,10 @@ body {
     .profile-security-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         align-items: start;
+    }
+
+    .profile-security-grid--split {
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
     }
 }
 
@@ -2844,17 +2871,18 @@ body {
             color: #cbd5e1;
         }
 
-        .form-vertical input[type=text],
-        .form-vertical input[type=email],
-        .form-vertical input[type=password],
-        .form-vertical textarea {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #273244;
-            background: #0f172a;
-            color: #e5e7eb;
-        }
+    .form-vertical input[type=text],
+    .form-vertical input[type=email],
+    .form-vertical input[type=password],
+    .form-vertical textarea {
+        width: 100%;
+        padding: 6px 10px;
+        line-height: 1.4;
+        border-radius: 8px;
+        border: 1px solid #273244;
+        background: #0f172a;
+        color: #e5e7eb;
+    }
 
         .form-vertical textarea {
             min-height: 120px;

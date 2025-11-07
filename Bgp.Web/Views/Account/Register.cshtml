@@ -71,7 +71,7 @@
             <p>@L["Auth_Register_FormSubtitle"].Value</p>
         </div>
         <div asp-validation-summary="ModelOnly" class="val-summary"></div>
-        <form asp-action="Register" method="post" class="form-vertical" id="RegisterForm" data-register-form>
+        <form asp-action="Register" method="post" class="form-vertical" id="RegisterForm" data-register-form data-password-digit-message="@L["Auth_Register_Password_RequireDigit"].Value" data-password-mismatch-message="@L["Auth_Register_Password_Mismatch"].Value">
             <input type="hidden" asp-for="ReturnUrl" />
             <div class="form-step" data-step="credentials" @((showRecoveryStep ? " hidden" : string.Empty))>
                 <label for="RegisterLogin">@L["Auth_Register_Login"].Value</label>
@@ -154,7 +154,7 @@
                 <span class="form-hint">@L["Auth_Register_BirthDate_Hint"].Value</span>
                 <span asp-validation-for="BirthDate" class="val"></span>
 
-                <div class="security-questions" data-security-questions data-sequential="true">
+                <div class="security-questions" data-security-questions data-sequential="true" data-answer-minlength="3">
                     <h3>@L["Auth_Register_SecurityQuestions_Title"].Value</h3>
                     <p class="form-hint">@L["Auth_Register_SecurityQuestions_Description"].Value</p>
                     <div class="form-hint form-hint--muted">@L["Auth_SecurityQuestions_CaseInsensitiveHint"].Value</div>
@@ -177,7 +177,7 @@
                         <label class="security-question__answer" for="SecurityAnswer1">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
                         <div class="password-field password-field--answer">
                             <div class="password-field__input">
-                                <input asp-for="SecurityAnswer1" id="SecurityAnswer1" type="text" autocomplete="off" data-answer-input />
+                                <input asp-for="SecurityAnswer1" id="SecurityAnswer1" type="text" autocomplete="off" data-answer-input minlength="3" />
                                 <button type="button"
                                         class="password-toggle"
                                         data-password-toggle="SecurityAnswer1"
@@ -223,7 +223,7 @@
                         <label class="security-question__answer" for="SecurityAnswer2">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
                         <div class="password-field password-field--answer">
                             <div class="password-field__input">
-                                <input asp-for="SecurityAnswer2" id="SecurityAnswer2" type="text" autocomplete="off" data-answer-input />
+                                <input asp-for="SecurityAnswer2" id="SecurityAnswer2" type="text" autocomplete="off" data-answer-input minlength="3" />
                                 <button type="button"
                                         class="password-toggle"
                                         data-password-toggle="SecurityAnswer2"
@@ -269,7 +269,7 @@
                         <label class="security-question__answer" for="SecurityAnswer3">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
                         <div class="password-field password-field--answer">
                             <div class="password-field__input">
-                                <input asp-for="SecurityAnswer3" id="SecurityAnswer3" type="text" autocomplete="off" data-answer-input />
+                                <input asp-for="SecurityAnswer3" id="SecurityAnswer3" type="text" autocomplete="off" data-answer-input minlength="3" />
                                 <button type="button"
                                         class="password-toggle"
                                         data-password-toggle="SecurityAnswer3"
@@ -317,6 +317,24 @@
                 return;
             }
 
+            const passwordInput = form.querySelector('#RegisterPassword');
+            const confirmInput = form.querySelector('#RegisterConfirm');
+            const passwordDigitMessage = form.getAttribute('data-password-digit-message') || '';
+            const passwordMismatchMessage = form.getAttribute('data-password-mismatch-message') || '';
+
+            if (passwordInput) {
+                passwordInput.addEventListener('input', () => {
+                    passwordInput.setCustomValidity('');
+                });
+            }
+
+            if (confirmInput) {
+                confirmInput.addEventListener('input', () => {
+                    confirmInput.setCustomValidity('');
+                });
+            }
+
+
             const steps = {
                 credentials: form.querySelector('[data-step="credentials"]'),
                 recovery: form.querySelector('[data-step="recovery"]')
@@ -339,6 +357,23 @@
                     if (!credentialsStep) {
                         return;
                     }
+
+                    if (passwordInput) {
+                        if (!/\d/.test(passwordInput.value || '')) {
+                            passwordInput.setCustomValidity(passwordDigitMessage);
+                        } else {
+                            passwordInput.setCustomValidity('');
+                        }
+                    }
+
+                    if (confirmInput) {
+                        if (passwordInput && (confirmInput.value || '') !== (passwordInput.value || '')) {
+                            confirmInput.setCustomValidity(passwordMismatchMessage);
+                        } else {
+                            confirmInput.setCustomValidity('');
+                        }
+                    }
+
 
                     const inputs = Array.from(credentialsStep.querySelectorAll('input'))
                         .filter(input => input.type !== 'hidden' && !input.disabled);

@@ -3152,5 +3152,14 @@
   </data>
 	<data name="Account_PasswordRecovery_InvalidAnswers" xml:space="preserve">
     <value>Podane odpowiedzi nie zgadzają się z naszymi danymi.</value>
+		</data>
+	<data name="Auth_Register_Password_RequireDigit" xml:space="preserve">
+    <value>Hasło musi zawierać co najmniej jedną cyfrę.</value>
+  </data>
+	<data name="Auth_Register_Password_Mismatch" xml:space="preserve">
+    <value>Hasła muszą być identyczne.</value>
+  </data>
+	<data name="Auth_SecurityQuestions_Answer_MinLength" xml:space="preserve">
+    <value>Odpowiedź musi mieć co najmniej 3 znaki.</value>
   </data>
 </root>

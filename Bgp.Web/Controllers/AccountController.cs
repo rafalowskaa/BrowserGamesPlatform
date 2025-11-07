@@ -374,9 +374,15 @@ public class LoginVm
 public class RegisterVm : IValidatableObject
 {
     [Required] public string Login { get; set; } = string.Empty;
-    [Required, EmailAddress] public string Email { get; set; } = string.Empty;
-    [Required, MinLength(8)] public string Password { get; set; } = string.Empty;
-    [Compare(nameof(Password))] public string ConfirmPassword { get; set; } = string.Empty;
+    [Required, EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
+    [Required, MinLength(8)]
+    [RegularExpression(@"^(?=.*\d).+$", ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_Register_Password_RequireDigit")]
+    public string Password { get; set; } = string.Empty;
+
+    [Compare(nameof(Password), ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_Register_Password_Mismatch")]
+    public string ConfirmPassword { get; set; } = string.Empty;
     public string? ReturnUrl { get; set; }
 
     [Required]
@@ -389,6 +395,7 @@ public class RegisterVm : IValidatableObject
     public string? SecurityQuestion1Custom { get; set; }
 
     [Required]
+    [MinLength(3, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_SecurityQuestions_Answer_MinLength")]
     public string SecurityAnswer1 { get; set; } = string.Empty;
 
     [Required]
@@ -397,6 +404,7 @@ public class RegisterVm : IValidatableObject
     public string? SecurityQuestion2Custom { get; set; }
 
     [Required]
+    [MinLength(3, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_SecurityQuestions_Answer_MinLength")]
     public string SecurityAnswer2 { get; set; } = string.Empty;
 
     [Required]
@@ -405,6 +413,7 @@ public class RegisterVm : IValidatableObject
     public string? SecurityQuestion3Custom { get; set; }
 
     [Required]
+    [MinLength(3, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_SecurityQuestions_Answer_MinLength")]
     public string SecurityAnswer3 { get; set; } = string.Empty;
 
     public List<SecurityQuestionOptionVm> SecurityQuestionOptions { get; private set; } = new();

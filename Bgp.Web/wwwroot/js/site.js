@@ -12,20 +12,21 @@
         var show = btn.getAttribute('data-password-show') || 'Pokaż hasło';
         var hide = btn.getAttribute('data-password-hide') || 'Ukryj hasło';
         var defaultVisible = btn.getAttribute('data-password-default') === 'show';
-        function setVisible(v) {
-            input.type = v ? 'text' : 'password';
-            btn.classList.toggle('is-active', v);
-            btn.setAttribute('aria-label', v ? hide : show);
-            btn.setAttribute('aria-pressed', v ? 'true' : 'false');
+        function setVisibility(isVisible) {
+            input.type = isVisible ? 'text' : 'password';
+            var isHidden = !isVisible;
+            btn.classList.toggle('is-active', isHidden);
+            btn.setAttribute('aria-label', isVisible ? hide : show);
+            btn.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
             if (lbl) {
-                lbl.textContent = v ? hide : show;
+                lbl.textContent = isVisible ? hide : show;
             }
         }
 
-        setVisible(defaultVisible);
+        setVisibility(defaultVisible);
 
         btn.addEventListener('click', function () {
-            setVisible(input.type === 'password');
+            setVisibility(input.type === 'password');
             input.focus();
         });
 
@@ -42,6 +43,10 @@
         }
 
         var sequential = container.getAttribute('data-sequential') !== 'false';
+        var answerMinLength = parseInt(container.getAttribute('data-answer-minlength') || '1', 10);
+        if (isNaN(answerMinLength) || answerMinLength < 1) {
+            answerMinLength = 1;
+        }
         var questionBlocks = Array.from(container.querySelectorAll('.security-question'));
         if (!questionBlocks.length) {
             return;
@@ -148,12 +153,17 @@
                 }
 
                 var hasQuestion = select && !!select.value;
-                var hasAnswer = answer && !!answer.value.trim();
+                var answerValue = answer ? answer.value.trim() : '';
+                var answerLength = answerValue.length;
+                var hasAnswer = answerLength >= answerMinLength;
+                var hasStartedAnswer = answerLength > 0;
                 var requiresCustom = customContainer && !customContainer.hidden;
-                var hasCustomPrompt = !requiresCustom || (customInput && !!customInput.value.trim());
-                var isReadyForNext = hasQuestion && hasAnswer && hasCustomPrompt;
+                var customValue = customInput ? customInput.value.trim() : '';
+                var hasCustomPrompt = !requiresCustom || customValue.length > 0;
+                var hasStartedCustom = requiresCustom && customValue.length > 0;
+                var shouldReveal = hasQuestion && ((hasAnswer && hasCustomPrompt) || hasStartedAnswer || hasStartedCustom);
 
-                if (isReadyForNext) {
+                if (shouldReveal) {
                     nextBlock.hidden = false;
                     return;
                 }
