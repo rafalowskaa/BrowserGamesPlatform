@@ -60,7 +60,10 @@
             CustomValue = Model.SecurityQuestion1Custom ?? string.Empty,
             AnswerValue = Model.SecurityAnswer1 ?? string.Empty,
             ShowCustom = showQuestion1Custom,
-            HasError = question1HasError
+            HasError = question1HasError,
+            HasValue = !string.IsNullOrWhiteSpace(Model.SecurityQuestion1) ||
+                       !string.IsNullOrWhiteSpace(Model.SecurityQuestion1Custom) ||
+                       !string.IsNullOrWhiteSpace(Model.SecurityAnswer1)
         },
         new
         {
@@ -69,7 +72,10 @@
             CustomValue = Model.SecurityQuestion2Custom ?? string.Empty,
             AnswerValue = Model.SecurityAnswer2 ?? string.Empty,
             ShowCustom = showQuestion2Custom,
-            HasError = question2HasError
+            HasError = question2HasError,
+            HasValue = !string.IsNullOrWhiteSpace(Model.SecurityQuestion2) ||
+                       !string.IsNullOrWhiteSpace(Model.SecurityQuestion2Custom) ||
+                       !string.IsNullOrWhiteSpace(Model.SecurityAnswer2)
         },
         new
         {
@@ -78,18 +84,18 @@
             CustomValue = Model.SecurityQuestion3Custom ?? string.Empty,
             AnswerValue = Model.SecurityAnswer3 ?? string.Empty,
             ShowCustom = showQuestion3Custom,
-            HasError = question3HasError
+            HasError = question3HasError,
+            HasValue = !string.IsNullOrWhiteSpace(Model.SecurityQuestion3) ||
+                       !string.IsNullOrWhiteSpace(Model.SecurityQuestion3Custom) ||
+                       !string.IsNullOrWhiteSpace(Model.SecurityAnswer3)
         }
     };
 
-    int initialCount = 1;
-    for (var i = 1; i < questions.Length; i++)
+    int initialCount = 0;
+    for (var i = 0; i < questions.Length; i++)
     {
         var question = questions[i];
-        var hasValue = !string.IsNullOrWhiteSpace(question.QuestionValue)
-                       || !string.IsNullOrWhiteSpace(question.CustomValue)
-                       || !string.IsNullOrWhiteSpace(question.AnswerValue)
-                       || question.HasError;
+        var hasValue = question.HasValue || question.HasError;
 
         if (hasValue)
         {
@@ -97,7 +103,7 @@
         }
     }
 
-    int initialActive = 0;
+    int initialActive = -1;
     for (var i = 0; i < questions.Length; i++)
     {
         if (questions[i].HasError)
@@ -107,10 +113,11 @@
         }
     }
 
-    if (initialActive == 0)
+    if (initialActive < 0 && initialCount > 0)
     {
-        initialActive = Math.Max(0, initialCount - 1);
+        initialActive = initialCount - 1;
     }
+    bool initialQuestionsEnabled = initialCount > 0;
 }
 <section class="auth auth--register">
     <div class="auth-hero">
@@ -211,9 +218,19 @@
                 <input asp-for="Email" id="RegisterEmail" type="email" autocomplete="email" />
                 <span asp-validation-for="Email" class="val"></span>
 
-                <label for="RegisterBirthDate">@L["Auth_Register_BirthDate"].Value</label>
+                <label for="RegisterBirthDate" class="form-label-with-hint">
+                    @L["Auth_Register_BirthDate"].Value
+                    <span class="form-label__optional">(@L["Common_Optional"].Value)</span>
+                    <button type="button"
+                            class="info-hint"
+                            data-tooltip="@L["Auth_Register_BirthDate_Hint"].Value"
+                            title="@L["Auth_Register_BirthDate_Hint"].Value"
+                            aria-label="@L["Auth_Register_BirthDate_Hint"].Value">
+                        i
+                    </button>
+                </label>
                 <input asp-for="BirthDate" id="RegisterBirthDate" type="date" autocomplete="bday" />
-                <span class="form-hint">@L["Auth_Register_BirthDate_Hint"].Value</span>
+               
                 <span asp-validation-for="BirthDate" class="val"></span>
 
                 <div class="security-questions"
@@ -223,13 +240,29 @@
                      data-max-questions="3"
                      data-initial-count="@initialCount"
                      data-initial-active="@initialActive"
+                     data-initial-enabled="@((initialQuestionsEnabled ? "true" : "false"))"
                      data-message-question-required="@L["Auth_Register_SecurityQuestions_SelectRequired"].Value"
                      data-message-custom-min="@L["Auth_Register_SecurityQuestions_Custom_MinLength"].Value"
                      data-message-answer-min="@L["Auth_SecurityQuestions_Answer_MinLength"].Value"
                      data-message-answer-common="@L["Auth_SecurityQuestions_Answer_Common"].Value"
                      data-message-answer-matches="@L["Auth_SecurityQuestions_Answer_MatchesQuestion"].Value">
                     <div class="security-questions__header">
-                        <h3>@L["Auth_Register_SecurityQuestions_Title"].Value</h3>
+                        <div class="security-questions__title">
+                            <h3>
+                                @L["Auth_Register_SecurityQuestions_Title"].Value
+                                <button type="button"
+                                        class="info-hint"
+                                        data-tooltip="@L["Auth_Register_SecurityQuestions_Info"].Value"
+                                        title="@L["Auth_Register_SecurityQuestions_Info"].Value"
+                                        aria-label="@L["Auth_Register_SecurityQuestions_Info"].Value">
+                                    i
+                                </button>
+                            </h3>
+                        </div>
+                        <label class="security-questions__toggle">
+                            <input type="checkbox" data-questions-toggle @(initialQuestionsEnabled ? "checked" : string.Empty) />
+                            <span>@L["Auth_Register_SecurityQuestions_Toggle"].Value</span>
+                        </label>
                         <p class="security-questions__empty" data-empty-hint>@L["Auth_Register_SecurityQuestions_EmptyState"].Value</p>
                     </div>
                     <div class="security-questions__list" data-question-list>
@@ -330,7 +363,7 @@
                                     </div>
                                 </div>
                                 <div class="security-question__actions">
-                                    <button type="button" class="btn-primary" data-question-add disabled>@L["Auth_Register_SecurityQuestions_AddAnother"].Value</button>
+                                    
                                     <button type="button" class="btn-link" data-question-remove>@L["Auth_Register_SecurityQuestions_RemoveThis"].Value</button>
                                 </div>
                             </div>
@@ -434,7 +467,7 @@
                                     </div>
                                 </div>
                                 <div class="security-question__actions">
-                                    <button type="button" class="btn-primary" data-question-add disabled>@L["Auth_Register_SecurityQuestions_AddAnother"].Value</button>
+                                    
                                     <button type="button" class="btn-link" data-question-remove>@L["Auth_Register_SecurityQuestions_RemoveThis"].Value</button>
                                 </div>
                             </div>
@@ -539,12 +572,16 @@
                                     </div>
                                 </div>
                                 <div class="security-question__actions">
-                                    <button type="button" class="btn-primary" data-question-add disabled>@L["Auth_Register_SecurityQuestions_AddAnother"].Value</button>
+                                    
                                     <button type="button" class="btn-link" data-question-remove>@L["Auth_Register_SecurityQuestions_RemoveThis"].Value</button>
                                 </div>
                             </div>
                         </div>
                         
+                    </div>
+                    <div class="security-questions__actions">
+                        <button type="button" class="btn-primary" data-questions-add>@L["Auth_Register_SecurityQuestions_AddAnother"].Value</button>
+                        <button type="button" class="btn-link" data-questions-disable>@L["Auth_Register_SecurityQuestions_Disable"].Value</button>
                     </div>
                 </div>
 

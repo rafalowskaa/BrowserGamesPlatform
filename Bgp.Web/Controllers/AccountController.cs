@@ -146,6 +146,25 @@ public class AccountController : Controller
         vm.PopulateSecurityQuestionOptions(_localizer);
         if (!ModelState.IsValid) return View(vm);
 
+        var providedQuestions = new[]
+        {
+            new { Key = vm.SecurityQuestion1, Custom = vm.SecurityQuestion1Custom, Answer = vm.SecurityAnswer1 },
+            new { Key = vm.SecurityQuestion2, Custom = vm.SecurityQuestion2Custom, Answer = vm.SecurityAnswer2 },
+            new { Key = vm.SecurityQuestion3, Custom = vm.SecurityQuestion3Custom, Answer = vm.SecurityAnswer3 }
+        }
+        .Where(q => !string.IsNullOrWhiteSpace(q.Key) && !string.IsNullOrWhiteSpace(q.Answer))
+        .Select(q => new
+        {
+            Key = (q.Key ?? string.Empty).Trim(),
+            Custom = string.IsNullOrWhiteSpace(q.Custom) ? null : q.Custom!.Trim(),
+            Answer = (q.Answer ?? string.Empty).Trim()
+        })
+        .ToList();
+
+        string? GetKeyAt(int index) => index < providedQuestions.Count ? providedQuestions[index].Key : null;
+        string? GetCustomAt(int index) => index < providedQuestions.Count ? providedQuestions[index].Custom : null;
+        string? GetAnswerAt(int index) => index < providedQuestions.Count ? providedQuestions[index].Answer : null;
+
         var user = new ApplicationUser
         {
             UserName = vm.Login,
@@ -159,33 +178,30 @@ public class AccountController : Controller
             BirthMonth = vm.BirthDate?.Month,
             BirthDay = vm.BirthDate?.Day,
             BirthYear = vm.BirthDate?.Year,
-            SecurityQuestion1Key = vm.SecurityQuestion1,
-            SecurityQuestion1CustomPrompt = string.IsNullOrWhiteSpace(vm.SecurityQuestion1Custom)
-                ? null
-                : vm.SecurityQuestion1Custom.Trim(),
-            SecurityQuestion2Key = vm.SecurityQuestion2,
-            SecurityQuestion2CustomPrompt = string.IsNullOrWhiteSpace(vm.SecurityQuestion2Custom)
-                ? null
-                : vm.SecurityQuestion2Custom.Trim(),
-            SecurityQuestion3Key = vm.SecurityQuestion3,
-            SecurityQuestion3CustomPrompt = string.IsNullOrWhiteSpace(vm.SecurityQuestion3Custom)
-                ? null
-                : vm.SecurityQuestion3Custom.Trim()
+            SecurityQuestion1Key = GetKeyAt(0),
+            SecurityQuestion1CustomPrompt = GetCustomAt(0),
+            SecurityQuestion2Key = GetKeyAt(1),
+            SecurityQuestion2CustomPrompt = GetCustomAt(1),
+            SecurityQuestion3Key = GetKeyAt(2),
+            SecurityQuestion3CustomPrompt = GetCustomAt(2)
         };
 
-        if (!string.IsNullOrWhiteSpace(vm.SecurityAnswer1))
+        var answer1 = GetAnswerAt(0);
+        if (!string.IsNullOrWhiteSpace(answer1))
         {
-            var normalizedAnswer = SecurityAnswerHelper.Normalize(vm.SecurityAnswer1);
+            var normalizedAnswer = SecurityAnswerHelper.Normalize(answer1);
             user.SecurityQuestion1AnswerHash = _users.PasswordHasher.HashPassword(user, normalizedAnswer);
         }
-        if (!string.IsNullOrWhiteSpace(vm.SecurityAnswer2))
+        var answer2 = GetAnswerAt(1);
+        if (!string.IsNullOrWhiteSpace(answer2))
         {
-            var normalizedAnswer = SecurityAnswerHelper.Normalize(vm.SecurityAnswer2);
+            var normalizedAnswer = SecurityAnswerHelper.Normalize(answer2);
             user.SecurityQuestion2AnswerHash = _users.PasswordHasher.HashPassword(user, normalizedAnswer);
         }
-        if (!string.IsNullOrWhiteSpace(vm.SecurityAnswer3))
+        var answer3 = GetAnswerAt(2);
+        if (!string.IsNullOrWhiteSpace(answer3))
         {
-            var normalizedAnswer = SecurityAnswerHelper.Normalize(vm.SecurityAnswer3);
+            var normalizedAnswer = SecurityAnswerHelper.Normalize(answer3);
             user.SecurityQuestion3AnswerHash = _users.PasswordHasher.HashPassword(user, normalizedAnswer);
         }
 
@@ -385,35 +401,25 @@ public class RegisterVm : IValidatableObject
     public string ConfirmPassword { get; set; } = string.Empty;
     public string? ReturnUrl { get; set; }
 
-    [Required]
     [DataType(DataType.Date)]
     public DateTime? BirthDate { get; set; }
 
-    [Required]
     public string SecurityQuestion1 { get; set; } = string.Empty;
 
     public string? SecurityQuestion1Custom { get; set; }
 
-    [Required]
-    [MinLength(3, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_SecurityQuestions_Answer_MinLength")]
     public string SecurityAnswer1 { get; set; } = string.Empty;
 
-    [Required]
     public string SecurityQuestion2 { get; set; } = string.Empty;
 
     public string? SecurityQuestion2Custom { get; set; }
 
-    [Required]
-    [MinLength(3, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_SecurityQuestions_Answer_MinLength")]
     public string SecurityAnswer2 { get; set; } = string.Empty;
 
-    [Required]
     public string SecurityQuestion3 { get; set; } = string.Empty;
 
     public string? SecurityQuestion3Custom { get; set; }
 
-    [Required]
-    [MinLength(3, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_SecurityQuestions_Answer_MinLength")]
     public string SecurityAnswer3 { get; set; } = string.Empty;
 
     public List<SecurityQuestionOptionVm> SecurityQuestionOptions { get; private set; } = new();
@@ -435,52 +441,136 @@ public class RegisterVm : IValidatableObject
             yield return new ValidationResult(Localize("Auth_Register_BirthDate_Future"), new[] { nameof(BirthDate) });
         }
 
-        var questionKeys = new[] { SecurityQuestion1, SecurityQuestion2, SecurityQuestion3 };
-        if (questionKeys.Any(string.IsNullOrWhiteSpace))
+        const int answerMinLength = 3;
+        const int customMinLength = 5;
+
+        string TrimOrEmpty(string? value) => (value ?? string.Empty).Trim();
+        string? TrimOrNull(string? value)
         {
-            yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Required"), new[]
-            {
-                nameof(SecurityQuestion1), nameof(SecurityQuestion2), nameof(SecurityQuestion3)
-            });
-            yield break;
+            var trimmed = (value ?? string.Empty).Trim();
+            return string.IsNullOrEmpty(trimmed) ? null : trimmed;
         }
 
-        if (questionKeys.GroupBy(x => x).Any(g => g.Count() > 1))
+        SecurityQuestion1 = TrimOrEmpty(SecurityQuestion1);
+        SecurityQuestion2 = TrimOrEmpty(SecurityQuestion2);
+        SecurityQuestion3 = TrimOrEmpty(SecurityQuestion3);
+        SecurityAnswer1 = TrimOrEmpty(SecurityAnswer1);
+        SecurityAnswer2 = TrimOrEmpty(SecurityAnswer2);
+        SecurityAnswer3 = TrimOrEmpty(SecurityAnswer3);
+        SecurityQuestion1Custom = TrimOrNull(SecurityQuestion1Custom);
+        SecurityQuestion2Custom = TrimOrNull(SecurityQuestion2Custom);
+        SecurityQuestion3Custom = TrimOrNull(SecurityQuestion3Custom);
+
+        var bannedAnswers = new HashSet<string>(new[]
+        {
+            "1234", "0000", "1111", "9999", "12345", "00000", "abcd", "qwerty", "password", "haslo", "hasło", "pass", "test", "admin"
+        }, StringComparer.OrdinalIgnoreCase);
+
+        var entries = new[]
+        {
+            new { Index = 0, QuestionMember = nameof(SecurityQuestion1), CustomMember = nameof(SecurityQuestion1Custom), AnswerMember = nameof(SecurityAnswer1), Key = SecurityQuestion1, Custom = SecurityQuestion1Custom, Answer = SecurityAnswer1 },
+            new { Index = 1, QuestionMember = nameof(SecurityQuestion2), CustomMember = nameof(SecurityQuestion2Custom), AnswerMember = nameof(SecurityAnswer2), Key = SecurityQuestion2, Custom = SecurityQuestion2Custom, Answer = SecurityAnswer2 },
+            new { Index = 2, QuestionMember = nameof(SecurityQuestion3), CustomMember = nameof(SecurityQuestion3Custom), AnswerMember = nameof(SecurityAnswer3), Key = SecurityQuestion3, Custom = SecurityQuestion3Custom, Answer = SecurityAnswer3 }
+        };
+
+        var usedKeys = new List<string>();
+
+        foreach (var entry in entries)
+        {
+            var key = TrimOrEmpty(entry.Key);
+            var custom = TrimOrNull(entry.Custom);
+            var answer = TrimOrEmpty(entry.Answer);
+
+            switch (entry.Index)
+            {
+                case 0:
+                    SecurityQuestion1 = key;
+                    SecurityQuestion1Custom = custom;
+                    SecurityAnswer1 = answer;
+                    break;
+                case 1:
+                    SecurityQuestion2 = key;
+                    SecurityQuestion2Custom = custom;
+                    SecurityAnswer2 = answer;
+                    break;
+                default:
+                    SecurityQuestion3 = key;
+                    SecurityQuestion3Custom = custom;
+                    SecurityAnswer3 = answer;
+                    break;
+            }
+
+            var hasInput = !string.IsNullOrWhiteSpace(key) || !string.IsNullOrWhiteSpace(custom) || !string.IsNullOrWhiteSpace(answer);
+            if (!hasInput)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_SelectRequired"), new[] { entry.QuestionMember });
+                continue;
+            }
+
+            var option = SecurityQuestionCatalog.Find(key);
+            if (option is null)
+            {
+                yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Invalid"), new[] { entry.QuestionMember });
+                continue;
+            }
+
+            usedKeys.Add(key);
+
+            if (option.AllowsCustomPrompt)
+            {
+                if (string.IsNullOrWhiteSpace(custom) || custom.Length < customMinLength)
+                {
+                    yield return new ValidationResult(string.Format(Localize("Auth_Register_SecurityQuestions_Custom_MinLength"), customMinLength), new[] { entry.CustomMember });
+                }
+            }
+            else
+            {
+                custom = null;
+                switch (entry.Index)
+                {
+                    case 0:
+                        SecurityQuestion1Custom = null;
+                        break;
+                    case 1:
+                        SecurityQuestion2Custom = null;
+                        break;
+                    default:
+                        SecurityQuestion3Custom = null;
+                        break;
+                }
+            }
+
+
+            if (string.IsNullOrWhiteSpace(answer) || answer.Length < answerMinLength)
+            {
+                yield return new ValidationResult(string.Format(Localize("Auth_SecurityQuestions_Answer_MinLength"), answerMinLength), new[] { entry.AnswerMember });
+                continue;
+            }
+            var questionText = option.AllowsCustomPrompt && !string.IsNullOrWhiteSpace(custom)
+                            ? custom!
+                            : Localize(option.ResourceKey);
+
+            if (!string.IsNullOrWhiteSpace(questionText) && string.Equals(questionText.Trim(), answer, StringComparison.OrdinalIgnoreCase))
+            {
+                yield return new ValidationResult(Localize("Auth_SecurityQuestions_Answer_MatchesQuestion"), new[] { entry.AnswerMember });
+            }
+            else if (bannedAnswers.Contains(answer))
+            {
+                yield return new ValidationResult(Localize("Auth_SecurityQuestions_Answer_Common"), new[] { entry.AnswerMember });
+            }
+        }
+
+        if (usedKeys.GroupBy(x => x, StringComparer.OrdinalIgnoreCase).Any(g => g.Count() > 1))
         {
             yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Distinct"), new[]
             {
                 nameof(SecurityQuestion1), nameof(SecurityQuestion2), nameof(SecurityQuestion3)
             });
-        }
-
-        IEnumerable<ValidationResult> ValidateCustom(string key, string? custom, string questionMemberName, string customMemberName)
-        {
-            var option = SecurityQuestionCatalog.Find(key);
-            if (option is null)
-            {
-                yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Invalid"), new[] { questionMemberName });
-                yield break;
-            }
-
-            if (option.AllowsCustomPrompt && string.IsNullOrWhiteSpace(custom))
-            {
-                yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_CustomRequired"), new[] { customMemberName });
-            }
-        }
-
-        foreach (var result in ValidateCustom(SecurityQuestion1, SecurityQuestion1Custom, nameof(SecurityQuestion1), nameof(SecurityQuestion1Custom)))
-        {
-            yield return result;
-        }
-
-        foreach (var result in ValidateCustom(SecurityQuestion2, SecurityQuestion2Custom, nameof(SecurityQuestion2), nameof(SecurityQuestion2Custom)))
-        {
-            yield return result;
-        }
-
-        foreach (var result in ValidateCustom(SecurityQuestion3, SecurityQuestion3Custom, nameof(SecurityQuestion3), nameof(SecurityQuestion3Custom)))
-        {
-            yield return result;
         }
     }
 }

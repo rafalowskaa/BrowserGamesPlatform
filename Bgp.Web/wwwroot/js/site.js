@@ -47,6 +47,11 @@
             return;
         }
 
+        var toggle = container.querySelector('[data-questions-toggle]');
+        var addNextButton = container.querySelector('[data-questions-add]');
+        var disableButton = container.querySelector('[data-questions-disable]');
+        var emptyHint = container.querySelector('[data-empty-hint]');
+
         var maxQuestions = parseInt(container.getAttribute('data-max-questions') || '3', 10);
         if (!maxQuestions || maxQuestions < 1) {
             maxQuestions = 3;
@@ -62,15 +67,17 @@
             questionMinLength = 5;
         }
 
-        var initialCount = parseInt(container.getAttribute('data-initial-count') || '1', 10);
-        if (!initialCount || initialCount < 1) {
-            initialCount = 1;
+        var initialCountAttr = parseInt(container.getAttribute('data-initial-count') || '0', 10);
+        if (initialCountAttr < 0) {
+            initialCountAttr = 0;
         }
 
-        var initialActive = parseInt(container.getAttribute('data-initial-active') || '0', 10);
-        if (initialActive < 0) {
-            initialActive = 0;
+        var initialActiveAttr = parseInt(container.getAttribute('data-initial-active') || '-1', 10);
+        if (initialActiveAttr < -1) {
+            initialActiveAttr = -1;
         }
+
+        var initialEnabledAttr = container.getAttribute('data-initial-enabled') === 'true';
 
         var messages = {
             questionRequired: container.getAttribute('data-message-question-required') || '',
@@ -99,7 +106,9 @@
         var bannedAnswers = ['1234', '0000', '1111', '9999', '12345', '00000', 'abcd', 'qwerty', 'password', 'haslo', 'hasło', 'pass', 'test', 'admin'];
         bannedAnswers = bannedAnswers.map(function (value) { return value.toLowerCase(); });
 
-        var emptyHint = container.querySelector('[data-empty-hint]');
+        function trim(value) {
+            return (value || '').trim();
+        }
 
         var items = Array.from(list.querySelectorAll('[data-question-item]')).map(function (element, index) {
             var summary = element.querySelector('[data-question-summary]');
@@ -111,8 +120,6 @@
             var questionError = body ? body.querySelector('[data-error-question]') : null;
             var customError = body ? body.querySelector('[data-error-custom]') : null;
             var answerError = body ? body.querySelector('[data-error-answer]') : null;
-            var addButton = body ? body.querySelector('[data-question-add]') : null;
-            var bodyRemove = body ? body.querySelector('[data-question-remove]') : null;
             var summaryQuestion = summary ? summary.querySelector('[data-summary-question]') : null;
             var summaryAnswer = summary ? summary.querySelector('[data-summary-answer]') : null;
             var summaryToggle = summary ? summary.querySelector('[data-summary-toggle]') : null;
@@ -131,8 +138,6 @@
                 questionError: questionError,
                 customError: customError,
                 answerError: answerError,
-                addButton: addButton,
-                bodyRemove: bodyRemove,
                 summaryQuestion: summaryQuestion,
                 summaryAnswer: summaryAnswer,
                 summaryToggle: summaryToggle,
@@ -149,8 +154,44 @@
             return;
         }
 
-        var visibleCount = Math.min(Math.max(initialCount, 1), Math.min(maxQuestions, items.length));
-        var activeIndex = Math.min(Math.max(initialActive, 0), visibleCount - 1);
+        function hasAnyValue(item) {
+            if (!item) {
+                return false;
+            }
+            var selectValue = item.select ? trim(item.select.value) : '';
+            var customValue = item.customInput ? trim(item.customInput.value) : '';
+            var answerValue = item.answerInput ? trim(item.answerInput.value) : '';
+            return !!(selectValue || customValue || answerValue);
+        }
+
+        function getSelectedOption(item) {
+            if (!item || !item.select || item.select.selectedIndex < 0) {
+                return null;
+            }
+            return item.select.options[item.select.selectedIndex] || null;
+        }
+
+        function getAnswerValue(item) {
+            return item && item.answerInput ? trim(item.answerInput.value) : '';
+        }
+
+        function getQuestionText(item) {
+            if (!item) {
+                return '';
+            }
+            var option = getSelectedOption(item);
+            var allowsCustom = option && option.dataset.allowsCustom === 'true';
+            if (allowsCustom && item.customInput && item.customContainer && !item.customContainer.hidden) {
+                var customValue = trim(item.customInput.value);
+                if (customValue) {
+                    return customValue;
+                }
+            }
+            if (option) {
+                return trim(option.textContent || '');
+            }
+            return '';
+        }
 
         function maskAnswer(answer) {
             var length = Math.max(answer.length, 5);
@@ -178,54 +219,12 @@
             if (!item || !item.customContainer || !item.select) {
                 return;
             }
-
-            var selectedOption = item.select.options[item.select.selectedIndex];
-            var allowsCustom = selectedOption && selectedOption.dataset.allowsCustom === 'true';
+            var option = getSelectedOption(item);
+            var allowsCustom = option && option.dataset.allowsCustom === 'true';
             item.customContainer.hidden = !allowsCustom;
             if (!allowsCustom && item.customInput) {
                 item.customInput.value = '';
             }
-        }
-
-        function getQuestionText(item) {
-            if (!item) {
-                return '';
-            }
-
-            var allowsCustom = item.customContainer && !item.customContainer.hidden;
-            if (allowsCustom && item.customInput) {
-                var customValue = (item.customInput.value || '').trim();
-                if (customValue) {
-                    return customValue;
-                }
-            }
-
-            if (item.select && item.select.value) {
-                var selectedOption = item.select.options[item.select.selectedIndex];
-                if (selectedOption) {
-                    return (selectedOption.textContent || '').trim();
-                }
-            }
-            return '';
-        }
-
-        function getAnswerValue(item) {
-            if (!item || !item.answerInput) {
-                return '';
-            }
-
-            return (item.answerInput.value || '').trim();
-        }
-
-        function hasAnyValue(item) {
-            if (!item) {
-                return false;
-            }
-
-            var selectValue = item.select ? (item.select.value || '').trim() : '';
-            var customValue = item.customInput ? (item.customInput.value || '').trim() : '';
-            var answerValue = getAnswerValue(item);
-            return !!(selectValue || customValue || answerValue);
         }
 
         function updateSummary(item) {
@@ -270,66 +269,59 @@
             }
         }
 
+        var maxVisible = Math.min(maxQuestions, items.length);
+        var serverVisibleCount = 0;
+        var serverActiveIndex = -1;
+
+        items.forEach(function (item, index) {
+            if (item.element.getAttribute('data-has-error') === 'true' && serverActiveIndex < 0) {
+                serverActiveIndex = index;
+            }
+            if (hasAnyValue(item) || item.element.getAttribute('data-has-error') === 'true') {
+                serverVisibleCount = index + 1;
+            }
+        });
+
+        var enabled = initialEnabledAttr || serverVisibleCount > 0;
+        var visibleCount = enabled ? Math.min(Math.max(initialCountAttr, serverVisibleCount, 1), maxVisible) : 0;
+        var activeIndex = enabled ? initialActiveAttr : -1;
+
+        if (enabled) {
+            if (activeIndex < 0 && serverActiveIndex >= 0) {
+                activeIndex = Math.min(serverActiveIndex, visibleCount - 1);
+            }
+            if (activeIndex < 0 && serverVisibleCount > 0) {
+                activeIndex = Math.min(serverVisibleCount - 1, visibleCount - 1);
+            }
+            if (activeIndex < 0 && visibleCount > 0) {
+                activeIndex = visibleCount - 1;
+            }
+        } else {
+            activeIndex = -1;
+        }
+
         function updateEmptyHint() {
             if (!emptyHint) {
                 return;
             }
-
-            if (visibleCount <= 1 && !hasAnyValue(items[0])) {
+            if (!enabled || !visibleCount) {
                 emptyHint.hidden = false;
-            } else {
-                emptyHint.hidden = true;
-            }
-        }
-
-        function updateAddButtonState(item) {
-            if (!item || !item.addButton) {
                 return;
             }
-            var isActive = item.index === activeIndex && item.state === 'active';
-            var canAddMore = visibleCount < Math.min(maxQuestions, items.length);
-            item.addButton.hidden = !(isActive && canAddMore);
-            if (!item.addButton.hidden) {
-                item.addButton.disabled = !validateItem(item, { showErrors: false });
-            } else {
-                item.addButton.disabled = true;
+            var hasAnswers = false;
+            for (var i = 0; i < visibleCount; i++) {
+                if (hasAnyValue(items[i])) {
+                    hasAnswers = true;
+                    break;
+                }
             }
-        }
-
-        function updateRemoveButtons() {
-            items.forEach(function (item, index) {
-                var enabled = visibleCount > 1 && index < visibleCount;
-                if (item.bodyRemove) {
-                    item.bodyRemove.disabled = !enabled;
-                    if (!enabled) {
-                        item.bodyRemove.setAttribute('aria-disabled', 'true');
-                    } else {
-                        item.bodyRemove.removeAttribute('aria-disabled');
-                    }
-                }
-                if (item.summaryRemove) {
-                    item.summaryRemove.disabled = !enabled;
-                    if (!enabled) {
-                        item.summaryRemove.setAttribute('aria-disabled', 'true');
-                        item.summaryRemove.setAttribute('tabindex', '-1');
-                    } else {
-                        item.summaryRemove.removeAttribute('aria-disabled');
-                        item.summaryRemove.removeAttribute('tabindex');
-                    }
-                }
-
-                
-            });
-
+            var hasActive = activeIndex >= 0 && activeIndex < visibleCount;
+            emptyHint.hidden = hasAnswers || hasActive;
         }
 
         function setState(item, state) {
             if (!item) {
                 return;
-            }
-
-            if (state === 'summary' && visibleCount <= 1) {
-                state = 'active';
             }
             item.state = state;
             item.element.hidden = state === 'hidden';
@@ -346,7 +338,6 @@
             if (!item || !item.body || item.state !== 'active') {
                 return;
             }
-
             var focusable = item.body.querySelector('select, input');
             if (focusable) {
                 focusable.focus();
@@ -355,36 +346,51 @@
 
         function validateItem(item, options) {
             if (!item) {
-                return false;
+                return true;
             }
-
             options = options || {};
             var showErrors = options.showErrors === true;
-            var selectValue = item.select ? (item.select.value || '').trim() : '';
-            var selectedOption = item.select && item.select.selectedIndex >= 0 ? item.select.options[item.select.selectedIndex] : null;
-            var allowsCustom = !!(selectedOption && selectedOption.dataset.allowsCustom === 'true');
-            var customValue = item.customInput ? (item.customInput.value || '').trim() : '';
+            var selectValue = item.select ? trim(item.select.value) : '';
+            var option = getSelectedOption(item);
+            var allowsCustom = option && option.dataset.allowsCustom === 'true';
+            var customValue = item.customInput ? trim(item.customInput.value) : '';
             var answerValue = getAnswerValue(item);
 
+            var hasInput = !!(selectValue || customValue || answerValue);
             var questionError = '';
             var customError = '';
             var answerError = '';
 
+            if (!hasInput) {
+                if (showErrors) {
+                    applyError(item.questionError, '');
+                    if (item.customError) {
+                        applyError(item.customError, '');
+                    }
+                    applyError(item.answerError, '');
+                }
+                return true;
+            }
+
             if (!selectValue) {
                 questionError = messages.questionRequired;
             }
-
             if (allowsCustom) {
                 if (customValue.length < questionMinLength) {
                     customError = messages.customMinLength.replace('{0}', questionMinLength);
+                }
+            } else if (customValue) {
+                customValue = '';
+                if (item.customInput) {
+                    item.customInput.value = '';
                 }
             }
 
             if (answerValue.length < answerMinLength) {
                 answerError = messages.answerMinLength.replace('{0}', answerMinLength);
-            } else {
-                var questionText = allowsCustom && !customError ? customValue : getQuestionText(item);
-                if (questionText && questionText.trim().toLowerCase() === answerValue.toLowerCase()) {
+            } else if (selectValue) {
+                var questionText = getQuestionText(item);
+                if (questionText && questionText.toLowerCase() === answerValue.toLowerCase()) {
                     answerError = messages.answerMatches;
                 } else if (bannedAnswers.indexOf(answerValue.toLowerCase()) !== -1) {
                     answerError = messages.answerCommon;
@@ -398,13 +404,11 @@
                 } else if (item.customError) {
                     applyError(item.customError, '');
                 }
-
                 applyError(item.answerError, answerError);
             } else {
                 if (!questionError) {
                     applyError(item.questionError, '');
                 }
-
                 if (!customError && item.customError) {
                     applyError(item.customError, '');
                 }
@@ -417,7 +421,21 @@
         }
 
         function updateOptionAvailability() {
-            var activeSelects = items.slice(0, visibleCount).map(function (item) { return item.select; }).filter(function (select) { return !!select; });
+            if (!enabled) {
+                items.forEach(function (item) {
+                    if (item.select) {
+                        Array.from(item.select.options).forEach(function (option) {
+                            option.disabled = false;
+                            option.hidden = false;
+                        });
+                    }
+                });
+                return;
+            }
+            var activeSelects = items.slice(0, visibleCount)
+                .map(function (item) { return item.select; })
+                .filter(function (select) { return !!select; });
+
             activeSelects.forEach(function (select) {
 
                 var currentValue = select.value;
@@ -436,60 +454,130 @@
                     option.disabled = shouldDisable;
                     option.hidden = shouldDisable;
                 });
+            });
+        }
 
-                if (currentValue && activeSelects.some(function (other) { return other !== select && other.value === currentValue; })) {
-                    select.value = '';
-                    select.dispatchEvent(new Event('change', { bubbles: true }));
+        function updateRemoveButtons() {
+            items.forEach(function (item, index) {
+                var enabledForItem = enabled && index < visibleCount;
+                if (item.bodyRemove) {
+                    item.bodyRemove.disabled = !enabledForItem;
+                    if (!enabledForItem) {
+                        item.bodyRemove.setAttribute('aria-disabled', 'true');
+                    } else {
+                        item.bodyRemove.removeAttribute('aria-disabled');
+                    }
+                }
+                if (item.summaryRemove) {
+                    item.summaryRemove.disabled = !enabledForItem;
+                    if (!enabledForItem) {
+                        item.summaryRemove.setAttribute('aria-disabled', 'true');
+                        item.summaryRemove.setAttribute('tabindex', '-1');
+                    } else {
+                        item.summaryRemove.removeAttribute('aria-disabled');
+                        item.summaryRemove.removeAttribute('tabindex');
+                    }
                 }
             });
         }
 
+        function updateActionButtons() {
+            if (addNextButton) {
+                if (!enabled) {
+                    addNextButton.hidden = true;
+                } else {
+                    var atCapacity = visibleCount >= maxVisible;
+                    addNextButton.hidden = atCapacity;
+                    if (!atCapacity) {
+                        var hasActive = activeIndex >= 0 && activeIndex < visibleCount;
+                        var canAdd = !hasActive;
+                        if (canAdd) {
+                            for (var i = 0; i < visibleCount; i++) {
+                                if (!validateItem(items[i], { showErrors: false })) {
+                                    canAdd = false;
+                                    break;
+                                }
+                            }
+                        }
+                        addNextButton.disabled = !canAdd;
+                    } else {
+                        addNextButton.disabled = true;
+                    }
+                }
+            }
+            if (disableButton) {
+                disableButton.hidden = !enabled;
+                disableButton.disabled = !enabled;
+            }
+            if (toggle) {
+                toggle.checked = enabled;
+            }
+        }
+
         function refreshStates(options) {
             options = options || {};
+            if (!enabled) {
+                items.forEach(function (item) {
+                    setState(item, 'hidden');
+                    updateSummary(item);
+                });
+                if (list) {
+                    list.hidden = true;
+                }
+                updateOptionAvailability();
+                updateRemoveButtons();
+                updateEmptyHint();
+                updateActionButtons();
+                return;
+            }
+
+            if (list) {
+                list.hidden = false;
+            }
+
+            if (visibleCount < 0) {
+                visibleCount = 0;
+            }
+            if (visibleCount > maxVisible) {
+                visibleCount = maxVisible;
+            }
+
+            var hasActive = activeIndex >= 0 && activeIndex < visibleCount;
             items.forEach(function (item, index) {
                 if (index >= visibleCount) {
                     setState(item, 'hidden');
-                } else if (index === activeIndex) {
+                } else if (hasActive && index === activeIndex) {
                     setState(item, 'active');
                 } else {
                     setState(item, 'summary');
                 }
                 updateSummary(item);
-                updateAddButtonState(item);
+
             });
-            updateRemoveButtons();
+
             updateOptionAvailability();
+            updateRemoveButtons();
             updateEmptyHint();
-            if (options.focusActive !== false && items[activeIndex]) {
+            updateActionButtons();
+
+            if (hasActive && options.focusActive !== false && items[activeIndex]) {
                 focusFirstField(items[activeIndex]);
             }
         }
 
-        function addQuestionAt(index) {
-            var item = items[index];
-            if (!item) {
+        function completeItem(item) {
+            if (!enabled || !item) {
                 return;
             }
-            if (!validateItem(item, { showErrors: true })) {
-                var focusTarget = item.select && !item.select.value ? item.select : null;
-                if (!focusTarget && item.customContainer && !item.customContainer.hidden && item.customInput && (item.customInput.value || '').trim().length < questionMinLength) {
-                    focusTarget = item.customInput;
-                }
-                if (!focusTarget && item.answerInput) {
-                    focusTarget = item.answerInput;
-                }
-                if (focusTarget) {
-                    focusTarget.focus();
-                }
+            if (activeIndex !== item.index) {
                 return;
             }
 
-            if (visibleCount >= Math.min(maxQuestions, items.length)) {
-                return;
+            if (validateItem(item, { showErrors: false })) {
+                activeIndex = -1;
+                refreshStates({ focusActive: false });
             }
-            visibleCount += 1;
-            activeIndex = visibleCount - 1;
-            refreshStates({ focusActive: true });
+
         }
 
         function clearItemValues(item) {
@@ -542,12 +630,13 @@
         }
 
         function removeQuestion(index) {
-            if (index < 0 || index >= visibleCount) {
+            if (!enabled || index < 0 || index >= visibleCount) {
                 return;
             }
 
             if (visibleCount <= 1) {
                 clearItemValues(items[0]);
+                activeIndex = 0;
                 refreshStates({ focusActive: true });
                 return;
             }
@@ -559,6 +648,55 @@
             if (activeIndex >= visibleCount) {
                 activeIndex = visibleCount - 1;
             }
+            refreshStates({ focusActive: true });
+        }
+
+        function showNextQuestion() {
+            if (!enabled) {
+                setEnabled(true);
+            }
+            if (!enabled) {
+                return;
+            }
+            if (visibleCount >= maxVisible) {
+                return;
+            }
+            visibleCount += 1;
+            activeIndex = visibleCount - 1;
+            refreshStates({ focusActive: true });
+        }
+
+        function setEnabled(value) {
+            value = !!value;
+            if (enabled === value) {
+                if (enabled) {
+                    refreshStates({ focusActive: activeIndex >= 0 });
+                } else {
+                    updateEmptyHint();
+                    updateActionButtons();
+                }
+                return;
+            }
+            enabled = value;
+            container.classList.toggle('security-questions--disabled', !enabled);
+            if (!enabled) {
+                visibleCount = 0;
+                activeIndex = -1;
+                items.forEach(function (item) {
+                    setState(item, 'hidden');
+                    clearItemValues(item);
+                });
+                if (list) {
+                    list.hidden = true;
+                }
+                updateOptionAvailability();
+                updateRemoveButtons();
+                updateEmptyHint();
+                updateActionButtons();
+                return;
+            }
+            visibleCount = Math.min(Math.max(visibleCount || 1, 1), maxVisible);
+            activeIndex = Math.min(Math.max(activeIndex, 0), visibleCount - 1);
             refreshStates({ focusActive: true });
         }
 
@@ -574,8 +712,13 @@
                     updateCustomVisibility(item);
                     validateItem(item, { showErrors: false });
                     updateSummary(item);
-                    updateAddButtonState(item);
-                    updateOptionAvailability();
+                    if (activeIndex === item.index) {
+                        completeItem(item);
+                    }
+                    updateActionButtons();
+                });
+                item.select.addEventListener('blur', function () {
+                    completeItem(item);
                 });
             }
 
@@ -586,7 +729,10 @@
                     }
                     validateItem(item, { showErrors: false });
                     updateSummary(item);
-                    updateAddButtonState(item);
+                    updateActionButtons();
+                });
+                item.customInput.addEventListener('blur', function () {
+                    completeItem(item);
                 });
             }
 
@@ -597,13 +743,10 @@
                     }
                     validateItem(item, { showErrors: false });
                     updateSummary(item);
-                    updateAddButtonState(item);
+                    updateActionButtons();
                 });
-            }
-
-            if (item.addButton) {
-                item.addButton.addEventListener('click', function () {
-                    addQuestionAt(item.index);
+                item.answerInput.addEventListener('blur', function () {
+                    completeItem(item);
                 });
             }
 
@@ -621,6 +764,9 @@
 
             if (item.summaryEdit) {
                 item.summaryEdit.addEventListener('click', function () {
+                    if (!enabled) {
+                        setEnabled(true);
+                    }
                     activeIndex = item.index;
                     refreshStates({ focusActive: true });
                 });
@@ -637,19 +783,44 @@
             }
             if (item.body) {
                 item.body.addEventListener('keydown', function (event) {
-                    if (event.key === 'Escape' && visibleCount > 1) {
+                    if (event.key === 'Escape' && enabled) {
                         event.preventDefault();
-                        var targetIndex = item.index > 0 ? item.index - 1 : (item.index + 1 < visibleCount ? item.index + 1 : item.index);
-                        activeIndex = Math.max(0, targetIndex);
-                        refreshStates({ focusActive: true });
+                        activeIndex = -1;
+                        refreshStates({ focusActive: false });
                     }
                 });
             }
         });
 
-        refreshStates({ focusActive: false });
-        if (items[activeIndex]) {
-            focusFirstField(items[activeIndex]);
+        if (addNextButton) {
+            addNextButton.addEventListener('click', function () {
+                showNextQuestion();
+            });
+        }
+
+        if (disableButton) {
+            disableButton.addEventListener('click', function () {
+                setEnabled(false);
+            });
+        }
+
+        if (toggle) {
+            toggle.addEventListener('change', function () {
+                setEnabled(toggle.checked);
+                if (enabled && visibleCount === 0) {
+                    showNextQuestion();
+                }
+            });
+        }
+
+        setEnabled(enabled);
+        if (enabled && visibleCount === 0) {
+            showNextQuestion();
+        } else {
+            refreshStates({ focusActive: enabled && activeIndex >= 0 });
+        }
+        if (!enabled) {
+            updateActionButtons();
         }
     }
 

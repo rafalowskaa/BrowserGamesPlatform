@@ -1303,6 +1303,9 @@
 	<data name="Dashboard_Common_SelectFile">
 		<value>Wybierz plik</value>
 	</data>
+	<data name="Common_Optional">
+		<value>Opcjonalne</value>
+	</data>
 	<data name="Dashboard_Common_NoFile">
 		<value>Nie wybrano pliku</value>
 	</data>
@@ -3052,7 +3055,16 @@
     <value>Edytuj</value>
   </data>
 	<data name="Auth_Register_SecurityQuestions_EmptyState" xml:space="preserve">
-    <value>Dodaj od 1 do 3 pytań zabezpieczających.</value>
+    <value>Pytania zabezpieczające są opcjonalne, ale ułatwiają odzyskanie konta.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Info" xml:space="preserve">
+    <value>Pytania są dodatkowe i pomagają lepiej chronić konto.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Toggle" xml:space="preserve">
+    <value>Włącz pytania zabezpieczające</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Disable" xml:space="preserve">
+    <value>Usuń wszystkie pytania zabezpieczające</value>
   </data>
 	<data name="Auth_Register_SecurityQuestions_SelectRequired" xml:space="preserve">
     <value>Wybierz pytanie z listy.</value>

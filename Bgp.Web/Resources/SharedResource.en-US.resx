@@ -2839,6 +2839,9 @@
 	<data name="Admin_Games_Metadata_Success">
 		<value>Game metadata updated.</value>
 	</data>
+	<data name="Common_Optional">
+		<value>Optional</value>
+	</data>
 	<data name="Dashboard_Common_SelectFile">
 		<value>Choose file</value>
 	</data>
@@ -3003,7 +3006,16 @@
     <value>Edit</value>
   </data>
 	<data name="Auth_Register_SecurityQuestions_EmptyState" xml:space="preserve">
-    <value>Add between one and three security questions.</value>
+    <value>Security questions are optional, but they make it easier to recover your account.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Info" xml:space="preserve">
+    <value>Security questions are optional but help keep your account safe.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Toggle" xml:space="preserve">
+    <value>Enable security questions</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Disable" xml:space="preserve">
+    <value>Remove all security questions</value>
   </data>
 	<data name="Auth_Register_SecurityQuestions_SelectRequired" xml:space="preserve">
     <value>Please select a question.</value>
