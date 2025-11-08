@@ -3039,6 +3039,33 @@
 	<data name="Auth_Register_SecurityQuestions_CustomRequired" xml:space="preserve">
     <value>Wpisz treść własnego pytania.</value>
   </data>
+	<data name="Auth_Register_SecurityQuestions_AddAnother" xml:space="preserve">
+    <value>Dodaj kolejne pytanie</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_RemoveThis" xml:space="preserve">
+    <value>Usuń to pytanie</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Remove" xml:space="preserve">
+    <value>Usuń</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Edit" xml:space="preserve">
+    <value>Edytuj</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_EmptyState" xml:space="preserve">
+    <value>Dodaj od 1 do 3 pytań zabezpieczających.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_SelectRequired" xml:space="preserve">
+    <value>Wybierz pytanie z listy.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Custom_MinLength" xml:space="preserve">
+    <value>Wpisz co najmniej {0} znaków.</value>
+  </data>
+	<data name="Auth_SecurityQuestions_Answer_Common" xml:space="preserve">
+    <value>Odpowiedź jest zbyt oczywista. Wybierz inną.</value>
+  </data>
+	<data name="Auth_SecurityQuestions_Answer_MatchesQuestion" xml:space="preserve">
+    <value>Odpowiedź nie może powtarzać pytania.</value>
+  </data>
 	<data name="Auth_SecurityQuestion_FirstPet" xml:space="preserve">
     <value>Jak wabił się Twój pierwszy pupil?</value>
   </data>

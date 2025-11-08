@@ -42,262 +42,383 @@
             return;
         }
 
-        var sequential = container.getAttribute('data-sequential') !== 'false';
-        var answerMinLength = parseInt(container.getAttribute('data-answer-minlength') || '1', 10);
-        if (isNaN(answerMinLength) || answerMinLength < 1) {
-            answerMinLength = 1;
-        }
-
-        var stage = container.querySelector('[data-question-stage]') || container;
-        var questionBlocks = Array.from(stage.querySelectorAll('.security-question'));
-        if (!questionBlocks.length) {
+        var list = container.querySelector('[data-question-list]');
+        if (!list) {
             return;
         }
 
-        var progressContainer = container.querySelector('[data-question-progress]');
-        var progressButtons = [];
-        var completed = questionBlocks.map(function () { return false; });
-        var activeIndex = 0;
-        var unlockedCount = 1;
+        var maxQuestions = parseInt(container.getAttribute('data-max-questions') || '3', 10);
+        if (!maxQuestions || maxQuestions < 1) {
+            maxQuestions = 3;
+        }
 
-        var selects = questionBlocks
-            .map(function (block) { return block.querySelector('select'); })
-            .filter(function (select) { return !!select; });
+        var answerMinLength = parseInt(container.getAttribute('data-answer-minlength') || '3', 10);
+        if (!answerMinLength || answerMinLength < 1) {
+            answerMinLength = 3;
+        }
 
-        function updateCustomVisibility(select, customContainer) {
-            if (!select || !customContainer) {
+        var questionMinLength = parseInt(container.getAttribute('data-question-minlength') || '5', 10);
+        if (!questionMinLength || questionMinLength < 1) {
+            questionMinLength = 5;
+        }
+
+        var initialCount = parseInt(container.getAttribute('data-initial-count') || '1', 10);
+        if (!initialCount || initialCount < 1) {
+            initialCount = 1;
+        }
+
+        var initialActive = parseInt(container.getAttribute('data-initial-active') || '0', 10);
+        if (initialActive < 0) {
+            initialActive = 0;
+        }
+
+        var messages = {
+            questionRequired: container.getAttribute('data-message-question-required') || '',
+            customMinLength: container.getAttribute('data-message-custom-min') || '',
+            answerMinLength: container.getAttribute('data-message-answer-min') || '',
+            answerCommon: container.getAttribute('data-message-answer-common') || '',
+            answerMatches: container.getAttribute('data-message-answer-matches') || ''
+        };
+
+        if (!messages.questionRequired) {
+            messages.questionRequired = 'Please select a question.';
+        }
+        if (!messages.customMinLength) {
+            messages.customMinLength = 'Provide a custom question of at least {0} characters.';
+        }
+        if (!messages.answerMinLength) {
+            messages.answerMinLength = 'The answer must be at least {0} characters long.';
+        }
+        if (!messages.answerCommon) {
+            messages.answerCommon = 'Choose a stronger answer.';
+        }
+        if (!messages.answerMatches) {
+            messages.answerMatches = 'Answer cannot repeat the question.';
+        }
+
+        var bannedAnswers = ['1234', '0000', '1111', '9999', '12345', '00000', 'abcd', 'qwerty', 'password', 'haslo', 'hasło', 'pass', 'test', 'admin'];
+        bannedAnswers = bannedAnswers.map(function (value) { return value.toLowerCase(); });
+
+        var emptyHint = container.querySelector('[data-empty-hint]');
+
+        var items = Array.from(list.querySelectorAll('[data-question-item]')).map(function (element, index) {
+            var summary = element.querySelector('[data-question-summary]');
+            var body = element.querySelector('[data-question-body]');
+            var select = body ? body.querySelector('select[data-question-select]') || body.querySelector('select') : null;
+            var customContainer = body ? body.querySelector('[data-custom-container]') : null;
+            var customInput = customContainer ? customContainer.querySelector('input') : null;
+            var answerInput = body ? body.querySelector('[data-answer-input]') : null;
+            var questionError = body ? body.querySelector('[data-error-question]') : null;
+            var customError = body ? body.querySelector('[data-error-custom]') : null;
+            var answerError = body ? body.querySelector('[data-error-answer]') : null;
+            var addButton = body ? body.querySelector('[data-question-add]') : null;
+            var bodyRemove = body ? body.querySelector('[data-question-remove]') : null;
+            var summaryQuestion = summary ? summary.querySelector('[data-summary-question]') : null;
+            var summaryAnswer = summary ? summary.querySelector('[data-summary-answer]') : null;
+            var summaryToggle = summary ? summary.querySelector('[data-summary-toggle]') : null;
+            var summaryToggleLabel = summary ? summary.querySelector('[data-summary-toggle-label]') : null;
+            var summaryEdit = summary ? summary.querySelector('[data-summary-edit]') : null;
+            var summaryRemove = summary ? summary.querySelector('[data-summary-remove]') : null;
+
+            return {
+                element: element,
+                summary: summary,
+                body: body,
+                select: select,
+                customContainer: customContainer,
+                customInput: customInput,
+                answerInput: answerInput,
+                questionError: questionError,
+                customError: customError,
+                answerError: answerError,
+                addButton: addButton,
+                bodyRemove: bodyRemove,
+                summaryQuestion: summaryQuestion,
+                summaryAnswer: summaryAnswer,
+                summaryToggle: summaryToggle,
+                summaryToggleLabel: summaryToggleLabel,
+                summaryEdit: summaryEdit,
+                summaryRemove: summaryRemove,
+                index: index,
+                summaryRevealed: false,
+                state: 'hidden'
+            };
+        });
+
+        if (!items.length) {
+            return;
+        }
+
+        var visibleCount = Math.min(Math.max(initialCount, 1), Math.min(maxQuestions, items.length));
+        var activeIndex = Math.min(Math.max(initialActive, 0), visibleCount - 1);
+
+        function maskAnswer(answer) {
+            var length = Math.max(answer.length, 5);
+            var mask = '';
+            for (var i = 0; i < length; i++) {
+                mask += '•';
+            }
+            return mask;
+        }
+
+        function applyError(target, message) {
+            if (!target) {
                 return;
             }
 
-            var selectedOption = select.options[select.selectedIndex];
+            if (message) {
+                target.textContent = message;
+                target.dataset.clientMessage = 'true';
+            } else if (target.dataset.clientMessage === 'true') {
+                target.textContent = '';
+            }
+        }
+
+        function updateCustomVisibility(item) {
+            if (!item || !item.customContainer || !item.select) {
+                return;
+            }
+
+            var selectedOption = item.select.options[item.select.selectedIndex];
             var allowsCustom = selectedOption && selectedOption.dataset.allowsCustom === 'true';
-            customContainer.hidden = !allowsCustom;
-            if (!allowsCustom) {
-                var customInput = customContainer.querySelector('input');
-                if (customInput) {
-                    customInput.value = '';
+            item.customContainer.hidden = !allowsCustom;
+            if (!allowsCustom && item.customInput) {
+                item.customInput.value = '';
+            }
+        }
+
+        function getQuestionText(item) {
+            if (!item) {
+                return '';
+            }
+
+            var allowsCustom = item.customContainer && !item.customContainer.hidden;
+            if (allowsCustom && item.customInput) {
+                var customValue = (item.customInput.value || '').trim();
+                if (customValue) {
+                    return customValue;
+                }
+            }
+
+            if (item.select && item.select.value) {
+                var selectedOption = item.select.options[item.select.selectedIndex];
+                if (selectedOption) {
+                    return (selectedOption.textContent || '').trim();
+                }
+            }
+            return '';
+        }
+
+        function getAnswerValue(item) {
+            if (!item || !item.answerInput) {
+                return '';
+            }
+
+            return (item.answerInput.value || '').trim();
+        }
+
+        function hasAnyValue(item) {
+            if (!item) {
+                return false;
+            }
+
+            var selectValue = item.select ? (item.select.value || '').trim() : '';
+            var customValue = item.customInput ? (item.customInput.value || '').trim() : '';
+            var answerValue = getAnswerValue(item);
+            return !!(selectValue || customValue || answerValue);
+        }
+
+        function updateSummary(item) {
+            if (!item) {
+                return;
+            }
+            var questionText = getQuestionText(item);
+            if (item.summaryQuestion) {
+                item.summaryQuestion.textContent = questionText || '—';
+            }
+            var answerValue = getAnswerValue(item);
+            if (!answerValue) {
+                item.summaryRevealed = false;
+            }
+            if (item.summaryToggle) {
+                var showLabel = item.summaryToggle.getAttribute('data-summary-show-label') || 'Show';
+                var hideLabel = item.summaryToggle.getAttribute('data-summary-hide-label') || 'Hide';
+                var hasAnswer = !!answerValue;
+                if (hasAnswer) {
+                    item.summaryToggle.removeAttribute('aria-disabled');
+                    item.summaryToggle.disabled = false;
+                    item.summaryToggle.setAttribute('aria-pressed', item.summaryRevealed ? 'true' : 'false');
+                    item.summaryToggle.setAttribute('aria-label', item.summaryRevealed ? hideLabel : showLabel);
+                } else {
+                    item.summaryToggle.setAttribute('aria-disabled', 'true');
+                    item.summaryToggle.disabled = true;
+                    item.summaryToggle.setAttribute('aria-pressed', 'false');
+                    item.summaryToggle.setAttribute('aria-label', showLabel);
+                }
+                if (item.summaryToggleLabel) {
+                    item.summaryToggleLabel.textContent = hasAnswer && item.summaryRevealed ? hideLabel : showLabel;
+                }
+            }
+            if (item.summaryAnswer) {
+                if (!answerValue) {
+                    item.summaryAnswer.textContent = '—';
+                } else if (item.summaryRevealed) {
+                    item.summaryAnswer.textContent = answerValue;
+                } else {
+                    item.summaryAnswer.textContent = maskAnswer(answerValue);
                 }
             }
         }
 
-        function focusFirstField(block) {
-            if (!block) {
+        function updateEmptyHint() {
+            if (!emptyHint) {
                 return;
             }
 
-            var focusable = block.querySelector('select, input');
+            if (visibleCount <= 1 && !hasAnyValue(items[0])) {
+                emptyHint.hidden = false;
+            } else {
+                emptyHint.hidden = true;
+            }
+        }
+
+        function updateAddButtonState(item) {
+            if (!item || !item.addButton) {
+                return;
+            }
+            var isActive = item.index === activeIndex && item.state === 'active';
+            var canAddMore = visibleCount < Math.min(maxQuestions, items.length);
+            item.addButton.hidden = !(isActive && canAddMore);
+            if (!item.addButton.hidden) {
+                item.addButton.disabled = !validateItem(item, { showErrors: false });
+            } else {
+                item.addButton.disabled = true;
+            }
+        }
+
+        function updateRemoveButtons() {
+            items.forEach(function (item, index) {
+                var enabled = visibleCount > 1 && index < visibleCount;
+                if (item.bodyRemove) {
+                    item.bodyRemove.disabled = !enabled;
+                    if (!enabled) {
+                        item.bodyRemove.setAttribute('aria-disabled', 'true');
+                    } else {
+                        item.bodyRemove.removeAttribute('aria-disabled');
+                    }
+                }
+                if (item.summaryRemove) {
+                    item.summaryRemove.disabled = !enabled;
+                    if (!enabled) {
+                        item.summaryRemove.setAttribute('aria-disabled', 'true');
+                        item.summaryRemove.setAttribute('tabindex', '-1');
+                    } else {
+                        item.summaryRemove.removeAttribute('aria-disabled');
+                        item.summaryRemove.removeAttribute('tabindex');
+                    }
+                }
+
+                
+            });
+
+        }
+
+        function setState(item, state) {
+            if (!item) {
+                return;
+            }
+
+            if (state === 'summary' && visibleCount <= 1) {
+                state = 'active';
+            }
+            item.state = state;
+            item.element.hidden = state === 'hidden';
+            if (item.summary) {
+                item.summary.hidden = state !== 'summary';
+            }
+            if (item.body) {
+                item.body.hidden = state !== 'active';
+            }
+            item.element.classList.toggle('is-active', state === 'active');
+        }
+
+        function focusFirstField(item) {
+            if (!item || !item.body || item.state !== 'active') {
+                return;
+            }
+
+            var focusable = item.body.querySelector('select, input');
             if (focusable) {
                 focusable.focus();
             }
         }
 
-        function isBlockComplete(block, select, customContainer, customInput, answer) {
-            if (!block) {
+        function validateItem(item, options) {
+            if (!item) {
                 return false;
             }
 
-            select = select || block.querySelector('select');
-            customContainer = customContainer || block.querySelector('[data-custom-container]');
-            customInput = customInput || (customContainer ? customContainer.querySelector('input') : null);
-            answer = answer || block.querySelector('[data-answer-input]');
+            options = options || {};
+            var showErrors = options.showErrors === true;
+            var selectValue = item.select ? (item.select.value || '').trim() : '';
+            var selectedOption = item.select && item.select.selectedIndex >= 0 ? item.select.options[item.select.selectedIndex] : null;
+            var allowsCustom = !!(selectedOption && selectedOption.dataset.allowsCustom === 'true');
+            var customValue = item.customInput ? (item.customInput.value || '').trim() : '';
+            var answerValue = getAnswerValue(item);
 
-            if (select && !select.value) {
-                return false;
+            var questionError = '';
+            var customError = '';
+            var answerError = '';
+
+            if (!selectValue) {
+                questionError = messages.questionRequired;
             }
 
-            var requiresCustom = !!(customContainer && !customContainer.hidden);
-            if (requiresCustom) {
-                var customValue = customInput ? customInput.value.trim() : '';
-                if (!customValue) {
-                    return false;
+            if (allowsCustom) {
+                if (customValue.length < questionMinLength) {
+                    customError = messages.customMinLength.replace('{0}', questionMinLength);
                 }
             }
 
-            var answerValue = answer ? answer.value.trim() : '';
             if (answerValue.length < answerMinLength) {
-                return false;
-            }
-
-            return true;
-        }
-
-        function evaluateBlockCompletion(index) {
-            var block = questionBlocks[index];
-            if (!block) {
-                completed[index] = false;
-                return false;
-            }
-
-            var select = block.querySelector('select');
-            var customContainer = block.querySelector('[data-custom-container]');
-            var customInput = customContainer ? customContainer.querySelector('input') : null;
-            var answer = block.querySelector('[data-answer-input]');
-            var isComplete = isBlockComplete(block, select, customContainer, customInput, answer);
-            completed[index] = isComplete;
-            if (!isComplete) {
-                block.classList.remove('is-complete');
-            }
-            return isComplete;
-        }
-
-        function refreshProgress() {
-            if (!sequential || !progressButtons.length) {
-                return;
-            }
-
-            progressButtons.forEach(function (button, index) {
-                var isUnlocked = index < unlockedCount;
-                var isActive = index === activeIndex;
-                var isComplete = completed[index] && !isActive;
-                button.disabled = !isUnlocked;
-                if (!isUnlocked) {
-                    button.setAttribute('aria-disabled', 'true');
-                } else {
-                    button.removeAttribute('aria-disabled');
-                }
-                if (isActive) {
-                    button.setAttribute('aria-current', 'step');
-                } else {
-                    button.removeAttribute('aria-current');
-                }
-                button.classList.toggle('is-active', isActive);
-                button.classList.toggle('is-complete', isComplete);
-            });
-        }
-
-        function setActive(index, options) {
-            if (!sequential) {
-                return;
-            }
-
-            if (unlockedCount < 1) {
-                unlockedCount = 1;
-            }
-
-            var opts = options || {};
-            if (index < 0) {
-                index = 0;
-            }
-            if (index >= unlockedCount) {
-                index = unlockedCount - 1;
-            }
-            if (index < 0) {
-                index = 0;
-            }
-
-            activeIndex = index;
-
-            questionBlocks.forEach(function (block, blockIndex) {
-                if (!block) {
-                    return;
-                }
-
-                var isActive = blockIndex === activeIndex;
-                block.hidden = !isActive;
-                block.classList.toggle('is-active', isActive);
-                block.classList.toggle('is-complete', completed[blockIndex] && !isActive);
-            });
-
-            refreshProgress();
-
-            if (opts.focus !== false) {
-                focusFirstField(questionBlocks[activeIndex]);
-            }
-        }
-
-        function unlockStep(stepIndex) {
-            if (!sequential) {
-                return;
-            }
-
-            if (typeof stepIndex !== 'number' || stepIndex < 0) {
-                return;
-            }
-
-            var target = Math.min(questionBlocks.length, stepIndex + 1);
-            if (target > unlockedCount) {
-                unlockedCount = target;
-                refreshProgress();
-            }
-        }
-
-        function hideFollowingBlocks(startIndex) {
-            if (!sequential) {
-                return;
-            }
-
-            for (var i = startIndex; i < questionBlocks.length; i++) {
-                var block = questionBlocks[i];
-                if (!block) {
-                    continue;
-                }
-
-                block.hidden = true;
-                block.classList.remove('is-active');
-                block.classList.remove('is-complete');
-                completed[i] = false;
-            }
-
-            var newUnlocked = Math.max(1, Math.min(unlockedCount, startIndex));
-            if (newUnlocked !== unlockedCount) {
-                unlockedCount = newUnlocked;
-            }
-
-            if (activeIndex >= unlockedCount) {
-                setActive(unlockedCount - 1, { focus: false, force: true });
+                answerError = messages.answerMinLength.replace('{0}', answerMinLength);
             } else {
-                refreshProgress();
+                var questionText = allowsCustom && !customError ? customValue : getQuestionText(item);
+                if (questionText && questionText.trim().toLowerCase() === answerValue.toLowerCase()) {
+                    answerError = messages.answerMatches;
+                } else if (bannedAnswers.indexOf(answerValue.toLowerCase()) !== -1) {
+                    answerError = messages.answerCommon;
+                }
             }
-        }
 
-        function createProgress() {
-            if (!sequential || !progressContainer) {
-                return;
-            }
-
-            progressContainer.innerHTML = '';
-            progressButtons = [];
-
-            questionBlocks.forEach(function (block, index) {
-                if (!block) {
-                    return;
+            if (showErrors) {
+                applyError(item.questionError, questionError);
+                if (allowsCustom || customError) {
+                    applyError(item.customError, customError);
+                } else if (item.customError) {
+                    applyError(item.customError, '');
                 }
 
-                var button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'security-questions__step';
-
-                var numberSpan = document.createElement('span');
-                numberSpan.className = 'security-questions__step-number';
-                numberSpan.textContent = String(index + 1);
-                button.appendChild(numberSpan);
-
-                var labelEl = block.querySelector('label');
-                var labelText = labelEl ? labelEl.textContent.trim() : '';
-                if (labelText) {
-                    var textSpan = document.createElement('span');
-                    textSpan.className = 'security-questions__step-label';
-                    textSpan.textContent = labelText;
-                    button.appendChild(textSpan);
+                applyError(item.answerError, answerError);
+            } else {
+                if (!questionError) {
+                    applyError(item.questionError, '');
                 }
 
-                button.setAttribute('aria-label', labelText || ('Security question ' + (index + 1)));
-                button.addEventListener('click', function () {
-                    if (index < unlockedCount) {
-                        setActive(index, { focus: true, force: true });
-                    }
-                });
+                if (!customError && item.customError) {
+                    applyError(item.customError, '');
+                }
+                if (!answerError) {
+                    applyError(item.answerError, '');
+                }
+            }
 
-                progressContainer.appendChild(button);
-                progressButtons.push(button);
-            });
+            return !(questionError || customError || answerError);
         }
 
         function updateOptionAvailability() {
-            selects.forEach(function (select) {
-                if (!select) {
-                    return;
-                }
+            var activeSelects = items.slice(0, visibleCount).map(function (item) { return item.select; }).filter(function (select) { return !!select; });
+            activeSelects.forEach(function (select) {
 
                 var currentValue = select.value;
                 Array.from(select.options).forEach(function (option) {
@@ -307,8 +428,8 @@
                         return;
                     }
 
-                    var isSelectedElsewhere = selects.some(function (other) {
-                        return other && other !== select && other.value === option.value;
+                    var isSelectedElsewhere = activeSelects.some(function (other) {
+                        return other !== select && other.value === option.value;
                     });
 
                     var shouldDisable = isSelectedElsewhere && option.value !== currentValue;
@@ -316,144 +437,220 @@
                     option.hidden = shouldDisable;
                 });
 
-                if (currentValue && selects.some(function (other) {
-                    return other && other !== select && other.value === currentValue;
-                })) {
+                if (currentValue && activeSelects.some(function (other) { return other !== select && other.value === currentValue; })) {
                     select.value = '';
-                    var evt = new Event('change', { bubbles: true });
-                    select.dispatchEvent(evt);
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             });
         }
 
-        questionBlocks.forEach(function (block, index) {
-            if (!block) {
+        function refreshStates(options) {
+            options = options || {};
+            items.forEach(function (item, index) {
+                if (index >= visibleCount) {
+                    setState(item, 'hidden');
+                } else if (index === activeIndex) {
+                    setState(item, 'active');
+                } else {
+                    setState(item, 'summary');
+                }
+                updateSummary(item);
+                updateAddButtonState(item);
+            });
+            updateRemoveButtons();
+            updateOptionAvailability();
+            updateEmptyHint();
+            if (options.focusActive !== false && items[activeIndex]) {
+                focusFirstField(items[activeIndex]);
+            }
+        }
+
+        function addQuestionAt(index) {
+            var item = items[index];
+            if (!item) {
+                return;
+            }
+            if (!validateItem(item, { showErrors: true })) {
+                var focusTarget = item.select && !item.select.value ? item.select : null;
+                if (!focusTarget && item.customContainer && !item.customContainer.hidden && item.customInput && (item.customInput.value || '').trim().length < questionMinLength) {
+                    focusTarget = item.customInput;
+                }
+                if (!focusTarget && item.answerInput) {
+                    focusTarget = item.answerInput;
+                }
+                if (focusTarget) {
+                    focusTarget.focus();
+                }
                 return;
             }
 
-            var select = block.querySelector('select');
-            var customContainer = block.querySelector('[data-custom-container]');
-            var customInput = customContainer ? customContainer.querySelector('input') : null;
-            var answer = block.querySelector('[data-answer-input]');
-
-            if (select) {
-                updateCustomVisibility(select, customContainer);
+            if (visibleCount >= Math.min(maxQuestions, items.length)) {
+                return;
             }
-
-            completed[index] = isBlockComplete(block, select, customContainer, customInput, answer);
-
-            if (!sequential) {
-                block.hidden = false;
-            }
-        });
-
-        var errorIndex = questionBlocks.findIndex(function (block) {
-            return block && block.dataset.hasError === 'true';
-        });
-
-        var firstIncompleteIndex = completed.findIndex(function (value) {
-            return !value;
-        });
-
-        if (!sequential) {
-            unlockedCount = questionBlocks.length;
-            activeIndex = errorIndex >= 0 ? errorIndex : (firstIncompleteIndex >= 0 ? firstIncompleteIndex : 0);
-        } else {
-            if (firstIncompleteIndex === -1) {
-                unlockedCount = questionBlocks.length;
-                activeIndex = errorIndex >= 0 ? errorIndex : (questionBlocks.length - 1);
-            } else {
-                unlockedCount = Math.max(1, firstIncompleteIndex + 1);
-                activeIndex = errorIndex >= 0 ? errorIndex : firstIncompleteIndex;
-            }
-
-            if (errorIndex >= 0) {
-                unlockedCount = Math.max(unlockedCount, errorIndex + 1);
-            }
+            visibleCount += 1;
+            activeIndex = visibleCount - 1;
+            refreshStates({ focusActive: true });
         }
 
-        if (sequential && progressContainer) {
-            createProgress();
-        } else if (!sequential && progressContainer) {
-            progressContainer.hidden = true;
+        function clearItemValues(item) {
+            if (!item) {
+                return;
+            }
+            if (item.questionError) {
+                item.questionError.dataset.clientMessage = 'true';
+            }
+            if (item.customError) {
+                item.customError.dataset.clientMessage = 'true';
+            }
+            if (item.answerError) {
+                item.answerError.dataset.clientMessage = 'true';
+            }
+            if (item.select) {
+                item.select.value = '';
+                item.select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            if (item.customInput) {
+                item.customInput.value = '';
+            }
+            if (item.customContainer) {
+                item.customContainer.hidden = true;
+            }
+            if (item.answerInput) {
+                item.answerInput.value = '';
+            }
+            applyError(item.questionError, '');
+            applyError(item.customError, '');
+            applyError(item.answerError, '');
+            item.summaryRevealed = false;
         }
 
-        if (sequential) {
-            setActive(activeIndex, { focus: false, force: true });
+        function copyValues(fromItem, toItem) {
+            if (!fromItem || !toItem) {
+                return;
+            }
+            if (toItem.select) {
+                toItem.select.value = fromItem.select ? fromItem.select.value : '';
+                toItem.select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            if (toItem.customInput) {
+                toItem.customInput.value = fromItem.customInput ? fromItem.customInput.value : '';
+            }
+            if (toItem.answerInput) {
+                toItem.answerInput.value = fromItem.answerInput ? fromItem.answerInput.value : '';
+            }
+            toItem.summaryRevealed = false;
         }
 
-        questionBlocks.forEach(function (block, index) {
-            if (!block) {
+        function removeQuestion(index) {
+            if (index < 0 || index >= visibleCount) {
                 return;
             }
 
-            var select = block.querySelector('select');
-            var customContainer = block.querySelector('[data-custom-container]');
-            var customInput = customContainer ? customContainer.querySelector('input') : null;
-            var answer = block.querySelector('[data-answer-input]');
-            var nextIndex = index + 1;
+            if (visibleCount <= 1) {
+                clearItemValues(items[0]);
+                refreshStates({ focusActive: true });
+                return;
+            }
+            for (var i = index; i < visibleCount - 1; i++) {
+                copyValues(items[i + 1], items[i]);
+            }
+            clearItemValues(items[visibleCount - 1]);
+            visibleCount -= 1;
+            if (activeIndex >= visibleCount) {
+                activeIndex = visibleCount - 1;
+            }
+            refreshStates({ focusActive: true });
+        }
 
-            function handleInput(options) {
-                updateOptionAvailability();
-                var isComplete = evaluateBlockCompletion(index);
+        items.forEach(function (item) {
+            updateCustomVisibility(item);
+            updateSummary(item);
 
-                if (!sequential) {
-                    return;
-                }
-
-                if (isComplete) {
-                    unlockStep(nextIndex);
-                }
-
-                if (nextIndex >= questionBlocks.length) {
-                    refreshProgress();
-                    return;
-                }
-
-                var nextBlock = questionBlocks[nextIndex];
-                if (!nextBlock) {
-                    refreshProgress();
-                    return;
-                }
-
-                if (isComplete) {
-                    if (nextBlock.dataset.hasError !== 'true') {
-                        nextBlock.hidden = false;
+            if (item.select) {
+                item.select.addEventListener('change', function () {
+                    if (item.questionError) {
+                        item.questionError.dataset.clientMessage = 'true';
                     }
-                    setActive(nextIndex, { focus: options && options.focus !== false, force: true });
-                    refreshProgress();
-                    return;
-                }
-
-                hideFollowingBlocks(nextIndex);
-            }
-
-            if (select) {
-                select.addEventListener('change', function () {
-                    block.dataset.hasError = 'false';
-                    updateCustomVisibility(select, customContainer);
-                    handleInput({ focus: false });
+                    updateCustomVisibility(item);
+                    validateItem(item, { showErrors: false });
+                    updateSummary(item);
+                    updateAddButtonState(item);
+                    updateOptionAvailability();
                 });
             }
 
-            if (customInput) {
-                customInput.addEventListener('input', function () {
-                    block.dataset.hasError = 'false';
-                    handleInput({ focus: false });
+            if (item.customInput) {
+                item.customInput.addEventListener('input', function () {
+                    if (item.customError) {
+                        item.customError.dataset.clientMessage = 'true';
+                    }
+                    validateItem(item, { showErrors: false });
+                    updateSummary(item);
+                    updateAddButtonState(item);
                 });
             }
 
-            if (answer) {
-                answer.addEventListener('input', function () {
-                    block.dataset.hasError = 'false';
-                    handleInput({ focus: true });
+            if (item.answerInput) {
+                item.answerInput.addEventListener('input', function () {
+                    if (item.answerError) {
+                        item.answerError.dataset.clientMessage = 'true';
+                    }
+                    validateItem(item, { showErrors: false });
+                    updateSummary(item);
+                    updateAddButtonState(item);
                 });
             }
 
+            if (item.addButton) {
+                item.addButton.addEventListener('click', function () {
+                    addQuestionAt(item.index);
+                });
+            }
+
+            if (item.bodyRemove) {
+                item.bodyRemove.addEventListener('click', function () {
+                    removeQuestion(item.index);
+                });
+            }
+
+            if (item.summaryRemove) {
+                item.summaryRemove.addEventListener('click', function () {
+                    removeQuestion(item.index);
+                });
+            }
+
+            if (item.summaryEdit) {
+                item.summaryEdit.addEventListener('click', function () {
+                    activeIndex = item.index;
+                    refreshStates({ focusActive: true });
+                });
+            }
+
+            if (item.summaryToggle) {
+                item.summaryToggle.addEventListener('click', function () {
+                    if (item.summaryToggle.disabled) {
+                        return;
+                    }
+                    item.summaryRevealed = !item.summaryRevealed;
+                    updateSummary(item);
+                });
+            }
+            if (item.body) {
+                item.body.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape' && visibleCount > 1) {
+                        event.preventDefault();
+                        var targetIndex = item.index > 0 ? item.index - 1 : (item.index + 1 < visibleCount ? item.index + 1 : item.index);
+                        activeIndex = Math.max(0, targetIndex);
+                        refreshStates({ focusActive: true });
+                    }
+                });
+            }
         });
 
-        updateOptionAvailability();
-        refreshProgress();
+        refreshStates({ focusActive: false });
+        if (items[activeIndex]) {
+            focusFirstField(items[activeIndex]);
+        }
     }
 
     window.Bgp.initSecurityQuestions = initSecurityQuestions;

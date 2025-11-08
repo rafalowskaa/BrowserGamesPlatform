@@ -3172,6 +3172,33 @@
 	<data name="Auth_Register_SecurityQuestions_CustomRequired" xml:space="preserve">
     <value>Enter a custom question.</value>
   </data>
+	<data name="Auth_Register_SecurityQuestions_AddAnother" xml:space="preserve">
+    <value>Add another question</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_RemoveThis" xml:space="preserve">
+    <value>Remove this question</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_EmptyState" xml:space="preserve">
+    <value>Add between one and three security questions.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_SelectRequired" xml:space="preserve">
+    <value>Please select a question.</value>
+  </data>
+	<data name="Auth_Register_SecurityQuestions_Custom_MinLength" xml:space="preserve">
+    <value>Write at least {0} characters.</value>
+  </data>
+	<data name="Auth_SecurityQuestions_Answer_Common" xml:space="preserve">
+    <value>Choose a less obvious answer.</value>
+  </data>
+	<data name="Auth_SecurityQuestions_Answer_MatchesQuestion" xml:space="preserve">
+    <value>The answer cannot match the question.</value>
+  </data>
 	<data name="Auth_SecurityQuestion_FirstPet" xml:space="preserve">
     <value>What was the name of your first pet?</value>
   </data>
