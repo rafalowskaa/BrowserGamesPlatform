@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -95,6 +96,8 @@ var unityContentTypes = new Dictionary<string, string>(StringComparer.OrdinalIgn
     [".json"] = "application/json"
 };
 
+var unityEncodingCache = new ConcurrentDictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+
 var contentTypeProvider = new FileExtensionContentTypeProvider();
 contentTypeProvider.Mappings[".data"] = "application/octet-stream";
 contentTypeProvider.Mappings[".wasm"] = "application/wasm";
@@ -124,7 +127,9 @@ static string? ResolveUnityContentType(string path, IDictionary<string, string> 
     return null;
 }
 
-static void ApplyUnityResponseHeaders(StaticFileResponseContext context, IDictionary<string, string> typeMap)
+static void ApplyUnityResponseHeaders(
+    StaticFileResponseContext context,
+    IDictionary<string, string> typeMap)
 {
     var requestPath = context.Context.Request.Path.Value;
     var physicalPath = context.File?.PhysicalPath;
@@ -155,11 +160,73 @@ static void ApplyUnityResponseHeaders(StaticFileResponseContext context, IDictio
     }
     else if (path.EndsWith(".unityweb", StringComparison.OrdinalIgnoreCase))
     {
+        var encoding = ResolveUnityEncoding(path);
+        if (!string.IsNullOrEmpty(encoding))
+        {
+            context.Context.Response.Headers["Content-Encoding"] = encoding;
+        }
+
         var contentType = ResolveUnityContentType(path, typeMap);
         if (!string.IsNullOrEmpty(contentType))
         {
             context.Context.Response.ContentType = contentType;
         }
+    }
+}
+
+string? ResolveUnityEncoding(string path)
+{
+    if (string.IsNullOrEmpty(path))
+    {
+        return null;
+    }
+
+    if (!unityEncodingCache.TryGetValue(path, out var cached))
+    {
+        cached = DetectUnityEncoding(path);
+        unityEncodingCache[path] = cached;
+    }
+
+    return cached;
+}
+
+static string? DetectUnityEncoding(string path)
+{
+    try
+    {
+        if (!File.Exists(path))
+        {
+            return null;
+        }
+
+        Span<byte> header = stackalloc byte[2];
+        using var stream = File.OpenRead(path);
+        var read = stream.Read(header);
+
+        if (read >= 2 && header[0] == 0x1F && header[1] == 0x8B)
+        {
+            return "gzip";
+        }
+
+        if (read > 0)
+        {
+            var first = header[0];
+            // Treat printable ASCII (uncompressed content) and UTF-8 BOM as unencoded.
+            if ((first >= 0x20 && first <= 0x7E) || first is 0xEF or 0xFE or 0xFF)
+            {
+                return null;
+            }
+        }
+
+        return "br";
+    }
+    catch (IOException)
+    {
+        return null;
+    }
+    catch (UnauthorizedAccessException)
+    {
+        return null;
     }
 }
 
