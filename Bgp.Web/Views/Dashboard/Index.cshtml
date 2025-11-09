@@ -142,8 +142,8 @@
                     <div class="profile-actions__menu">
                         <label for="profileAction">@L["Dashboard_Profile_Actions_Label"].Value</label>
                         <select id="profileAction" class="profile-actions__select" data-default="@selectedProfilePanel">
-                            <option value="info" selected="@(selectedProfilePanel == "info" ? "selected" : null)">@L["Dashboard_Profile_Actions_EditInfo"].Value</option>
-                            <option value="security" selected="@(selectedProfilePanel == "security" ? "selected" : null)">@L["Dashboard_Profile_Actions_Security"].Value</option>
+                            <option value="info" selected="@(selectedProfilePanel == "info")">@L["Dashboard_Profile_Actions_EditInfo"].Value</option>
+                            <option value="security" selected="@(selectedProfilePanel == "security")">@L["Dashboard_Profile_Actions_Security"].Value</option>
                         </select>
                     </div>
 
@@ -195,7 +195,7 @@
                                         @foreach (var option in Model.Profile.VisibilityOptions)
                                         {
                                             var isSelected = option.Value == ((int)Model.Profile.DisplayNameVisibility).ToString();
-                                            <option value="@option.Value" selected="@(isSelected ? "selected" : null)">@option.Text</option>
+                                            <option value="@option.Value" selected="@isSelected">@option.Text</option>
                                         }
                                     </select>
                                 </div>
@@ -211,16 +211,16 @@
                                             <option value="">@L["Dashboard_Profile_BirthDate_MonthPlaceholder"].Value</option>
                                             @foreach (var month in months)
                                             {
-                                                var selected = month.Value == Model.Profile.BirthMonth ? "selected" : null;
-                                                <option value="@month.Value" selected="@selected">@month.Name</option>
+                                                var isSelected = month.Value == Model.Profile.BirthMonth;
+                                                <option value="@month.Value" selected="@isSelected">@month.Name</option>
                                             }
                                         </select>
                                         <select id="BirthDay" name="BirthDay">
                                             <option value="">@L["Dashboard_Profile_BirthDate_DayPlaceholder"].Value</option>
                                             @foreach (var day in days)
                                             {
-                                                var selected = day == Model.Profile.BirthDay ? "selected" : null;
-                                                <option value="@day" selected="@selected">@day.ToString("00")</option>
+                                                var isSelected = day == Model.Profile.BirthDay;
+                                                <option value="@day" selected="@isSelected">@day.ToString("00")</option>
                                             }
                                         </select>
                                     </div>
@@ -236,7 +236,7 @@
                                         @foreach (var option in Model.Profile.VisibilityOptions)
                                         {
                                             var isSelected = option.Value == ((int)Model.Profile.BirthDateVisibility).ToString();
-                                            <option value="@option.Value" selected="@(isSelected ? "selected" : null)">@option.Text</option>
+                                            <option value="@option.Value" selected="@isSelected">@option.Text</option>
                                         }
                                     </select>
                                 </div>
@@ -256,7 +256,7 @@
                                         @foreach (var option in Model.Profile.VisibilityOptions)
                                         {
                                             var isSelected = option.Value == ((int)Model.Profile.EmailVisibility).ToString();
-                                            <option value="@option.Value" selected="@(isSelected ? "selected" : null)">@option.Text</option>
+                                            <option value="@option.Value" selected="@isSelected">@option.Text</option>
                                         }
                                     </select>
                                 </div>
@@ -406,9 +406,9 @@
                                                         }
                                                         <option value="@option.Key"
                                                                 data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")"
-                                                                selected="@(option.Key == Model.Security.Recovery.SecurityQuestion1 ? "selected" : null)">@option.Label</option>
+                                                                selected="@(option.Key == Model.Security.Recovery.SecurityQuestion1)">@option.Label</option>
                                                     }
-                                                    <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true" @(Model.Security.Recovery.SecurityQuestion1 == SecurityQuestionCatalog.CustomKey ? "selected" : null)>@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
+                                                    <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true" selected="@(Model.Security.Recovery.SecurityQuestion1 == SecurityQuestionCatalog.CustomKey)">@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
                                                 </select>
                                                 @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion1), null, new { @class = "val" })
                                                 <div class="security-question__custom-group" data-custom-container @((showRecoveryQuestion1Custom ? string.Empty : " hidden"))>
@@ -460,9 +460,9 @@
                                                         }
                                                         <option value="@option.Key"
                                                                 data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")"
-                                                                selected="@(option.Key == Model.Security.Recovery.SecurityQuestion2 ? "selected" : null)">@option.Label</option>
+                                                                selected="@(option.Key == Model.Security.Recovery.SecurityQuestion2)">@option.Label</option>
                                                     }
-                                                    <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true" @(Model.Security.Recovery.SecurityQuestion2 == SecurityQuestionCatalog.CustomKey ? "selected" : null)>@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
+                                                    <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true" selected="@(Model.Security.Recovery.SecurityQuestion2 == SecurityQuestionCatalog.CustomKey)">@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
                                                 </select>
                                                 @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion2), null, new { @class = "val" })
                                                 <div class="security-question__custom-group" data-custom-container @((showRecoveryQuestion2Custom ? string.Empty : " hidden"))>
@@ -514,9 +514,9 @@
                                                         }
                                                         <option value="@option.Key"
                                                                 data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")"
-                                                                selected="@(option.Key == Model.Security.Recovery.SecurityQuestion3 ? "selected" : null)">@option.Label</option>
+                                                                selected="@(option.Key == Model.Security.Recovery.SecurityQuestion3)">@option.Label</option>
                                                     }
-                                                    <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true" @(Model.Security.Recovery.SecurityQuestion3 == SecurityQuestionCatalog.CustomKey ? "selected" : null)>@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
+                                                    <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true" selected="@(Model.Security.Recovery.SecurityQuestion3 == SecurityQuestionCatalog.CustomKey)">@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
                                                 </select>
                                                 @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion3), null, new { @class = "val" })
                                                 <div class="security-question__custom-group" data-custom-container @((showRecoveryQuestion3Custom ? string.Empty : " hidden"))>
@@ -673,7 +673,7 @@
                                             class="wizard-field__control">
                                         @foreach (var option in Model.NewGame.CategoryOptions)
                                         {
-                                            <option value="@option.Value" selected="@(option.Selected ? "selected" : null)">@option.Text</option>
+                                            <option value="@option.Value" selected="@option.Selected">@option.Text</option>
                                         }
                                     </select>
                                     @Html.ValidationMessage("SelectedCategoryValues", null, new { @class = "val" })
