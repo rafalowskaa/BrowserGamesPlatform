@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Text;
 using Bgp.Infrastructure.Extensions;
 using Bgp.Infrastructure.Persistence;
@@ -10,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -84,6 +87,82 @@ CultureInfo.DefaultThreadCurrentUICulture = supportedCultures[0];
 
 var app = builder.Build();
 
+var unityContentTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+{
+    [".js"] = "application/javascript",
+    [".wasm"] = "application/wasm",
+    [".data"] = "application/octet-stream",
+    [".json"] = "application/json"
+};
+
+var contentTypeProvider = new FileExtensionContentTypeProvider();
+contentTypeProvider.Mappings[".data"] = "application/octet-stream";
+contentTypeProvider.Mappings[".wasm"] = "application/wasm";
+contentTypeProvider.Mappings[".unityweb"] = "application/octet-stream";
+contentTypeProvider.Mappings[".br"] = "application/octet-stream";
+contentTypeProvider.Mappings[".gz"] = "application/octet-stream";
+
+static string? ResolveUnityContentType(string path, IDictionary<string, string> typeMap)
+{
+    var withoutCompression = Path.GetFileNameWithoutExtension(path);
+    if (string.IsNullOrEmpty(withoutCompression))
+    {
+        return null;
+    }
+
+    var originalExtension = Path.GetExtension(withoutCompression);
+    if (string.IsNullOrEmpty(originalExtension))
+    {
+        return null;
+    }
+
+    if (typeMap.TryGetValue(originalExtension, out var mapped))
+    {
+        return mapped;
+    }
+
+    return null;
+}
+
+static void ApplyUnityResponseHeaders(StaticFileResponseContext context, IDictionary<string, string> typeMap)
+{
+    var requestPath = context.Context.Request.Path.Value;
+    var physicalPath = context.File?.PhysicalPath;
+    var path = physicalPath ?? requestPath;
+
+    if (string.IsNullOrEmpty(path))
+    {
+        return;
+    }
+
+    if (path.EndsWith(".br", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Context.Response.Headers["Content-Encoding"] = "br";
+        var contentType = ResolveUnityContentType(path, typeMap);
+        if (!string.IsNullOrEmpty(contentType))
+        {
+            context.Context.Response.ContentType = contentType;
+        }
+    }
+    else if (path.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Context.Response.Headers["Content-Encoding"] = "gzip";
+        var contentType = ResolveUnityContentType(path, typeMap);
+        if (!string.IsNullOrEmpty(contentType))
+        {
+            context.Context.Response.ContentType = contentType;
+        }
+    }
+    else if (path.EndsWith(".unityweb", StringComparison.OrdinalIgnoreCase))
+    {
+        var contentType = ResolveUnityContentType(path, typeMap);
+        if (!string.IsNullOrEmpty(contentType))
+        {
+            context.Context.Response.ContentType = contentType;
+        }
+    }
+}
+
 // Migracje + seeding
 await AppDbInitializer.MigrateAndSeedAsync(app.Services);
 
@@ -97,7 +176,11 @@ var locOpts = app.Services.GetRequiredService<IOptions<RequestLocalizationOption
 app.UseRequestLocalization(locOpts.Value);
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = contentTypeProvider,
+    OnPrepareResponse = ctx => ApplyUnityResponseHeaders(ctx, unityContentTypes)
+});
 app.UseRouting();
 
 app.UseCors("Games");

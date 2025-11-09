@@ -51,7 +51,7 @@ public class GameContentResolver : IGameContentResolver
 
         var options = new List<GamePlayOptionViewModel>();
 
-        var indexFile = FindFirstFile(root, "index.html");
+        var indexFile = FindFirstIndexFile(root);
         if (indexFile is not null)
         {
             var relative = ToWebPath(indexFile);
@@ -106,9 +106,35 @@ public class GameContentResolver : IGameContentResolver
         return Path.Combine(webRoot, trimmed.Replace('/', Path.DirectorySeparatorChar));
     }
 
-    private static string? FindFirstFile(string root, string fileName)
+    private static string? FindFirstIndexFile(string root)
     {
-        return Directory.EnumerateFiles(root, fileName, SearchOption.AllDirectories).FirstOrDefault();
+        static bool IsIndexFile(string filePath)
+        {
+            var fileName = Path.GetFileName(filePath);
+            return fileName.Equals("index.html", StringComparison.OrdinalIgnoreCase)
+                || fileName.Equals("index.htm", StringComparison.OrdinalIgnoreCase);
+        }
+
+        try
+        {
+            foreach (var file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+            {
+                if (IsIndexFile(file))
+                {
+                    return file;
+                }
+            }
+        }
+        catch (IOException)
+        {
+            return null;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return null;
+        }
+
+        return null;
     }
 
     private static IEnumerable<string> EnumerateFiles(string root, string pattern)
