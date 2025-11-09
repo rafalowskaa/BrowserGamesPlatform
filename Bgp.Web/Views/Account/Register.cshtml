@@ -4,10 +4,9 @@
     ViewData["Title"] = L["Auth_Register_Title"].Value;
 
     bool HasError(string propertyName) => ViewData.ModelState.TryGetValue(propertyName, out var entry) && entry.Errors.Count > 0;
-    var hasCredentialErrors = HasError(nameof(Model.Login)) || HasError(nameof(Model.Password)) || HasError(nameof(Model.ConfirmPassword));
+    var hasCredentialErrors = HasError(nameof(Model.Login)) || HasError(nameof(Model.Email)) || HasError(nameof(Model.Password)) || HasError(nameof(Model.ConfirmPassword));
 
     var showRecoveryStep = !hasCredentialErrors && (
-        HasError(nameof(Model.Email)) ||
         HasError(nameof(Model.BirthDate)) ||
         HasError(nameof(Model.SecurityQuestion1)) ||
         HasError(nameof(Model.SecurityQuestion1Custom)) ||
@@ -209,14 +208,15 @@
 
                 <span asp-validation-for="ConfirmPassword" class="val"></span>
 
+                <label for="RegisterEmail">@L["Auth_Register_Email"].Value</label>
+                <input asp-for="Email" id="RegisterEmail" type="email" autocomplete="email" />
+                <span asp-validation-for="Email" class="val"></span>
+
                 <div class="form-step__actions">
                     <button type="button" class="btn-primary" data-register-next>@L["Auth_Register_NextStep"].Value</button>
                 </div>
             </div>
             <div class="form-step" data-step="recovery" @((showRecoveryStep ? string.Empty : " hidden"))>
-                <label for="RegisterEmail">@L["Auth_Register_Email"].Value</label>
-                <input asp-for="Email" id="RegisterEmail" type="email" autocomplete="email" />
-                <span asp-validation-for="Email" class="val"></span>
 
                 <label for="RegisterBirthDate" class="form-label-with-hint">
                     @L["Auth_Register_BirthDate"].Value
@@ -241,6 +241,8 @@
                      data-initial-count="@initialCount"
                      data-initial-active="@initialActive"
                      data-initial-enabled="@((initialQuestionsEnabled ? "true" : "false"))"
+                     data-label-add-first="@L["Auth_Register_SecurityQuestions_AddFirst"].Value"
+                     data-label-add-next="@L["Auth_Register_SecurityQuestions_AddAnother"].Value"
                      data-message-question-required="@L["Auth_Register_SecurityQuestions_SelectRequired"].Value"
                      data-message-custom-min="@L["Auth_Register_SecurityQuestions_Custom_MinLength"].Value"
                      data-message-answer-min="@L["Auth_SecurityQuestions_Answer_MinLength"].Value"
@@ -259,10 +261,7 @@
                                 </button>
                             </h3>
                         </div>
-                        <label class="security-questions__toggle">
-                            <input type="checkbox" data-questions-toggle @(initialQuestionsEnabled ? "checked" : string.Empty) />
-                            <span>@L["Auth_Register_SecurityQuestions_Toggle"].Value</span>
-                        </label>
+                        
                         <p class="security-questions__empty" data-empty-hint>@L["Auth_Register_SecurityQuestions_EmptyState"].Value</p>
                     </div>
                     <div class="security-questions__list" data-question-list>
@@ -320,7 +319,7 @@
                                             <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                                             @foreach (var option in Model.SecurityQuestionOptions)
                                             {
-                                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
+                                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
                                             }
                                         </select>
                                         <span asp-validation-for="SecurityQuestion1" class="val" data-error-question></span>
@@ -424,7 +423,7 @@
                                             <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                                             @foreach (var option in Model.SecurityQuestionOptions)
                                             {
-                                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
+                                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
                                             }
                                         </select>
                                         <span asp-validation-for="SecurityQuestion2" class="val" data-error-question></span>
@@ -529,7 +528,7 @@
                                             <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                                             @foreach (var option in Model.SecurityQuestionOptions)
                                             {
-                                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
+                                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
                                             }
                                         </select>
                                         <span asp-validation-for="SecurityQuestion3" class="val" data-error-question></span>
@@ -580,8 +579,7 @@
                         
                     </div>
                     <div class="security-questions__actions">
-                        <button type="button" class="btn-primary" data-questions-add>@L["Auth_Register_SecurityQuestions_AddAnother"].Value</button>
-                        <button type="button" class="btn-link" data-questions-disable>@L["Auth_Register_SecurityQuestions_Disable"].Value</button>
+                        <button type="button" class="btn-primary" data-questions-add>@(initialQuestionsEnabled? L["Auth_Register_SecurityQuestions_AddAnother"].Value : L["Auth_Register_SecurityQuestions_AddFirst"].Value)</button>
                     </div>
                 </div>
 

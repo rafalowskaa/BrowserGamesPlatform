@@ -219,7 +219,28 @@ public class AccountController : Controller
             return View(vm);
         }
 
-        return RedirectToAction(nameof(Login), new { returnUrl = vm.ReturnUrl, prefillLogin = vm.Login });
+        string? loginReturnUrl = null;
+        if (!string.IsNullOrWhiteSpace(vm.ReturnUrl))
+        {
+            var trimmedReturnUrl = vm.ReturnUrl.Trim();
+            if (Url.IsLocalUrl(trimmedReturnUrl))
+            {
+                var registerPath = Url.Action(nameof(Register)) ?? string.Empty;
+                var isRegisterReturn = false;
+                if (!string.IsNullOrEmpty(registerPath) && trimmedReturnUrl.StartsWith(registerPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    var remainder = trimmedReturnUrl.Substring(registerPath.Length);
+                    isRegisterReturn = string.IsNullOrEmpty(remainder) || remainder.StartsWith("?") || remainder.StartsWith("#");
+                }
+
+                if (!isRegisterReturn)
+                {
+                    loginReturnUrl = trimmedReturnUrl;
+                }
+            }
+        }
+
+        return RedirectToAction(nameof(Login), new { returnUrl = loginReturnUrl, prefillLogin = vm.Login });
     }
 
     [AllowAnonymous]
@@ -519,7 +540,10 @@ public class RegisterVm : IValidatableObject
                 continue;
             }
 
-            usedKeys.Add(key);
+            if (!option.AllowsCustomPrompt)
+            {
+                usedKeys.Add(key);
+            }
 
             if (option.AllowsCustomPrompt)
             {

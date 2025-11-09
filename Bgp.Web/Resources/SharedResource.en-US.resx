@@ -3026,6 +3026,9 @@
 	<data name="Auth_Register_SecurityQuestions_CustomRequired" xml:space="preserve">
     <value>Enter a custom question.</value>
   </data>
+	<data name="Auth_Register_SecurityQuestions_AddFirst" xml:space="preserve">
+    <value>Add your first question</value>
+  </data>
 	<data name="Auth_Register_SecurityQuestions_AddAnother" xml:space="preserve">
     <value>Add another question</value>
   </data>

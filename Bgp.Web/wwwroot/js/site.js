@@ -47,10 +47,20 @@
             return;
         }
 
-        var toggle = container.querySelector('[data-questions-toggle]');
         var addNextButton = container.querySelector('[data-questions-add]');
-        var disableButton = container.querySelector('[data-questions-disable]');
         var emptyHint = container.querySelector('[data-empty-hint]');
+        var addFirstLabel = container.getAttribute('data-label-add-first') || '';
+        var addNextLabel = container.getAttribute('data-label-add-next') || '';
+
+        if ((!addFirstLabel || !addNextLabel) && addNextButton) {
+            var currentLabel = (addNextButton.textContent || '').trim();
+            if (!addFirstLabel) {
+                addFirstLabel = currentLabel;
+            }
+            if (!addNextLabel) {
+                addNextLabel = currentLabel;
+            }
+        }
 
         var maxQuestions = parseInt(container.getAttribute('data-max-questions') || '3', 10);
         if (!maxQuestions || maxQuestions < 1) {
@@ -332,6 +342,8 @@
                 item.body.hidden = state !== 'active';
             }
             item.element.classList.toggle('is-active', state === 'active');
+            var isComplete = state === 'summary' && hasAnyValue(item);
+            item.element.classList.toggle('is-complete', isComplete);
         }
 
         function focusFirstField(item) {
@@ -446,11 +458,12 @@
                         return;
                     }
 
+                    var allowsMultiple = option.dataset.allowsMultiple === 'true';
                     var isSelectedElsewhere = activeSelects.some(function (other) {
                         return other !== select && other.value === option.value;
                     });
 
-                    var shouldDisable = isSelectedElsewhere && option.value !== currentValue;
+                    var shouldDisable = !allowsMultiple && isSelectedElsewhere && option.value !== currentValue;
                     option.disabled = shouldDisable;
                     option.hidden = shouldDisable;
                 });
@@ -483,34 +496,38 @@
 
         function updateActionButtons() {
             if (addNextButton) {
-                if (!enabled) {
-                    addNextButton.hidden = true;
-                } else {
-                    var atCapacity = visibleCount >= maxVisible;
-                    addNextButton.hidden = atCapacity;
-                    if (!atCapacity) {
-                        var hasActive = activeIndex >= 0 && activeIndex < visibleCount;
-                        var canAdd = !hasActive;
-                        if (canAdd) {
-                            for (var i = 0; i < visibleCount; i++) {
-                                if (!validateItem(items[i], { showErrors: false })) {
-                                    canAdd = false;
-                                    break;
-                                }
-                            }
+                var atCapacity = enabled && visibleCount >= maxVisible;
+                addNextButton.hidden = atCapacity;
+
+                if (atCapacity) {
+                    addNextButton.disabled = true;
+                    return;
+                }
+
+                if (!enabled || visibleCount === 0) {
+                    if (addFirstLabel) {
+                        addNextButton.textContent = addFirstLabel;
+                    }
+                    addNextButton.disabled = false;
+                    return;
+                }
+
+                if (addNextLabel) {
+                    addNextButton.textContent = addNextLabel;
+                }
+
+                var hasActive = activeIndex >= 0 && activeIndex < visibleCount;
+                var canAdd = !hasActive;
+                if (canAdd) {
+                    for (var i = 0; i < visibleCount; i++) {
+                        if (!validateItem(items[i], { showErrors: false })) {
+                            canAdd = false;
+                            break;
                         }
-                        addNextButton.disabled = !canAdd;
-                    } else {
-                        addNextButton.disabled = true;
+                       
                     }
                 }
-            }
-            if (disableButton) {
-                disableButton.hidden = !enabled;
-                disableButton.disabled = !enabled;
-            }
-            if (toggle) {
-                toggle.checked = enabled;
+                addNextButton.disabled = !canAdd;
             }
         }
 
@@ -574,8 +591,12 @@
             }
 
             if (validateItem(item, { showErrors: false })) {
+                var wasLastVisible = item.index === visibleCount - 1;
                 activeIndex = -1;
                 refreshStates({ focusActive: false });
+                if (wasLastVisible && visibleCount < maxVisible) {
+                    showNextQuestion();
+                }
             }
 
         }
@@ -635,9 +656,7 @@
             }
 
             if (visibleCount <= 1) {
-                clearItemValues(items[0]);
-                activeIndex = 0;
-                refreshStates({ focusActive: true });
+                setEnabled(false);
                 return;
             }
             for (var i = index; i < visibleCount - 1; i++) {
@@ -654,8 +673,7 @@
         function showNextQuestion() {
             if (!enabled) {
                 setEnabled(true);
-            }
-            if (!enabled) {
+            
                 return;
             }
             if (visibleCount >= maxVisible) {
@@ -669,6 +687,7 @@
         function setEnabled(value) {
             value = !!value;
             if (enabled === value) {
+                container.classList.toggle('security-questions--disabled', !value);
                 if (enabled) {
                     refreshStates({ focusActive: activeIndex >= 0 });
                 } else {
@@ -798,20 +817,7 @@
             });
         }
 
-        if (disableButton) {
-            disableButton.addEventListener('click', function () {
-                setEnabled(false);
-            });
-        }
-
-        if (toggle) {
-            toggle.addEventListener('change', function () {
-                setEnabled(toggle.checked);
-                if (enabled && visibleCount === 0) {
-                    showNextQuestion();
-                }
-            });
-        }
+        
 
         setEnabled(enabled);
         if (enabled && visibleCount === 0) {
