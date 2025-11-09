@@ -646,8 +646,7 @@
                                             class="wizard-field__control">
                                         @foreach (var option in Model.NewGame.CategoryOptions)
                                         {
-                                            var isSelected = option.Selected ? "selected" : null;
-                                            <option value="@option.Value" @isSelected>@option.Text</option>
+                                            <option value="@option.Value" selected="@(option.Selected ? "selected" : null)">@option.Text</option>
                                         }
                                     </select>
                                     @Html.ValidationMessage("SelectedCategoryValues", null, new { @class = "val" })
@@ -658,9 +657,9 @@
                                     <div class="option-grid">
                                         @foreach (var option in Model.NewGame.ModeOptions)
                                         {
-                                            var isChecked = option.Selected ? "checked" : null;
+                                            
                                             <label class="option-chip">
-                                                <input type="checkbox" name="SelectedModeValues" value="@option.Value" @isChecked />
+                                                <input type="checkbox" name="SelectedModeValues" value="@option.Value" checked="@(option.Selected ? "checked" : null)" />
                                                 <span>@option.Text</span>
                                             </label>
                                         }
