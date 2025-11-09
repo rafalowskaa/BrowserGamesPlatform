@@ -220,18 +220,20 @@
             </div>
             <div class="form-step" data-step="recovery" @((showRecoveryStep ? string.Empty : " hidden"))>
 
-                <label for="RegisterBirthDate" class="form-label-with-hint">
-                    @L["Auth_Register_BirthDate"].Value
-                    <span class="form-label__optional">(@L["Common_Optional"].Value)</span>
-                    <button type="button"
-                            class="info-hint"
-                            data-tooltip="@L["Auth_Register_BirthDate_Hint"].Value"
-                            title="@L["Auth_Register_BirthDate_Hint"].Value"
-                            aria-label="@L["Auth_Register_BirthDate_Hint"].Value">
-                        i
-                    </button>
-                </label>
-                <input asp-for="BirthDate" id="RegisterBirthDate" type="date" autocomplete="bday" />
+                <div class="birthdate-field">
+                    <label for="RegisterBirthDate" class="form-label-with-hint">
+                        @L["Auth_Register_BirthDate"].Value
+                        <span class="form-label__optional">(@L["Common_Optional"].Value)</span>
+                        <button type="button"
+                                class="info-hint"
+                                data-tooltip="@L["Auth_Register_BirthDate_Hint"].Value"
+                                title="@L["Auth_Register_BirthDate_Hint"].Value"
+                                aria-label="@L["Auth_Register_BirthDate_Hint"].Value">
+                            i
+                        </button>
+                    </label>
+                    <input asp-for="BirthDate" id="RegisterBirthDate" type="date" autocomplete="bday" />
+                </div>
                
                 <span asp-validation-for="BirthDate" class="val"></span>
 
@@ -335,7 +337,7 @@
                                         <span asp-validation-for="SecurityQuestion1" class="val" data-error-question></span>
                                     </div>
                                     <div class="security-question__custom-group" data-custom-container @((showQuestion1Custom ? string.Empty : " hidden"))>
-                                        <label class="security-question__custom" for="SecurityQuestion1Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                                        <label class="sr-only" for="SecurityQuestion1Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
                                         <input asp-for="SecurityQuestion1Custom" id="SecurityQuestion1Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
                                         <span asp-validation-for="SecurityQuestion1Custom" class="val" data-error-custom></span>
                                     </div>
@@ -446,7 +448,7 @@
                                         <span asp-validation-for="SecurityQuestion2" class="val" data-error-question></span>
                                     </div>
                                     <div class="security-question__custom-group" data-custom-container @((showQuestion2Custom ? string.Empty : " hidden"))>
-                                        <label class="security-question__custom" for="SecurityQuestion2Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                                        <label class="sr-only" for="SecurityQuestion2Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
                                         <input asp-for="SecurityQuestion2Custom" id="SecurityQuestion2Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
                                         <span asp-validation-for="SecurityQuestion2Custom" class="val" data-error-custom></span>
                                     </div>
@@ -558,7 +560,7 @@
                                         <span asp-validation-for="SecurityQuestion3" class="val" data-error-question></span>
                                     </div>
                                     <div class="security-question__custom-group" data-custom-container @((showQuestion3Custom ? string.Empty : " hidden"))>
-                                        <label class="security-question__custom" for="SecurityQuestion3Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                                        <label class="sr-only" for="SecurityQuestion3Custom">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
                                         <input asp-for="SecurityQuestion3Custom" id="SecurityQuestion3Custom" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
                                         <span asp-validation-for="SecurityQuestion3Custom" class="val" data-error-custom></span>
                                     </div>
