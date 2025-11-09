@@ -30,7 +30,7 @@ public class LeaderboardsController : ControllerBase
         var rows = (await GetRowsAsync(gameId, top)).ToList();
         if (rows.Count == 0)
         {
-            return File(Encoding.UTF8.GetBytes("UserName,BestScore"), "text / csv", $"leaderboard -{ gameId}.csv");
+            return File(Encoding.UTF8.GetBytes("UserName,BestScore"), "text/csv", $"leaderboard-{gameId}.csv");
         }
 
         var sb = new StringBuilder();
@@ -73,11 +73,11 @@ public class LeaderboardsController : ControllerBase
     {
         if (string.IsNullOrEmpty(value))
         {
-            return """";
+            return "\"\"";
         }
 
-        var needsQuotes = value.Contains('"') || value.Contains(',') || value.Contains('') || value.Contains('');
-        var escaped = value.Replace(""", """");
-        return needsQuotes ? """ + escaped + """ : escaped;
+        var needsQuotes = value.Contains('"') || value.Contains(',') || value.Contains('\n') || value.Contains('\r');
+        var escaped = value.Replace("\"", "\"\"");
+        return needsQuotes ? $"\"{escaped}\"" : escaped;
     }
 }
