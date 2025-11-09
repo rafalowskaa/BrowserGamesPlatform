@@ -127,7 +127,7 @@ static string? ResolveUnityContentType(string path, IDictionary<string, string> 
     return null;
 }
 
-static void ApplyUnityResponseHeaders(
+void ApplyUnityResponseHeaders(
     StaticFileResponseContext context,
     IDictionary<string, string> typeMap)
 {
