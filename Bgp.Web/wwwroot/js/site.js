@@ -136,6 +136,7 @@
             var summaryToggleLabel = summary ? summary.querySelector('[data-summary-toggle-label]') : null;
             var summaryEdit = summary ? summary.querySelector('[data-summary-edit]') : null;
             var summaryRemove = summary ? summary.querySelector('[data-summary-remove]') : null;
+            var bodyRemove = body ? body.querySelector('[data-question-remove]') : null;
 
             return {
                 element: element,
@@ -154,6 +155,7 @@
                 summaryToggleLabel: summaryToggleLabel,
                 summaryEdit: summaryEdit,
                 summaryRemove: summaryRemove,
+                bodyRemove: bodyRemove,
                 index: index,
                 summaryRevealed: false,
                 state: 'hidden'
@@ -351,16 +353,26 @@
             if (!item) {
                 return;
             }
-            item.state = state;
-            item.element.hidden = state === 'hidden';
+            var effectiveState = state;
+            if (state === 'collapsed' && !hasAnyValue(item)) {
+                effectiveState = 'active';
+            }
+            item.state = effectiveState;
+            var isHidden = effectiveState === 'hidden';
+            item.element.hidden = isHidden;
             if (item.summary) {
-                item.summary.hidden = true;
+                var showSummary = effectiveState === 'collapsed' && hasAnyValue(item);
+                item.summary.hidden = !showSummary;
             }
             if (item.body) {
-                item.body.hidden = state !== 'active';
+                item.body.hidden = effectiveState !== 'active';
             }
-            item.element.classList.toggle('is-active', state === 'active');
-            item.element.classList.toggle('is-complete', state !== 'active' && hasAnyValue(item));
+            if (effectiveState === 'active') {
+                item.summaryRevealed = false;
+            }
+            item.element.classList.toggle('is-active', effectiveState === 'active');
+            item.element.classList.toggle('is-collapsed', effectiveState === 'collapsed' && hasAnyValue(item));
+            item.element.classList.toggle('is-complete', effectiveState !== 'active' && hasAnyValue(item));
         }
 
         function focusFirstField(item) {
@@ -583,7 +595,7 @@
                 } else if (hasActive && index === activeIndex) {
                     setState(item, 'active');
                 } else {
-                    setState(item, 'hidden');
+                    setState(item, 'collapsed');
                 }
                 updateSummary(item);
 

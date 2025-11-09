@@ -780,7 +780,13 @@ textarea {
         }
 
 .security-question__summary {
-    display: none !important;
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.security-question.is-collapsed .security-question__summary {
+    display: flex;
 }
 
 .security-question__summary-icon {
@@ -937,7 +943,11 @@ textarea {
     }
 
     .security-question__summary {
-        display: none !important;
+        display: none;
+    }
+
+    .security-question.is-collapsed .security-question__summary {
+        display: flex;
     }
 
     .security-question__summary-actions {
