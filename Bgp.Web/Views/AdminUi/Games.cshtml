@@ -58,8 +58,17 @@
                     <option value="">@L["Admin_Games_Filter_All"].Value</option>
                     @foreach (var status in statuses)
                     {
-                        var selected = filterValue == status.ToString() ? "selected" : null;
-                        <option value="@status" selected="@selected">@L[$"Dashboard_Games_Status_{status}"].Value</option>
+                        var isSelected = filterValue == status.ToString();
+                        var label = L[$"Dashboard_Games_Status_{status}"].Value;
+
+                        if (isSelected)
+                        {
+                            <option value="@status" selected="selected">@label</option>
+                        }
+                        else
+                        {
+                            <option value="@status">@label</option>
+                        }
                     }
                 </select>
             </label>
@@ -147,7 +156,15 @@
                                                         {
                                                             label = $"{label} ({L["Admin_Games_Metadata_Proposed"].Value})";
                                                         }
-                                                        <option value="@((int)option.Category)" @(isSelected ? "selected" : null)>@label</option>
+
+                                                        if (isSelected)
+                                                        {
+                                                            <option value="@((int)option.Category)" selected="selected">@label</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@((int)option.Category)">@label</option>
+                                                        }
                                                     }
                                                 </select>
                                             </fieldset>
@@ -162,7 +179,14 @@
                                                         {
                                                             label = $"{label} ({L["Admin_Games_Metadata_Proposed"].Value})";
                                                         }
-                                                        <option value="@((int)option.Mode)" @(isSelected ? "selected" : null)>@label</option>
+                                                        if (isSelected)
+                                                        {
+                                                            <option value="@((int)option.Mode)" selected="selected">@label</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@((int)option.Mode)">@label</option>
+                                                        }
                                                     }
                                                 </select>
                                             </fieldset>

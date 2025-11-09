@@ -2918,6 +2918,21 @@
 	<data name="Admin_Games_Metadata_NoTags">
 		<value>Brak zgłoszonych tagów.</value>
 	</data>
+	<data name="Admin_Games_Metadata_Title">
+		<value>Tytuł</value>
+	</data>
+	<data name="Admin_Games_Metadata_Slug">
+		<value>Adres (slug)</value>
+	</data>
+	<data name="Admin_Games_Metadata_Author">
+		<value>Autor</value>
+	</data>
+	<data name="Admin_Games_Metadata_Description">
+		<value>Opis</value>
+	</data>
+	<data name="Admin_Games_Metadata_Cover">
+		<value>Adres URL okładki</value>
+	</data>
 	<data name="Admin_Games_Metadata_Save">
 		<value>Zapisz metadane</value>
 	</data>
@@ -2929,6 +2944,24 @@
 	</data>
 	<data name="Admin_Games_Metadata_Success">
 		<value>Metadane gry zostały zaktualizowane.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Title_Required">
+		<value>Tytuł gry jest wymagany.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Slug_Invalid">
+		<value>Podaj prawidłowy slug z małych liter, cyfr i myślników.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Slug_Exists">
+		<value>Inna gra korzysta już z tego sluga.</value>
+	</data>
+	<data name="Admin_Games_Test">
+		<value>Przetestuj grę</value>
+	</data>
+	<data name="Admin_Games_Test_Title">
+		<value>Podgląd gry</value>
+	</data>
+	<data name="Admin_Games_Test_Subtitle">
+		<value>Uruchom przesłaną wersję gry przed podjęciem decyzji.</value>
 	</data>
 	<data name="Dashboard_Games_Wizard_Step1_Title">
 		<value>Krok 1. Paczka gry</value>
