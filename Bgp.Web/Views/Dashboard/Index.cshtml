@@ -2,6 +2,7 @@
 @using System.Linq
 @using System.Text.Json
 @using Bgp.Domain.Enums
+@using Bgp.Web.Helpers
 @using Bgp.Web.Models
 @model DashboardViewModel
 @{
@@ -312,12 +313,23 @@
                         @{
                             bool RecoveryHasError(string key) => ViewData.ModelState.TryGetValue(key, out var state) && state.Errors.Count > 0;
                             var recoveryOptions = Model.Security.Recovery.SecurityQuestionOptions;
-                            var recoveryQuestion1Option = recoveryOptions.FirstOrDefault(option => option.Key == Model.Security.Recovery.SecurityQuestion1);
-                            var recoveryQuestion2Option = recoveryOptions.FirstOrDefault(option => option.Key == Model.Security.Recovery.SecurityQuestion2);
-                            var recoveryQuestion3Option = recoveryOptions.FirstOrDefault(option => option.Key == Model.Security.Recovery.SecurityQuestion3);
-                            var showRecoveryQuestion1Custom = (recoveryQuestion1Option?.AllowsCustomPrompt ?? false) || RecoveryHasError(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion1Custom));
-                            var showRecoveryQuestion2Custom = (recoveryQuestion2Option?.AllowsCustomPrompt ?? false) || RecoveryHasError(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion2Custom));
-                            var showRecoveryQuestion3Custom = (recoveryQuestion3Option?.AllowsCustomPrompt ?? false) || RecoveryHasError(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion3Custom));
+                            bool ShouldShowRecoveryCustom(string? key, string? customValue, string customMember) =>
+                            string.Equals(key?.Trim(), SecurityQuestionCatalog.CustomKey, System.StringComparison.OrdinalIgnoreCase)
+                            || !string.IsNullOrWhiteSpace(customValue)
+                            || RecoveryHasError(customMember);
+
+                            var showRecoveryQuestion1Custom = ShouldShowRecoveryCustom(
+                            Model.Security.Recovery.SecurityQuestion1,
+                            Model.Security.Recovery.SecurityQuestion1Custom,
+                            nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion1Custom));
+                            var showRecoveryQuestion2Custom = ShouldShowRecoveryCustom(
+                            Model.Security.Recovery.SecurityQuestion2,
+                            Model.Security.Recovery.SecurityQuestion2Custom,
+                            nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion2Custom));
+                            var showRecoveryQuestion3Custom = ShouldShowRecoveryCustom(
+                            Model.Security.Recovery.SecurityQuestion3,
+                            Model.Security.Recovery.SecurityQuestion3Custom,
+                            nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion3Custom));
                         }
                         <div class="profile-security-grid profile-security-grid--split">
                             <div class="profile-security-grid__column">
@@ -379,19 +391,24 @@
                                             <div class="form-hint form-hint--warning">@L["Dashboard_Security_RecoveryStatus_Missing"].Value</div>
                                         }
 
-                                    <div class="security-questions" data-security-questions data-sequential="false" data-answer-minlength="3">
+                                        <div class="security-questions" data-security-questions data-sequential="false" data-answer-minlength="3" data-custom-option="@SecurityQuestionCatalog.CustomKey">
                                             <div class="form-hint form-hint--muted">@L["Auth_SecurityQuestions_CaseInsensitiveHint"].Value</div>
 
                                             <div class="security-question" data-question-index="1">
                                                 <label for="ProfileSecurityQuestion1">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 1)</label>
-                                                <select id="ProfileSecurityQuestion1" name="SecurityQuestion1" data-question-select>
+                                                <select id="ProfileSecurityQuestion1" name="SecurityQuestion1" data-question-select data-custom-option="@SecurityQuestionCatalog.CustomKey">
                                                     <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                                                     @foreach (var option in Model.Security.Recovery.SecurityQuestionOptions)
                                                     {
+                                                        if (string.Equals(option.Key, SecurityQuestionCatalog.CustomKey, System.StringComparison.Ordinal))
+                                                        {
+                                                            continue;
+                                                        }
                                                         <option value="@option.Key"
-                                                                data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")"
+                                                                data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")"
                                                                 selected="@(option.Key == Model.Security.Recovery.SecurityQuestion1 ? "selected" : null)">@option.Label</option>
                                                     }
+                                                    <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true" @(Model.Security.Recovery.SecurityQuestion1 == SecurityQuestionCatalog.CustomKey ? "selected" : null)>@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
                                                 </select>
                                                 @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion1), null, new { @class = "val" })
                                                 <div class="security-question__custom-group" data-custom-container @((showRecoveryQuestion1Custom ? string.Empty : " hidden"))>
@@ -433,14 +450,19 @@
 
                                             <div class="security-question" data-question-index="2">
                                                 <label for="ProfileSecurityQuestion2">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 2)</label>
-                                                <select id="ProfileSecurityQuestion2" name="SecurityQuestion2" data-question-select>
+                                                <select id="ProfileSecurityQuestion2" name="SecurityQuestion2" data-question-select data-custom-option="@SecurityQuestionCatalog.CustomKey">
                                                     <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                                                     @foreach (var option in Model.Security.Recovery.SecurityQuestionOptions)
                                                     {
+                                                        if (string.Equals(option.Key, SecurityQuestionCatalog.CustomKey, System.StringComparison.Ordinal))
+                                                        {
+                                                            continue;
+                                                        }
                                                         <option value="@option.Key"
-                                                                data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")"
+                                                                data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")"
                                                                 selected="@(option.Key == Model.Security.Recovery.SecurityQuestion2 ? "selected" : null)">@option.Label</option>
                                                     }
+                                                    <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true" @(Model.Security.Recovery.SecurityQuestion2 == SecurityQuestionCatalog.CustomKey ? "selected" : null)>@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
                                                 </select>
                                                 @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion2), null, new { @class = "val" })
                                                 <div class="security-question__custom-group" data-custom-container @((showRecoveryQuestion2Custom ? string.Empty : " hidden"))>
@@ -482,14 +504,19 @@
 
                                             <div class="security-question" data-question-index="3">
                                                 <label for="ProfileSecurityQuestion3">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 3)</label>
-                                                <select id="ProfileSecurityQuestion3" name="SecurityQuestion3" data-question-select>
+                                                <select id="ProfileSecurityQuestion3" name="SecurityQuestion3" data-question-select data-custom-option="@SecurityQuestionCatalog.CustomKey">
                                                     <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                                                     @foreach (var option in Model.Security.Recovery.SecurityQuestionOptions)
                                                     {
+                                                        if (string.Equals(option.Key, SecurityQuestionCatalog.CustomKey, System.StringComparison.Ordinal))
+                                                        {
+                                                            continue;
+                                                        }
                                                         <option value="@option.Key"
-                                                                data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")"
+                                                                data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")"
                                                                 selected="@(option.Key == Model.Security.Recovery.SecurityQuestion3 ? "selected" : null)">@option.Label</option>
                                                     }
+                                                    <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true" @(Model.Security.Recovery.SecurityQuestion3 == SecurityQuestionCatalog.CustomKey ? "selected" : null)>@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
                                                 </select>
                                                 @Html.ValidationMessage(nameof(UpdateRecoveryQuestionsInputModel.SecurityQuestion3), null, new { @class = "val" })
                                                 <div class="security-question__custom-group" data-custom-container @((showRecoveryQuestion3Custom ? string.Empty : " hidden"))>

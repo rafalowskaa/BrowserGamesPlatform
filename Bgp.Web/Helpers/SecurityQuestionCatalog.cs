@@ -5,7 +5,7 @@ namespace Bgp.Web.Helpers;
 
 public static class SecurityQuestionCatalog
 {
-    public const string CustomKey = "custom";
+    public const string CustomKey = "__custom__";
 
     private static readonly ReadOnlyCollection<SecurityQuestionOption> _options =
         new(new[]

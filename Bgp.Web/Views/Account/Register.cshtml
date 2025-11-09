@@ -1,5 +1,6 @@
 ﻿@model Bgp.Web.Controllers.RegisterVm
 @using System.Linq
+@using Bgp.Web.Helpers
 @{
     ViewData["Title"] = L["Auth_Register_Title"].Value;
 
@@ -42,13 +43,14 @@
     bool question2HasError = HasError(nameof(Model.SecurityQuestion2)) || HasError(nameof(Model.SecurityQuestion2Custom)) || HasError(nameof(Model.SecurityAnswer2));
     bool question3HasError = HasError(nameof(Model.SecurityQuestion3)) || HasError(nameof(Model.SecurityQuestion3Custom)) || HasError(nameof(Model.SecurityAnswer3));
 
-    var question1Option = Model.SecurityQuestionOptions.FirstOrDefault(option => option.Key == Model.SecurityQuestion1);
-    var question2Option = Model.SecurityQuestionOptions.FirstOrDefault(option => option.Key == Model.SecurityQuestion2);
-    var question3Option = Model.SecurityQuestionOptions.FirstOrDefault(option => option.Key == Model.SecurityQuestion3);
+    bool ShouldShowCustom(string? key, string? customValue, string customErrorMember) =>
+        string.Equals(key?.Trim(), SecurityQuestionCatalog.CustomKey, System.StringComparison.OrdinalIgnoreCase)
+        || !string.IsNullOrWhiteSpace(customValue)
+        || HasError(customErrorMember);
 
-    bool showQuestion1Custom = (question1Option?.AllowsCustomPrompt ?? false) || HasError(nameof(Model.SecurityQuestion1Custom));
-    bool showQuestion2Custom = (question2Option?.AllowsCustomPrompt ?? false) || HasError(nameof(Model.SecurityQuestion2Custom));
-    bool showQuestion3Custom = (question3Option?.AllowsCustomPrompt ?? false) || HasError(nameof(Model.SecurityQuestion3Custom));
+    bool showQuestion1Custom = ShouldShowCustom(Model.SecurityQuestion1, Model.SecurityQuestion1Custom, nameof(Model.SecurityQuestion1Custom));
+    bool showQuestion2Custom = ShouldShowCustom(Model.SecurityQuestion2, Model.SecurityQuestion2Custom, nameof(Model.SecurityQuestion2Custom));
+    bool showQuestion3Custom = ShouldShowCustom(Model.SecurityQuestion3, Model.SecurityQuestion3Custom, nameof(Model.SecurityQuestion3Custom));
 
     var questions = new[]
     {
@@ -235,6 +237,7 @@
 
                 <div class="security-questions"
                      data-security-questions
+                     data-custom-option="@SecurityQuestionCatalog.CustomKey"
                      data-answer-minlength="3"
                      data-question-minlength="5"
                      data-max-questions="3"
@@ -315,12 +318,19 @@
                                 <div class="security-question__fields">
                                     <div>
                                         <label for="SecurityQuestion1">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 1)</label>
-                                        <select asp-for="SecurityQuestion1" id="SecurityQuestion1" data-question-select>
+                                        <select asp-for="SecurityQuestion1" id="SecurityQuestion1" data-question-select data-custom-option="@SecurityQuestionCatalog.CustomKey">
                                             <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                                             @foreach (var option in Model.SecurityQuestionOptions)
                                             {
-                                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
+                                                if (string.Equals(option.Key, SecurityQuestionCatalog.CustomKey, System.StringComparison.Ordinal))
+                                                {
+                                                    continue;
+                                                }
+
+                                                <option value="@option.Key" data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
                                             }
+                                            <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true">@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
+
                                         </select>
                                         <span asp-validation-for="SecurityQuestion1" class="val" data-error-question></span>
                                     </div>
@@ -419,12 +429,19 @@
                                 <div class="security-question__fields">
                                     <div>
                                         <label for="SecurityQuestion2">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 2)</label>
-                                        <select asp-for="SecurityQuestion2" id="SecurityQuestion2" data-question-select>
+                                        <select asp-for="SecurityQuestion2" id="SecurityQuestion2" data-question-select data-custom-option="@SecurityQuestionCatalog.CustomKey">
                                             <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                                             @foreach (var option in Model.SecurityQuestionOptions)
                                             {
-                                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
+                                                if (string.Equals(option.Key, SecurityQuestionCatalog.CustomKey, System.StringComparison.Ordinal))
+                                                {
+                                                    continue;
+                                                }
+
+                                                <option value="@option.Key" data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
                                             }
+                                            <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true">@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
+
                                         </select>
                                         <span asp-validation-for="SecurityQuestion2" class="val" data-error-question></span>
                                     </div>
@@ -524,12 +541,19 @@
                                 <div class="security-question__fields">
                                     <div>
                                         <label for="SecurityQuestion3">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 3)</label>
-                                        <select asp-for="SecurityQuestion3" id="SecurityQuestion3" data-question-select>
+                                        <select asp-for="SecurityQuestion3" id="SecurityQuestion3" data-question-select data-custom-option="@SecurityQuestionCatalog.CustomKey">
                                             <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
                                             @foreach (var option in Model.SecurityQuestionOptions)
                                             {
-                                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
+                                                if (string.Equals(option.Key, SecurityQuestionCatalog.CustomKey, System.StringComparison.Ordinal))
+                                                {
+                                                    continue;
+                                                }
+
+                                                <option value="@option.Key" data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")">@option.Label</option>
                                             }
+                                            <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true">@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
+
                                         </select>
                                         <span asp-validation-for="SecurityQuestion3" class="val" data-error-question></span>
                                     </div>

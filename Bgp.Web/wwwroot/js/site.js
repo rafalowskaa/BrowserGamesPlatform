@@ -181,6 +181,24 @@
             return item.select.options[item.select.selectedIndex] || null;
         }
 
+        function getCustomOptionValue(item) {
+            if (!item) {
+                return container.getAttribute('data-custom-option') || '__custom__';
+            }
+            if (item.select && item.select.getAttribute('data-custom-option')) {
+                return item.select.getAttribute('data-custom-option') || '__custom__';
+            }
+            return container.getAttribute('data-custom-option') || '__custom__';
+        }
+
+        function isCustomOption(item, option) {
+            if (!item || !option) {
+                return false;
+            }
+            var customValue = getCustomOptionValue(item);
+            return option.value === customValue || option.dataset.custom === 'true';
+        }
+
         function getAnswerValue(item) {
             return item && item.answerInput ? trim(item.answerInput.value) : '';
         }
@@ -190,8 +208,8 @@
                 return '';
             }
             var option = getSelectedOption(item);
-            var allowsCustom = option && option.dataset.allowsCustom === 'true';
-            if (allowsCustom && item.customInput && item.customContainer && !item.customContainer.hidden) {
+            var isCustom = isCustomOption(item, option);
+            if (isCustom && item.customInput && item.customContainer && !item.customContainer.hidden) {
                 var customValue = trim(item.customInput.value);
                 if (customValue) {
                     return customValue;
@@ -230,9 +248,9 @@
                 return;
             }
             var option = getSelectedOption(item);
-            var allowsCustom = option && option.dataset.allowsCustom === 'true';
-            item.customContainer.hidden = !allowsCustom;
-            if (!allowsCustom && item.customInput) {
+            var isCustom = isCustomOption(item, option);
+            item.customContainer.hidden = !isCustom;
+            if (!isCustom && item.customInput) {
                 item.customInput.value = '';
             }
         }
@@ -336,14 +354,13 @@
             item.state = state;
             item.element.hidden = state === 'hidden';
             if (item.summary) {
-                item.summary.hidden = state !== 'summary';
+                item.summary.hidden = true;
             }
             if (item.body) {
                 item.body.hidden = state !== 'active';
             }
             item.element.classList.toggle('is-active', state === 'active');
-            var isComplete = state === 'summary' && hasAnyValue(item);
-            item.element.classList.toggle('is-complete', isComplete);
+            item.element.classList.toggle('is-complete', state !== 'active' && hasAnyValue(item));
         }
 
         function focusFirstField(item) {
@@ -364,7 +381,7 @@
             var showErrors = options.showErrors === true;
             var selectValue = item.select ? trim(item.select.value) : '';
             var option = getSelectedOption(item);
-            var allowsCustom = option && option.dataset.allowsCustom === 'true';
+            var isCustom = isCustomOption(item, option);
             var customValue = item.customInput ? trim(item.customInput.value) : '';
             var answerValue = getAnswerValue(item);
 
@@ -387,7 +404,7 @@
             if (!selectValue) {
                 questionError = messages.questionRequired;
             }
-            if (allowsCustom) {
+            if (isCustom) {
                 if (customValue.length < questionMinLength) {
                     customError = messages.customMinLength.replace('{0}', questionMinLength);
                 }
@@ -411,7 +428,7 @@
 
             if (showErrors) {
                 applyError(item.questionError, questionError);
-                if (allowsCustom || customError) {
+                if (isCustom || customError) {
                     applyError(item.customError, customError);
                 } else if (item.customError) {
                     applyError(item.customError, '');
@@ -516,18 +533,7 @@
                     addNextButton.textContent = addNextLabel;
                 }
 
-                var hasActive = activeIndex >= 0 && activeIndex < visibleCount;
-                var canAdd = !hasActive;
-                if (canAdd) {
-                    for (var i = 0; i < visibleCount; i++) {
-                        if (!validateItem(items[i], { showErrors: false })) {
-                            canAdd = false;
-                            break;
-                        }
-                       
-                    }
-                }
-                addNextButton.disabled = !canAdd;
+                addNextButton.disabled = false;
             }
         }
 
@@ -559,6 +565,17 @@
                 visibleCount = maxVisible;
             }
 
+            if (visibleCount > 0) {
+                if (activeIndex < 0) {
+                    activeIndex = visibleCount - 1;
+                }
+                if (activeIndex >= visibleCount) {
+                    activeIndex = visibleCount - 1;
+                }
+            } else {
+                activeIndex = -1;
+            }
+
             var hasActive = activeIndex >= 0 && activeIndex < visibleCount;
             items.forEach(function (item, index) {
                 if (index >= visibleCount) {
@@ -566,7 +583,7 @@
                 } else if (hasActive && index === activeIndex) {
                     setState(item, 'active');
                 } else {
-                    setState(item, 'summary');
+                    setState(item, 'hidden');
                 }
                 updateSummary(item);
 
@@ -590,14 +607,8 @@
                 return;
             }
 
-            if (validateItem(item, { showErrors: false })) {
-                var wasLastVisible = item.index === visibleCount - 1;
-                activeIndex = -1;
-                refreshStates({ focusActive: false });
-                if (wasLastVisible && visibleCount < maxVisible) {
-                    showNextQuestion();
-                }
-            }
+            validateItem(item, { showErrors: false });
+            updateActionButtons();
 
         }
 
@@ -813,6 +824,17 @@
 
         if (addNextButton) {
             addNextButton.addEventListener('click', function () {
+                if (!enabled) {
+                    showNextQuestion();
+                    return;
+                }
+
+                var currentItem = activeIndex >= 0 && activeIndex < visibleCount ? items[activeIndex] : null;
+                if (currentItem && !validateItem(currentItem, { showErrors: true })) {
+                    focusFirstField(currentItem);
+                    updateActionButtons();
+                    return;
+                }
                 showNextQuestion();
             });
         }
