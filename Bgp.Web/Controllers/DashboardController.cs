@@ -456,6 +456,8 @@ public class DashboardController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [RequestSizeLimit(200_000_000)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 200_000_000)]
     public async Task<IActionResult> CreateGame(CreateGameFormViewModel input)
     {
         var user = await _users.GetUserAsync(User);

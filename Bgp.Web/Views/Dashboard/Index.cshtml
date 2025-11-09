@@ -639,16 +639,17 @@
                                 <div class="wizard-fieldset">
                                     <h4>@L["Dashboard_Games_Categories_Label"].Value</h4>
                                     <div class="form-hint">@L["Dashboard_Games_Categories_Hint"].Value</div>
-                                    <div class="option-grid">
+                                    <select id="GameCategories"
+                                            name="SelectedCategoryValues"
+                                            multiple
+                                            size="6"
+                                            class="wizard-field__control">
                                         @foreach (var option in Model.NewGame.CategoryOptions)
                                         {
-                                            var isChecked = option.Selected ? "checked" : null;
-                                            <label class="option-chip">
-                                                <input type="checkbox" name="SelectedCategoryValues" value="@option.Value" @isChecked />
-                                                <span>@option.Text</span>
-                                            </label>
+                                            var isSelected = option.Selected ? "selected" : null;
+                                            <option value="@option.Value" @isSelected>@option.Text</option>
                                         }
-                                    </div>
+                                    </select>
                                     @Html.ValidationMessage("SelectedCategoryValues", null, new { @class = "val" })
                                 </div>
                                 <div class="wizard-fieldset">
@@ -1146,7 +1147,10 @@
                         return true;
                     }
                     case 2: {
-                        const categorySelected = wizard.querySelectorAll('input[name="SelectedCategoryValues"]:checked').length > 0;
+                        const categoriesSelect = wizard.querySelector('#GameCategories');
+                        const categorySelected = categoriesSelect
+                            ? Array.from(categoriesSelect.selectedOptions || []).length > 0
+                            : false;
                         const modeSelected = wizard.querySelectorAll('input[name="SelectedModeValues"]:checked').length > 0;
                         if (!categorySelected || !modeSelected) {
                             showWarning(step, warningMessage);
