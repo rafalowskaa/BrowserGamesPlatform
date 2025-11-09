@@ -2827,6 +2827,21 @@
 	<data name="Admin_Games_Metadata_NoTags">
 		<value>No tags submitted yet.</value>
 	</data>
+	<data name="Admin_Games_Metadata_Title">
+		<value>Title</value>
+	</data>
+	<data name="Admin_Games_Metadata_Slug">
+		<value>Slug</value>
+	</data>
+	<data name="Admin_Games_Metadata_Author">
+		<value>Author</value>
+	</data>
+	<data name="Admin_Games_Metadata_Description">
+		<value>Description</value>
+	</data>
+	<data name="Admin_Games_Metadata_Cover">
+		<value>Cover image URL</value>
+	</data>
 	<data name="Admin_Games_Metadata_Save">
 		<value>Save metadata</value>
 	</data>
@@ -2838,6 +2853,24 @@
 	</data>
 	<data name="Admin_Games_Metadata_Success">
 		<value>Game metadata updated.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Title_Required">
+		<value>Game title is required.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Slug_Invalid">
+		<value>Provide a valid slug using lowercase letters, digits and hyphens.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Slug_Exists">
+		<value>Another game already uses this slug.</value>
+	</data>
+	<data name="Admin_Games_Test">
+		<value>Test game</value>
+	</data>
+	<data name="Admin_Games_Test_Title">
+		<value>Game preview</value>
+	</data>
+	<data name="Admin_Games_Test_Subtitle">
+		<value>Play the submitted build before making a decision.</value>
 	</data>
 	<data name="Common_Optional">
 		<value>Optional</value>

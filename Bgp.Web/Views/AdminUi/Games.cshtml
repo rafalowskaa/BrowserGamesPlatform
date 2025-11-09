@@ -110,44 +110,61 @@
                             <td><span class="status-pill @($"status-{game.Status.ToString().ToLowerInvariant()}")">@L[$"Dashboard_Games_Status_{game.Status}"].Value</span></td>
                             <td>
                                 <div class="admin-actions vertical">
+                                    <a class="btn-secondary btn-small" asp-action="PlayGame" asp-route-id="@game.Id" target="_blank">@L["Admin_Games_Test"].Value</a>
                                     <details class="admin-metadata">
                                         <summary>@L["Admin_Games_Metadata_Edit"].Value</summary>
                                         <form asp-action="UpdateGameMetadata" method="post" class="admin-metadata-form">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="Id" value="@game.Id" />
+                                            <label>
+                                                <span>@L["Admin_Games_Metadata_Title"].Value</span>
+                                                <input type="text" name="Title" value="@game.Title" maxlength="120" required />
+                                            </label>
+                                            <label>
+                                                <span>@L["Admin_Games_Metadata_Slug"].Value</span>
+                                                <input type="text" name="Slug" value="@game.Slug" maxlength="140" required />
+                                            </label>
+                                            <label>
+                                                <span>@L["Admin_Games_Metadata_Author"].Value</span>
+                                                <input type="text" value="@game.Owner" readonly />
+                                            </label>
+                                            <label>
+                                                <span>@L["Admin_Games_Metadata_Description"].Value</span>
+                                                <textarea name="Description" maxlength="2000">@game.Description</textarea>
+                                            </label>
+                                            <label>
+                                                <span>@L["Admin_Games_Metadata_Cover"].Value</span>
+                                                <input type="text" name="CoverImagePath" value="@game.CoverImagePath" maxlength="256" />
+                                            </label>
                                             <fieldset>
                                                 <legend>@L["Admin_Games_Metadata_Categories"].Value</legend>
-                                                <div class="option-grid">
+                                                <select name="Categories" multiple size="@(Math.Min(GameMetadataOptions.CategoryDefinitions.Count, 8))">
                                                     @foreach (var option in GameMetadataOptions.CategoryDefinitions)
                                                     {
-                                                        var isChecked = (game.Categories & option.Category) != 0;
-                                                        <label class="option-chip">
-                                                            <input type="checkbox" name="Categories" value="@((int)option.Category)" @(isChecked ? "checked" : null) />
-                                                            <span>@L[option.ResourceKey].Value</span>
-                                                            @if ((game.ProposedCategories & option.Category) != 0 && !isChecked)
-                                                            {
-                                                                <span class="badge info">@L["Admin_Games_Metadata_Proposed"].Value</span>
-                                                            }
-                                                        </label>
+                                                        var isSelected = (game.Categories & option.Category) != 0;
+                                                        var label = L[option.ResourceKey].Value;
+                                                        if ((game.ProposedCategories & option.Category) != 0 && !isSelected)
+                                                        {
+                                                            label = $"{label} ({L["Admin_Games_Metadata_Proposed"].Value})";
+                                                        }
+                                                        <option value="@((int)option.Category)" @(isSelected ? "selected" : null)>@label</option>
                                                     }
-                                                </div>
+                                                </select>
                                             </fieldset>
                                             <fieldset>
                                                 <legend>@L["Admin_Games_Metadata_Modes"].Value</legend>
-                                                <div class="option-grid">
+                                                <select name="Modes" multiple size="@(Math.Min(GameMetadataOptions.ModeDefinitions.Count, 6))">
                                                     @foreach (var option in GameMetadataOptions.ModeDefinitions)
                                                     {
-                                                        var isChecked = (game.Modes & option.Mode) != 0;
-                                                        <label class="option-chip">
-                                                            <input type="checkbox" name="Modes" value="@((int)option.Mode)" @(isChecked ? "checked" : null) />
-                                                            <span>@L[option.ResourceKey].Value</span>
-                                                            @if ((game.ProposedModes & option.Mode) != 0 && !isChecked)
-                                                            {
-                                                                <span class="badge info">@L["Admin_Games_Metadata_Proposed"].Value</span>
-                                                            }
-                                                        </label>
+                                                        var isSelected = (game.Modes & option.Mode) != 0;
+                                                        var label = L[option.ResourceKey].Value;
+                                                        if ((game.ProposedModes & option.Mode) != 0 && !isSelected)
+                                                        {
+                                                            label = $"{label} ({L["Admin_Games_Metadata_Proposed"].Value})";
+                                                        }
+                                                        <option value="@((int)option.Mode)" @(isSelected ? "selected" : null)>@label</option>
                                                     }
-                                                </div>
+                                                </select>
                                             </fieldset>
                                             <div class="metadata-tags">
                                                 <strong>@L["Admin_Games_Metadata_Tags"].Value</strong>

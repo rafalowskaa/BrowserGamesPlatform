@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Bgp.Web.Helpers;
 using Bgp.Domain.Entities;
@@ -19,6 +20,8 @@ namespace Bgp.Web.Controllers;
 [Authorize(Roles = "Admin,Moderator")]
 public class AdminUiController : Controller
 {
+    private static readonly Regex SlugRegex = new("[^a-z0-9-]", RegexOptions.Compiled);
+
     private readonly AppDbContext _db;
     private readonly UserManager<ApplicationUser> _users;
     private readonly ILogger<AdminUiController> _logger;
@@ -664,6 +667,8 @@ public class AdminUiController : Controller
                 g.ApprovalStatus,
                 g.ModerationNotes,
                 g.CreatedByUserId,
+                g.Description,
+                g.CoverImagePath,
                 g.ProposedCategories,
                 g.Categories,
                 g.ProposedModes,
@@ -693,6 +698,8 @@ public class AdminUiController : Controller
                 g.Categories,
                 g.ProposedModes,
                 g.Modes,
+                g.Description,
+                g.CoverImagePath,
                 g.Tags.Select(t => new AdminGameTagViewModel(t.Id, t.Value, t.IsApproved, t.ReviewedAtUtc is null)).ToList())).ToList(),
             Filter = filter,
             SuccessKey = TempData["AdminGamesSuccess"] as string,
@@ -739,6 +746,29 @@ public class AdminUiController : Controller
             return RedirectToAction(nameof(Games));
         }
 
+        var title = input.Title?.Trim();
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            TempData["AdminGamesError"] = "Admin_Games_Metadata_Title_Required";
+            return RedirectToAction(nameof(Games));
+        }
+
+        var normalizedSlug = NormalizeSlug(input.Slug);
+        if (string.IsNullOrWhiteSpace(normalizedSlug))
+        {
+            TempData["AdminGamesError"] = "Admin_Games_Metadata_Slug_Invalid";
+            return RedirectToAction(nameof(Games));
+        }
+
+        var slugExists = await _db.Games
+            .AsNoTracking()
+            .AnyAsync(g => g.Slug == normalizedSlug && g.Id != game.Id);
+        if (slugExists)
+        {
+            TempData["AdminGamesError"] = "Admin_Games_Metadata_Slug_Exists";
+            return RedirectToAction(nameof(Games));
+        }
+
         GameCategory categories = GameCategory.None;
         if (input.Categories is not null)
         {
@@ -775,6 +805,10 @@ public class AdminUiController : Controller
             tag.ReviewedAtUtc = DateTime.UtcNow;
         }
 
+        game.Title = title;
+        game.Slug = normalizedSlug;
+        game.Description = string.IsNullOrWhiteSpace(input.Description) ? null : input.Description.Trim();
+        game.CoverImagePath = string.IsNullOrWhiteSpace(input.CoverImagePath) ? null : input.CoverImagePath.Trim();
         game.Categories = categories == GameCategory.None ? GameCategory.Indie : categories;
         game.Modes = modes;
         game.UpdatedAtUtc = DateTime.UtcNow;
@@ -783,6 +817,45 @@ public class AdminUiController : Controller
 
         TempData["AdminGamesSuccess"] = "Admin_Games_Metadata_Success";
         return RedirectToAction(nameof(Games));
+    }
+
+    public async Task<IActionResult> PlayGame(Guid id)
+    {
+        var game = await _db.Games
+            .Include(g => g.Versions)
+            .Include(g => g.Tags)
+            .FirstOrDefaultAsync(g => g.Id == id);
+
+        if (game is null)
+        {
+            return NotFound();
+        }
+
+        var owner = await _db.Users.AsNoTracking()
+            .Where(u => u.Id == game.CreatedByUserId)
+            .Select(u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id))
+            .FirstOrDefaultAsync();
+
+        ViewBag.Owner = owner ?? game.CreatedByUserId.ToUpperInvariant();
+
+        var latestVersion = game.Versions.OrderByDescending(v => v.PublishedAtUtc).FirstOrDefault();
+        ViewBag.PlayUrl = latestVersion is null ? null : $"{latestVersion.ContentPath.TrimEnd('/')}/index.html";
+
+        return View(game);
+    }
+
+    private static string NormalizeSlug(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var slug = value.Trim().ToLowerInvariant();
+        slug = SlugRegex.Replace(slug, string.Empty);
+        slug = Regex.Replace(slug, "-+", "-");
+        slug = slug.Trim('-');
+        return slug;
     }
 
     [HttpPost]

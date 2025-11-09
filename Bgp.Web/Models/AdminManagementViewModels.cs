@@ -79,6 +79,8 @@ public record AdminGameRowViewModel(
     GameCategory Categories,
     GameMode ProposedModes,
     GameMode Modes,
+    string? Description,
+    string? CoverImagePath,
     IReadOnlyList<AdminGameTagViewModel> Tags);
 
 public record AdminGameTagViewModel(Guid Id, string Value, bool IsApproved, bool IsPending);
@@ -97,6 +99,18 @@ public class AdminUpdateGameMetadataInputModel
 {
     [Required]
     public Guid Id { get; set; }
+
+    [Required, MaxLength(120)]
+    public string Title { get; set; } = string.Empty;
+
+    [Required, MaxLength(140)]
+    public string Slug { get; set; } = string.Empty;
+
+    [MaxLength(2000)]
+    public string? Description { get; set; }
+
+    [MaxLength(256)]
+    public string? CoverImagePath { get; set; }
 
     public List<int> Categories { get; set; } = new();
 
