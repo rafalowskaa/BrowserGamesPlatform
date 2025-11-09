@@ -3234,4 +3234,64 @@
 	<data name="Auth_SecurityQuestions_Answer_MinLength" xml:space="preserve">
     <value>Odpowiedź musi mieć co najmniej 3 znaki.</value>
   </data>
+	<data name="Games_Details_PlayHeading">
+		<value>Graj</value>
+	</data>
+	<data name="Games_Details_PlaySubheading">
+		<value>Wybierz w jaki sposób chcesz uruchomić tę grę.</value>
+	</data>
+	<data name="Games_Details_ModeHeading">
+		<value>Wybierz tryb</value>
+	</data>
+	<data name="Games_Details_StartGeneric">
+		<value>Uruchom grę</value>
+	</data>
+	<data name="Games_Details_WebHint">
+		<value>Gra zostanie uruchomiona w oknie poniżej.</value>
+	</data>
+	<data name="Games_Details_NoWebBuild">
+		<value>Ta gra nie ma wersji działającej w przeglądarce.</value>
+	</data>
+	<data name="Games_Details_DownloadHeading">
+		<value>Pobierz</value>
+	</data>
+	<data name="Games_Details_InviteHeading">
+		<value>Zaproś znajomego</value>
+	</data>
+	<data name="Games_Details_InviteDescription">
+		<value>Wybierz znajomego i wyślij mu zaproszenie do wskazanego trybu.</value>
+	</data>
+	<data name="Games_Details_InviteSelect">
+		<value>Wybierz znajomego</value>
+	</data>
+	<data name="Games_Details_InviteSend">
+		<value>Wyślij zaproszenie</value>
+	</data>
+	<data name="Games_Details_InviteEmpty">
+		<value>Dodaj znajomych, aby wysyłać zaproszenia do gry wieloosobowej.</value>
+	</data>
+	<data name="Games_Details_InviteTemplate">
+		<value>Cześć! Zagrajmy w {game} (tryb: {mode}).</value>
+	</data>
+	<data name="Games_Details_InviteSuccess">
+		<value>Zaproszenie wysłane.</value>
+	</data>
+	<data name="Games_Details_InviteError">
+		<value>Nie udało się wysłać zaproszenia.</value>
+	</data>
+	<data name="Games_Details_StartSingle">
+		<value>Graj solo</value>
+	</data>
+	<data name="Games_Details_StartMulti">
+		<value>Graj wieloosobowo</value>
+	</data>
+	<data name="Games_Details_LeaderboardDownload">
+		<value>Pobierz ranking</value>
+	</data>
+	<data name="Games_Details_Platform_Windows">
+		<value>Windows</value>
+	</data>
+	<data name="Games_Details_Platform_Android">
+		<value>Android</value>
+	</data>
 </root>

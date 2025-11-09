@@ -5,6 +5,7 @@ using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Helpers;
 using Bgp.Web.Models;
+using Bgp.Web.Services;
 using Bgp.Web.Resources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,11 +19,13 @@ public class GamesController : Controller
 {
     private readonly AppDbContext _db;
     private readonly IStringLocalizer<SharedResource> _localizer;
+    private readonly IGameContentResolver _contentResolver;
 
-    public GamesController(AppDbContext db, IStringLocalizer<SharedResource> localizer)
+    public GamesController(AppDbContext db, IStringLocalizer<SharedResource> localizer, IGameContentResolver contentResolver)
     {
         _db = db;
         _localizer = localizer;
+        _contentResolver = contentResolver;
     }
 
     [AllowAnonymous]
@@ -122,8 +125,16 @@ public class GamesController : Controller
         }
 
         var latest = g.Versions.OrderByDescending(v => v.PublishedAtUtc).FirstOrDefault();
-        ViewBag.PlayUrl = latest is null ? null : $"{latest.ContentPath.TrimEnd('/')}/index.html";
-        return View(g);
+        var playOptions = _contentResolver.Resolve(latest?.ContentPath);
+
+        var vm = new GameDetailsViewModel
+        {
+            Game = g,
+            PlayOptions = playOptions,
+            LeaderboardDownloadUrl = $"/api/games/{g.Id}/leaderboard/export"
+        };
+
+        return View(vm);
     }
 
     private IReadOnlyList<SelectListItem> BuildCategoryFilterOptions(GameCategory? selected)

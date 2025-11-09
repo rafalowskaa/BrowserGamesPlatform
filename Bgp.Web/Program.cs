@@ -33,6 +33,7 @@ builder.Services.AddRazorPages()
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IPresenceNotifier, PresenceNotifier>();
 builder.Services.AddScoped<IChatMessageService, ChatMessageService>();
+builder.Services.AddScoped<IGameContentResolver, GameContentResolver>();
 
 // CORS
 builder.Services.AddCors(o =>

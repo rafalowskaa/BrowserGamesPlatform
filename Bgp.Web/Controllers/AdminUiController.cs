@@ -9,6 +9,7 @@ using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Identity;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Models;
+using Bgp.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -25,12 +26,14 @@ public class AdminUiController : Controller
     private readonly AppDbContext _db;
     private readonly UserManager<ApplicationUser> _users;
     private readonly ILogger<AdminUiController> _logger;
+    private readonly IGameContentResolver _contentResolver;
 
-    public AdminUiController(AppDbContext db, UserManager<ApplicationUser> users, ILogger<AdminUiController> logger)
+    public AdminUiController(AppDbContext db, UserManager<ApplicationUser> users, ILogger<AdminUiController> logger, IGameContentResolver contentResolver)
     {
         _db = db;
         _users = users;
         _logger = logger;
+        _contentResolver = contentResolver;
     }
 
     private IActionResult RedirectToUsers(string? search, string? fallbackSearch = null)
@@ -836,12 +839,18 @@ public class AdminUiController : Controller
             .Select(u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id))
             .FirstOrDefaultAsync();
 
-        ViewBag.Owner = owner ?? game.CreatedByUserId.ToUpperInvariant();
-
         var latestVersion = game.Versions.OrderByDescending(v => v.PublishedAtUtc).FirstOrDefault();
-        ViewBag.PlayUrl = latestVersion is null ? null : $"{latestVersion.ContentPath.TrimEnd('/')}/index.html";
+        var playOptions = _contentResolver.Resolve(latestVersion?.ContentPath);
 
-        return View(game);
+        var vm = new GameDetailsViewModel
+        {
+            Game = game,
+            OwnerName = owner ?? game.CreatedByUserId.ToUpperInvariant(),
+            PlayOptions = playOptions,
+            LeaderboardDownloadUrl = $"/api/games/{game.Id}/leaderboard/export"
+        };
+
+        return View(vm);
     }
 
     private static string NormalizeSlug(string? value)

@@ -1504,7 +1504,7 @@
     <value>Recovery questions are configured. You can update them at any time.</value>
   </data>
 	<data name="Dashboard_Security_RecoveryStatus_Missing" xml:space="preserve">
-    <value>You haven&#39;t set recovery questions yet. Add them to keep your account safe.</value>
+   <value>You haven't set recovery questions yet. Add them to keep your account safe.</value>
   </data>
 	<data name="Dashboard_Security_RecoverySave" xml:space="preserve">
     <value>Save questions</value>
@@ -3367,4 +3367,64 @@
 	<data name="Auth_SecurityQuestions_Answer_MinLength" xml:space="preserve">
     <value>The answer must be at least 3 characters long.</value>
   </data>
+	<data name="Games_Details_PlayHeading">
+		<value>Play</value>
+	</data>
+	<data name="Games_Details_PlaySubheading">
+		<value>Choose how you want to launch this game.</value>
+	</data>
+	<data name="Games_Details_ModeHeading">
+		<value>Select mode</value>
+	</data>
+	<data name="Games_Details_StartGeneric">
+		<value>Start game</value>
+	</data>
+	<data name="Games_Details_WebHint">
+		<value>The game will open in the player below.</value>
+	</data>
+	<data name="Games_Details_NoWebBuild">
+		<value>No browser build is available for this game.</value>
+	</data>
+	<data name="Games_Details_DownloadHeading">
+		<value>Downloads</value>
+	</data>
+	<data name="Games_Details_InviteHeading">
+		<value>Invite a friend</value>
+	</data>
+	<data name="Games_Details_InviteDescription">
+		<value>Pick a friend to send them an invite for the selected mode.</value>
+	</data>
+	<data name="Games_Details_InviteSelect">
+		<value>Select friend</value>
+	</data>
+	<data name="Games_Details_InviteSend">
+		<value>Send invite</value>
+	</data>
+	<data name="Games_Details_InviteEmpty">
+		<value>Add friends to send multiplayer invitations.</value>
+	</data>
+	<data name="Games_Details_InviteTemplate">
+		<value>Hey! Join me in {game} ({mode}).</value>
+	</data>
+	<data name="Games_Details_InviteSuccess">
+		<value>Invitation sent.</value>
+	</data>
+	<data name="Games_Details_InviteError">
+		<value>Could not send the invitation.</value>
+	</data>
+	<data name="Games_Details_StartSingle">
+		<value>Start solo</value>
+	</data>
+	<data name="Games_Details_StartMulti">
+		<value>Start multiplayer</value>
+	</data>
+	<data name="Games_Details_LeaderboardDownload">
+		<value>Download ranking</value>
+	</data>
+	<data name="Games_Details_Platform_Windows">
+		<value>Windows</value>
+	</data>
+	<data name="Games_Details_Platform_Android">
+		<value>Android</value>
+	</data>
 </root>

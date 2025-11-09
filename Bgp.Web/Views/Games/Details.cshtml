@@ -1,10 +1,32 @@
-﻿@using Bgp.Domain.Enums
+﻿@using System.Text.Json 
+@using Bgp.Domain.Enums
 @using Bgp.Web.Helpers
-@model Bgp.Domain.Entities.Game
+@model Bgp.Web.Models.GameDetailsViewModel
 @{
-    ViewData["Title"] = Model.Title;
-    var playUrl = ViewBag.PlayUrl as string;
-    var approvedTags = Model.Tags?.Where(t => t.IsApproved).Select(t => t.Value).OrderBy(t => t).ToList() ?? new List<string>();
+    var game = Model.Game;
+    ViewData["Title"] = game.Title;
+
+    var playOptions = Model.PlayOptions ?? Array.Empty<Bgp.Web.Models.GamePlayOptionViewModel>();
+    var webOption = playOptions.FirstOrDefault(o => string.Equals(o.Kind, "web", StringComparison.OrdinalIgnoreCase));
+    var downloadOptions = playOptions
+        .Where(o => string.Equals(o.Kind, "download", StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    var approvedTags = game.Tags?.Where(t => t.IsApproved)
+        .Select(t => t.Value)
+        .OrderBy(t => t)
+        .ToList() ?? new List<string>();
+
+    var availableModes = GameMetadataOptions.ModeDefinitions
+        .Where(def => (game.Modes & def.Mode) != 0)
+        .ToList();
+
+    if (availableModes.Count == 0)
+    {
+        availableModes = GameMetadataOptions.ModeDefinitions
+            .Where(def => def.Mode == GameMode.Singleplayer)
+            .ToList();
+    }
     string FormatModes(GameMode modes)
     {
         if (modes == GameMode.None)
@@ -36,13 +58,29 @@
 
         return labels.Count == 0 ? L["Games_Details_Category_Unspecified"].Value : string.Join(", ", labels);
     }
+
+
+    var config = new
+    {
+        gameId = game.Id,
+        hasWeb = webOption is not null,
+        webUrl = webOption?.Url,
+        gameTitle = game.Title,
+        modes = availableModes.Select(def => new { value = (int)def.Mode, label = L[def.ResourceKey].Value }).ToList(),
+        inviteTemplate = L["Games_Details_InviteTemplate"].Value,
+        inviteSuccess = L["Games_Details_InviteSuccess"].Value,
+        inviteError = L["Games_Details_InviteError"].Value,
+        startSingle = L["Games_Details_StartSingle"].Value,
+        startMulti = L["Games_Details_StartMulti"].Value,
+        startGeneric = L["Games_Details_StartGeneric"].Value
+    };
 }
-<h2>@Model.Title</h2>
-<p>@Model.Description</p>
+<h2>@game.Title</h2>
+<p>@game.Description</p>
 
 <div class="game-meta-panel">
-    <div><strong>@L["Games_Details_Modes"].Value</strong><span>@FormatModes(Model.Modes)</span></div>
-    <div><strong>@L["Games_Details_Categories"].Value</strong><span>@FormatCategories(Model.Categories)</span></div>
+    <div><strong>@L["Games_Details_Modes"].Value</strong><span>@FormatModes(game.Modes)</span></div>
+    <div><strong>@L["Games_Details_Categories"].Value</strong><span>@FormatCategories(game.Categories)</span></div>
     @if (approvedTags.Any())
     {
         <div class="game-tags">
@@ -57,31 +95,106 @@
     }
 </div>
 
-@if (playUrl is not null)
-{
-    <div class="player">
-        <iframe src="@playUrl" title="game" loading="lazy"></iframe>
+<section class="panel game-play" data-game-config>
+    <header class="panel__header">
+        <div>
+            <h3>@L["Games_Details_PlayHeading"].Value</h3>
+            <p class="muted">@L["Games_Details_PlaySubheading"].Value</p>
+        </div>
+    </header>
+
+    <div class="game-play__content">
+        <div class="game-play__modes" data-mode-selector>
+            <h4>@L["Games_Details_ModeHeading"].Value</h4>
+            <div class="mode-options">
+                @for (var i = 0; i < availableModes.Count; i++)
+                {
+                    var def = availableModes[i];
+                    var optionId = $"mode_{(int)def.Mode}";
+                    <label for="@optionId" class="mode-option">
+                        <input type="radio" name="game-mode" id="@optionId" value="@((int)def.Mode)" @(i == 0 ? "checked" : string.Empty) />
+                        <span>@L[def.ResourceKey].Value</span>
+                    </label>
+                }
+            </div>
+        </div>
+
+        @if (webOption is not null)
+        {
+            <div class="game-play__launch">
+                <button class="btn-primary" type="button" data-game-start>@L["Games_Details_StartGeneric"].Value</button>
+                <p class="muted" data-game-start-hint>@L["Games_Details_WebHint"].Value</p>
+                <div class="player" hidden data-game-player>
+                    <iframe src="about:blank" title="game" loading="lazy" data-game-frame></iframe>
+                </div>
+            </div>
+        }
+        else
+        {
+            <p class="alert">@L["Games_Details_NoWebBuild"].Value</p>
+        }
+
+        @if (downloadOptions.Any())
+        {
+            <div class="game-play__downloads">
+                <h4>@L["Games_Details_DownloadHeading"].Value</h4>
+                <ul class="download-list">
+                    @foreach (var download in downloadOptions)
+                    {
+                        <li>
+                            <a class="btn-secondary" href="@download.Url" download>@download.Label</a>
+                            @if (!string.IsNullOrWhiteSpace(download.Description))
+                            {
+                                @{ var platformKey = $"Games_Details_Platform_{download.Description}"; var platformLabel = L[platformKey].Value; }<span class="muted">@platformLabel</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+        else if (webOption is null)
+        {
+            <p class="alert">@L["Details_NoBuild"].Value</p>
+        }
+
+        @if ((game.Modes & (GameMode.MultiplayerRealtime | GameMode.MultiplayerAsync)) != GameMode.None)
+        {
+            <div class="game-play__invite" data-invite-panel hidden>
+                <h4>@L["Games_Details_InviteHeading"].Value</h4>
+                <p>@L["Games_Details_InviteDescription"].Value</p>
+                <label class="sr-only" for="inviteFriendSelect">@L["Games_Details_InviteSelect"].Value</label>
+                <select id="inviteFriendSelect" data-invite-select>
+                    <option value="">@L["Games_Details_InviteSelect"].Value</option>
+                </select>
+                <button class="btn-primary" type="button" data-invite-send>@L["Games_Details_InviteSend"].Value</button>
+                <p class="muted" data-invite-empty>@L["Games_Details_InviteEmpty"].Value</p>
+            </div>
+        }
     </div>
-}
-else
-{
-    <div class="alert">@L["Details_NoBuild"].Value</div>
-}
+    <script type="application/json" id="gameDetailsConfig">@Html.Raw(JsonSerializer.Serialize(config))</script>
+</section>
 
 <section class="panel">
     <h3>@L["Details_LeaderboardTitle"].Value</h3>
-    <div id="leaderboard">@L["Details_LeaderboardLoading"].Value</div>
+    <div class="leaderboard-header">
+        <div id="leaderboard">@L["Details_LeaderboardLoading"].Value</div>
+        @if (!string.IsNullOrEmpty(Model.LeaderboardDownloadUrl))
+        {
+            <a class="btn-secondary" href="@Model.LeaderboardDownloadUrl">@L["Games_Details_LeaderboardDownload"].Value</a>
+        }
+    </div>
 </section>
 
 @section Scripts {
     <script>
-        const leaderboardErrorText = @System.Text.Json.JsonSerializer.Serialize(L["Details_LeaderboardError"].Value);
+        const leaderboardErrorText = @JsonSerializer.Serialize(L["Details_LeaderboardError"].Value);
         (async () => {
-            const r = await fetch(`/api/games/@Model.Id/leaderboard?top=20`);
+            const r = await fetch(`/api/games/@game.Id/leaderboard?top=20`);
             if (!r.ok) { document.getElementById('leaderboard').innerText = leaderboardErrorText; return; }
             const data = await r.json();
             const html = ['<ol>'].concat(data.map(x => `<li>${x.userName} &mdash; ${x.bestScore}</li>`)).concat(['</ol>']).join('');
             document.getElementById('leaderboard').innerHTML = html;
         })();
     </script>
+    <script src="~/js/game-details.js" asp-append-version="true"></script>
 }
