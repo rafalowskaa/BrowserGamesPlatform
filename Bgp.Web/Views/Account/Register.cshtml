@@ -119,6 +119,92 @@
         initialActive = initialCount - 1;
     }
     bool initialQuestionsEnabled = initialCount > 0;
+
+
+    var maxQuestions = questions.Length;
+    int serverVisibleCount = 0;
+    for (var i = 0; i < questions.Length; i++)
+    {
+        if (questions[i].HasValue || questions[i].HasError)
+        {
+            serverVisibleCount = i + 1;
+        }
+    }
+
+    bool enabled = initialQuestionsEnabled || serverVisibleCount > 0;
+    int visibleCount = enabled ? Math.Min(Math.Max(initialCount, serverVisibleCount, 1), maxQuestions) : 0;
+
+    int activeIndex = enabled ? initialActive : -1;
+    if (enabled)
+    {
+        if (activeIndex < 0 && serverVisibleCount > 0)
+        {
+            activeIndex = Math.Min(serverVisibleCount - 1, visibleCount - 1);
+        }
+
+        if (activeIndex < 0 && visibleCount > 0)
+        {
+            activeIndex = visibleCount - 1;
+        }
+    }
+    else
+    {
+        activeIndex = -1;
+    }
+
+    bool hasActive = enabled && activeIndex >= 0 && activeIndex < visibleCount;
+    bool hasAnswers = false;
+    for (var i = 0; i < visibleCount; i++)
+    {
+        if (questions[i].HasValue)
+        {
+            hasAnswers = true;
+            break;
+        }
+    }
+
+    bool emptyHintHidden = enabled && visibleCount > 0 && (hasAnswers || hasActive);
+    bool listHidden = !enabled;
+
+    var questionStates = questions.Select((question, index) =>
+    {
+        var state = "hidden";
+        if (enabled && index < visibleCount)
+        {
+            state = hasActive && index == activeIndex ? "active" : "collapsed";
+        }
+
+        if (state == "collapsed" && !question.HasValue && !question.HasError)
+        {
+            state = "active";
+        }
+
+        var isVisible = state != "hidden";
+        var isActive = state == "active";
+        var isCollapsed = state == "collapsed" && question.HasValue;
+        var isComplete = isVisible && !isActive && question.HasValue;
+
+        return new
+        {
+            question.Index,
+            question.QuestionValue,
+            question.CustomValue,
+            question.AnswerValue,
+            question.ShowCustom,
+            question.HasError,
+            question.HasValue,
+            IsVisible = isVisible,
+            IsActive = isActive,
+            IsCollapsed = isCollapsed,
+            IsComplete = isComplete,
+            ShowSummary = isCollapsed,
+            ShowBody = isActive
+        };
+    }).ToArray();
+
+    var questionState1 = questionStates[0];
+    var questionState2 = questionStates[1];
+    var questionState3 = questionStates[2];
 }
 <section class="auth auth--register">
     <div class="auth-hero">
@@ -237,15 +323,15 @@
                
                 <span asp-validation-for="BirthDate" class="val"></span>
 
-                <div class="security-questions"
+                <div class="security-questions@(enabled ? string.Empty : " security-questions--disabled")"
                      data-security-questions
                      data-custom-option="@SecurityQuestionCatalog.CustomKey"
                      data-answer-minlength="3"
                      data-question-minlength="5"
                      data-max-questions="3"
                      data-initial-count="@initialCount"
-                     data-initial-active="@initialActive"
-                     data-initial-enabled="@((initialQuestionsEnabled ? "true" : "false"))"
+                     data-initial-active="@activeIndex"
+                     data-initial-enabled="@((enabled ? "true" : "false"))"
                      data-label-add-first="@L["Auth_Register_SecurityQuestions_AddFirst"].Value"
                      data-label-add-next="@L["Auth_Register_SecurityQuestions_AddAnother"].Value"
                      data-message-question-required="@L["Auth_Register_SecurityQuestions_SelectRequired"].Value"
@@ -267,20 +353,23 @@
                             </h3>
                         </div>
                         
-                        <p class="security-questions__empty" data-empty-hint>@L["Auth_Register_SecurityQuestions_EmptyState"].Value</p>
+                        <p class="security-questions__empty" data-empty-hint @((emptyHintHidden ? " hidden" : string.Empty))>@L["Auth_Register_SecurityQuestions_EmptyState"].Value</p>
                     </div>
-                    <div class="security-questions__list" data-question-list>
-                        <div class="security-question" data-question-item data-question-index="1" data-has-error="@(question1HasError ? "true" : "false")">
-                            <div class="security-question__summary" data-question-summary hidden>
+                    <div class="security-questions__list" data-question-list @((listHidden ? " hidden" : string.Empty))>
+                        <div class="security-question@(questionState1.IsActive ? " is-active" : string.Empty)@(questionState1.IsCollapsed ? " is-collapsed" : string.Empty)@(questionState1.IsComplete ? " is-complete" : string.Empty)"
+                             data-question-item
+                             data-question-index="1"
+                             data-has-error="@(question1HasError ? "true" : "false")" @((questionState1.IsVisible ? string.Empty : " hidden"))>
+                            <div class="security-question__summary" data-question-summary @((questionState1.ShowSummary ? string.Empty : " hidden"))>
                                 <button type="button"
                                         class="security-question__summary-button"
                                         data-summary-edit
                                         aria-controls="SecurityQuestion1Body"
-                                        aria-expanded="false">
+                                        aria-expanded="@((questionState1.IsActive ? "true" : "false"))">
                                     <span class="security-question__summary-question" data-summary-question>&nbsp;</span>
                                 </button>
                             </div>
-                            <div class="security-question__body" id="SecurityQuestion1Body" data-question-body>
+                            <div class="security-question__body" id="SecurityQuestion1Body" data-question-body @((questionState1.ShowBody ? string.Empty : " hidden"))>
                                 <div class="security-question__fields">
                                     <div>
                                         <label for="SecurityQuestion1">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 1)</label>
@@ -339,23 +428,26 @@
                                 </div>
                                 <div class="security-question__actions">
                                     
-                                    <button type="button" class="btn-link" data-question-remove>@L["Auth_Register_SecurityQuestions_RemoveThis"].Value</button>
+                                    <button type="button" class="btn-link" data-question-remove @((enabled && questionState1.IsVisible ? string.Empty : " disabled aria-disabled=\"true\""))>@L["Auth_Register_SecurityQuestions_RemoveThis"].Value</button>
                                 </div>
                             </div>
                         </div>
 
 
-                        <div class="security-question" data-question-item data-question-index="2" data-has-error="@(question2HasError ? "true" : "false")">
-                            <div class="security-question__summary" data-question-summary hidden>
+                        <div class="security-question@(questionState2.IsActive ? " is-active" : string.Empty)@(questionState2.IsCollapsed ? " is-collapsed" : string.Empty)@(questionState2.IsComplete ? " is-complete" : string.Empty)"
+                             data-question-item
+                             data-question-index="2"
+                             data-has-error="@(question2HasError ? "true" : "false")" @((questionState2.IsVisible ? string.Empty : " hidden"))>
+                            <div class="security-question__summary" data-question-summary @((questionState2.ShowSummary ? string.Empty : " hidden"))>
                                 <button type="button"
                                         class="security-question__summary-button"
                                         data-summary-edit
                                         aria-controls="SecurityQuestion2Body"
-                                        aria-expanded="false">
+                                        aria-expanded="@((questionState2.IsActive ? "true" : "false"))">
                                     <span class="security-question__summary-question" data-summary-question>&nbsp;</span>
                                 </button>
                             </div>
-                            <div class="security-question__body" id="SecurityQuestion2Body" data-question-body>
+                            <div class="security-question__body" id="SecurityQuestion2Body" data-question-body @((questionState2.ShowBody ? string.Empty : " hidden"))>
                                 <div class="security-question__fields">
                                     <div>
                                         <label for="SecurityQuestion2">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 2)</label>
@@ -414,24 +506,27 @@
                                 </div>
                                 <div class="security-question__actions">
                                     
-                                    <button type="button" class="btn-link" data-question-remove>@L["Auth_Register_SecurityQuestions_RemoveThis"].Value</button>
+                                    <button type="button" class="btn-link" data-question-remove @((enabled && questionState2.IsVisible ? string.Empty : " disabled aria-disabled=\"true\""))>@L["Auth_Register_SecurityQuestions_RemoveThis"].Value</button>
                                 </div>
                             </div>
 
                         </div>
 
 
-                        <div class="security-question" data-question-item data-question-index="3" data-has-error="@(question3HasError ? "true" : "false")">
-                            <div class="security-question__summary" data-question-summary hidden>
+                        <div class="security-question@(questionState3.IsActive ? " is-active" : string.Empty)@(questionState3.IsCollapsed ? " is-collapsed" : string.Empty)@(questionState3.IsComplete ? " is-complete" : string.Empty)"
+                             data-question-item
+                             data-question-index="3"
+                             data-has-error="@(question3HasError ? "true" : "false")" @((questionState3.IsVisible ? string.Empty : " hidden"))>
+                            <div class="security-question__summary" data-question-summary @((questionState3.ShowSummary ? string.Empty : " hidden"))>
                                 <button type="button"
                                         class="security-question__summary-button"
                                         data-summary-edit
                                         aria-controls="SecurityQuestion3Body"
-                                        aria-expanded="false">
+                                        aria-expanded="@((questionState3.IsActive ? "true" : "false"))">
                                     <span class="security-question__summary-question" data-summary-question>&nbsp;</span>
                                 </button>
                             </div>
-                            <div class="security-question__body" id="SecurityQuestion3Body" data-question-body>
+                            <div class="security-question__body" id="SecurityQuestion3Body" data-question-body @((questionState3.ShowBody ? string.Empty : " hidden"))>
                                 <div class="security-question__fields">
                                     <div>
                                         <label for="SecurityQuestion3">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 3)</label>
@@ -489,8 +584,8 @@
                                     </div>
                                 </div>
                                 <div class="security-question__actions">
-                                    
-                                    <button type="button" class="btn-link" data-question-remove>@L["Auth_Register_SecurityQuestions_RemoveThis"].Value</button>
+
+                                    <button type="button" class="btn-link" data-question-remove @((enabled && questionState3.IsVisible ? string.Empty : " disabled aria-disabled=\"true\""))>@L["Auth_Register_SecurityQuestions_RemoveThis"].Value</button>
                                 </div>
                             </div>
                         </div>
