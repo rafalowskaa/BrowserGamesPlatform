@@ -201,7 +201,9 @@
 
             @if (Model.Games.Any())
             {
-                var diffChips = GetDiffChips(game).ToList();
+                foreach (var game in Model.Games)
+                {
+                    var diffChips = GetDiffChips(game).ToList();
                     var diffCount = diffChips.Count;
                     <div class="admin-games__row" role="row" data-game-row data-game-id="@game.Id" tabindex="0">
                         <div class="cell cell--checkbox" role="gridcell">
@@ -225,23 +227,25 @@
                             <div class="diff-chips">
                                 @foreach (var chip in diffChips)
                                 {
-                                <span class="diff-chip diff-chip--@chip.Kind">@chip.Label</span>
+                                    <span class="diff-chip diff-chip--@chip.Kind">@chip.Label</span>
                                 }
+
+                            </div>
+                        </div>
+                        <div class="cell cell--actions" role="gridcell">
+                            <a class="btn-secondary btn-compact" asp-action="PlayGame" asp-route-id="@game.Id" target="_blank" data-test-button data-shortcut="T">@L["Admin_Games_Test"].Value</a>
+                            <button type="button" class="btn-outline btn-compact" data-preview-button>Podgląd</button>
+                            <button type="button" class="btn-primary btn-compact" data-edit-button>@L["Admin_Games_Metadata_Edit"].Value</button>
                         </div>
                     </div>
-                    <div class="cell cell--actions" role="gridcell">
-                        <a class="btn-secondary btn-compact" asp-action="PlayGame" asp-route-id="@game.Id" target="_blank" data-test-button data-shortcut="T">@L["Admin_Games_Test"].Value</a>
-                        <button type="button" class="btn-outline btn-compact" data-preview-button>Podgląd</button>
-                        <button type="button" class="btn-primary btn-compact" data-edit-button>@L["Admin_Games_Metadata_Edit"].Value</button>
-                    </div>
-                </div>
-            }
+                   
+                    }
             }
             else
             {
             <div class="admin-games__empty" role="row">
-                <div class="cell cell--empty" role="gridcell">@L["Admin_Games_Empty"].Value</div>
-            </div>
+                    <div class="cell cell--empty" role="gridcell">@L["Admin_Games_Empty"].Value</div>
+                </div>
             }
         </div>
 
