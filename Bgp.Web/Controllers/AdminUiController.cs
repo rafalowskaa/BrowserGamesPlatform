@@ -895,7 +895,7 @@ public class AdminUiController : Controller
 
     public async Task<IActionResult> Reports(string? status = null, string? search = null)
     {
-        var reportsQuery = _db.Reports.AsQueryable();
+        var reportsQuery = _db.Reports.AsNoTracking().AsQueryable();
 
         ReportStatus? statusFilter = null;
         if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<ReportStatus>(status, true, out var parsedStatus))
@@ -914,10 +914,53 @@ public class AdminUiController : Controller
                 EF.Functions.Like(r.Category.ToString(), term));
         }
 
-        var reports = await reportsQuery
+        var reportRows = await reportsQuery
             .OrderByDescending(r => r.CreatedAtUtc)
+            .Select(r => new
+            {
+                r.Id,
+                r.CreatedAtUtc,
+                r.ReporterUserId,
+                r.TargetUserId,
+                r.Category,
+                r.Description,
+                r.Status
+            })
             .ToListAsync();
+
+        var userIds = reportRows
+            .SelectMany(r => new[] { r.ReporterUserId, r.TargetUserId })
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        var userLookup = userIds.Count == 0
+            ? new Dictionary<string, string>(StringComparer.Ordinal)
+            : (await _db.Users
+                .AsNoTracking()
+                .Where(u => userIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
+                .ToListAsync())
+                .ToDictionary(
+                    u => u.Id,
+                    u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
+                    StringComparer.Ordinal);
+
+        var reports = reportRows
+            .Select(r => new AdminReportsViewModel.ReportRow(
+                r.Id,
+                r.CreatedAtUtc,
+                r.ReporterUserId,
+                userLookup.TryGetValue(r.ReporterUserId, out var reporterName) ? reporterName : r.ReporterUserId,
+                r.TargetUserId,
+                userLookup.TryGetValue(r.TargetUserId, out var targetName) ? targetName : r.TargetUserId,
+                r.Category,
+                r.Description,
+                r.Status))
+            .ToList();
+
         var summaries = await _db.Reports
+            .AsNoTracking()
             .GroupBy(r => r.Status)
             .Select(g => new AdminReportsViewModel.StatusSummary(g.Key, g.Count()))
             .ToListAsync();

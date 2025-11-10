@@ -3650,10 +3650,12 @@ details[open] summary {
 }
 
 .admin-reports__totals {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    display: flex;
     gap: 0.75rem;
     min-width: 20rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
 }
 
 .metric-card {
