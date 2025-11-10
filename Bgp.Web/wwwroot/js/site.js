@@ -739,10 +739,21 @@
             refreshStates({ focusActive: !!focus });
         }
         function showNextQuestion() {
+            var wasEnabled = enabled;
+
             if (!enabled) {
                 setEnabled(true);
+            }
+            if (!wasEnabled) {
+                if (visibleCount <= 0) {
+                    visibleCount = 1;
+                }
+
+                var nextIndex = Math.max(Math.min(visibleCount - 1, maxVisible - 1), 0);
+                setActive(nextIndex, true);
                 return;
             }
+
             if (visibleCount >= maxVisible) {
                 return;
 
