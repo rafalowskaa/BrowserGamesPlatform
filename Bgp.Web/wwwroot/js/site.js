@@ -363,6 +363,10 @@
             if (item.summary) {
                 var showSummary = effectiveState === 'collapsed' && hasAnyValue(item);
                 item.summary.hidden = !showSummary;
+                var summaryButton = item.summary.querySelector('[data-summary-edit]');
+                if (summaryButton) {
+                    summaryButton.setAttribute('aria-expanded', effectiveState === 'active' ? 'true' : 'false');
+                }
             }
             if (item.body) {
                 item.body.hidden = effectiveState !== 'active';

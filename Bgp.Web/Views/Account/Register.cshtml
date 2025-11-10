@@ -272,51 +272,15 @@
                     <div class="security-questions__list" data-question-list>
                         <div class="security-question" data-question-item data-question-index="1" data-has-error="@(question1HasError ? "true" : "false")">
                             <div class="security-question__summary" data-question-summary hidden>
-                                <span class="security-question__summary-icon" aria-hidden="true">
-                                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M10 18.333A8.333 8.333 0 1010 1.667a8.333 8.333 0 000 16.666z" />
-                                        <path d="M7.917 7.083a2.083 2.083 0 114.166 0c0 1.25-2.083 1.667-2.083 3.333" />
-                                        <circle cx="10" cy="14.167" r=".417" />
-                                    </svg>
-                                </span>
-                                <div class="security-question__summary-content">
+                                <button type="button"
+                                        class="security-question__summary-button"
+                                        data-summary-edit
+                                        aria-controls="SecurityQuestion1Body"
+                                        aria-expanded="false">
                                     <span class="security-question__summary-question" data-summary-question>&nbsp;</span>
-                                    <span class="security-question__summary-answer">
-                                        <span data-summary-answer>•••••••</span>
-                                        <button type="button"
-                                                class="security-question__summary-toggle"
-                                                data-summary-toggle
-                                                data-summary-show-label="@L["Auth_Password_Show"].Value"
-                                                data-summary-hide-label="@L["Auth_Password_Hide"].Value"
-                                                aria-pressed="false"
-                                                aria-label="@L["Auth_Password_Show"].Value">
-                                            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                                <path d="M1.667 10c.111-.24 2.778-5.833 8.333-5.833 5.556 0 8.222 5.593 8.333 5.833a.625.625 0 010 .328c-.111.24-2.778 5.835-8.333 5.835-5.555 0-8.222-5.594-8.333-5.835a.625.625 0 010-.328z" />
-                                                <path d="M12.5 10a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                                            </svg>
-                                            <span data-summary-toggle-label>@L["Auth_Password_Show"].Value</span>
-                                        </button>
-                                    </span>
-                                </div>
-                                <div class="security-question__summary-actions">
-                                    <button type="button" class="security-question__summary-action btn-link" data-summary-edit>
-                                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M12.292 3.125l4.583 4.583-8.75 8.75H3.542V11.875z" />
-                                            <path d="M11.042 4.375l3.541 3.541" />
-                                        </svg>
-                                        <span class="security-question__summary-action-label">@L["Auth_Register_SecurityQuestions_Edit"].Value</span>
-                                    </button>
-                                    <button type="button" class="security-question__summary-action btn-link" data-summary-remove>
-                                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M4.167 5.833h11.666" />
-                                            <path d="M5.833 5.833l.694 9.028a1.667 1.667 0 001.661 1.539h3.624a1.667 1.667 0 001.661-1.539l.694-9.028" />
-                                            <path d="M8.333 5.833V3.333h3.334v2.5" />
-                                        </svg>
-                                        <span class="security-question__summary-action-label">@L["Auth_Register_SecurityQuestions_Remove"].Value</span>
-                                    </button>
-                                </div>
+                                </button>
                             </div>
-                            <div class="security-question__body" data-question-body>
+                            <div class="security-question__body" id="SecurityQuestion1Body" data-question-body>
                                 <div class="security-question__fields">
                                     <div>
                                         <label for="SecurityQuestion1">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 1)</label>
@@ -383,51 +347,15 @@
 
                         <div class="security-question" data-question-item data-question-index="2" data-has-error="@(question2HasError ? "true" : "false")">
                             <div class="security-question__summary" data-question-summary hidden>
-                                <span class="security-question__summary-icon" aria-hidden="true">
-                                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M10 18.333A8.333 8.333 0 1010 1.667a8.333 8.333 0 000 16.666z" />
-                                        <path d="M7.917 7.083a2.083 2.083 0 114.166 0c0 1.25-2.083 1.667-2.083 3.333" />
-                                        <circle cx="10" cy="14.167" r=".417" />
-                                    </svg>
-                                </span>
-                                <div class="security-question__summary-content">
+                                <button type="button"
+                                        class="security-question__summary-button"
+                                        data-summary-edit
+                                        aria-controls="SecurityQuestion2Body"
+                                        aria-expanded="false">
                                     <span class="security-question__summary-question" data-summary-question>&nbsp;</span>
-                                    <span class="security-question__summary-answer">
-                                        <span data-summary-answer>•••••••</span>
-                                        <button type="button"
-                                                class="security-question__summary-toggle"
-                                                data-summary-toggle
-                                                data-summary-show-label="@L["Auth_Password_Show"].Value"
-                                                data-summary-hide-label="@L["Auth_Password_Hide"].Value"
-                                                aria-pressed="false"
-                                                aria-label="@L["Auth_Password_Show"].Value">
-                                            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                                <path d="M1.667 10c.111-.24 2.778-5.833 8.333-5.833 5.556 0 8.222 5.593 8.333 5.833a.625.625 0 010 .328c-.111.24-2.778 5.835-8.333 5.835-5.555 0-8.222-5.594-8.333-5.835a.625.625 0 010-.328z" />
-                                                <path d="M12.5 10a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                                            </svg>
-                                            <span data-summary-toggle-label>@L["Auth_Password_Show"].Value</span>
-                                        </button>
-                                    </span>
-                                </div>
-                                <div class="security-question__summary-actions">
-                                    <button type="button" class="security-question__summary-action btn-link" data-summary-edit>
-                                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M12.292 3.125l4.583 4.583-8.75 8.75H3.542V11.875z" />
-                                            <path d="M11.042 4.375l3.541 3.541" />
-                                        </svg>
-                                        <span class="security-question__summary-action-label">@L["Auth_Register_SecurityQuestions_Edit"].Value</span>
-                                    </button>
-                                    <button type="button" class="security-question__summary-action btn-link" data-summary-remove>
-                                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M4.167 5.833h11.666" />
-                                            <path d="M5.833 5.833l.694 9.028a1.667 1.667 0 001.661 1.539h3.624a1.667 1.667 0 001.661-1.539l.694-9.028" />
-                                            <path d="M8.333 5.833V3.333h3.334v2.5" />
-                                        </svg>
-                                        <span class="security-question__summary-action-label">@L["Auth_Register_SecurityQuestions_Remove"].Value</span>
-                                    </button>
-                                </div>
+                                </button>
                             </div>
-                            <div class="security-question__body" data-question-body>
+                            <div class="security-question__body" id="SecurityQuestion2Body" data-question-body>
                                 <div class="security-question__fields">
                                     <div>
                                         <label for="SecurityQuestion2">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 2)</label>
@@ -495,51 +423,15 @@
 
                         <div class="security-question" data-question-item data-question-index="3" data-has-error="@(question3HasError ? "true" : "false")">
                             <div class="security-question__summary" data-question-summary hidden>
-                                <span class="security-question__summary-icon" aria-hidden="true">
-                                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M10 18.333A8.333 8.333 0 1010 1.667a8.333 8.333 0 000 16.666z" />
-                                        <path d="M7.917 7.083a2.083 2.083 0 114.166 0c0 1.25-2.083 1.667-2.083 3.333" />
-                                        <circle cx="10" cy="14.167" r=".417" />
-                                    </svg>
-                                </span>
-                                <div class="security-question__summary-content">
+                                <button type="button"
+                                        class="security-question__summary-button"
+                                        data-summary-edit
+                                        aria-controls="SecurityQuestion3Body"
+                                        aria-expanded="false">
                                     <span class="security-question__summary-question" data-summary-question>&nbsp;</span>
-                                    <span class="security-question__summary-answer">
-                                        <span data-summary-answer>•••••••</span>
-                                        <button type="button"
-                                                class="security-question__summary-toggle"
-                                                data-summary-toggle
-                                                data-summary-show-label="@L["Auth_Password_Show"].Value"
-                                                data-summary-hide-label="@L["Auth_Password_Hide"].Value"
-                                                aria-pressed="false"
-                                                aria-label="@L["Auth_Password_Show"].Value">
-                                            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                                <path d="M1.667 10c.111-.24 2.778-5.833 8.333-5.833 5.556 0 8.222 5.593 8.333 5.833a.625.625 0 010 .328c-.111.24-2.778 5.835-8.333 5.835-5.555 0-8.222-5.594-8.333-5.835a.625.625 0 010-.328z" />
-                                                <path d="M12.5 10a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                                            </svg>
-                                            <span data-summary-toggle-label>@L["Auth_Password_Show"].Value</span>
-                                        </button>
-                                    </span>
-                                </div>
-                                <div class="security-question__summary-actions">
-                                    <button type="button" class="security-question__summary-action btn-link" data-summary-edit>
-                                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M12.292 3.125l4.583 4.583-8.75 8.75H3.542V11.875z" />
-                                            <path d="M11.042 4.375l3.541 3.541" />
-                                        </svg>
-                                        <span class="security-question__summary-action-label">@L["Auth_Register_SecurityQuestions_Edit"].Value</span>
-                                    </button>
-                                    <button type="button" class="security-question__summary-action btn-link" data-summary-remove>
-                                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M4.167 5.833h11.666" />
-                                            <path d="M5.833 5.833l.694 9.028a1.667 1.667 0 001.661 1.539h3.624a1.667 1.667 0 001.661-1.539l.694-9.028" />
-                                            <path d="M8.333 5.833V3.333h3.334v2.5" />
-                                        </svg>
-                                        <span class="security-question__summary-action-label">@L["Auth_Register_SecurityQuestions_Remove"].Value</span>
-                                    </button>
-                                </div>
+                                </button>
                             </div>
-                            <div class="security-question__body" data-question-body>
+                            <div class="security-question__body" id="SecurityQuestion3Body" data-question-body>
                                 <div class="security-question__fields">
                                     <div>
                                         <label for="SecurityQuestion3">@string.Format(L["Auth_Register_SecurityQuestion_Label"].Value, 3)</label>
