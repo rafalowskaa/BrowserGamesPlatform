@@ -17,6 +17,10 @@
     --space-xl: 3rem;
     --container-max: 80rem;
     --success: #22c55e;
+    --form-control-padding-block: 0.625rem;
+    --form-control-padding-inline: 0.875rem;
+    --form-control-min-height: 3rem;
+    --form-label-font-size: 0.9375rem
 }
 
 html {
@@ -841,6 +845,11 @@ textarea {
     gap: 8px;
 }
 
+    .security-question__fields label {
+        font-size: var(--form-label-font-size);
+        line-height: 1.4;
+    }
+
 .security-question__custom-group {
     display: flex;
     flex-direction: column;
@@ -890,7 +899,7 @@ textarea {
 }
 
 .password-field--answer .password-field__input input {
-    padding-right: 3.5rem;
+    padding-right: calc(var(--form-control-padding-inline) + 2.5rem);
 }
 
 @media (max-width: 40rem) {
@@ -1305,7 +1314,7 @@ textarea {
 
         .password-field__input input {
             width: 100%;
-            padding-right: 3.5rem;
+            padding-right: calc(var(--form-control-padding-inline) + 2.5rem);
         }
 
 
@@ -2254,6 +2263,8 @@ textarea {
 .profile-field__actions label {
     display: block;
     font-weight: 600;
+    font-size: var(--form-label-font-size);
+    line-height: 1.4;
     margin-bottom: 0.375rem;
 }
 
@@ -2265,8 +2276,8 @@ textarea {
 .profile-form select,
 .profile-form textarea {
     width: 100%;
-    padding: 0.375rem 0.75rem;
-    min-height: 0;
+    padding: var(--form-control-padding-block) var(--form-control-padding-inline);
+    min-height: var(--form-control-min-height);
     line-height: 1.4;
     border-radius: var(--radius);
     border: 1px solid rgba(148,163,184,0.35);
@@ -2281,6 +2292,11 @@ textarea {
     background-size: 6px 6px, 6px 6px;
     background-repeat: no-repeat;
     padding-right: 2.5rem;
+}
+
+.profile-form .password-field__input,
+.form-vertical .password-field__input {
+    min-height: var(--form-control-min-height);
 }
 
 .profile-field__input--stacked {
@@ -3269,7 +3285,8 @@ textarea {
 }
 
     .form-vertical label {
-        font-size: 0.875rem;
+        font-size: var(--form-label-font-size);
+        line-height: 1.4;
         color: #cbd5e1;
     }
 
@@ -3278,7 +3295,8 @@ textarea {
     .form-vertical input[type=password],
     .form-vertical textarea {
         width: 100%;
-        padding: 0.375rem 0.625rem;
+        padding: var(--form-control-padding-block) var(--form-control-padding-inline);
+        min-height: var(--form-control-min-height);
         line-height: 1.4;
         border-radius: 0.5rem;
         border: 1px solid #273244;

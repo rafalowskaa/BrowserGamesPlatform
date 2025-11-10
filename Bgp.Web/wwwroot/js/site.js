@@ -315,6 +315,8 @@
         var enabled = initialEnabledAttr || serverVisibleCount > 0;
         var visibleCount = enabled ? Math.min(Math.max(initialCountAttr, serverVisibleCount, 1), maxVisible) : 0;
         var activeIndex = enabled ? initialActiveAttr : -1;
+        var allowNoActive = false;
+        var userActivated = false;
 
         if (enabled) {
             if (activeIndex < 0 && serverActiveIndex >= 0) {
@@ -323,11 +325,40 @@
             if (activeIndex < 0 && serverVisibleCount > 0) {
                 activeIndex = Math.min(serverVisibleCount - 1, visibleCount - 1);
             }
-            if (activeIndex < 0 && visibleCount > 0) {
+            if (activeIndex >= visibleCount) {
                 activeIndex = visibleCount - 1;
             }
         } else {
             activeIndex = -1;
+        }
+
+        function evaluateAllowNoActive(currentVisibleCount) {
+            if (!enabled || !currentVisibleCount || currentVisibleCount < 1) {
+                return false;
+            }
+            var hasErrors = false;
+            var allCompleted = true;
+            for (var i = 0; i < currentVisibleCount; i++) {
+                var currentItem = items[i];
+                if (!currentItem) {
+                    continue;
+                }
+                if (currentItem.element && currentItem.element.getAttribute('data-has-error') === 'true') {
+                    hasErrors = true;
+                }
+                if (!hasAnyValue(currentItem)) {
+                    allCompleted = false;
+                }
+            }
+            return allCompleted && !hasErrors;
+        }
+
+        allowNoActive = evaluateAllowNoActive(visibleCount);
+
+        if (allowNoActive && !userActivated) {
+            activeIndex = -1;
+        } else if (!allowNoActive && activeIndex < 0 && visibleCount > 0) {
+            activeIndex = visibleCount - 1;
         }
 
         function updateEmptyHint() {
@@ -611,11 +642,13 @@
                 visibleCount = maxVisible;
             }
 
+            allowNoActive = evaluateAllowNoActive(visibleCount);
+
             if (visibleCount > 0) {
-                if (activeIndex < 0) {
+                if (activeIndex >= visibleCount) {
                     activeIndex = visibleCount - 1;
                 }
-                if (activeIndex >= visibleCount) {
+                if (activeIndex < 0 && !allowNoActive) {
                     activeIndex = visibleCount - 1;
                 }
             } else {
@@ -735,6 +768,8 @@
             if (index < 0 || index >= Math.min(visibleCount, maxVisible)) {
                 return;
             }
+
+            userActivated = true;
             activeIndex = index;
             refreshStates({ focusActive: !!focus });
         }
@@ -778,6 +813,7 @@
             enabled = value;
             container.classList.toggle('security-questions--disabled', !enabled);
             if (!enabled) {
+                userActivated = false;
                 visibleCount = 0;
                 activeIndex = -1;
                 items.forEach(function (item) {
@@ -888,6 +924,7 @@
                 item.body.addEventListener('keydown', function (event) {
                     if (event.key === 'Escape' && enabled) {
                         event.preventDefault();
+                        userActivated = false;
                         activeIndex = -1;
                         refreshStates({ focusActive: false });
                     }
