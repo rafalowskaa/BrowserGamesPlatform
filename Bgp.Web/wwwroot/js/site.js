@@ -349,6 +349,22 @@
             emptyHint.hidden = hasAnswers || hasActive;
         }
 
+        function showElement(element) {
+            if (!element) {
+                return;
+            }
+            element.hidden = false;
+            element.removeAttribute('hidden');
+        }
+
+        function hideElement(element) {
+            if (!element) {
+                return;
+            }
+            element.hidden = true;
+            element.setAttribute('hidden', '');
+        }
+
         function setState(item, state) {
             if (!item) {
                 return;
@@ -359,17 +375,29 @@
             }
             item.state = effectiveState;
             var isHidden = effectiveState === 'hidden';
-            item.element.hidden = isHidden;
+            if (isHidden) {
+                hideElement(item.element);
+            } else {
+                showElement(item.element);
+            }
             if (item.summary) {
                 var showSummary = effectiveState === 'collapsed' && hasAnyValue(item);
-                item.summary.hidden = !showSummary;
+                if (showSummary) {
+                    showElement(item.summary);
+                } else {
+                    hideElement(item.summary);
+                }
                 var summaryButton = item.summary.querySelector('[data-summary-edit]');
                 if (summaryButton) {
                     summaryButton.setAttribute('aria-expanded', effectiveState === 'active' ? 'true' : 'false');
                 }
             }
             if (item.body) {
-                item.body.hidden = effectiveState !== 'active';
+                if (effectiveState === 'active') {
+                    showElement(item.body);
+                } else {
+                    hideElement(item.body);
+                }
             }
             if (effectiveState === 'active') {
                 item.summaryRevealed = false;
