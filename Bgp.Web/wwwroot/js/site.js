@@ -725,22 +725,28 @@
             refreshStates({ focusActive: true });
         }
 
+        function setActive(index, focus) {
+            if (!enabled) {
+                setEnabled(true);
+    
+            }
+            if (index < 0 || index >= Math.min(visibleCount, maxVisible)) {
+                return;
+            }
+            activeIndex = index;
+            refreshStates({ focusActive: !!focus });
+        }
         function showNextQuestion() {
             if (!enabled) {
                 setEnabled(true);
-            
-                return;
             }
             if (visibleCount >= maxVisible) {
                 return;
-            }
-            if (activeIndex >= 0 && activeIndex < visibleCount) {
 
             }
 
             visibleCount += 1;
-            activeIndex = visibleCount - 1;
-            refreshStates({ focusActive: true });
+            setActive(visibleCount - 1, true);
         }
 
         function setEnabled(value) {
@@ -842,12 +848,9 @@
 
             if (item.summaryEdit) {
                 item.summaryEdit.addEventListener('click', function () {
-                    if (!enabled) {
-                        setEnabled(true);
-                    }
+                    
                     if (activeIndex !== item.index) {
-                        activeIndex = item.index;
-                        refreshStates({ focusActive: true });
+                        setActive(item.index, true);
                     }
                 });
             }
@@ -863,12 +866,9 @@
             }
             if (item.body) {
                 item.body.addEventListener('focusin', function () {
-                    if (!enabled) {
-                        setEnabled(true);
-                    }
+                    
                     if (activeIndex !== item.index) {
-                        activeIndex = item.index;
-                        refreshStates({ focusActive: false });
+                        setActive(item.index, false);
                     }
                 });
                 item.body.addEventListener('keydown', function (event) {

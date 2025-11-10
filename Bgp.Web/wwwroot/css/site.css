@@ -37,6 +37,10 @@ body {
     text-rendering: optimizeLegibility;
 }
 
+[hidden] {
+    display: none !important;
+}
+
 button,
 input,
 select,
