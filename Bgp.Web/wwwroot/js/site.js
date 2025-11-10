@@ -734,6 +734,10 @@
             if (visibleCount >= maxVisible) {
                 return;
             }
+            if (activeIndex >= 0 && activeIndex < visibleCount) {
+
+            }
+
             visibleCount += 1;
             activeIndex = visibleCount - 1;
             refreshStates({ focusActive: true });
@@ -841,8 +845,10 @@
                     if (!enabled) {
                         setEnabled(true);
                     }
-                    activeIndex = item.index;
-                    refreshStates({ focusActive: true });
+                    if (activeIndex !== item.index) {
+                        activeIndex = item.index;
+                        refreshStates({ focusActive: true });
+                    }
                 });
             }
 
@@ -856,6 +862,15 @@
                 });
             }
             if (item.body) {
+                item.body.addEventListener('focusin', function () {
+                    if (!enabled) {
+                        setEnabled(true);
+                    }
+                    if (activeIndex !== item.index) {
+                        activeIndex = item.index;
+                        refreshStates({ focusActive: false });
+                    }
+                });
                 item.body.addEventListener('keydown', function (event) {
                     if (event.key === 'Escape' && enabled) {
                         event.preventDefault();
