@@ -104,6 +104,12 @@
         }
     }
 
+    bool hasExistingQuestions = initialCount > 0;
+    if (!hasExistingQuestions)
+    {
+        initialCount = 1;
+    }
+
     int initialActive = -1;
     for (var i = 0; i < questions.Length; i++)
     {
@@ -118,7 +124,7 @@
     {
         initialActive = initialCount - 1;
     }
-    bool initialQuestionsEnabled = initialCount > 0;
+    bool initialQuestionsEnabled = hasExistingQuestions;
 
 
     var maxQuestions = questions.Length;
@@ -132,6 +138,10 @@
     }
 
     bool enabled = initialQuestionsEnabled || serverVisibleCount > 0;
+    if (!hasExistingQuestions)
+    {
+        enabled = true;
+    }
     int visibleCount = 0;
     if (enabled)
     {
