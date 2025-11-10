@@ -4028,7 +4028,7 @@ details[open] summary {
 .admin-games__list-header,
 .admin-games__row {
     display: grid;
-    grid-template-columns: 3rem 2fr 1.4fr 1.4fr 1fr 1.1fr 1.6fr;
+    grid-template-columns: 3rem minmax(12rem, 2fr) minmax(8rem, 1fr) minmax(8rem, 1fr) minmax(7rem, 0.9fr) minmax(15rem, 2.1fr);
     gap: 0.5rem;
     align-items: center;
     padding: 0.65rem 0.875rem;
@@ -4067,8 +4067,7 @@ details[open] summary {
 
 .admin-games__row .cell--owner,
 .admin-games__row .cell--submitted,
-.admin-games__row .cell--status,
-.admin-games__row .cell--diff {
+.admin-games__row .cell--status {
     font-size: 0.85rem;
 }
 
@@ -4079,6 +4078,31 @@ details[open] summary {
     gap: 0.5rem;
     justify-content: flex-end;
 }
+
+    .cell--actions .btn-compact {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.5rem;
+        padding: 0.5rem 1.1rem;
+        border-radius: calc(var(--radius) - 0.35rem);
+        line-height: 1.1;
+        gap: 0.35rem;
+    }
+
+    .cell--actions .btn-outline.btn-compact {
+        border-color: rgba(148, 163, 184, 0.45);
+        background: rgba(15, 23, 42, 0.55);
+        color: #e2e8f0;
+        transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+        .cell--actions .btn-outline.btn-compact:hover,
+        .cell--actions .btn-outline.btn-compact:focus-visible {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(148, 163, 184, 0.65);
+            outline: none;
+        }
 
 .cell--checkbox {
     align-items: center;
@@ -4099,35 +4123,6 @@ details[open] summary {
 .game-meta {
     font-size: 0.8rem;
     color: var(--muted);
-}
-
-.diff-count {
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-.diff-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-}
-
-.diff-chip {
-    padding: 0.25rem 0.5rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-}
-
-.diff-chip--added {
-    background: rgba(34, 197, 94, 0.18);
-    color: #86efac;
-}
-
-.diff-chip--removed {
-    background: rgba(239, 68, 68, 0.18);
-    color: #fca5a5;
 }
 
 .admin-games__drawer {
@@ -4495,11 +4490,17 @@ details[open] summary {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    padding: 0.5rem;
-    border-radius: var(--radius-sm);
-    border: 1px dashed rgba(148, 163, 184, 0.25);
-    background: rgba(15, 23, 42, 0.45);
+    padding: 0.25rem 0;
+    border-radius: 0;
+    border: none;
+    background: transparent;
 }
+
+    .chips-list .chip {
+        background: transparent;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        color: #e2e8f0;
+    }
 
 .chip {
     display: inline-flex;
@@ -4605,14 +4606,17 @@ details[open] summary {
     gap: 0.6rem;
 }
 
+    .action-buttons .btn-primary,
+    .action-buttons .btn-outline {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
 @media (max-width: 1200px) {
     .admin-games__list-header,
     .admin-games__row {
-        grid-template-columns: 2.5rem 1.75fr 1.2fr 1.2fr 1fr 1fr;
-    }
-
-    .cell--diff {
-        display: none;
+        grid-template-columns: 2.5rem minmax(10rem, 1.8fr) minmax(7rem, 1fr) minmax(7rem, 0.9fr) minmax(6rem, 0.8fr) minmax(14rem, 1.8fr);
     }
 }
 
@@ -4650,7 +4654,7 @@ details[open] summary {
 @media (max-width: 768px) {
     .admin-games__list-header,
     .admin-games__row {
-        grid-template-columns: 2.5rem 1.5fr 1fr 1fr;
+        grid-template-columns: 2.5rem minmax(9rem, 1.6fr) minmax(7rem, 1fr) minmax(12rem, 1.4fr);
     }
 
     .cell--submitted,

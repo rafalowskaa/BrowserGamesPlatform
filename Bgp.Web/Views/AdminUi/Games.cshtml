@@ -38,48 +38,7 @@
 
     string FormatStatus(GameApprovalStatus status) => L[$"Dashboard_Games_Status_{status}"].Value;
 
-    IEnumerable<(string Label, string Kind)> GetDiffChips(AdminGameRowViewModel game)
-    {
-        foreach (var option in GameMetadataOptions.CategoryDefinitions)
-        {
-            var label = L[option.ResourceKey].Value;
-            var isCurrent = (game.Categories & option.Category) != 0;
-            var isProposed = (game.ProposedCategories & option.Category) != 0;
-
-            if (isProposed && !isCurrent)
-            {
-                yield return ($"+ {label}", "added");
-            }
-            else if (!isProposed && isCurrent && game.ProposedCategories != GameCategory.None)
-            {
-                yield return ($"- {label}", "removed");
-            }
-        }
-
-        foreach (var option in GameMetadataOptions.ModeDefinitions)
-        {
-            var label = L[option.ResourceKey].Value;
-            var isCurrent = (game.Modes & option.Mode) != 0;
-            var isProposed = (game.ProposedModes & option.Mode) != 0;
-
-            if (isProposed && !isCurrent)
-            {
-                yield return ($"+ {label}", "added");
-            }
-            else if (!isProposed && isCurrent && game.ProposedModes != GameMode.None)
-            {
-                yield return ($"- {label}", "removed");
-            }
-        }
-
-        foreach (var tag in game.Tags)
-        {
-            if (tag.IsPending)
-            {
-                yield return ($"+ #{tag.Value}", "added");
-            }
-        }
-    }
+    
     string FormatDate(DateTime date) => date.ToLocalTime().ToString("g");
 
     var serializerOptions = new JsonSerializerOptions
@@ -193,7 +152,6 @@
                 <span class="cell cell--owner" role="columnheader">@L["Admin_Games_Table_Owner"].Value</span>
                 <span class="cell cell--submitted" role="columnheader">@L["Dashboard_Games_Submitted"].Value</span>
                 <span class="cell cell--status" role="columnheader">@L["Dashboard_Games_Status"].Value</span>
-                <span class="cell cell--diff" role="columnheader">Różnice</span>
                 <span class="cell cell--actions" role="columnheader">@L["Admin_Games_Table_Actions"].Value</span>
             </div>
 
@@ -203,8 +161,6 @@
             {
                 foreach (var game in Model.Games)
                 {
-                    var diffChips = GetDiffChips(game).ToList();
-                    var diffCount = diffChips.Count;
                     <div class="admin-games__row" role="row" data-game-row data-game-id="@game.Id" tabindex="0">
                         <div class="cell cell--checkbox" role="gridcell">
                             <label class="admin-checkbox">
@@ -222,18 +178,9 @@
                         <div class="cell cell--status" role="gridcell">
                             <span class="status-pill @($"status-{game.Status.ToString().ToLowerInvariant()}")">@FormatStatus(game.Status)</span>
                         </div>
-                        <div class="cell cell--diff" role="gridcell">
-                            <div class="diff-count" data-diff-count="@diffCount">@diffCount</div>
-                            <div class="diff-chips">
-                                @foreach (var chip in diffChips)
-                                {
-                                    <span class="diff-chip diff-chip--@chip.Kind">@chip.Label</span>
-                                }
-
-                            </div>
-                        </div>
+                        
                         <div class="cell cell--actions" role="gridcell">
-                            <a class="btn-secondary btn-compact" asp-action="PlayGame" asp-route-id="@game.Id" target="_blank" data-test-button data-shortcut="T">@L["Admin_Games_Test"].Value</a>
+                            <a class="btn-outline btn-compact" asp-action="PlayGame" asp-route-id="@game.Id" target="_blank" data-test-button data-shortcut="T">@L["Admin_Games_Test"].Value</a>
                             <button type="button" class="btn-outline btn-compact" data-preview-button>Podgląd</button>
                             <button type="button" class="btn-primary btn-compact" data-edit-button>@L["Admin_Games_Metadata_Edit"].Value</button>
                         </div>
@@ -273,7 +220,7 @@
                             </div>
                         </div>
                         <div class="preview-actions">
-                            <a class="btn-secondary" data-preview-test target="_blank">@L["Admin_Games_Test"].Value</a>
+                           <a class="btn-outline" data-preview-test target="_blank">@L["Admin_Games_Test"].Value</a>
                             <form asp-action="ApproveGame" method="post" data-preview-approve>
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="" />
