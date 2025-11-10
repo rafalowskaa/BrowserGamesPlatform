@@ -739,6 +739,7 @@
         function showNextQuestion() {
             if (!enabled) {
                 setEnabled(true);
+                return;
             }
             if (visibleCount >= maxVisible) {
                 return;
