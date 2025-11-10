@@ -132,7 +132,12 @@
     }
 
     bool enabled = initialQuestionsEnabled || serverVisibleCount > 0;
-    int visibleCount = enabled ? Math.Min(Math.Max(initialCount, serverVisibleCount, 1), maxQuestions) : 0;
+    int visibleCount = 0;
+    if (enabled)
+    {
+        var maxVisible = Math.Max(Math.Max(initialCount, serverVisibleCount), 1);
+        visibleCount = Math.Min(maxVisible, maxQuestions);
+    }
 
     int activeIndex = enabled ? initialActive : -1;
     if (enabled)
