@@ -220,6 +220,14 @@
     var questionState1 = questionStates[0];
     var questionState2 = questionStates[1];
     var questionState3 = questionStates[2];
+
+    var securityQuestionsTooltip = string.Join("\n", new[]
+    {
+        L["Auth_Register_SecurityQuestions_Info"].Value,
+        L["Auth_SecurityQuestions_CaseInsensitiveHint"].Value
+    }
+        .Where(hint => !string.IsNullOrWhiteSpace(hint))
+        .Select(hint => $"• {hint}"));
 }
 <section class="auth auth--register">
     <div class="auth-hero">
@@ -356,13 +364,13 @@
                      data-message-answer-matches="@L["Auth_SecurityQuestions_Answer_MatchesQuestion"].Value">
                     <div class="security-questions__header">
                         <div class="security-questions__title">
-                            <h3>
-                                @L["Auth_Register_SecurityQuestions_Title"].Value
+                            <h3 class="form-label-with-hint">
+                                <span>@L["Auth_Register_SecurityQuestions_Title"].Value</span>
                                 <button type="button"
                                         class="info-hint"
-                                        data-tooltip="@L["Auth_Register_SecurityQuestions_Info"].Value"
-                                        title="@L["Auth_Register_SecurityQuestions_Info"].Value"
-                                        aria-label="@L["Auth_Register_SecurityQuestions_Info"].Value">
+                                        data-tooltip="@securityQuestionsTooltip"
+                                        title="@securityQuestionsTooltip"
+                                        aria-label="@securityQuestionsTooltip">
                                     i
                                 </button>
                             </h3>
