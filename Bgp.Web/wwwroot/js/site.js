@@ -365,12 +365,14 @@
             element.setAttribute('hidden', '');
         }
 
-        function setState(item, state) {
+        function setState(item, state, options) {
             if (!item) {
                 return;
             }
+            options = options || {};
+            var allowCollapseEmpty = options.allowCollapseEmpty === true;
             var effectiveState = state;
-            if (state === 'collapsed' && !hasAnyValue(item)) {
+            if (state === 'collapsed' && !allowCollapseEmpty && !hasAnyValue(item)) {
                 effectiveState = 'active';
             }
             item.state = effectiveState;
@@ -627,7 +629,7 @@
                 } else if (hasActive && index === activeIndex) {
                     setState(item, 'active');
                 } else {
-                    setState(item, 'collapsed');
+                    setState(item, 'collapsed', { allowCollapseEmpty: hasActive });
                 }
                 updateSummary(item);
 
