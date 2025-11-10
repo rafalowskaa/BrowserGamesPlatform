@@ -1,45 +1,131 @@
-﻿@using System.Linq
+﻿@using System.Text.Json
+@using System.Text.Json.Serialization
 @using Bgp.Domain.Enums
 @using Bgp.Web.Helpers
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @model AdminGamesViewModel
 @{
     ViewData["Title"] = L["Admin_Games_Title"].Value;
-    var filterValue = Model.Filter?.ToString();
     var statuses = Enum.GetValues<GameApprovalStatus>();
-    string FormatCategories(GameCategory categories)
+    
+    static List<int> ExtractCategoryValues(GameCategory categories)
     {
-        if (categories == GameCategory.None)
+        var values = new List<int>();
+        foreach (var option in GameMetadataOptions.CategoryDefinitions)
         {
-            return L["Admin_Games_Metadata_None"].Value;
+            if ((categories & option.Category) != 0)
+            {
+                values.Add((int)option.Category);
+            }
         }
 
-        var labels = GameMetadataOptions.CategoryDefinitions
-            .Where(def => (categories & def.Category) != 0)
-            .Select(def => L[def.ResourceKey].Value)
-            .Where(label => !string.IsNullOrWhiteSpace(label))
-            .ToList();
-
-        return labels.Count == 0 ? L["Admin_Games_Metadata_None"].Value : string.Join(", ", labels);
+        return values;
     }
 
-    string FormatModes(GameMode modes)
+    static List<int> ExtractModeValues(GameMode modes)
     {
-        if (modes == GameMode.None)
+        var values = new List<int>();
+        foreach (var option in GameMetadataOptions.ModeDefinitions)
         {
-            return L["Admin_Games_Metadata_None"].Value;
+            if ((modes & option.Mode) != 0)
+            {
+                values.Add((int)option.Mode);
+            }
         }
 
-        var labels = GameMetadataOptions.ModeDefinitions
-            .Where(def => (modes & def.Mode) != 0)
-            .Select(def => L[def.ResourceKey].Value)
-            .Where(label => !string.IsNullOrWhiteSpace(label))
-            .ToList();
-
-        return labels.Count == 0 ? L["Admin_Games_Metadata_None"].Value : string.Join(", ", labels);
+        return values;
     }
+
+    string FormatStatus(GameApprovalStatus status) => L[$"Dashboard_Games_Status_{status}"].Value;
+
+    IEnumerable<(string Label, string Kind)> GetDiffChips(AdminGameRowViewModel game)
+    {
+        foreach (var option in GameMetadataOptions.CategoryDefinitions)
+        {
+            var label = L[option.ResourceKey].Value;
+            var isCurrent = (game.Categories & option.Category) != 0;
+            var isProposed = (game.ProposedCategories & option.Category) != 0;
+
+            if (isProposed && !isCurrent)
+            {
+                yield return ($"+ {label}", "added");
+            }
+            else if (!isProposed && isCurrent && game.ProposedCategories != GameCategory.None)
+            {
+                yield return ($"- {label}", "removed");
+            }
+        }
+
+        foreach (var option in GameMetadataOptions.ModeDefinitions)
+        {
+            var label = L[option.ResourceKey].Value;
+            var isCurrent = (game.Modes & option.Mode) != 0;
+            var isProposed = (game.ProposedModes & option.Mode) != 0;
+
+            if (isProposed && !isCurrent)
+            {
+                yield return ($"+ {label}", "added");
+            }
+            else if (!isProposed && isCurrent && game.ProposedModes != GameMode.None)
+            {
+                yield return ($"- {label}", "removed");
+            }
+        }
+
+        foreach (var tag in game.Tags)
+        {
+            if (tag.IsPending)
+            {
+                yield return ($"+ #{tag.Value}", "added");
+            }
+        }
+    }
+    string FormatDate(DateTime date) => date.ToLocalTime().ToString("g");
+
+    var serializerOptions = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+    serializerOptions.Converters.Add(new JsonStringEnumConverter());
+
+    var gamesData = Model.Games.Select(game => new
+    {
+        id = game.Id,
+        title = game.Title,
+        slug = game.Slug,
+        owner = game.Owner,
+        createdAtUtc = game.CreatedAtUtc,
+        status = game.Status,
+        moderationNotes = game.ModerationNotes,
+        proposedCategories = ExtractCategoryValues(game.ProposedCategories),
+        categories = ExtractCategoryValues(game.Categories),
+        proposedModes = ExtractModeValues(game.ProposedModes),
+        modes = ExtractModeValues(game.Modes),
+        description = game.Description,
+        coverImagePath = game.CoverImagePath,
+        tags = game.Tags.Select(t => new { t.Id, t.Value, t.IsApproved, t.IsPending }).ToList()
+    }).ToList();
+
+    var categoryOptions = GameMetadataOptions.CategoryDefinitions
+        .Select(def => new { value = (int)def.Category, label = L[def.ResourceKey].Value })
+        .ToList();
+
+    var modeOptions = GameMetadataOptions.ModeDefinitions
+        .Select(def => new { value = (int)def.Mode, label = L[def.ResourceKey].Value })
+        .ToList();
+
+    var statusLabels = statuses
+        .ToDictionary(status => status.ToString(), status => L[$"Dashboard_Games_Status_{status}"].Value);
+
+    var antiforgeryTokens = Antiforgery.GetAndStoreTokens(Context);
+    var antiForgeryFieldName = antiforgeryTokens.FormFieldName;
+    var antiForgeryToken = antiforgeryTokens.RequestToken;
+
+    var successMessage = !string.IsNullOrEmpty(Model.SuccessKey) ? L[Model.SuccessKey].Value : string.Empty;
+    var errorMessage = !string.IsNullOrEmpty(Model.ErrorKey) ? L[Model.ErrorKey].Value : string.Empty;
 }
 
-<section class="admin-section">
+<section class="admin-section admin-games">
     <nav class="admin-nav">
         <a class="admin-nav__item" asp-action="Users">@L["Admin_Nav_Users"].Value</a>
         <a class="admin-nav__item active" asp-action="Games">@L["Admin_Nav_Games"].Value</a>
@@ -51,204 +137,366 @@
             <h1>@L["Admin_Games_Title"].Value</h1>
             <p>@L["Admin_Games_Subtitle"].Value</p>
         </div>
-        <form method="get" class="admin-filter">
-            <label>
-                <span>@L["Admin_Games_Filter_Label"].Value</span>
-                <select name="status">
-                    <option value="">@L["Admin_Games_Filter_All"].Value</option>
-                    @foreach (var status in statuses)
-                    {
-                        var isSelected = filterValue == status.ToString();
-                        var label = L[$"Dashboard_Games_Status_{status}"].Value;
-
-                        if (isSelected)
-                        {
-                            <option value="@status" selected="selected">@label</option>
-                        }
-                        else
-                        {
-                            <option value="@status">@label</option>
-                        }
-                    }
-                </select>
-            </label>
-            <button class="btn-primary btn-compact" type="submit">@L["Admin_Games_Filter_Apply"].Value</button>
-        </form>
+        <div class="admin-header__actions">
+            <div class="admin-tabs" role="tablist" aria-label="@L["Admin_Games_Filter_Label"].Value">
+                <a class="admin-tab@(Model.Filter is null ? " active" : string.Empty)" role="tab" aria-selected="@(Model.Filter is null ? "true" : "false")" asp-action="Games">@L["Admin_Games_Filter_All"].Value</a>
+                @foreach (var status in statuses)
+                {
+                    var isActive = Model.Filter == status;
+                    <a class="admin-tab@(isActive ? " active" : string.Empty)" role="tab" aria-selected="@(isActive ? "true" : "false")" asp-action="Games" asp-route-status="@status">@FormatStatus(status)</a>
+                }
+            </div>
+        </div>
     </header>
 
-    @if (!string.IsNullOrEmpty(Model.SuccessKey))
-    {
-        <div class="alert success">@L[Model.SuccessKey].Value</div>
-    }
-    else if (!string.IsNullOrEmpty(Model.ErrorKey))
-    {
-        <div class="alert error">@L[Model.ErrorKey].Value</div>
-    }
+    <div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="true"></div>
 
-    <div class="table-wrapper">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>@L["Dashboard_Games_Title"].Value</th>
-                    <th>@L["Admin_Games_Table_Owner"].Value</th>
-                    <th>@L["Dashboard_Games_Submitted"].Value</th>
-                    <th>@L["Dashboard_Games_Status"].Value</th>
-                    <th>@L["Admin_Games_Table_Actions"].Value</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Games.Any())
-                {
-                    foreach (var game in Model.Games)
-                    {
-                        <tr>
-                            <td>
-                                <strong>@game.Title</strong>
-                                <div class="game-meta">@game.Slug</div>
-                                <div class="game-meta">@L["Admin_Games_Metadata_Current"].Value: @FormatCategories(game.Categories)</div>
-                                <div class="game-meta">@L["Admin_Games_Metadata_ProposedCategories_Label"].Value: @FormatCategories(game.ProposedCategories)</div>
-                                <div class="game-meta">@L["Admin_Games_Metadata_Modes_Current"].Value: @FormatModes(game.Modes)</div>
-                                <div class="game-meta">@L["Admin_Games_Metadata_Modes_Proposed"].Value: @FormatModes(game.ProposedModes)</div>
-                                @if (!string.IsNullOrWhiteSpace(game.ModerationNotes))
+    <div id="admin-games-app"
+         data-games='@Html.Raw(JsonSerializer.Serialize(gamesData, serializerOptions))'
+         data-category-options='@Html.Raw(JsonSerializer.Serialize(categoryOptions, serializerOptions))'
+         data-mode-options='@Html.Raw(JsonSerializer.Serialize(modeOptions, serializerOptions))'
+         data-status-labels='@Html.Raw(JsonSerializer.Serialize(statusLabels, serializerOptions))'
+         data-success-message="@successMessage"
+         data-error-message="@errorMessage"
+         data-anti-forgery-field="@antiForgeryFieldName"
+         data-anti-forgery-token="@antiForgeryToken"
+         data-saved-label="Zapisano"
+         data-saving-label="Zapisywanie…"
+         data-unsaved-label="Zmiany niezapisane"
+         data-preview-label="Podgląd"
+         data-reject-label="Odrzuć"
+         data-approve-label="Zatwierdź"
+         data-edit-label="Edytuj metadane"
+         data-test-label="Przetestuj grę"
+         data-new-label="Nowe"
+         data-rejected-label="Odrzucono"
+         data-added-label="Dodano"
+         data-removed-label="Usunięto"
+         data-empty-label="@L["Admin_Games_Empty"].Value">
+        <div class="admin-games__bulkbar" data-bulk-bar>
+            <label class="admin-checkbox">
+                <input type="checkbox" data-select-all aria-label="Zaznacz wszystkie zgłoszenia" />
+                <span></span>
+            </label>
+            <div class="bulk-actions" aria-live="polite">
+                <span data-bulk-count>0</span> wybranych
+                <button type="button" class="btn-outline btn-compact" data-bulk-approve disabled>@L["Admin_Games_Approve"].Value</button>
+                <button type="button" class="btn-outline btn-compact" data-bulk-reject disabled>@L["Admin_Games_Reject"].Value</button>
+                <button type="button" class="btn-outline btn-compact" data-bulk-edit disabled>@L["Admin_Games_Metadata_Edit"].Value</button>
+            </div>
+        </div>
+
+        <div class="admin-games__list" role="grid" aria-describedby="admin-games-caption">
+            <div class="admin-games__list-header" role="row">
+                <span class="cell cell--checkbox" role="columnheader">&nbsp;</span>
+                <span class="cell cell--title" role="columnheader">@L["Dashboard_Games_Title"].Value</span>
+                <span class="cell cell--owner" role="columnheader">@L["Admin_Games_Table_Owner"].Value</span>
+                <span class="cell cell--submitted" role="columnheader">@L["Dashboard_Games_Submitted"].Value</span>
+                <span class="cell cell--status" role="columnheader">@L["Dashboard_Games_Status"].Value</span>
+                <span class="cell cell--diff" role="columnheader">Różnice</span>
+                <span class="cell cell--actions" role="columnheader">@L["Admin_Games_Table_Actions"].Value</span>
+            </div>
+
+    <div class="sr-only" id="admin-games-caption">Lista zgłoszonych gier do weryfikacji</div>
+
+            @if (Model.Games.Any())
+            {
+                var diffChips = GetDiffChips(game).ToList();
+                    var diffCount = diffChips.Count;
+                    <div class="admin-games__row" role="row" data-game-row data-game-id="@game.Id" tabindex="0">
+                        <div class="cell cell--checkbox" role="gridcell">
+                            <label class="admin-checkbox">
+                                <input type="checkbox" value="@game.Id" data-row-checkbox aria-label="@($"Zaznacz {game.Title}")" />
+                                <span></span>
+                            </label>
+                        </div>
+                        <div class="cell cell--title" role="gridcell">
+                            <div class="game-title">@game.Title</div>
+                            <div class="game-meta">@game.Slug</div>
+                            <div class="game-meta">@FormatStatus(game.Status)</div>
+                        </div>
+                        <div class="cell cell--owner" role="gridcell">@game.Owner</div>
+                        <div class="cell cell--submitted" role="gridcell">@FormatDate(game.CreatedAtUtc)</div>
+                        <div class="cell cell--status" role="gridcell">
+                            <span class="status-pill @($"status-{game.Status.ToString().ToLowerInvariant()}")">@FormatStatus(game.Status)</span>
+                        </div>
+                        <div class="cell cell--diff" role="gridcell">
+                            <div class="diff-count" data-diff-count="@diffCount">@diffCount</div>
+                            <div class="diff-chips">
+                                @foreach (var chip in diffChips)
                                 {
-                                    <div class="game-note">@game.ModerationNotes</div>
+                                <span class="diff-chip diff-chip--@chip.Kind">@chip.Label</span>
                                 }
-                            </td>
-                            <td>@game.Owner</td>
-                            <td>@game.CreatedAtUtc.ToLocalTime().ToString("g")</td>
-                            <td><span class="status-pill @($"status-{game.Status.ToString().ToLowerInvariant()}")">@L[$"Dashboard_Games_Status_{game.Status}"].Value</span></td>
-                            <td>
-                                <div class="admin-actions vertical">
-                                    <a class="btn-secondary btn-small" asp-action="PlayGame" asp-route-id="@game.Id" target="_blank">@L["Admin_Games_Test"].Value</a>
-                                    <details class="admin-metadata">
-                                        <summary>@L["Admin_Games_Metadata_Edit"].Value</summary>
-                                        <form asp-action="UpdateGameMetadata" method="post" class="admin-metadata-form">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="Id" value="@game.Id" />
-                                            <label>
-                                                <span>@L["Admin_Games_Metadata_Title"].Value</span>
-                                                <input type="text" name="Title" value="@game.Title" maxlength="120" required />
-                                            </label>
-                                            <label>
-                                                <span>@L["Admin_Games_Metadata_Slug"].Value</span>
-                                                <input type="text" name="Slug" value="@game.Slug" maxlength="140" required />
-                                            </label>
-                                            <label>
-                                                <span>@L["Admin_Games_Metadata_Author"].Value</span>
-                                                <input type="text" value="@game.Owner" readonly />
-                                            </label>
-                                            <label>
-                                                <span>@L["Admin_Games_Metadata_Description"].Value</span>
-                                                <textarea name="Description" maxlength="2000">@game.Description</textarea>
-                                            </label>
-                                            <label>
-                                                <span>@L["Admin_Games_Metadata_Cover"].Value</span>
-                                                <input type="text" name="CoverImagePath" value="@game.CoverImagePath" maxlength="256" />
-                                            </label>
-                                            <fieldset>
-                                                <legend>@L["Admin_Games_Metadata_Categories"].Value</legend>
-                                                <select name="Categories" multiple size="@(Math.Min(GameMetadataOptions.CategoryDefinitions.Count, 8))">
-                                                    @foreach (var option in GameMetadataOptions.CategoryDefinitions)
-                                                    {
-                                                        var isSelected = (game.Categories & option.Category) != 0;
-                                                        var label = L[option.ResourceKey].Value;
-                                                        if ((game.ProposedCategories & option.Category) != 0 && !isSelected)
-                                                        {
-                                                            label = $"{label} ({L["Admin_Games_Metadata_Proposed"].Value})";
-                                                        }
+                        </div>
+                    </div>
+                    <div class="cell cell--actions" role="gridcell">
+                        <a class="btn-secondary btn-compact" asp-action="PlayGame" asp-route-id="@game.Id" target="_blank" data-test-button data-shortcut="T">@L["Admin_Games_Test"].Value</a>
+                        <button type="button" class="btn-outline btn-compact" data-preview-button>Podgląd</button>
+                        <button type="button" class="btn-primary btn-compact" data-edit-button>@L["Admin_Games_Metadata_Edit"].Value</button>
+                    </div>
+                </div>
+            }
+            }
+            else
+            {
+            <div class="admin-games__empty" role="row">
+                <div class="cell cell--empty" role="gridcell">@L["Admin_Games_Empty"].Value</div>
+            </div>
+            }
+        </div>
 
-                                                        if (isSelected)
-                                                        {
-                                                            <option value="@((int)option.Category)" selected="selected">@label</option>
-                                                        }
-                                                        else
-                                                        {
-                                                            <option value="@((int)option.Category)">@label</option>
-                                                        }
-                                                    }
-                                                </select>
-                                            </fieldset>
-                                            <fieldset>
-                                                <legend>@L["Admin_Games_Metadata_Modes"].Value</legend>
-                                                <select name="Modes" multiple size="@(Math.Min(GameMetadataOptions.ModeDefinitions.Count, 6))">
-                                                    @foreach (var option in GameMetadataOptions.ModeDefinitions)
-                                                    {
-                                                        var isSelected = (game.Modes & option.Mode) != 0;
-                                                        var label = L[option.ResourceKey].Value;
-                                                        if ((game.ProposedModes & option.Mode) != 0 && !isSelected)
-                                                        {
-                                                            label = $"{label} ({L["Admin_Games_Metadata_Proposed"].Value})";
-                                                        }
-                                                        if (isSelected)
-                                                        {
-                                                            <option value="@((int)option.Mode)" selected="selected">@label</option>
-                                                        }
-                                                        else
-                                                        {
-                                                            <option value="@((int)option.Mode)">@label</option>
-                                                        }
-                                                    }
-                                                </select>
-                                            </fieldset>
+        <aside class="admin-games__drawer" data-drawer aria-hidden="true">
+            <div class="drawer__overlay" data-drawer-close></div>
+            <div class="drawer__panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+                <div class="drawer__header">
+                    <h2 id="drawer-title">@L["Admin_Games_Metadata_Edit"].Value</h2>
+                    <div class="drawer__header-actions">
+                        <button type="button" class="btn-link" data-drawer-close>Zamknij</button>
+                    </div>
+                </div>
+
+                <div class="drawer__body">
+                    <section class="drawer-preview" data-drawer-preview hidden>
+                        <div class="preview-summary">
+                            <div class="preview-cover" data-preview-cover></div>
+                            <div class="preview-details">
+                                <h3 data-preview-title></h3>
+                                <p class="preview-meta" data-preview-slug></p>
+                                <p class="preview-meta" data-preview-owner></p>
+                                <p class="preview-meta" data-preview-status></p>
+                                <div class="preview-tags" data-preview-tags></div>
+                                <p class="preview-description" data-preview-description></p>
+                            </div>
+                        </div>
+                        <div class="preview-actions">
+                            <a class="btn-secondary" data-preview-test target="_blank">@L["Admin_Games_Test"].Value</a>
+                            <form asp-action="ApproveGame" method="post" data-preview-approve>
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="" />
+                                <button type="submit" class="btn-primary">@L["Admin_Games_Approve"].Value</button>
+                            </form>
+                            <button type="button" class="btn-outline" data-open-moderation>@L["Admin_Games_Reject"].Value</button>
+                        </div>
+                    </section>
+
+                    <section class="drawer-editor" data-drawer-editor hidden>
+                        <div class="editor-layout">
+                            <aside class="editor-summary" data-editor-summary>
+                                <div class="summary-cover" data-summary-cover></div>
+                                <div class="summary-content">
+                                    <h3 data-summary-title></h3>
+                                    <dl class="summary-list">
+                                        <div>
+                                            <dt>@L["Admin_Games_Metadata_Author"].Value</dt>
+                                            <dd data-summary-owner></dd>
+                                        </div>
+                                        <div>
+                                            <dt>@L["Dashboard_Games_Submitted"].Value</dt>
+                                            <dd data-summary-created></dd>
+                                        </div>
+                                        <div>
+                                            <dt>Status</dt>
+                                            <dd data-summary-status></dd>
+                                        </div>
+                                        <div>
+                                            <dt>@L["Admin_Games_Metadata_Categories"].Value</dt>
+                                            <dd data-summary-categories></dd>
+                                        </div>
+                                        <div>
+                                            <dt>@L["Admin_Games_Metadata_Modes"].Value</dt>
+                                            <dd data-summary-modes></dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                            </aside>
+
+                            <form class="editor-form" asp-action="UpdateGameMetadata" method="post" data-metadata-form>
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="Id" value="" data-field-id />
+                                <div class="accordion" data-accordion>
+                                    <article class="accordion-item" data-accordion-item="basics">
+                                        <header class="accordion-header">
+                                            <button type="button" class="accordion-trigger" aria-expanded="true" data-accordion-trigger>
+                                                <span>Podstawy</span>
+                                            </button>
+                                        </header>
+                                        <div class="accordion-panel" data-accordion-panel>
+                                            <label class="form-field">
+                                                <span>@L["Admin_Games_Metadata_Title"].Value</span>
+                                                <input type="text" name="Title" data-field-title maxlength="120" required />
+                                                <small>Użyj jasnego tytułu (maks. 120 znaków).</small>
+                                            </label>
+                                            <label class="form-field">
+                                                <span>Adres w katalogu</span>
+                                                <input type="text" name="Slug" data-field-slug maxlength="140" required />
+                                                <small>Bez spacji i znaków specjalnych. Maks. 140 znaków.</small>
+                                            </label>
+                                            <label class="form-field">
+                                                <span>@L["Admin_Games_Metadata_Author"].Value</span>
+                                                <input type="text" data-field-owner readonly />
+                                                <small>Dane twórcy gry tylko do odczytu.</small>
+                                            </label>
+                                        </div>
+                                    </article>
+
+                                    <article class="accordion-item" data-accordion-item="media">
+                                        <header class="accordion-header">
+                                            <button type="button" class="accordion-trigger" aria-expanded="false" data-accordion-trigger>
+                                                <span>Media</span>
+                                            </button>
+                                        </header>
+                                        <div class="accordion-panel" data-accordion-panel hidden>
+                                            <label class="form-field">
+                                                <span>Okładka (URL / wgraj)</span>
+                                                <input type="text" name="CoverImagePath" data-field-cover maxlength="256" />
+                                                <small>Wklej adres URL lub wgraj okładkę.</small>
+                                            </label>
+                                        </div>
+                                    </article>
+
+                                    <article class="accordion-item" data-accordion-item="classification">
+                                        <header class="accordion-header">
+                                            <button type="button" class="accordion-trigger" aria-expanded="false" data-accordion-trigger>
+                                                <span>Klasyfikacja</span>
+                                            </button>
+                                        </header>
+                                        <div class="accordion-panel" data-accordion-panel hidden>
+                                            <div class="chips-field" data-chips-field="categories" data-hidden-name="Categories">
+                                                <header>
+                                                    <h4>@L["Admin_Games_Metadata_Categories"].Value</h4>
+                                                    <div class="chips-tools">
+                                                        <button type="button" class="btn-link" data-chips-undo title="Cofnij">↺</button>
+                                                        <button type="button" class="btn-link" data-chips-redo title="Ponów">↻</button>
+                                                    </div>
+                                                </header>
+                                                <div class="chips-input">
+                                                    <label>
+                                                        <span>Dodaj kategorię</span>
+                                                        <input type="text" placeholder="Wyszukaj kategorię" data-chips-input />
+                                                    </label>
+                                                    <div class="chips-suggestions" data-chips-suggestions></div>
+                                                </div>
+                                                <div class="chips-columns">
+                                                    <div class="chips-column">
+                                                        <h5>Propozycje twórcy</h5>
+                                                        <div class="chips-list" data-chips-list="proposed"></div>
+                                                    </div>
+                                                    <div class="chips-column">
+                                                        <h5>Opublikowane</h5>
+                                                        <div class="chips-list" data-chips-list="published"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="chips-hidden" data-chips-hidden></div>
+                                            </div>
+
+                                            <div class="chips-field" data-chips-field="modes" data-hidden-name="Modes">
+                                                <header>
+                                                    <h4>@L["Admin_Games_Metadata_Modes"].Value</h4>
+                                                    <div class="chips-tools">
+                                                        <button type="button" class="btn-link" data-chips-undo title="Cofnij">↺</button>
+                                                        <button type="button" class="btn-link" data-chips-redo title="Ponów">↻</button>
+                                                    </div>
+                                                </header>
+                                                <div class="chips-input">
+                                                    <label>
+                                                        <span>Dodaj tryb</span>
+                                                        <input type="text" placeholder="Wyszukaj tryb" data-chips-input />
+                                                    </label>
+                                                    <div class="chips-suggestions" data-chips-suggestions></div>
+                                                </div>
+                                                <div class="chips-columns">
+                                                    <div class="chips-column">
+                                                        <h5>Propozycje twórcy</h5>
+                                                        <div class="chips-list" data-chips-list="proposed"></div>
+                                                    </div>
+                                                    <div class="chips-column">
+                                                        <h5>Opublikowane</h5>
+                                                        <div class="chips-list" data-chips-list="published"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="chips-hidden" data-chips-hidden></div>
+                                            </div>
+                                        </div>
+                                    </article>
+
+                                    <article class="accordion-item" data-accordion-item="description">
+                                        <header class="accordion-header">
+                                            <button type="button" class="accordion-trigger" aria-expanded="false" data-accordion-trigger>
+                                                <span>Opis i tagi</span>
+                                            </button>
+                                        </header>
+                                        <div class="accordion-panel" data-accordion-panel hidden>
+                                            <label class="form-field">
+                                                <span>@L["Admin_Games_Metadata_Description"].Value</span>
+                                                <textarea name="Description" data-field-description maxlength="2000"></textarea>
+                                                <small>Krótko przedstaw najważniejsze informacje o grze.</small>
+                                            </label>
                                             <div class="metadata-tags">
                                                 <strong>@L["Admin_Games_Metadata_Tags"].Value</strong>
-                                                @if (game.Tags.Any())
-                                                {
-                                                    <div class="tag-list">
-                                                        @foreach (var tag in game.Tags)
-                                                        {
-                                                            var isChecked = tag.IsApproved;
-                                                            <label class="option-chip">
-                                                                <input type="checkbox" name="ApprovedTags" value="@tag.Id" @(isChecked ? "checked" : null) />
-                                                                <span>@tag.Value</span>
-                                                                @if (tag.IsPending)
-                                                                {
-                                                                    <span class="badge info">@L["Admin_Games_Metadata_TagPending"].Value</span>
-                                                                }
-                                                            </label>
-                                                        }
-                                                    </div>
-                                                }
-                                                else
-                                                {
-                                                    <p class="muted">@L["Admin_Games_Metadata_NoTags"].Value</p>
-                                                }
+                                                <div class="tag-list" data-tags-list></div>
                                             </div>
-                                            <button class="btn-primary btn-small" type="submit">@L["Admin_Games_Metadata_Save"].Value</button>
-                                        </form>
-                                    </details>
-                                    @if (game.Status != GameApprovalStatus.Approved)
-                                    {
-                                        <form asp-action="ApproveGame" method="post">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@game.Id" />
-                                            <button class="btn-primary btn-small" type="submit">@L["Admin_Games_Approve"].Value</button>
-                                        </form>
-                                    }
-                                    @if (game.Status != GameApprovalStatus.Rejected)
-                                    {
-                                        <details>
-                                            <summary>@L["Admin_Games_Reject"].Value</summary>
-                                            <form asp-action="RejectGame" method="post" class="admin-inline-form">
+                                        </div>
+                                    </article>
+
+                                    <article class="accordion-item" data-accordion-item="moderation">
+                                        <header class="accordion-header">
+                                            <button type="button" class="accordion-trigger" aria-expanded="false" data-accordion-trigger>
+                                                <span>Moderacja</span>
+                                            </button>
+                                        </header>
+                                        <div class="accordion-panel" data-accordion-panel hidden>
+                                            <div class="moderation-field">
+                                                <label>
+                                                    <span>@L["Dashboard_Games_Status"].Value</span>
+                                                    <select data-field-status disabled>
+                                                        @foreach (var status in statuses)
+                                                        {
+                                                            <option value="@status">@FormatStatus(status)</option>
+                                                        }
+                                                    </select>
+                                                    <small>Status można zmienić tylko przy zatwierdzaniu lub odrzucaniu.</small>
+                                                </label>
+                                            </div>
+                                            <div class="moderation-field">
+                                                <label>
+                                                    <span>Notatka moderatora</span>
+                                                    <textarea data-field-notes maxlength="500" readonly></textarea>
+                                                    <small>Powód ostatniej decyzji (tylko do odczytu).</small>
+                                                </label>
+                                            </div>
+                                            <form asp-action="RejectGame" method="post" class="moderation-reject" data-reject-form>
                                                 @Html.AntiForgeryToken()
-                                                <input type="hidden" name="Id" value="@game.Id" />
-                                                <textarea name="Notes" maxlength="500" placeholder="@L["Admin_Games_Reject_Notes"].Value"></textarea>
-                                                <button class="btn-danger btn-small" type="submit">@L["Admin_Games_Reject_Submit"].Value</button>
+                                                <input type="hidden" name="Id" value="" />
+                                                <label>
+                                                    <span>@L["Admin_Games_Reject_Notes"].Value</span>
+                                                    <textarea name="Notes" maxlength="500" data-reject-notes></textarea>
+                                                    <small>Wyjaśnij, dlaczego gra została odrzucona.</small>
+                                                </label>
+                                                <button type="submit" class="btn-danger">@L["Admin_Games_Reject_Submit"].Value</button>
                                             </form>
-                                        </details>
-                                    }
+                                        </div>
+                                    </article>
                                 </div>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="5" class="empty">@L["Admin_Games_Empty"].Value</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                            </form>
+                        </div>
+                    </section>
+                </div>
+
+                <footer class="drawer__footer" data-action-bar>
+                    <div class="action-status" data-save-status>Stan roboczy</div>
+                    <div class="action-buttons">
+                        <button type="submit" form="" class="btn-primary" data-save-button>Zapisz</button>
+                        <a class="btn-secondary" data-preview-link target="_blank">Podgląd</a>
+                        <button type="button" class="btn-outline" data-footer-reject>@L["Admin_Games_Reject"].Value</button>
+                        <button type="button" class="btn-link" data-cancel-edit>Anuluj</button>
+                    </div>
+                </footer>
+            </div>
+        </aside>
     </div>
+    <
 </section>
+
+@section Scripts {
+    <script src="~/js/admin-games.js" asp-append-version="true"></script>
+}
