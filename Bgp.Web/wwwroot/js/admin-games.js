@@ -780,6 +780,7 @@
             this.previewSection.hidden = false;
             this.editorSection.hidden = true;
             this.activeRow = this.list?.querySelector(`[data-game-row][data-game-id="${gameId}"]`);
+            this.currentGameId = String(gameId);
 
             this.previewTitle.textContent = game.title;
             this.previewSlug.textContent = `Adres w katalogu: ${game.slug}`;
