@@ -459,6 +459,16 @@ namespace Bgp.Infrastructure.Migrations
                     b.Property<int>("EmailVisibility")
                         .HasColumnType("int");
 
+                    b.Property<bool>("EnableEmailNotifications")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("EnableFriendInvites")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<bool>("IsBlocked")
                         .HasColumnType("bit");
 
@@ -496,6 +506,20 @@ namespace Bgp.Infrastructure.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("PreferredLanguage")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("system");
+
+                    b.Property<string>("PreferredTheme")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("system");
 
                     b.Property<int>("PresenceStatus")
                         .ValueGeneratedOnAdd()
