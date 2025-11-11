@@ -1,13 +1,68 @@
 ﻿@using System.Linq
+@using System.Text.Json
 @model Bgp.Web.Models.PlayerProfileViewModel
 @{
     ViewData["Title"] = string.Format(L["Dashboard_Profile_View_Title"].Value, Model.DisplayName);
     var rank = Model.Rank;
     var hasGoals = Model.DailyGoals?.Any() == true;
     var hasHighlights = Model.Highlights?.Any() == true;
+    var bestGame = Model.BestGame;
+    var hasBestGame = bestGame is not null;
+    var presenceClass = Model.IsInvisible
+        ? "invisible"
+        : Model.PresenceStatus switch
+        {
+            Bgp.Domain.Enums.UserPresenceStatus.Available => "online",
+            Bgp.Domain.Enums.UserPresenceStatus.Away => "away",
+            _ => "offline"
+        };
+    var viewStrings = new
+    {
+        add = L["Dashboard_Friends_Add"].Value,
+        cancel = L["Dashboard_Friends_Cancel"].Value,
+        accept = L["Dashboard_Friends_Accept"].Value,
+        remove = L["Dashboard_Friends_Remove"].Value,
+        chat = L["Dashboard_Friends_Chat"].Value,
+        invite = L["Dashboard_Friends_InviteToGame"].Value,
+        inviteMessage = L["Dashboard_Friends_InviteMessage"].Value,
+        report = L["Dashboard_Friends_Report"].Value,
+        reportPrompt = L["Dashboard_Friends_ReportPrompt"].Value,
+        reportSuccess = L["Dashboard_Friends_ReportSuccess"].Value,
+        reportError = L["Dashboard_Friends_ReportError"].Value,
+        block = L["Dashboard_Friends_Block"].Value,
+        blockConfirm = L["Dashboard_Friends_BlockConfirm"].Value,
+        blockSuccess = L["Dashboard_Friends_BlockSuccess"].Value,
+        blockError = L["Dashboard_Friends_BlockError"].Value,
+        unblock = L["Dashboard_Friends_Unblock"].Value,
+        unblockConfirm = L["Dashboard_Friends_UnblockConfirm"].Value,
+        unblockSuccess = L["Dashboard_Profile_View_Toast_UnblockSuccess"].Value,
+        removeConfirm = L["Dashboard_Friends_RemoveConfirm"].Value,
+        requestSent = L["Dashboard_Profile_View_Toast_RequestSent"].Value,
+        requestCanceled = L["Dashboard_Profile_View_Toast_RequestCanceled"].Value,
+        requestAccepted = L["Dashboard_Profile_View_Toast_RequestAccepted"].Value,
+        friendRemoved = L["Dashboard_Profile_View_Toast_FriendRemoved"].Value,
+        error = L["Dashboard_Profile_View_Toast_Error"].Value,
+        relationshipFriend = L["Dashboard_Profile_View_Relationship_Friend_Short"].Value,
+        relationshipPending = L["Dashboard_Profile_View_Relationship_Pending"].Value,
+        relationshipPendingOutgoing = L["Dashboard_Profile_View_Relationship_PendingOutgoing"].Value,
+        relationshipPendingIncoming = L["Dashboard_Profile_View_Relationship_PendingIncoming"].Value,
+        relationshipNone = L["Dashboard_Profile_View_Relationship_None"].Value,
+        relationshipBlockedYou = L["Dashboard_Profile_View_Relationship_BlockedYou"].Value,
+        relationshipBlockedByYou = L["Dashboard_Profile_View_Relationship_BlockedByYou"].Value,
+        displayName = Model.DisplayName
+    };
+    var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 }
 
-<section class="profile-shell profile-shell--public">
+<section class="profile-shell profile-shell--public"
+         data-profile-view
+         data-profile-user-id="@Model.UserId"
+         data-profile-is-self="@(Model.IsSelf ? "true" : "false")"
+         data-profile-is-friend="@(Model.IsFriend ? "true" : "false")"
+         data-profile-has-pending="@(Model.HasPendingRequest ? "true" : "false")"
+         data-profile-blocked-by-viewer="@(Model.BlockedByViewer ? "true" : "false")"
+         data-profile-blocked-by-target="@(Model.BlockedByTarget ? "true" : "false")"
+         data-profile-display-name="@Model.DisplayName">
     <header class="profile-hero" style="--rank-accent:@rank.AccentColor; --rank-highlight:@rank.AccentHighlightColor; --rank-glow:@rank.AccentGlowColor;">
         <div class="profile-hero__decor profile-hero__decor--left" aria-hidden="true">
             @if (!string.IsNullOrEmpty(rank.TrophyImage))
@@ -16,14 +71,11 @@
             }
         </div>
         <div class="profile-hero__core">
-            <div class="profile-hero__badge" data-rank-pulse>
-                <span class="profile-hero__badge-label">@rank.DisplayName</span>
-            </div>
             <div class="profile-hero__identity">
-                <div class="profile-hero__avatar">
+                <div class="profile-hero__avatar" aria-hidden="true">
                     @if (!string.IsNullOrEmpty(Model.AvatarUrl))
                     {
-                        <img src="@Model.AvatarUrl" alt="@Model.DisplayName" />
+                        <img src="@Model.AvatarUrl" alt="" />
                     }
                     else
                     {
@@ -31,7 +83,12 @@
                     }
                 </div>
                 <div class="profile-hero__summary">
+                    <span class="profile-hero__badge" data-rank-pulse>@rank.DisplayName</span>
                     <h2 class="profile-hero__name">@Model.DisplayName</h2>
+                    <div class="profile-hero__status" data-profile-presence="@presenceClass">
+                        <span class="profile-hero__status-dot profile-hero__status-dot--@presenceClass"></span>
+                        <span>@Model.PresenceLabel</span>
+                    </div>
                     <p class="profile-hero__xp">@string.Format(L["Dashboard_Profile_Rank_TotalXp"].Value, rank.ExperiencePoints)</p>
                     <div class="profile-progress" data-profile-progress>
                         <div class="profile-progress__track">
@@ -57,14 +114,69 @@
         <div class="profile-note profile-note--muted">@L["Dashboard_Profile_View_PrivateDisplayNameNote"].Value</div>
     }
 
-    @if (!string.IsNullOrEmpty(Model.RelationshipLabel))
-    {
-        <div class="profile-relationship profile-relationship--@Model.RelationshipTone">
-            <span>@Model.RelationshipLabel</span>
+    <div class="profile-view__actions" data-profile-actions>
+        <div class="profile-view__actions-status" data-profile-actions-status data-tone="@Model.RelationshipTone">@Model.RelationshipLabel</div>
+        <div class="profile-view__actions-main">
+            <button type="button"
+                    class="btn-primary"
+                    data-profile-action="add"
+                    hidden="@((Model.IsSelf || Model.IsFriend || Model.HasPendingRequest || Model.BlockedByViewer || Model.BlockedByTarget) ? "hidden" : null)">
+                @L["Dashboard_Friends_Add"].Value
+            </button>
+            <button type="button"
+                    class="btn-outline"
+                    data-profile-action="cancel"
+                    hidden="@((!Model.HasPendingRequest || Model.IsSelf || Model.BlockedByViewer || Model.BlockedByTarget) ? "hidden" : null)">
+                @L["Dashboard_Friends_Cancel"].Value
+            </button>
+            <button type="button"
+                    class="btn-primary"
+                    data-profile-action="accept"
+                    hidden="@((!Model.HasPendingRequest || Model.IsSelf || Model.BlockedByViewer || Model.BlockedByTarget) ? "hidden" : null)">
+                @L["Dashboard_Friends_Accept"].Value
+            </button>
+            <button type="button"
+                    class="btn-outline"
+                    data-profile-action="remove"
+                    hidden="@((!Model.IsFriend || Model.IsSelf || Model.BlockedByViewer || Model.BlockedByTarget) ? "hidden" : null)">
+                @L["Dashboard_Friends_Remove"].Value
+            </button>
+            <button type="button"
+                    class="btn-outline"
+                    data-profile-action="chat"
+                    hidden="@((!Model.IsFriend || Model.IsSelf || Model.BlockedByViewer || Model.BlockedByTarget) ? "hidden" : null)">
+                @L["Dashboard_Friends_Chat"].Value
+            </button>
+            <button type="button"
+                    class="btn-outline"
+                    data-profile-action="invite"
+                    hidden="@((!Model.IsFriend || Model.IsSelf || Model.BlockedByViewer || Model.BlockedByTarget) ? "hidden" : null)">
+                @L["Dashboard_Friends_InviteToGame"].Value
+            </button>
         </div>
-    }
+        <div class="profile-view__actions-secondary">
+            <button type="button"
+                    class="btn-danger"
+                    data-profile-action="block"
+                    hidden="@((Model.IsSelf || Model.BlockedByViewer) ? "hidden" : null)">
+                @L["Dashboard_Friends_Block"].Value
+            </button>
+            <button type="button"
+                    class="btn-outline"
+                    data-profile-action="unblock"
+                    hidden="@((!Model.BlockedByViewer || Model.IsSelf) ? "hidden" : null)">
+                @L["Dashboard_Friends_Unblock"].Value
+            </button>
+            <button type="button"
+                    class="btn-ghost"
+                    data-profile-action="report"
+                    hidden="@(Model.IsSelf ? "hidden" : null)">
+                @L["Dashboard_Friends_Report"].Value
+            </button>
+        </div>
+    </div>
 
-    <section class="profile-summary">
+    <section class="profile-summary" aria-label="@string.Format(L["Dashboard_Profile_View_Title"].Value, Model.DisplayName)">
         <article class="profile-summary__card">
             <h3>@L["Dashboard_Profile_EmailLabel"].Value</h3>
             <p class="profile-summary__value@(Model.ShowEmail ? string.Empty : " is-muted")">@Model.EmailLabel</p>
@@ -82,6 +194,22 @@
             <p class="profile-summary__value@(string.IsNullOrWhiteSpace(Model.StatusMessage) ? " is-muted" : string.Empty)">@(!string.IsNullOrWhiteSpace(Model.StatusMessage) ? Model.StatusMessage : L["Dashboard_Profile_View_Status_Empty"].Value)</p>
         </article>
     </section>
+
+    @if (hasBestGame)
+    {
+        <section class="profile-best" aria-labelledby="profileBestGame">
+            <div class="profile-section-heading">
+                <h3 id="profileBestGame">@L["Dashboard_Profile_View_BestGame_Title"].Value</h3>
+                <span>@string.Format(L["Dashboard_Profile_View_BestGame_AverageScore"].Value, bestGame!.AverageScore.ToString("0.##"))</span>
+            </div>
+            <div class="profile-best__card">
+                <div class="profile-best__meta">
+                    <h4>@bestGame.Title</h4>
+                    <p>@string.Format(L["Dashboard_Profile_View_BestGame_LastPlayed"].Value, bestGame.LastPlayedAt.ToLocalTime().ToString("f"))</p>
+                </div>
+            </div>
+        </section>
+    }
 
     @if (hasGoals)
     {
@@ -127,4 +255,12 @@
     <footer class="profile-view__footer">
         <a asp-action="Index" class="btn-outline">@L["Dashboard_Profile_View_Back"].Value</a>
     </footer>
+
+    <div class="toast-stack profile-toast-stack" id="profileToastStack" aria-live="polite" aria-atomic="true"></div>
+
+    <script type="application/json" id="profileViewStrings">@Html.Raw(JsonSerializer.Serialize(viewStrings, jsonOptions))</script>
 </section>
+
+@section Scripts {
+    <script src="~/js/profile-view.js" asp-append-version="true"></script>
+}

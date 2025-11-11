@@ -3287,6 +3287,39 @@
 	<data name="Dashboard_Profile_View_Relationship_BlockedByYou">
 		<value>You have blocked this player.</value>
 	</data>
+	<data name="Dashboard_Profile_View_Relationship_PendingOutgoing">
+		<value>Invitation sent. Waiting for them to accept.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Relationship_PendingIncoming">
+		<value>This player invited you. Decide how to respond.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Toast_RequestSent">
+		<value>Friend request sent.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Toast_RequestCanceled">
+		<value>Invitation canceled.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Toast_RequestAccepted">
+		<value>You are now friends!</value>
+	</data>
+	<data name="Dashboard_Profile_View_Toast_FriendRemoved">
+		<value>Friend removed.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Toast_UnblockSuccess">
+		<value>The player has been unblocked.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Toast_Error">
+		<value>Something went wrong. Please try again.</value>
+	</data>
+	<data name="Dashboard_Profile_View_BestGame_Title">
+		<value>Top game</value>
+	</data>
+	<data name="Dashboard_Profile_View_BestGame_AverageScore">
+		<value>Average score: {0}</value>
+	</data>
+	<data name="Dashboard_Profile_View_BestGame_LastPlayed">
+		<value>Last played {0}</value>
+	</data>
 	<data name="Dashboard_Profile_View_Back">
 		<value>Back to dashboard</value>
 	</data>

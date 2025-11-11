@@ -27,6 +27,12 @@
     const displayNameBlockedTemplate = form.dataset.displayNameBlockedTemplate || '';
     const displayNameBlockedGeneric = form.dataset.displayNameBlockedGeneric || '';
     const displayNamePendingTemplate = form.dataset.displayNamePendingTemplate || '';
+    const storageKey = 'bgp.profile.lastTab';
+    const toastContainer = document.getElementById('profileToastStack');
+    const idleText = statusEl ? (statusEl.textContent || '').trim() : '';
+    const toastSuccessText = form.dataset.toastSuccess || '';
+
+    const panelMap = new Map(panels.map((panel) => [panel.dataset.profilePanel || '', panel]));
 
     const originalValues = new Map();
     const radioOriginal = new Map();
@@ -48,6 +54,25 @@
         }
         statusEl.textContent = message;
         statusEl.dataset.tone = tone || '';
+    }
+
+    function showToast(message, tone) {
+        if (!toastContainer || !message) {
+            return;
+        }
+        while (toastContainer.children.length > 4) {
+            toastContainer.removeChild(toastContainer.firstChild);
+        }
+        const toast = document.createElement('div');
+        toast.className = `toast toast--${tone || 'success'}`;
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
+        window.setTimeout(() => {
+            toast.classList.add('is-leaving');
+            window.setTimeout(() => {
+                toast.remove();
+            }, 250);
+        }, 4000);
     }
 
     function updateActionBarState() {
@@ -132,6 +157,74 @@
         }
     }
 
+    function resetElementValue(el) {
+        if (el instanceof HTMLInputElement && el.type === 'radio') {
+            const original = radioOriginal.get(el.name) || null;
+            const radios = form.querySelectorAll(`input[name="${CSS.escape(el.name)}"]`);
+            radios.forEach((radio) => {
+                radio.checked = original !== null && radio.value === original;
+            });
+            return;
+        }
+        if (el instanceof HTMLInputElement && el.type === 'checkbox') {
+            if (originalValues.has(el)) {
+                el.checked = !!originalValues.get(el);
+            }
+            return;
+        }
+        if (el instanceof HTMLInputElement && el.type === 'file') {
+            el.value = '';
+            return;
+        }
+        if (originalValues.has(el)) {
+            const original = originalValues.get(el) ?? '';
+            el.value = original;
+        }
+    }
+
+    function resetPanelElements(panel) {
+        if (!panel) {
+            return;
+        }
+        const fields = panel.querySelectorAll('input, select, textarea');
+        fields.forEach((field) => {
+            resetElementValue(field);
+            const wrapper = field.closest('[data-profile-field]');
+            if (wrapper) {
+                wrapper.classList.remove('is-dirty');
+            }
+        });
+    }
+
+    function resetPanelById(id) {
+        const panel = panelMap.get(id);
+        resetPanelElements(panel);
+        updateActionBarState();
+        if (statusEl && idleText) {
+            setStatus(idleText, '');
+        }
+        if (displayNamePasswordField) {
+            displayNamePasswordField.value = '';
+        }
+    }
+
+    function resetActivePanel() {
+        const selected = form.dataset.selectedPanel || 'profile';
+        resetPanelById(selected);
+    }
+
+    function resetAllFields() {
+        panels.forEach((panel) => resetPanelElements(panel));
+        if (displayNamePasswordField) {
+            displayNamePasswordField.value = '';
+        }
+        updateActionBarState();
+        if (statusEl && idleText) {
+            setStatus(idleText, '');
+        }
+        captureInitialValues();
+    }
+
     function handleChange(event) {
         const target = event.target;
         if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement)) {
@@ -187,17 +280,59 @@
         }, 6000);
     }
 
-    function openPanel(id) {
-        panels.forEach((panel) => {
-            const isActive = panel.dataset.profilePanel === id;
-            panel.classList.toggle('is-open', isActive);
+    function focusPanel(panel) {
+        if (!panel) {
+            return;
+        }
+        const header = panel.querySelector('.profile-section__header h3');
+        if (header instanceof HTMLElement) {
+            try {
+                header.focus({ preventScroll: true });
+            } catch (err) {
+                header.focus();
+            }
+        }
+    }
+
+    function openPanel(id, options) {
+        const panel = panelMap.get(id);
+        if (!panel) {
+            return;
+        }
+        const opts = options || {};
+        panels.forEach((item) => {
+            const isActive = item === panel;
+            item.classList.toggle('is-open', isActive);
+            if (isActive) {
+                item.removeAttribute('hidden');
+                item.setAttribute('aria-hidden', 'false');
+            } else {
+                item.setAttribute('hidden', '');
+                item.setAttribute('aria-hidden', 'true');
+            }
         });
         navButtons.forEach((button) => {
             const isActive = button.dataset.profileNav === id;
             button.classList.toggle('is-active', isActive);
             button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            button.setAttribute('tabindex', isActive ? '0' : '-1');
         });
         form.dataset.selectedPanel = id;
+        if (!opts || opts.skipStorage !== true) {
+            try {
+                window.localStorage.setItem(storageKey, id);
+            } catch (err) {
+             
+            }
+        }
+        if (!opts || opts.skipHistory !== true) {
+            if (typeof window.history?.replaceState === 'function') {
+                window.history.replaceState(null, '', `#${id}`);
+            }
+        }
+        if (!opts || opts.focus !== false) {
+            window.requestAnimationFrame(() => focusPanel(panel));
+        }
     }
 
     function handleNavClick(event) {
@@ -208,6 +343,42 @@
         const id = target.dataset.profileNav;
         if (id) {
             openPanel(id);
+        }
+    }
+
+    function handleNavKeydown(event) {
+        if (!(event.currentTarget instanceof HTMLButtonElement)) {
+            return;
+        }
+        const key = event.key;
+        if (!key) {
+            return;
+        }
+        const currentIndex = navButtons.indexOf(event.currentTarget);
+        if (currentIndex < 0) {
+            return;
+        }
+        let nextIndex = currentIndex;
+        if (key === 'ArrowLeft' || key === 'ArrowUp') {
+            event.preventDefault();
+            nextIndex = (currentIndex - 1 + navButtons.length) % navButtons.length;
+        } else if (key === 'ArrowRight' || key === 'ArrowDown') {
+            event.preventDefault();
+            nextIndex = (currentIndex + 1) % navButtons.length;
+        } else if (key === 'Home') {
+            event.preventDefault();
+            nextIndex = 0;
+        } else if (key === 'End') {
+            event.preventDefault();
+            nextIndex = navButtons.length - 1;
+        }
+        if (nextIndex !== currentIndex) {
+            const button = navButtons[nextIndex];
+            const id = button?.dataset.profileNav;
+            if (id) {
+                button.focus();
+                openPanel(id);
+            }
         }
     }
 
@@ -395,6 +566,9 @@
             if (!result || result.success === false) {
                 applyValidationErrors(result?.errors);
                 setStatus(errorText, 'error');
+                if (!isAuto) {
+                    showToast(errorText, 'error');
+                }
                 return;
             }
 
@@ -405,9 +579,15 @@
             setStatus(savedLabel, 'success');
             updateServerState(result);
             captureInitialValues();
+            if (!isAuto) {
+                showToast(errorText, 'error');
+            }
         } catch (err) {
             console.error('Failed to save profile.', err);
             setStatus(errorText, 'error');
+            if (!isAuto) {
+                showToast(errorText, 'error');
+            }
         } finally {
             saving = false;
             actionBar?.classList.remove('is-saving');
@@ -576,13 +756,34 @@
     }
 
     function cancelEditing() {
-        window.location.reload();
+        resetAllFields();
     }
 
     function setupNav() {
-        navButtons.forEach((btn) => btn.addEventListener('click', handleNavClick));
-        const selected = form.dataset.selectedPanel || 'profile';
-        openPanel(selected);
+        navButtons.forEach((btn) => {
+            btn.addEventListener('click', handleNavClick);
+            btn.addEventListener('keydown', handleNavKeydown);
+        });
+
+        const hash = (window.location.hash || '').replace('#', '').toLowerCase();
+        let selected = hash && panelMap.has(hash) ? hash : null;
+        if (!selected) {
+            try {
+                const stored = window.localStorage.getItem(storageKey);
+                if (stored && panelMap.has(stored)) {
+                    selected = stored;
+                }
+            } catch (err) {
+                selected = null;
+            }
+        }
+        if (!selected) {
+            selected = (form.dataset.selectedPanel || 'profile').toLowerCase();
+        }
+        if (!panelMap.has(selected)) {
+            selected = 'profile';
+        }
+        openPanel(selected, { focus: false, skipHistory: true, skipStorage: true });
     }
 
     function setupListeners() {
@@ -608,16 +809,7 @@
             });
         }
 
-        document.addEventListener('keydown', (event) => {
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
-                event.preventDefault();
-                saveForm(false);
-            }
-            if (event.key === 'Escape') {
-                event.preventDefault();
-                cancelEditing();
-            }
-        });
+        document.addEventListener('keydown', handleGlobalKeydown);
 
         if (avatarInput) {
             avatarInput.addEventListener('change', () => {
@@ -643,37 +835,23 @@
                 }
             });
         }
-
-        setupRecoveryFields();
     }
 
-    function setupRecoveryFields() {
-        const selects = form.querySelectorAll('[data-recovery-select]');
-        selects.forEach((select) => {
-            if (!(select instanceof HTMLSelectElement)) {
-                return;
-            }
-            const fieldset = select.closest('.recovery-field');
-            const customInput = fieldset ? fieldset.querySelector('[data-recovery-custom]') : null;
-
-            function toggleCustom() {
-                const option = select.selectedOptions[0];
-                const allowsCustom = option && option.dataset.allowsCustom === 'true';
-                if (customInput instanceof HTMLInputElement) {
-                    customInput.classList.toggle('is-hidden', !allowsCustom);
-                    customInput.disabled = !allowsCustom;
-                    if (!allowsCustom) {
-                        customInput.value = '';
-                    }
-                }
+    function handleGlobalKeydown(event) {
+        if ((event.ctrlKey || event.metaKey) && event.key && event.key.toLowerCase() === 's') {
+            event.preventDefault();
+            saveForm(false);
+            return;
+        }
+        if (event.key === 'Escape') {
+            const selected = form.dataset.selectedPanel || 'profile';
+            const panel = panelMap.get(selected);
+            if (panel && panel.querySelector('[data-profile-field].is-dirty')) {
+                event.preventDefault();
+                resetActivePanel();
             }
 
-            select.addEventListener('change', () => {
-                toggleCustom();
-                markFieldDirty(select);
-            });
-            toggleCustom();
-        });
+        }
     }
 
     function loadAvatarForCropping(file) {

@@ -3336,6 +3336,39 @@
 	<data name="Dashboard_Profile_View_Relationship_BlockedByYou">
 		<value>Zablokowałeś tego gracza.</value>
 	</data>
+	<data name="Dashboard_Profile_View_Relationship_PendingOutgoing">
+		<value>Wysłano zaproszenie. Czekaj na odpowiedź.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Relationship_PendingIncoming">
+		<value>Ten gracz wysłał Ci zaproszenie. Wybierz, co zrobić.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Toast_RequestSent">
+		<value>Wysłano zaproszenie do znajomych.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Toast_RequestCanceled">
+		<value>Zaproszenie anulowane.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Toast_RequestAccepted">
+		<value>Jesteście teraz znajomymi!</value>
+	</data>
+	<data name="Dashboard_Profile_View_Toast_FriendRemoved">
+		<value>Usunięto ze znajomych.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Toast_UnblockSuccess">
+		<value>Gracz został odblokowany.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Toast_Error">
+		<value>Coś poszło nie tak. Spróbuj ponownie.</value>
+	</data>
+	<data name="Dashboard_Profile_View_BestGame_Title">
+		<value>Najlepsza gra</value>
+	</data>
+	<data name="Dashboard_Profile_View_BestGame_AverageScore">
+		<value>Średni wynik: {0}</value>
+	</data>
+	<data name="Dashboard_Profile_View_BestGame_LastPlayed">
+		<value>Ostatnia rozgrywka {0}</value>
+	</data>
 	<data name="Dashboard_Profile_View_Back">
 		<value>Wróć do panelu</value>
 	</data>
