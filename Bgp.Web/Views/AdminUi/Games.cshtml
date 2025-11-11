@@ -261,7 +261,7 @@
                                 </div>
                             </aside>
 
-                            <form class="editor-form" asp-action="UpdateGameMetadata" method="post" data-metadata-form>
+                            <form class="editor-form" asp-action="UpdateGameMetadata" method="post" id="metadata-form" data-metadata-form>
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="Id" value="" data-field-id />
                                 <div class="accordion" data-accordion>
@@ -436,7 +436,7 @@
                 <footer class="drawer__footer" data-action-bar>
                     <div class="action-status" data-save-status>Stan roboczy</div>
                     <div class="action-buttons">
-                        <button type="submit" form="" class="btn-primary btn-compact" data-save-button>Zapisz</button>
+                        <button type="submit" form="metadata-form" class="btn-primary btn-compact" data-save-button>Zapisz</button>
                         <a class="btn-primary btn-compact" data-preview-link target="_blank">Podgląd</a>
                         <button type="button" class="btn-outline btn-compact" data-footer-reject>@L["Admin_Games_Reject"].Value</button>
                         <button type="button" class="btn-danger btn-compact" data-cancel-edit>Anuluj</button>
