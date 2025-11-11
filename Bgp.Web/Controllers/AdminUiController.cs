@@ -818,6 +818,11 @@ public class AdminUiController : Controller
 
         await _db.SaveChangesAsync();
 
+        if (IsAjaxRequest())
+        {
+            return NoContent();
+        }
+
         TempData["AdminGamesSuccess"] = "Admin_Games_Metadata_Success";
         return RedirectToAction(nameof(Games));
     }
@@ -865,6 +870,12 @@ public class AdminUiController : Controller
         slug = Regex.Replace(slug, "-+", "-");
         slug = slug.Trim('-');
         return slug;
+    }
+
+    private bool IsAjaxRequest()
+    {
+        return Request?.Headers.TryGetValue("X-Requested-With", out var value) == true &&
+               string.Equals(value, "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
     }
 
     [HttpPost]
