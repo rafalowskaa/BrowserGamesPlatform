@@ -255,7 +255,7 @@ public class DashboardController : Controller
                 displayName = user.DisplayName,
                 pendingDisplayName = user.PendingDisplayName,
                 pendingDisplayNameRequestedAt = user.PendingDisplayNameRequestedAtUtc,
-                displayNameChangeAvailableAt = user.DisplayNameChangeAvailableAtUtc,
+                displayNameChangeAvailableAt = CalculateNextDisplayNameChangeAt(user),
                 avatarUrl = user.AvatarUrl,
                 preferredLanguage = user.PreferredLanguage,
                 preferredTheme = user.PreferredTheme,
@@ -1572,7 +1572,11 @@ public class DashboardController : Controller
                               string.Equals(relationship.BlockedByUserId, viewerId, StringComparison.Ordinal);
         var blockedByTarget = relationship.Status == FriendshipStatus.Blocked &&
                               string.Equals(relationship.BlockedByUserId, targetId, StringComparison.Ordinal);
-        var since = isFriend ? (relationship.UpdatedAtUtc ?? relationship.CreatedAtUtc) : null;
+        DateTime? since = null;
+        if (isFriend)
+        {
+            since = relationship.UpdatedAtUtc ?? relationship.CreatedAtUtc;
+        }
 
         return new RelationshipInfo(isFriend, isPending, blockedByViewer, blockedByTarget, since);
     }

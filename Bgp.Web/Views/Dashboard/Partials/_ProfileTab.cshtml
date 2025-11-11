@@ -144,15 +144,15 @@
     }
 
     <nav class="profile-local-nav" role="tablist">
-        @foreach (var section in sections)
+        @foreach (var navSection in sections)
         {
-            var isActive = string.Equals(section.Id, selectedPanel, StringComparison.OrdinalIgnoreCase);
+            var isActive = string.Equals(navSection.Id, selectedPanel, StringComparison.OrdinalIgnoreCase);
             <button type="button"
                     class="profile-local-nav__item@(isActive ? " is-active" : string.Empty)"
                     role="tab"
-                    data-profile-nav="@section.Id"
+                    data-profile-nav="@navSection.Id"
                     aria-selected="@(isActive ? "true" : "false")">
-                @section.Label
+                @navSection.Label
             </button>
         }
     </nav>
