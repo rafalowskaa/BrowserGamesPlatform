@@ -52,8 +52,28 @@
         cancelButton.textContent = matchMessages.cancelLabel;
     }
 
+    const stage = playerContainer ? playerContainer.querySelector('[data-game-stage]') : null;
+    const viewer = playerContainer ? playerContainer.querySelector('[data-game-viewer]') : null;
+    const fullscreenButton = playerContainer ? playerContainer.querySelector('[data-game-fullscreen]') : null;
+    const fullscreenEnterLabelDefault = fullscreenButton
+        ? (fullscreenButton.querySelector('[data-game-fullscreen-enter]')?.textContent || fullscreenButton.textContent || '')
+        : '';
+    const fullscreenExitLabelDefault = fullscreenButton
+        ? (fullscreenButton.querySelector('[data-game-fullscreen-exit]')?.textContent || '')
+        : '';
+    const fullscreenLabels = {
+        enter: config.fullScreenLabel || fullscreenEnterLabelDefault || 'Full screen',
+        exit: config.fullScreenExitLabel || fullscreenExitLabelDefault || config.fullScreenLabel || 'Exit full screen'
+    };
+    const fullscreenUnavailableMessage = config.fullScreenUnavailable || '';
+    let resizeFrame = null;
+    let fullscreenMessageTimeout = null;
+    let currentAspect = { width: 16, height: 9, ratio: 16 / 9 };
+
+    initializeViewer();
+
     function canLaunchWebGame() {
-        return Boolean(config.hasWeb && config.webUrl && frame && playerContainer);
+        return Boolean(config.hasWeb && config.webUrl && frame && playerContainer && viewer);
     }
 
     function needsMatchmaking(modeNumber) {
@@ -104,6 +124,349 @@
         }
     }
 
+    function initializeViewer() {
+        if (!playerContainer || !viewer) {
+            return;
+        }
+
+        applyAspectFromMetadata();
+        syncHeaderHeight();
+        updateFullscreenButton(isFullscreenActive());
+        updateViewerConstraints();
+
+        if (fullscreenButton) {
+            fullscreenButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                toggleFullscreen();
+            });
+        }
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('keydown', handleKeydown);
+
+        window.addEventListener('resize', scheduleResizeUpdate);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', scheduleResizeUpdate);
+            window.visualViewport.addEventListener('scroll', scheduleResizeUpdate);
+        }
+    }
+
+    function syncHeaderHeight() {
+        const header = document.querySelector('header');
+        if (!header) {
+            document.documentElement.style.setProperty('--player-header-height', '0px');
+            return 0;
+        }
+
+        const rect = header.getBoundingClientRect();
+        const height = Math.max(0, Math.round(rect.height));
+        document.documentElement.style.setProperty('--player-header-height', `${height}px`);
+        return height;
+    }
+
+    function scheduleResizeUpdate() {
+        if (typeof window.requestAnimationFrame !== 'function') {
+            syncHeaderHeight();
+            updateViewerConstraints();
+            return;
+        }
+
+        if (resizeFrame) {
+            if (typeof window.cancelAnimationFrame === 'function') {
+                window.cancelAnimationFrame(resizeFrame);
+            }
+        }
+
+        resizeFrame = window.requestAnimationFrame(() => {
+            resizeFrame = null;
+            syncHeaderHeight();
+            updateViewerConstraints();
+        });
+    }
+
+    function updateViewerConstraints() {
+        if (!playerContainer || !viewer) {
+            return;
+        }
+
+        if (isFullscreenActive()) {
+            return;
+        }
+
+        const maxHeight = computeMaxHeightValue();
+        if (!Number.isFinite(maxHeight) || maxHeight <= 0) {
+            playerContainer.style.removeProperty('--player-viewport-max-height');
+            return;
+        }
+
+        playerContainer.style.setProperty('--player-viewport-max-height', `${maxHeight}px`);
+    }
+
+    function computeMaxHeightValue() {
+        const viewport = window.visualViewport;
+        const viewportHeight = viewport ? viewport.height : window.innerHeight;
+        if (!viewportHeight) {
+            return 0;
+        }
+
+        const headerHeight = syncHeaderHeight();
+        const safeTop = getCssNumber('--safe-area-top');
+        const safeBottom = getCssNumber('--safe-area-bottom');
+        const safeArea = safeTop + safeBottom;
+        const isMobile = window.matchMedia('(max-width: 767px)').matches;
+        const gap = isMobile ? getCssNumber('--player-mobile-gap') : getCssNumber('--player-desktop-gap');
+
+        const available = viewportHeight - headerHeight - safeArea - gap;
+        if (available <= 0) {
+            return Math.max(viewportHeight * 0.6, 0);
+        }
+
+        if (isMobile) {
+            return available;
+        }
+
+        const eightyPercent = viewportHeight * 0.8;
+        return Math.min(available, eightyPercent);
+    }
+
+    function getCssNumber(variableName) {
+        const styles = getComputedStyle(document.documentElement);
+        const value = styles.getPropertyValue(variableName);
+        if (!value) {
+            return 0;
+        }
+        const numeric = parseFloat(value);
+        return Number.isFinite(numeric) ? numeric : 0;
+    }
+
+    function applyAspectFromMetadata() {
+        if (!viewer) {
+            return;
+        }
+
+        currentAspect = resolveAspectFromMetadata();
+        const width = currentAspect.width > 0 ? currentAspect.width : 16;
+        const height = currentAspect.height > 0 ? currentAspect.height : 9;
+        viewer.style.setProperty('--player-aspect-width', String(width));
+        viewer.style.setProperty('--player-aspect-height', String(height));
+        viewer.style.setProperty('--player-fallback-padding', `${(height / width) * 100}%`);
+        if (typeof viewer.style.aspectRatio !== 'undefined') {
+            viewer.style.aspectRatio = `${width} / ${height}`;
+        }
+    }
+
+    function resolveAspectFromMetadata() {
+        const metadata = config.gameMetadata || {};
+        const nativeWidth = parseDimension(metadata.nativeWidth);
+        const nativeHeight = parseDimension(metadata.nativeHeight);
+        let ratio = parseAspectRatioValue(metadata.aspectRatio);
+
+        if (nativeWidth > 0 && nativeHeight > 0) {
+            ratio = nativeWidth / nativeHeight;
+            return { width: nativeWidth, height: nativeHeight, ratio };
+        }
+
+        if (!ratio || !Number.isFinite(ratio) || ratio <= 0) {
+            ratio = 16 / 9;
+        }
+
+        const approximate = approximateAspect(ratio);
+        return { width: approximate[0], height: approximate[1], ratio };
+    }
+
+    function parseDimension(value) {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return value;
+        }
+        if (typeof value === 'string') {
+            const numeric = parseFloat(value);
+            if (Number.isFinite(numeric)) {
+                return numeric;
+            }
+        }
+        return 0;
+    }
+
+    function parseAspectRatioValue(value) {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return value;
+        }
+        if (typeof value !== 'string') {
+            return 0;
+        }
+        const trimmed = value.trim();
+        if (!trimmed) {
+            return 0;
+        }
+        const parts = trimmed.split(/[:/]/);
+        if (parts.length === 2) {
+            const left = parseFloat(parts[0]);
+            const right = parseFloat(parts[1]);
+            if (Number.isFinite(left) && Number.isFinite(right) && right !== 0) {
+                return left / right;
+            }
+        }
+        const numeric = parseFloat(trimmed);
+        return Number.isFinite(numeric) ? numeric : 0;
+    }
+
+    function approximateAspect(ratio) {
+        const maxDenominator = 100;
+        let bestNumerator = 16;
+        let bestDenominator = 9;
+        let smallestError = Number.POSITIVE_INFINITY;
+
+        for (let denominator = 1; denominator <= maxDenominator; denominator++) {
+            const numerator = Math.round(ratio * denominator);
+            if (numerator < 1) {
+                continue;
+            }
+            const approximation = numerator / denominator;
+            const error = Math.abs(approximation - ratio);
+            if (error < smallestError) {
+                smallestError = error;
+                bestNumerator = numerator;
+                bestDenominator = denominator;
+                if (error <= 1e-4) {
+                    break;
+                }
+            }
+        }
+
+        const divisor = gcd(bestNumerator, bestDenominator);
+        return [bestNumerator / divisor, bestDenominator / divisor];
+    }
+
+    function gcd(a, b) {
+        let x = Math.abs(a);
+        let y = Math.abs(b);
+        while (y) {
+            const temp = y;
+            y = x % y;
+            x = temp;
+        }
+        return x || 1;
+    }
+
+    function updateFullscreenButton(isActive) {
+        if (!fullscreenButton) {
+            return;
+        }
+
+        fullscreenButton.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        fullscreenButton.dataset.state = isActive ? 'exit' : 'enter';
+
+        const enterLabel = fullscreenButton.querySelector('[data-game-fullscreen-enter]');
+        const exitLabel = fullscreenButton.querySelector('[data-game-fullscreen-exit]');
+
+        if (enterLabel) {
+            enterLabel.hidden = isActive;
+            enterLabel.textContent = fullscreenLabels.enter;
+        }
+
+        if (exitLabel) {
+            exitLabel.hidden = !isActive;
+            exitLabel.textContent = fullscreenLabels.exit;
+        }
+
+        if (!enterLabel && !exitLabel) {
+            fullscreenButton.textContent = isActive ? fullscreenLabels.exit : fullscreenLabels.enter;
+        }
+
+        fullscreenButton.setAttribute('aria-label', isActive ? fullscreenLabels.exit : fullscreenLabels.enter);
+        fullscreenButton.setAttribute('title', isActive ? fullscreenLabels.exit : fullscreenLabels.enter);
+    }
+
+    function isFullscreenActive() {
+        if (!stage) {
+            return false;
+        }
+        const element = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+        return element === stage;
+    }
+
+    function toggleFullscreen() {
+        if (!stage) {
+            return;
+        }
+
+        if (isFullscreenActive()) {
+            const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+            if (exit) {
+                try {
+                    const result = exit.call(document);
+                    if (result && typeof result.catch === 'function') {
+                        result.catch(err => console.error(err));
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+            return;
+        }
+
+        const request = stage.requestFullscreen || stage.webkitRequestFullscreen || stage.msRequestFullscreen;
+        if (!request) {
+            showFullscreenError();
+            return;
+        }
+
+        try {
+            const outcome = request.call(stage);
+            if (outcome && typeof outcome.catch === 'function') {
+                outcome.catch(() => showFullscreenError());
+            }
+        } catch (err) {
+            console.error(err);
+            showFullscreenError();
+        }
+    }
+
+    function handleFullscreenChange() {
+        updateFullscreenButton(isFullscreenActive());
+        if (!isFullscreenActive()) {
+            scheduleResizeUpdate();
+        }
+    }
+
+    function handleKeydown(event) {
+        if (!playerContainer || playerContainer.hidden) {
+            return;
+        }
+        if (event.defaultPrevented) {
+            return;
+        }
+        if (event.metaKey || event.ctrlKey || event.altKey) {
+            return;
+        }
+        const target = event.target;
+        if (target && typeof target.tagName === 'string') {
+            const tag = target.tagName.toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable) {
+                return;
+            }
+        }
+        if (event.key === 'f' || event.key === 'F') {
+            event.preventDefault();
+            toggleFullscreen();
+        }
+    }
+
+    function showFullscreenError() {
+        if (!fullscreenUnavailableMessage) {
+            return;
+        }
+        setStartHint(fullscreenUnavailableMessage);
+        if (fullscreenMessageTimeout) {
+            clearTimeout(fullscreenMessageTimeout);
+        }
+        fullscreenMessageTimeout = window.setTimeout(() => {
+            setStartHint('');
+            fullscreenMessageTimeout = null;
+        }, 4000);
+    }
+
     function buildGameUrl(modeNumber, extraParams) {
         const url = new URL(config.webUrl, window.location.origin);
         url.searchParams.set('mode', String(modeNumber));
@@ -125,6 +488,8 @@
             const src = buildGameUrl(modeNumber, extraParams);
             frame.src = src;
             playerContainer.hidden = false;
+            updateViewerConstraints();
+            scheduleResizeUpdate();
         } catch (err) {
             console.error('Failed to launch game', err);
             setMatchmakingUi(false, matchMessages.error || startHintDefault);

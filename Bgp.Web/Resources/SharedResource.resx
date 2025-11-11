@@ -3384,6 +3384,15 @@
 	<data name="Games_Details_WebHint">
 		<value>The game will open in the player below.</value>
 	</data>
+	<data name="Games_Details_Fullscreen" xml:space="preserve">
+                <value>Full screen</value>
+        </data>
+	<data name="Games_Details_ExitFullscreen" xml:space="preserve">
+                <value>Exit full screen</value>
+        </data>
+	<data name="Games_Details_FullscreenUnavailable" xml:space="preserve">
+                <value>Full screen mode is not available in this browser.</value>
+        </data>
 	<data name="Games_Details_NoWebBuild">
 		<value>No browser build is available for this game.</value>
 	</data>

@@ -21,4 +21,7 @@ public record GamePlayOptionViewModel(
     string Label,
     string Url,
     string? FileName,
-    string? Description);
+    string? Description,
+    int? NativeWidth = null,
+    int? NativeHeight = null,
+    double? AspectRatio = null);

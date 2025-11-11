@@ -3252,6 +3252,15 @@
 	<data name="Games_Details_WebHint">
 		<value>Gra zostanie uruchomiona w oknie poniżej.</value>
 	</data>
+	<data name="Games_Details_Fullscreen" xml:space="preserve">
+                <value>Pełny ekran</value>
+        </data>
+	<data name="Games_Details_ExitFullscreen" xml:space="preserve">
+                <value>Zakończ tryb pełnoekranowy</value>
+        </data>
+	<data name="Games_Details_FullscreenUnavailable" xml:space="preserve">
+                <value>Tryb pełnoekranowy nie jest dostępny w tej przeglądarce.</value>
+        </data>
 	<data name="Games_Details_NoWebBuild">
 		<value>Ta gra nie ma wersji działającej w przeglądarce.</value>
 	</data>

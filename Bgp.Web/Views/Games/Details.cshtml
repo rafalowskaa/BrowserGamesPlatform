@@ -66,6 +66,15 @@
         hasWeb = webOption is not null,
         webUrl = webOption?.Url,
         gameTitle = game.Title,
+        gameMetadata = webOption is not null ? new
+        {
+            nativeWidth = webOption.NativeWidth,
+            nativeHeight = webOption.NativeHeight,
+            aspectRatio = webOption.AspectRatio
+        } : null,
+        fullScreenLabel = L["Games_Details_Fullscreen"].Value,
+        fullScreenExitLabel = L["Games_Details_ExitFullscreen"].Value,
+        fullScreenUnavailable = L["Games_Details_FullscreenUnavailable"].Value,
         modes = availableModes.Select(def => new { value = (int)def.Mode, label = L[def.ResourceKey].Value }).ToList(),
         inviteTemplate = L["Games_Details_InviteTemplate"].Value,
         inviteSuccess = L["Games_Details_InviteSuccess"].Value,
@@ -132,7 +141,17 @@
                 <p class="muted" data-game-start-hint>@L["Games_Details_WebHint"].Value</p>
                 <button class="btn-secondary" type="button" data-game-cancel hidden>@L["Games_Details_Matchmaking_Cancel"].Value</button>
                 <div class="player" hidden data-game-player>
-                    <iframe src="about:blank" title="game" loading="lazy" data-game-frame></iframe>
+                    <div class="player__stage" data-game-stage>
+                        <div class="player__viewport" data-game-viewer>
+                            <div class="player__canvas" data-game-canvas>
+                                <iframe src="about:blank" title="@game.Title" loading="lazy" allow="fullscreen" allowfullscreen scrolling="no" data-game-frame></iframe>
+                            </div>
+                        </div>
+                        <button class="player__fullscreen" type="button" data-game-fullscreen aria-pressed="false" data-state="enter">
+                            <span data-game-fullscreen-enter>@L["Games_Details_Fullscreen"].Value</span>
+                            <span data-game-fullscreen-exit hidden>@L["Games_Details_ExitFullscreen"].Value</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         }
