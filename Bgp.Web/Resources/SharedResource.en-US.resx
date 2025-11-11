@@ -3388,4 +3388,22 @@
 	<data name="Dashboard_Preferences_Theme_Dark" xml:space="preserve"><value>Dark</value></data>
 	<data name="Dashboard_Preferences_Theme_Contrast" xml:space="preserve"><value>High contrast</value></data>
 	<data name="Dashboard_Success_Sessions" xml:space="preserve"><value>All other sessions have been signed out.</value></data>
+	<data name="Games_Details_Matchmaking_Searching" xml:space="preserve">
+    <value>Looking for another player…</value>
+  </data>
+	<data name="Games_Details_Matchmaking_Found" xml:space="preserve">
+    <value>Match found! Launching…</value>
+  </data>
+	<data name="Games_Details_Matchmaking_Starting" xml:space="preserve">
+    <value>Preparing the match…</value>
+  </data>
+	<data name="Games_Details_Matchmaking_Error" xml:space="preserve">
+    <value>Unable to start matchmaking. Please try again.</value>
+  </data>
+	<data name="Games_Details_Matchmaking_Cancel" xml:space="preserve">
+    <value>Cancel search</value>
+  </data>
+	<data name="Games_Details_Matchmaking_Cancelled" xml:space="preserve">
+    <value>Matchmaking cancelled.</value>
+  </data>
 </root>

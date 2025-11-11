@@ -3437,4 +3437,22 @@
 	<data name="Dashboard_Preferences_Theme_Dark" xml:space="preserve"><value>Ciemny</value></data>
 	<data name="Dashboard_Preferences_Theme_Contrast" xml:space="preserve"><value>Wysoki kontrast</value></data>
 	<data name="Dashboard_Success_Sessions" xml:space="preserve"><value>Wszystkie pozostałe sesje zostały wylogowane.</value></data>
+	<data name="Games_Details_Matchmaking_Searching" xml:space="preserve">
+    <value>Szukanie przeciwnika…</value>
+  </data>
+	<data name="Games_Details_Matchmaking_Found" xml:space="preserve">
+    <value>Znaleziono przeciwnika! Uruchamiam grę…</value>
+  </data>
+	<data name="Games_Details_Matchmaking_Starting" xml:space="preserve">
+    <value>Przygotowuję mecz…</value>
+  </data>
+	<data name="Games_Details_Matchmaking_Error" xml:space="preserve">
+    <value>Nie udało się uruchomić wyszukiwania. Spróbuj ponownie.</value>
+  </data>
+	<data name="Games_Details_Matchmaking_Cancel" xml:space="preserve">
+    <value>Anuluj wyszukiwanie</value>
+  </data>
+	<data name="Games_Details_Matchmaking_Cancelled" xml:space="preserve">
+    <value>Wyszukiwanie przerwane.</value>
+  </data>
 </root>

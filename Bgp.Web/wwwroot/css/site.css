@@ -441,9 +441,13 @@ textarea {
 
     .player iframe {
         width: 100%;
-        height: clamp(18.75rem, 40vw, 37.5rem);
+        aspect-ratio: 16 / 9;
+        height: auto;
+        min-height: 18.75rem;
+        max-height: min(calc(100vh - 6rem), 45rem);
         border: 0;
         background: #000;
+        display: block;
     }
 
 .panel {

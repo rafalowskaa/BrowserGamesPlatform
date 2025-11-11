@@ -19,11 +19,16 @@
 
     const startButton = container.querySelector('[data-game-start]');
     const startHint = container.querySelector('[data-game-start-hint]');
+    const cancelButton = container.querySelector('[data-game-cancel]');
     const playerContainer = container.querySelector('[data-game-player]');
     const frame = container.querySelector('[data-game-frame]');
     const modeInputs = container.querySelectorAll('input[name="game-mode"]');
 
+    const startHintDefault = startHint ? (startHint.textContent || '') : '';
     let selectedModeValue = modeInputs.length > 0 ? modeInputs[0].value : '0';
+    let activeTicketId = null;
+    let matchmakingAbort = null;
+    let matchmakingMode = null;
 
     function resolveModeLabel(value) {
         if (!Array.isArray(config.modes)) {
@@ -32,6 +37,36 @@
         const numeric = Number(value);
         const match = config.modes.find(m => Number(m.value) === numeric);
         return match ? match.label : value;
+    }
+
+    const matchMessages = {
+        searching: config.matchSearching || '',
+        found: config.matchFound || '',
+        starting: config.matchStarting || '',
+        error: config.matchError || '',
+        cancelled: config.matchCancelled || '',
+        cancelLabel: config.matchCancel || ''
+    };
+
+    if (cancelButton && matchMessages.cancelLabel) {
+        cancelButton.textContent = matchMessages.cancelLabel;
+    }
+
+    function canLaunchWebGame() {
+        return Boolean(config.hasWeb && config.webUrl && frame && playerContainer);
+    }
+
+    function needsMatchmaking(modeNumber) {
+        return (modeNumber & 2) === 2 || (modeNumber & 4) === 4;
+    }
+
+    function setStartHint(message) {
+        if (!startHint) {
+            return;
+        }
+        const text = message && message.trim().length > 0 ? message : startHintDefault;
+        startHint.textContent = text;
+        startHint.hidden = !text;
     }
 
     function updateStartButtonLabel() {
@@ -43,7 +78,7 @@
         if (modeNumber === 1 && config.startSingle) {
             label = config.startSingle;
         }
-        else if ((modeNumber & 2) === 2 || (modeNumber & 4) === 4) {
+        else if (needsMatchmaking(modeNumber)) {
             if (config.startMulti) {
                 label = config.startMulti;
             }
@@ -51,17 +86,202 @@
         startButton.textContent = label;
     }
 
+    function setMatchmakingUi(active, hintMessage) {
+        if (startButton) {
+            startButton.disabled = active || !canLaunchWebGame();
+        }
+        if (cancelButton) {
+            cancelButton.hidden = !active;
+            cancelButton.disabled = false;
+        }
+        if (typeof hintMessage !== 'undefined') {
+            setStartHint(hintMessage);
+        } else if (!active) {
+            setStartHint('');
+        }
+        if (!active) {
+            updateStartButtonLabel();
+        }
+    }
+
+    function buildGameUrl(modeNumber, extraParams) {
+        const url = new URL(config.webUrl, window.location.origin);
+        url.searchParams.set('mode', String(modeNumber));
+        if (extraParams && typeof extraParams === 'object') {
+            Object.entries(extraParams).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== '') {
+                    url.searchParams.set(key, String(value));
+                }
+            });
+        }
+        return url.pathname + url.search;
+    }
+
+    function launchGame(modeNumber, extraParams) {
+        if (!canLaunchWebGame()) {
+            return;
+        }
+        try {
+            const src = buildGameUrl(modeNumber, extraParams);
+            frame.src = src;
+            playerContainer.hidden = false;
+        } catch (err) {
+            console.error('Failed to launch game', err);
+            setMatchmakingUi(false, matchMessages.error || startHintDefault);
+        }
+    }
+
+    async function requestMatchTicket(modeNumber, signal) {
+        const res = await fetch(`/api/games/${config.gameId}/matchmaking/find`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ mode: modeNumber }),
+            signal
+        });
+        if (!res.ok) {
+            throw new Error('Matchmaking request failed');
+        }
+        return await res.json();
+    }
+
+    function wait(ms, signal) {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(resolve, ms);
+            if (signal) {
+                signal.addEventListener('abort', () => {
+                    clearTimeout(timeout);
+                    reject(signal.reason || new DOMException('Aborted', 'AbortError'));
+                }, { once: true });
+            }
+        });
+    }
+
+    async function waitForMatch(ticketId, signal) {
+        while (true) {
+            if (signal?.aborted) {
+                throw signal.reason || new DOMException('Aborted', 'AbortError');
+            }
+            await wait(1500, signal);
+            const res = await fetch(`/api/games/${config.gameId}/matchmaking/tickets/${ticketId}`, {
+                credentials: 'include',
+                signal
+            });
+            if (!res.ok) {
+                throw new Error('Matchmaking status failed');
+            }
+            const data = await res.json();
+            if (data.status === 'matched' || data.status === 'cancelled') {
+                return data;
+            }
+        }
+    }
+
+    function finalizeMatch(result) {
+        const modeNumber = matchmakingMode ?? Number(selectedModeValue);
+        const params = {
+            ticketId: result.ticketId,
+            matchId: result.matchId,
+            opponentId: result.opponentUserId
+        };
+        if (result.opponentDisplayName) {
+            params.opponentName = result.opponentDisplayName;
+        }
+        setStartHint(matchMessages.found || startHintDefault);
+        launchGame(modeNumber, params);
+        setMatchmakingUi(false, matchMessages.starting || startHintDefault);
+    }
+
+    function cleanupMatchmaking() {
+        activeTicketId = null;
+        matchmakingAbort = null;
+        matchmakingMode = null;
+    }
+
+    async function startMatchmaking(modeNumber) {
+        if (!canLaunchWebGame()) {
+            return;
+        }
+        if (matchmakingAbort) {
+            await cancelMatchmaking({ silent: true });
+        }
+        matchmakingMode = modeNumber;
+        matchmakingAbort = new AbortController();
+        setMatchmakingUi(true, matchMessages.searching || startHintDefault);
+        try {
+            const initial = await requestMatchTicket(modeNumber, matchmakingAbort.signal);
+            if (initial.status === 'matched') {
+                finalizeMatch(initial);
+                return;
+            }
+            if (initial.status === 'cancelled') {
+                setMatchmakingUi(false, matchMessages.cancelled || startHintDefault);
+                return;
+            }
+            activeTicketId = initial.ticketId;
+            const result = await waitForMatch(activeTicketId, matchmakingAbort.signal);
+            if (result.status === 'matched') {
+                finalizeMatch(result);
+            } else {
+                setMatchmakingUi(false, matchMessages.cancelled || startHintDefault);
+            }
+        } catch (err) {
+            if (err && err.name === 'AbortError') {
+                return;
+            }
+            console.error(err);
+            setMatchmakingUi(false, matchMessages.error || startHintDefault);
+        } finally {
+            cleanupMatchmaking();
+        }
+    }
+
+    async function cancelMatchmaking(options) {
+        const opts = options || {};
+        const ticketId = activeTicketId;
+        if (matchmakingAbort) {
+            matchmakingAbort.abort();
+        }
+        cleanupMatchmaking();
+        if (cancelButton) {
+            cancelButton.disabled = true;
+        }
+        if (ticketId) {
+            try {
+                await fetch(`/api/games/${config.gameId}/matchmaking/tickets/${ticketId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        if (cancelButton) {
+            cancelButton.disabled = false;
+        }
+        if (!opts || !opts.silent) {
+            setMatchmakingUi(false, matchMessages.cancelled || startHintDefault);
+        } else {
+            setMatchmakingUi(false);
+        }
+    }
+
     modeInputs.forEach(function (input) {
         input.addEventListener('change', function (event) {
             selectedModeValue = event.target.value;
             updateStartButtonLabel();
+            if (!needsMatchmaking(Number(selectedModeValue)) && (matchmakingAbort || activeTicketId)) {
+                cancelMatchmaking({ silent: true }).catch(err => console.error(err));
+            }
         });
     });
 
     updateStartButtonLabel();
 
     if (startButton) {
-        if (!config.hasWeb || !config.webUrl || !frame || !playerContainer) {
+        if (!canLaunchWebGame()) {
             startButton.disabled = true;
             if (startHint) {
                 startHint.hidden = true;
@@ -69,17 +289,27 @@
         }
         else {
             startButton.addEventListener('click', function () {
-                try {
-                    const url = new URL(config.webUrl, window.location.origin);
-                    url.searchParams.set('mode', selectedModeValue);
-                    frame.src = url.pathname + url.search;
-                    playerContainer.hidden = false;
-                } catch (err) {
-                    console.error('Failed to launch game', err);
+                const modeNumber = Number(selectedModeValue);
+                if (needsMatchmaking(modeNumber)) {
+                    startMatchmaking(modeNumber).catch(err => console.error(err));
+                } else {
+                    launchGame(modeNumber);
                 }
             });
         }
     }
+
+    if (cancelButton) {
+        cancelButton.addEventListener('click', function () {
+            cancelMatchmaking().catch(err => console.error(err));
+        });
+    }
+
+    window.addEventListener('beforeunload', function () {
+        if (matchmakingAbort || activeTicketId) {
+            cancelMatchmaking({ silent: true }).catch(() => { });
+        }
+    });
 
     const invitePanel = container.querySelector('[data-invite-panel]');
     if (invitePanel && config.inviteTemplate) {

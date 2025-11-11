@@ -72,7 +72,13 @@
         inviteError = string.Empty,
         startSingle = L["Games_Details_StartSingle"].Value,
         startMulti = L["Games_Details_StartMulti"].Value,
-        startGeneric = L["Games_Details_StartGeneric"].Value
+        startGeneric = L["Games_Details_StartGeneric"].Value,
+        matchSearching = L["Games_Details_Matchmaking_Searching"].Value,
+        matchFound = L["Games_Details_Matchmaking_Found"].Value,
+        matchStarting = L["Games_Details_Matchmaking_Starting"].Value,
+        matchError = L["Games_Details_Matchmaking_Error"].Value,
+        matchCancel = L["Games_Details_Matchmaking_Cancel"].Value,
+        matchCancelled = L["Games_Details_Matchmaking_Cancelled"].Value
     };
 }
 
@@ -136,6 +142,7 @@
                 <div class="game-play__launch">
                     <button class="btn-primary" type="button" data-game-start>@L["Games_Details_StartGeneric"].Value</button>
                     <p class="muted" data-game-start-hint>@L["Games_Details_WebHint"].Value</p>
+                    <button class="btn-secondary" type="button" data-game-cancel hidden>@L["Games_Details_Matchmaking_Cancel"].Value</button>
                     <div class="player" hidden data-game-player>
                         <iframe src="about:blank" title="game" loading="lazy" data-game-frame></iframe>
                     </div>

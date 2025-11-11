@@ -38,6 +38,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IPresenceNotifier, PresenceNotifier>();
 builder.Services.AddScoped<IChatMessageService, ChatMessageService>();
 builder.Services.AddScoped<IGameContentResolver, GameContentResolver>();
+builder.Services.AddSingleton<IMatchmakingService, InMemoryMatchmakingService>();
 
 // CORS
 builder.Services.AddCors(o =>
@@ -45,7 +46,6 @@ builder.Services.AddCors(o =>
     o.AddPolicy("Games", p => p.AllowAnyHeader().AllowAnyMethod().AllowCredentials().SetIsOriginAllowed(_ => true));
 });
 
-// JWT dla API (opcjonalnie)
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "dev-key-change-me";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "Bgp";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "BgpAudience";
