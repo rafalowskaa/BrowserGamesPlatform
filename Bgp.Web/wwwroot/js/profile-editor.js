@@ -16,7 +16,12 @@
     const avatarModal = form.querySelector('[data-profile-avatar-modal]');
     const avatarInput = form.querySelector('[data-profile-avatar-input]');
     const avatarDropzone = form.querySelector('[data-profile-avatar-drop]');
-    const avatarPreview = form.querySelector('[data-profile-avatar-preview]');
+    const profileRoot = form.closest('[data-profile-root]') || document;
+    const avatarContainer = profileRoot.querySelector('[data-profile-avatar]');
+    let avatarPreview = avatarContainer ? avatarContainer.querySelector('[data-profile-avatar-preview]') : null;
+    const avatarTriggers = Array.from(profileRoot.querySelectorAll('[data-profile-avatar-trigger]'));
+    const avatarPlaceholderText = avatarContainer?.dataset.avatarPlaceholder || '';
+    const avatarAltText = avatarContainer?.dataset.avatarAlt || '';
     const displayNamePendingHint = form.querySelector('[data-display-name-pending-hint]');
     const savingText = form.dataset.savingText || 'Saving…';
     const savedText = form.dataset.savedText || 'Saved';
@@ -41,8 +46,13 @@
     let lastSavedAt = null;
     let autosaveTimer = null;
     let avatarState = null;
+    let activePreviewObjectUrl = null;
     let canRequestDisplayNameChange = form.dataset.displayNameCanRequest === 'true';
     let hasPendingDisplayName = form.dataset.displayNamePending === 'true';
+    let avatarInitialState = {
+        hasAvatar: avatarContainer?.dataset.hasAvatar === 'true',
+        src: avatarPreview instanceof HTMLImageElement ? avatarPreview.src : null
+    };
 
     function getDisplayNameBlockedMessage() {
         return form.dataset.displayNameBlockedMessage || '';
@@ -73,6 +83,77 @@
                 toast.remove();
             }, 250);
         }, 4000);
+    }
+
+    function ensureAvatarPreviewImage() {
+        if (!avatarContainer) {
+            return null;
+        }
+        if (avatarPreview instanceof HTMLImageElement) {
+            return avatarPreview;
+        }
+        const image = document.createElement('img');
+        image.setAttribute('data-profile-avatar-preview', '');
+        image.alt = avatarAltText;
+        image.decoding = 'async';
+        image.loading = 'lazy';
+        if (avatarPreview instanceof HTMLElement) {
+            avatarPreview.replaceWith(image);
+        } else {
+            avatarContainer.appendChild(image);
+        }
+        avatarPreview = image;
+        return image;
+    }
+
+    function restoreAvatarPlaceholder() {
+        if (!avatarContainer) {
+            return;
+        }
+        if (activePreviewObjectUrl) {
+            URL.revokeObjectURL(activePreviewObjectUrl);
+            activePreviewObjectUrl = null;
+        }
+        avatarContainer.dataset.hasAvatar = 'false';
+        const placeholder = document.createElement('span');
+        placeholder.className = 'profile-hero__avatar-placeholder';
+        placeholder.setAttribute('data-profile-avatar-preview', '');
+        placeholder.textContent = avatarPlaceholderText;
+        if (avatarPreview instanceof HTMLElement) {
+            avatarPreview.replaceWith(placeholder);
+        } else {
+            avatarContainer.appendChild(placeholder);
+        }
+        avatarPreview = placeholder;
+    }
+
+    function setAvatarPreviewSource(url, options) {
+        if (!avatarContainer) {
+            return;
+        }
+        const opts = options || {};
+        if (!url) {
+            restoreAvatarPlaceholder();
+            return;
+        }
+        const image = ensureAvatarPreviewImage();
+        if (!image) {
+            return;
+        }
+        if (opts.isObjectUrl) {
+            if (activePreviewObjectUrl && activePreviewObjectUrl !== url) {
+                URL.revokeObjectURL(activePreviewObjectUrl);
+            }
+            activePreviewObjectUrl = url;
+        } else if (activePreviewObjectUrl) {
+            URL.revokeObjectURL(activePreviewObjectUrl);
+            activePreviewObjectUrl = null;
+        }
+        image.src = url;
+        if (avatarAltText) {
+            image.alt = avatarAltText;
+        }
+        avatarContainer.dataset.hasAvatar = 'true';
     }
 
     function updateActionBarState() {
@@ -122,6 +203,11 @@
         });
 
         updateActionBarState();
+
+        avatarInitialState = {
+            hasAvatar: avatarContainer?.dataset.hasAvatar === 'true',
+            src: avatarPreview instanceof HTMLImageElement ? avatarPreview.src : null
+        };
     }
 
     function getRadioValue(name) {
@@ -194,6 +280,14 @@
                 wrapper.classList.remove('is-dirty');
             }
         });
+
+        if (avatarInput && avatarContainer && panel.contains(avatarInput)) {
+            if (avatarInitialState.hasAvatar && avatarInitialState.src) {
+                setAvatarPreviewSource(avatarInitialState.src);
+            } else {
+                restoreAvatarPlaceholder();
+            }
+        }
     }
 
     function resetPanelById(id) {
@@ -580,7 +674,7 @@
             updateServerState(result);
             captureInitialValues();
             if (!isAuto) {
-                showToast(errorText, 'error');
+                showToast(toastSuccessText || savedLabel, 'success');
             }
         } catch (err) {
             console.error('Failed to save profile.', err);
@@ -655,8 +749,12 @@
                 themeRadio.checked = true;
             }
         }
-        if (payload.avatarUrl && avatarPreview instanceof HTMLImageElement) {
-            avatarPreview.src = payload.avatarUrl;
+        if (Object.prototype.hasOwnProperty.call(payload, 'avatarUrl')) {
+            if (payload.avatarUrl) {
+                setAvatarPreviewSource(payload.avatarUrl);
+            } else {
+                restoreAvatarPlaceholder();
+            }
         }
 
         updatePendingDisplayNameHint(payload);
@@ -835,6 +933,14 @@
                 }
             });
         }
+        if (avatarInput && avatarTriggers.length > 0) {
+            avatarTriggers.forEach((trigger) => {
+                trigger.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    avatarInput.click();
+                });
+            });
+        }
     }
 
     function handleGlobalKeydown(event) {
@@ -994,9 +1100,8 @@
                     if (avatarInput) {
                         avatarInput.files = transfer.files;
                     }
-                    if (avatarPreview instanceof HTMLImageElement) {
-                        avatarPreview.src = URL.createObjectURL(file);
-                    }
+                    const previewUrl = URL.createObjectURL(file);
+                    setAvatarPreviewSource(previewUrl, { isObjectUrl: true });
                     markFieldDirty(avatarInput);
                     updateActionBarState();
                 }

@@ -72,7 +72,9 @@
         </div>
         <div class="profile-hero__core">
             <div class="profile-hero__identity">
-                <div class="profile-hero__avatar" aria-hidden="true">
+                <div class="profile-hero__avatar"
+                     aria-hidden="true"
+                     data-has-avatar="@(!string.IsNullOrEmpty(Model.AvatarUrl) ? "true" : "false")">
                     @if (!string.IsNullOrEmpty(Model.AvatarUrl))
                     {
                         <img src="@Model.AvatarUrl" alt="" />
@@ -211,27 +213,6 @@
         </section>
     }
 
-    @if (hasGoals)
-    {
-        <section class="profile-goals" aria-labelledby="publicProfileGoals">
-            <div class="profile-section-heading">
-                <h3 id="publicProfileGoals">@L["Dashboard_Profile_Goals_Title"].Value</h3>
-                <span>@L["Dashboard_Profile_Goals_Subtitle"].Value</span>
-            </div>
-            <div class="profile-goals__list">
-                @foreach (var goal in Model.DailyGoals)
-                {
-                    <article class="profile-goal@(goal.IsCompleted ? " is-complete" : string.Empty)">
-                        <div class="profile-goal__status" aria-hidden="true">@(goal.IsCompleted ? "✔" : "○")</div>
-                        <div class="profile-goal__content">
-                            <h4>@goal.Title</h4>
-                            <p>@goal.Description</p>
-                        </div>
-                    </article>
-                }
-            </div>
-        </section>
-    }
 
     @if (hasHighlights)
     {

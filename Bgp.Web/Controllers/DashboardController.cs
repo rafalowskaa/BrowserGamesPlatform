@@ -229,7 +229,8 @@ public class DashboardController : Controller
                 return await ReturnDashboardWithErrorsAsync(user, "profile", "info");
             }
 
-            user.AvatarUrl = $"/uploads/avatars/{fileName}";
+            var cacheBuster = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            user.AvatarUrl = $"/uploads/avatars/{fileName}?v={cacheBuster}";
         }
 
         var result = await _users.UpdateAsync(user);

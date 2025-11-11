@@ -243,7 +243,11 @@
         <div class="profile-hero__core">
             
             <div class="profile-hero__identity">
-                <div class="profile-hero__avatar" data-profile-avatar>
+                <div class="profile-hero__avatar"
+                     data-profile-avatar
+                     data-has-avatar="@(profile.HasAvatar ? "true" : "false")"
+                     data-avatar-alt="@L["Dashboard_Profile_CurrentAvatar"].Value"
+                     data-avatar-placeholder="@L["Dashboard_Profile_NoAvatar"].Value">
                     @if (profile.HasAvatar)
                     {
                         <img src="@profile.AvatarUrl" alt="@L["Dashboard_Profile_CurrentAvatar"].Value" data-profile-avatar-preview />
@@ -262,7 +266,7 @@
                                 <circle cx="12" cy="12.5" r="3.25" />
                             </svg>
                         </span>
-                        <span class="profile-hero__avatar-overlay-label">@L["Dashboard_Profile_Avatar_Set"].Value</span>
+                        <span class="profile-hero__avatar-overlay-label" data-avatar-overlay-label>@L["Dashboard_Profile_Avatar_Set"].Value</span>
                     </button>
                 </div>
                 <div class="profile-hero__summary">
@@ -520,11 +524,11 @@
                                 @Html.AntiForgeryToken()
                                 @Html.ValidationSummary(true, null, new { @class = "val-summary" })
                                 <label for="Email">@L["Dashboard_Security_Email"].Value</label>
-                                <input id="Email" name="Email" type="email" value="@security.Email" autocomplete="email" />
+                                <input id="Email" name="Email" type="email" value="@security.Email" autocomplete="email" class="form-control-sm" />
                                 @Html.ValidationMessage("Email", null, new { @class = "val" })
 
                                 <label for="EmailPassword">@L["Dashboard_Security_EmailPassword"].Value</label>
-                                <input id="EmailPassword" name="Password" type="password" autocomplete="current-password" />
+                                <input id="EmailPassword" name="Password" type="password" autocomplete="current-password" class="form-control-sm" />
                                 @Html.ValidationMessage("Password", null, new { @class = "val" })
 
                                 <button class="btn-primary" type="submit">@L["Dashboard_Profile_Security_SaveEmail"].Value</button>
@@ -539,15 +543,15 @@
                                 @Html.ValidationSummary(true, null, new { @class = "val-summary" })
 
                                 <label for="CurrentPassword">@L["Dashboard_Security_CurrentPassword"].Value</label>
-                                <input id="CurrentPassword" name="CurrentPassword" type="password" autocomplete="current-password" />
+                                <input id="CurrentPassword" name="CurrentPassword" type="password" autocomplete="current-password" class="form-control-sm" />
                                 @Html.ValidationMessage("CurrentPassword", null, new { @class = "val" })
 
                                 <label for="NewPassword">@L["Dashboard_Security_NewPassword"].Value</label>
-                                <input id="NewPassword" name="NewPassword" type="password" autocomplete="new-password" />
+                                <input id="NewPassword" name="NewPassword" type="password" autocomplete="new-password" class="form-control-sm" />
                                 @Html.ValidationMessage("NewPassword", null, new { @class = "val" })
 
                                 <label for="ConfirmPassword">@L["Dashboard_Security_ConfirmPassword"].Value</label>
-                                <input id="ConfirmPassword" name="ConfirmPassword" type="password" autocomplete="new-password" />
+                                <input id="ConfirmPassword" name="ConfirmPassword" type="password" autocomplete="new-password" class="form-control-sm" />
                                 @Html.ValidationMessage("ConfirmPassword", null, new { @class = "val" })
 
                                 <button class="btn-primary" type="submit">@L["Dashboard_Profile_Security_SavePassword"].Value</button>
