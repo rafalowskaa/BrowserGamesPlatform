@@ -3512,6 +3512,7 @@
 	<data name="Dashboard_Profile_Local_Security" xml:space="preserve"><value>Security</value></data>
 	<data name="Dashboard_Profile_Local_Preferences" xml:space="preserve"><value>Preferences</value></data>
 	<data name="Dashboard_Profile_Avatar_Change" xml:space="preserve"><value>Change avatar</value></data>
+	<data name="Dashboard_Profile_Avatar_Set" xml:space="preserve"><value>Set avatar</value></data>
 	<data name="Dashboard_Profile_Hero_NoAvatar_Title" xml:space="preserve"><value>No avatar yet</value></data>
 	<data name="Dashboard_Profile_Hero_NoAvatar_Body" xml:space="preserve"><value>Add a portrait to earn a small XP boost and let friends recognise you faster.</value></data>
 	<data name="Dashboard_Profile_Hero_NoAvatar_Cta" xml:space="preserve"><value>Add avatar</value></data>

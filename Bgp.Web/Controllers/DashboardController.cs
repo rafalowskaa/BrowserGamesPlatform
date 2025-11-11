@@ -90,7 +90,7 @@ public class DashboardController : Controller
         return View(vm);
     }
 
-    [HttpGet("profile/{id}")]
+    [HttpGet("dashboard/profile/{id}")]
     public async Task<IActionResult> ViewProfile(string id)
     {
         var viewer = await _users.GetUserAsync(User);
