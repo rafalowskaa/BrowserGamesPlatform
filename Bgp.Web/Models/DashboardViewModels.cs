@@ -17,6 +17,7 @@ public class DashboardViewModel
     public IReadOnlyList<GameSummaryViewModel> MyGames { get; init; } = Array.Empty<GameSummaryViewModel>();
     public ProfileSectionViewModel Profile { get; init; } = new();
     public SecuritySectionViewModel Security { get; init; } = new();
+    public PreferencesSectionViewModel Preferences { get; init; } = new();
     public DashboardStatsViewModel Stats { get; init; } = new();
     public CreateGameFormViewModel NewGame { get; init; } = new();
     public IReadOnlyList<FriendViewModel> Friends { get; init; } = Array.Empty<FriendViewModel>();
@@ -44,6 +45,8 @@ public class ProfileSectionViewModel
     public ProfileRankViewModel Rank { get; set; } = new();
     public ProfileBestGameViewModel? BestGame { get; set; }
     public IReadOnlyList<ProfileHighlightViewModel> Highlights { get; set; } = Array.Empty<ProfileHighlightViewModel>();
+    public IReadOnlyList<ProfileGoalViewModel> DailyGoals { get; set; } = Array.Empty<ProfileGoalViewModel>();
+    public bool HasAvatar => !string.IsNullOrWhiteSpace(AvatarUrl);
     public IReadOnlyList<SelectListItem> VisibilityOptions { get; set; } = Array.Empty<SelectListItem>();
 }
 
@@ -78,6 +81,7 @@ public class ProfileRankViewModel
 
 public record ProfileHighlightViewModel(string Title, string Description);
 
+public record ProfileGoalViewModel(string Title, string Description, bool IsCompleted);
 public class ProfileBestGameViewModel
 {
     public string Title { get; set; } = string.Empty;
@@ -85,11 +89,49 @@ public class ProfileBestGameViewModel
     public DateTime LastPlayedAt { get; set; }
 }
 
+public class PlayerProfileViewModel
+{
+    public string UserId { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public bool DisplayNameHidden { get; set; }
+    public string? AvatarUrl { get; set; }
+    public ProfileRankViewModel Rank { get; set; } = new();
+    public string? StatusMessage { get; set; }
+    public string PresenceLabel { get; set; } = string.Empty;
+    public UserPresenceStatus PresenceStatus { get; set; } = UserPresenceStatus.Offline;
+    public bool IsInvisible { get; set; }
+    public IReadOnlyList<ProfileHighlightViewModel> Highlights { get; set; } = Array.Empty<ProfileHighlightViewModel>();
+    public IReadOnlyList<ProfileGoalViewModel> DailyGoals { get; set; } = Array.Empty<ProfileGoalViewModel>();
+    public ProfileBestGameViewModel? BestGame { get; set; }
+    public string EmailLabel { get; set; } = string.Empty;
+    public bool ShowEmail { get; set; }
+    public string BirthDateLabel { get; set; } = string.Empty;
+    public bool ShowBirthDate { get; set; }
+    public bool IsFriend { get; set; }
+    public bool HasPendingRequest { get; set; }
+    public bool IsSelf { get; set; }
+    public DateTime? FriendshipSince { get; set; }
+    public bool BlockedByViewer { get; set; }
+    public bool BlockedByTarget { get; set; }
+    public string RelationshipLabel { get; set; } = string.Empty;
+    public string RelationshipTone { get; set; } = "neutral";
+}
+
 public class SecuritySectionViewModel
 {
     public string Email { get; set; } = string.Empty;
     public RecoverySettingsFormViewModel Recovery { get; set; } = new();
     public bool HasRecoveryConfigured { get; set; }
+}
+
+public class PreferencesSectionViewModel
+{
+    public string PreferredLanguage { get; set; } = "system";
+    public string PreferredTheme { get; set; } = "system";
+    public bool EnableEmailNotifications { get; set; } = true;
+    public bool EnableFriendInvites { get; set; } = true;
+    public IReadOnlyList<SelectListItem> LanguageOptions { get; set; } = Array.Empty<SelectListItem>();
+    public IReadOnlyList<SelectListItem> ThemeOptions { get; set; } = Array.Empty<SelectListItem>();
 }
 
 public class RecoverySettingsFormViewModel
@@ -180,6 +222,16 @@ public class UpdateProfileInputModel
     public ProfileVisibility DisplayNameVisibility { get; set; } = ProfileVisibility.Everyone;
     public ProfileVisibility BirthDateVisibility { get; set; } = ProfileVisibility.OwnerOnly;
     public ProfileVisibility EmailVisibility { get; set; } = ProfileVisibility.OwnerOnly;
+
+    [MaxLength(10)]
+    public string PreferredLanguage { get; set; } = "system";
+
+    [MaxLength(20)]
+    public string PreferredTheme { get; set; } = "system";
+
+    public bool EnableEmailNotifications { get; set; } = true;
+
+    public bool EnableFriendInvites { get; set; } = true;
 
     public IFormFile? Avatar { get; set; }
 }

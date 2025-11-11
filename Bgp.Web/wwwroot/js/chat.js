@@ -73,6 +73,7 @@
         statusError: 'Unable to update status',
         statusPrompt: 'Change status',
         newMessage: 'New message',
+        viewProfile: 'View profile',
         accept: 'Accept',
         decline: 'Decline',
         pendingOutgoing: 'Invitation sent',
@@ -1074,6 +1075,10 @@
             button.appendChild(avatar);
             button.appendChild(meta);
             li.appendChild(button);
+            const actions = document.createElement('div');
+            actions.className = 'chat-contact__actions';
+            actions.appendChild(createProfileAction(identifier));
+            li.appendChild(actions);
             fragment.appendChild(li);
         });
         strangersList.appendChild(fragment);
@@ -1191,6 +1196,29 @@
         ensureConversation(friendId, { focus: true, autoRead: true });
     }
 
+    function openProfile(userId) {
+        if (!userId) {
+            return;
+        }
+        const url = `/dashboard/profile/${encodeURIComponent(userId)}`;
+        window.open(url, '_blank', 'noopener');
+    }
+
+    function createProfileAction(userId) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chat-contact__action';
+        btn.title = strings.viewProfile;
+        btn.setAttribute('aria-label', strings.viewProfile);
+        btn.textContent = '👤';
+        btn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openProfile(userId);
+        });
+        return btn;
+    }
+
     function createFriendElement(friend, options = {}) {
         const li = document.createElement('li');
         li.className = 'chat-contact';
@@ -1235,6 +1263,10 @@
         button.appendChild(avatar);
         button.appendChild(meta);
         li.appendChild(button);
+        const actions = document.createElement('div');
+        actions.className = 'chat-contact__actions';
+        actions.appendChild(createProfileAction(friend.userId));
+        li.appendChild(actions);
         friend.element = li;
         updateFriendVisual(friend);
         return li;
@@ -1459,6 +1491,15 @@
         const statusDot = document.createElement('span');
         statusDot.className = 'chat-window__status-dot';
         controls.appendChild(statusDot);
+
+        const profileBtn = document.createElement('button');
+        profileBtn.type = 'button';
+        profileBtn.className = 'btn-icon';
+        profileBtn.title = strings.viewProfile;
+        profileBtn.setAttribute('aria-label', strings.viewProfile);
+        profileBtn.textContent = '👤';
+        profileBtn.addEventListener('click', () => openProfile(friend.userId));
+        controls.appendChild(profileBtn);
 
         const closeBtn = document.createElement('button');
         closeBtn.type = 'button';

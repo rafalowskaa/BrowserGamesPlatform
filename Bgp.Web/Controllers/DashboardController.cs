@@ -45,6 +45,8 @@ public class DashboardController : Controller
 
     private static readonly Regex SlugRegex = new("[^a-z0-9-]", RegexOptions.Compiled);
     private static readonly Regex VersionSanitizer = new("[^a-zA-Z0-9._-]", RegexOptions.Compiled);
+    private static readonly string[] SupportedLanguages = { "system", "en", "pl" };
+    private static readonly string[] SupportedThemes = { "system", "light", "dark", "contrast" };
     private static readonly (string TitleKey, string BodyKey)[] ProfileTips =
     {
         ("Dashboard_Profile_Tip_Strategy_Title", "Dashboard_Profile_Tip_Strategy_Body"),
@@ -86,6 +88,39 @@ public class DashboardController : Controller
 
         var vm = await BuildViewModelAsync(user);
         return View(vm);
+    }
+
+    [HttpGet("profile/{id}")]
+    public async Task<IActionResult> ViewProfile(string id)
+    {
+        var viewer = await _users.GetUserAsync(User);
+        if (viewer is null)
+        {
+            return Challenge();
+        }
+
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return NotFound();
+        }
+
+        if (string.Equals(viewer.Id, id, StringComparison.Ordinal))
+        {
+            return RedirectToAction(nameof(Index), new { tab = "profile" });
+        }
+
+        var target = await _users.FindByIdAsync(id);
+        if (target is null || target.IsBlocked)
+        {
+            return NotFound();
+        }
+
+        var relationship = await GetRelationshipAsync(viewer.Id, target.Id);
+        var targetViewModel = await BuildViewModelAsync(target);
+        var model = BuildPublicProfileViewModel(targetViewModel.Profile, target, relationship, viewer.Id);
+
+        ViewData["ActiveTab"] = "profile";
+        return View("PlayerProfile", model);
     }
 
     [HttpPost]
@@ -171,6 +206,10 @@ public class DashboardController : Controller
         user.DisplayNameVisibility = input.DisplayNameVisibility;
         user.BirthDateVisibility = input.BirthDateVisibility;
         user.EmailVisibility = input.EmailVisibility;
+        user.PreferredLanguage = NormalizePreference(input.PreferredLanguage, SupportedLanguages, "system");
+        user.PreferredTheme = NormalizePreference(input.PreferredTheme, SupportedThemes, "system");
+        user.EnableEmailNotifications = input.EnableEmailNotifications;
+        user.EnableFriendInvites = input.EnableFriendInvites;
 
 
         if (input.Avatar is not null && input.Avatar.Length > 0)
@@ -206,6 +245,25 @@ public class DashboardController : Controller
 
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogInformation("User {UserId} updated profile settings.", user.Id);
+
+        if (IsAjaxRequest())
+        {
+            return Json(new
+            {
+                success = true,
+                displayNameRequested,
+                displayName = user.DisplayName,
+                pendingDisplayName = user.PendingDisplayName,
+                pendingDisplayNameRequestedAt = user.PendingDisplayNameRequestedAtUtc,
+                displayNameChangeAvailableAt = user.DisplayNameChangeAvailableAtUtc,
+                avatarUrl = user.AvatarUrl,
+                preferredLanguage = user.PreferredLanguage,
+                preferredTheme = user.PreferredTheme,
+                enableEmailNotifications = user.EnableEmailNotifications,
+                enableFriendInvites = user.EnableFriendInvites
+            });
+        }
+
         TempData["DashboardSuccess"] = displayNameRequested ? "DisplayNameRequested" : "ProfileUpdated";
         return RedirectToAction(nameof(Index), new { tab = "profile", panel = "info" });
     }
@@ -399,6 +457,23 @@ public class DashboardController : Controller
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogInformation("User {UserId} changed password.", user.Id);
         TempData["DashboardSuccess"] = "PasswordUpdated";
+        return RedirectToAction(nameof(Index), new { tab = "profile", panel = "security" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SignOutEverywhere()
+    {
+        var user = await _users.GetUserAsync(User);
+        if (user is null)
+        {
+            return Challenge();
+        }
+
+        await _users.UpdateSecurityStampAsync(user);
+        await _signInManager.RefreshSignInAsync(user);
+        _logger.LogInformation("User {UserId} revoked active sessions.", user.Id);
+        TempData["DashboardSuccess"] = "SessionsRevoked";
         return RedirectToAction(nameof(Index), new { tab = "profile", panel = "security" });
     }
 
@@ -891,6 +966,8 @@ public class DashboardController : Controller
                                      && !string.IsNullOrWhiteSpace(user.SecurityQuestion2AnswerHash)
                                      && !string.IsNullOrWhiteSpace(user.SecurityQuestion3AnswerHash);
 
+        profile.DailyGoals = BuildDailyGoals(user, stats, profile, hasRecoveryConfigured);
+
         return new DashboardViewModel
         {
             Games = games,
@@ -903,6 +980,16 @@ public class DashboardController : Controller
                 Recovery = recoveryForm,
                 HasRecoveryConfigured = hasRecoveryConfigured
             },
+            Preferences = new PreferencesSectionViewModel
+            {
+                PreferredLanguage = string.IsNullOrWhiteSpace(user.PreferredLanguage) ? "system" : user.PreferredLanguage!,
+                PreferredTheme = string.IsNullOrWhiteSpace(user.PreferredTheme) ? "system" : user.PreferredTheme!,
+                EnableEmailNotifications = user.EnableEmailNotifications,
+                EnableFriendInvites = user.EnableFriendInvites,
+                LanguageOptions = BuildLanguageOptions(user.PreferredLanguage),
+                ThemeOptions = BuildThemeOptions(user.PreferredTheme)
+            },
+
             Stats = stats,
             NewGame = BuildEmptyCreateGameForm(),
             Friends = friendVms
@@ -939,6 +1026,31 @@ public class DashboardController : Controller
         {
             vm.Profile.BirthDay = dayValue;
         }
+
+        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.PreferredLanguage), out var languageState) &&
+           !string.IsNullOrWhiteSpace(languageState.AttemptedValue))
+        {
+            vm.Preferences.PreferredLanguage = NormalizePreference(languageState.AttemptedValue, SupportedLanguages, "system");
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.PreferredTheme), out var themeState) &&
+            !string.IsNullOrWhiteSpace(themeState.AttemptedValue))
+        {
+            vm.Preferences.PreferredTheme = NormalizePreference(themeState.AttemptedValue, SupportedThemes, "system");
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.EnableEmailNotifications), out var emailNotifyState))
+        {
+            vm.Preferences.EnableEmailNotifications = ParseBooleanState(emailNotifyState.AttemptedValue, vm.Preferences.EnableEmailNotifications);
+        }
+
+        if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.EnableFriendInvites), out var friendNotifyState))
+        {
+            vm.Preferences.EnableFriendInvites = ParseBooleanState(friendNotifyState.AttemptedValue, vm.Preferences.EnableFriendInvites);
+        }
+
+        vm.Preferences.LanguageOptions = BuildLanguageOptions(vm.Preferences.PreferredLanguage);
+        vm.Preferences.ThemeOptions = BuildThemeOptions(vm.Preferences.PreferredTheme);
 
 
         if (ModelState.TryGetValue(nameof(UpdateEmailInputModel.Email), out var emailState) &&
@@ -1026,6 +1138,17 @@ public class DashboardController : Controller
 
         vm.NewGame.CategoryOptions = BuildCategoryOptions(vm.NewGame.SelectedCategoryValues);
         vm.NewGame.ModeOptions = BuildModeOptions(vm.NewGame.SelectedModeValues);
+
+        if (IsAjaxRequest())
+        {
+            Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+            var errors = ModelState
+                .Where(pair => pair.Value is { Errors.Count: > 0 })
+                .ToDictionary(
+                    pair => pair.Key,
+                    pair => pair.Value!.Errors.Select(error => error.ErrorMessage).ToArray());
+            return Json(new { success = false, errors });
+        }
 
         return View("Index", vm);
 
@@ -1246,6 +1369,259 @@ public class DashboardController : Controller
         return highlights;
     }
 
+    private IReadOnlyList<ProfileGoalViewModel> BuildDailyGoals(ApplicationUser user, DashboardStatsViewModel stats, ProfileSectionViewModel profile, bool hasRecoveryConfigured)
+    {
+        var goals = new List<ProfileGoalViewModel>
+        {
+            new ProfileGoalViewModel(
+                Localize("Dashboard_Profile_Goal_PlayMatch_Title"),
+                Localize("Dashboard_Profile_Goal_PlayMatch_Body"),
+                stats.TotalScores > 0),
+            new ProfileGoalViewModel(
+                Localize("Dashboard_Profile_Goal_AddAvatar_Title"),
+                Localize("Dashboard_Profile_Goal_AddAvatar_Body"),
+                profile.HasAvatar),
+            new ProfileGoalViewModel(
+                Localize("Dashboard_Profile_Goal_CompleteProfile_Title"),
+                Localize("Dashboard_Profile_Goal_CompleteProfile_Body"),
+                hasRecoveryConfigured && user.BirthDay.HasValue && user.BirthMonth.HasValue)
+        };
+
+        return goals;
+    }
+
+    private IReadOnlyList<SelectListItem> BuildLanguageOptions(string? current)
+    {
+        var normalized = NormalizePreference(current, SupportedLanguages, "system");
+        var options = new (string Value, string Label)[]
+        {
+            ("system", Localize("Dashboard_Preferences_Language_System")),
+            ("en", Localize("Dashboard_Preferences_Language_English")),
+            ("pl", Localize("Dashboard_Preferences_Language_Polish"))
+        };
+
+        return options.Select(option => new SelectListItem
+        {
+            Value = option.Value,
+            Text = option.Label,
+            Selected = string.Equals(option.Value, normalized, StringComparison.OrdinalIgnoreCase)
+        }).ToList();
+    }
+
+    private IReadOnlyList<SelectListItem> BuildThemeOptions(string? current)
+    {
+        var normalized = NormalizePreference(current, SupportedThemes, "system");
+        var options = new (string Value, string Label)[]
+        {
+            ("system", Localize("Dashboard_Preferences_Theme_System")),
+            ("light", Localize("Dashboard_Preferences_Theme_Light")),
+            ("dark", Localize("Dashboard_Preferences_Theme_Dark")),
+            ("contrast", Localize("Dashboard_Preferences_Theme_Contrast"))
+        };
+
+        return options.Select(option => new SelectListItem
+        {
+            Value = option.Value,
+            Text = option.Label,
+            Selected = string.Equals(option.Value, normalized, StringComparison.OrdinalIgnoreCase)
+        }).ToList();
+    }
+
+    private static string NormalizePreference(string? value, IReadOnlyCollection<string> allowed, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return fallback;
+        }
+
+        var normalized = value.Trim().ToLowerInvariant();
+        var match = allowed.FirstOrDefault(option => string.Equals(option, normalized, StringComparison.OrdinalIgnoreCase));
+        return match ?? fallback;
+    }
+
+    private PlayerProfileViewModel BuildPublicProfileViewModel(ProfileSectionViewModel profile, ApplicationUser target, RelationshipInfo relationship, string viewerId)
+    {
+        var isSelf = string.Equals(viewerId, target.Id, StringComparison.Ordinal);
+        var isFriend = relationship.IsFriend;
+        var canSeeDisplayName = CanSee(profile.DisplayNameVisibility, isFriend, isSelf);
+        var canSeeEmail = CanSee(profile.EmailVisibility, isFriend, isSelf);
+        var canSeeBirthDate = CanSee(profile.BirthDateVisibility, isFriend, isSelf);
+
+        var displayName = canSeeDisplayName
+            ? DisplayNameFormatter.Format(target.DisplayName, target.Email, target.UserName, target.Id)
+            : Localize("Dashboard_Profile_Private_DisplayName");
+
+        var emailLabel = canSeeEmail && !string.IsNullOrWhiteSpace(target.Email)
+            ? target.Email!
+            : Localize("Dashboard_Profile_Private_Email");
+
+        var showEmail = canSeeEmail && !string.IsNullOrWhiteSpace(target.Email);
+
+        var showBirthDate = false;
+        string birthDateLabel;
+        if (canSeeBirthDate && profile.BirthMonth.HasValue && profile.BirthDay.HasValue)
+        {
+            var year = DateTime.UtcNow.Year;
+            var day = Math.Min(DateTime.DaysInMonth(year, profile.BirthMonth.Value), profile.BirthDay.Value);
+            var date = new DateTime(year, profile.BirthMonth.Value, day);
+            birthDateLabel = date.ToString("MMMM dd", CultureInfo.CurrentCulture);
+            showBirthDate = true;
+        }
+        else
+        {
+            birthDateLabel = Localize("Dashboard_Profile_Private_BirthDate");
+        }
+
+        var presenceLabel = target.IsInvisible
+            ? Localize("Chat_Status_Invisible")
+            : target.PresenceStatus switch
+            {
+                UserPresenceStatus.Available => Localize("Chat_Status_Available"),
+                UserPresenceStatus.Away => Localize("Chat_Status_Away"),
+                _ => Localize("Chat_Status_Offline")
+            };
+
+        var statusMessage = string.IsNullOrWhiteSpace(target.StatusMessage)
+            ? null
+            : target.StatusMessage!.Trim();
+
+        var relationshipDisplay = BuildRelationshipLabel(relationship);
+
+        return new PlayerProfileViewModel
+        {
+            UserId = target.Id,
+            DisplayName = displayName,
+            DisplayNameHidden = !canSeeDisplayName,
+            AvatarUrl = profile.AvatarUrl,
+            Rank = profile.Rank,
+            StatusMessage = statusMessage,
+            PresenceLabel = presenceLabel,
+            PresenceStatus = target.PresenceStatus,
+            IsInvisible = target.IsInvisible,
+            Highlights = profile.Highlights,
+            DailyGoals = profile.DailyGoals,
+            BestGame = profile.BestGame,
+            EmailLabel = emailLabel,
+            ShowEmail = showEmail,
+            BirthDateLabel = birthDateLabel,
+            ShowBirthDate = showBirthDate,
+            IsFriend = isFriend,
+            HasPendingRequest = relationship.IsPending,
+            IsSelf = isSelf,
+            FriendshipSince = relationship.FriendshipSince,
+            BlockedByViewer = relationship.BlockedByViewer,
+            BlockedByTarget = relationship.BlockedByTarget,
+            RelationshipLabel = relationshipDisplay.Text,
+            RelationshipTone = relationshipDisplay.Tone
+        };
+    }
+
+    private (string Text, string Tone) BuildRelationshipLabel(RelationshipInfo relationship)
+    {
+        if (relationship.BlockedByViewer)
+        {
+            return (Localize("Dashboard_Profile_View_Relationship_BlockedByYou"), "warning");
+        }
+
+        if (relationship.BlockedByTarget)
+        {
+            return (Localize("Dashboard_Profile_View_Relationship_BlockedYou"), "danger");
+        }
+
+        if (relationship.IsFriend)
+        {
+            if (relationship.FriendshipSince.HasValue)
+            {
+                var since = relationship.FriendshipSince.Value.ToLocalTime().ToString("d", CultureInfo.CurrentCulture);
+                return (string.Format(Localize("Dashboard_Profile_View_Relationship_Friend"), since), "success");
+            }
+
+            return (Localize("Dashboard_Profile_View_Relationship_Friend_Short"), "success");
+        }
+
+        if (relationship.IsPending)
+        {
+            return (Localize("Dashboard_Profile_View_Relationship_Pending"), "info");
+        }
+
+        return (Localize("Dashboard_Profile_View_Relationship_None"), "muted");
+    }
+
+    private async Task<RelationshipInfo> GetRelationshipAsync(string viewerId, string targetId)
+    {
+        if (string.Equals(viewerId, targetId, StringComparison.Ordinal))
+        {
+            return new RelationshipInfo(true, false, false, false, null);
+        }
+
+        var relationship = await _db.Friendships
+            .AsNoTracking()
+            .Where(f => (f.RequesterId == viewerId && f.AddresseeId == targetId) ||
+                        (f.RequesterId == targetId && f.AddresseeId == viewerId))
+            .OrderByDescending(f => f.UpdatedAtUtc ?? f.CreatedAtUtc)
+            .FirstOrDefaultAsync();
+
+        if (relationship is null)
+        {
+            return new RelationshipInfo(false, false, false, false, null);
+        }
+
+        var isFriend = relationship.Status == FriendshipStatus.Accepted;
+        var isPending = relationship.Status == FriendshipStatus.Pending;
+        var blockedByViewer = relationship.Status == FriendshipStatus.Blocked &&
+                              string.Equals(relationship.BlockedByUserId, viewerId, StringComparison.Ordinal);
+        var blockedByTarget = relationship.Status == FriendshipStatus.Blocked &&
+                              string.Equals(relationship.BlockedByUserId, targetId, StringComparison.Ordinal);
+        var since = isFriend ? (relationship.UpdatedAtUtc ?? relationship.CreatedAtUtc) : null;
+
+        return new RelationshipInfo(isFriend, isPending, blockedByViewer, blockedByTarget, since);
+    }
+
+    private static bool CanSee(ProfileVisibility visibility, bool isFriend, bool isSelf) => visibility switch
+    {
+        ProfileVisibility.Everyone => true,
+        ProfileVisibility.Friends => isFriend || isSelf,
+        ProfileVisibility.OwnerOnly => isSelf,
+        _ => false
+    };
+
+    private static bool ParseBooleanState(string? attemptedValue, bool fallback)
+    {
+        if (string.IsNullOrWhiteSpace(attemptedValue))
+        {
+            return fallback;
+        }
+
+        if (bool.TryParse(attemptedValue, out var parsed))
+        {
+            return parsed;
+        }
+
+        if (string.Equals(attemptedValue, "on", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (attemptedValue.Contains(',', StringComparison.Ordinal))
+        {
+            foreach (var part in attemptedValue.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (bool.TryParse(part, out var partValue))
+                {
+                    return partValue;
+                }
+            }
+        }
+
+        return fallback;
+    }
+
+    private bool IsAjaxRequest()
+    {
+        return Request?.Headers.TryGetValue("X-Requested-With", out var value) == true &&
+               string.Equals(value, "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
+    }
+
     private string Localize(string key, string? fallback = null)
     {
         if (string.IsNullOrWhiteSpace(key))
@@ -1275,6 +1651,8 @@ public class DashboardController : Controller
 
         return CultureInfo.CurrentUICulture.TextInfo.ToTitleCase(friendly.ToLower(CultureInfo.CurrentUICulture));
     }
+
+    private sealed record RelationshipInfo(bool IsFriend, bool IsPending, bool BlockedByViewer, bool BlockedByTarget, DateTime? FriendshipSince);
 
     private static int GetTipIndex(string? userId)
     {

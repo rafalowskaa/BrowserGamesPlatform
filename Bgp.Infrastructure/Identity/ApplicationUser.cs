@@ -47,6 +47,16 @@ public class ApplicationUser : IdentityUser
 
     public bool IsInvisible { get; set; }
 
+    [MaxLength(10)]
+    public string PreferredLanguage { get; set; } = "system";
+
+    [MaxLength(20)]
+    public string PreferredTheme { get; set; } = "system";
+
+    public bool EnableEmailNotifications { get; set; } = true;
+
+    public bool EnableFriendInvites { get; set; } = true;
+
     [MaxLength(128)]
     public string? SecurityQuestion1Key { get; set; }
 

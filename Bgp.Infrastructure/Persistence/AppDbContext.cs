@@ -61,6 +61,24 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .Property(u => u.IsInvisible)
             .HasDefaultValue(false);
 
+        b.Entity<ApplicationUser>()
+            .Property(u => u.PreferredLanguage)
+            .HasMaxLength(10)
+            .HasDefaultValue("system");
+
+        b.Entity<ApplicationUser>()
+            .Property(u => u.PreferredTheme)
+            .HasMaxLength(20)
+            .HasDefaultValue("system");
+
+        b.Entity<ApplicationUser>()
+            .Property(u => u.EnableEmailNotifications)
+            .HasDefaultValue(true);
+
+        b.Entity<ApplicationUser>()
+            .Property(u => u.EnableFriendInvites)
+            .HasDefaultValue(true);
+
         b.Entity<Game>()
             .Property(x => x.Categories)
             .HasConversion<int>()

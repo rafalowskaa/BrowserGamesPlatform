@@ -1,0 +1,130 @@
+﻿@using System.Linq
+@model Bgp.Web.Models.PlayerProfileViewModel
+@{
+    ViewData["Title"] = string.Format(L["Dashboard_Profile_View_Title"].Value, Model.DisplayName);
+    var rank = Model.Rank;
+    var hasGoals = Model.DailyGoals?.Any() == true;
+    var hasHighlights = Model.Highlights?.Any() == true;
+}
+
+<section class="profile-shell profile-shell--public">
+    <header class="profile-hero" style="--rank-accent:@rank.AccentColor; --rank-highlight:@rank.AccentHighlightColor; --rank-glow:@rank.AccentGlowColor;">
+        <div class="profile-hero__decor profile-hero__decor--left" aria-hidden="true">
+            @if (!string.IsNullOrEmpty(rank.TrophyImage))
+            {
+                <img src="@rank.TrophyImage" alt="" class="profile-hero__trophy" />
+            }
+        </div>
+        <div class="profile-hero__core">
+            <div class="profile-hero__badge" data-rank-pulse>
+                <span class="profile-hero__badge-label">@rank.DisplayName</span>
+            </div>
+            <div class="profile-hero__identity">
+                <div class="profile-hero__avatar">
+                    @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                    {
+                        <img src="@Model.AvatarUrl" alt="@Model.DisplayName" />
+                    }
+                    else
+                    {
+                        <span class="profile-hero__avatar-placeholder">@L["Dashboard_Profile_NoAvatar"].Value</span>
+                    }
+                </div>
+                <div class="profile-hero__summary">
+                    <h2 class="profile-hero__name">@Model.DisplayName</h2>
+                    <p class="profile-hero__xp">@string.Format(L["Dashboard_Profile_Rank_TotalXp"].Value, rank.ExperiencePoints)</p>
+                    <div class="profile-progress" data-profile-progress>
+                        <div class="profile-progress__track">
+                            <div class="profile-progress__fill" style="width:@rank.ProgressPercent%"></div>
+                        </div>
+                        <div class="profile-progress__meta">
+                            <span>@string.Format(L["Dashboard_Profile_Rank_ProgressLabel"].Value, rank.XpIntoCurrent, rank.XpRequiredForNext)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="profile-hero__decor profile-hero__decor--right" aria-hidden="true">
+            @if (!string.IsNullOrEmpty(rank.NextTrophyImage))
+            {
+                <img src="@rank.NextTrophyImage" alt="" class="profile-hero__trophy" />
+            }
+        </div>
+    </header>
+
+    @if (Model.DisplayNameHidden)
+    {
+        <div class="profile-note profile-note--muted">@L["Dashboard_Profile_View_PrivateDisplayNameNote"].Value</div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.RelationshipLabel))
+    {
+        <div class="profile-relationship profile-relationship--@Model.RelationshipTone">
+            <span>@Model.RelationshipLabel</span>
+        </div>
+    }
+
+    <section class="profile-summary">
+        <article class="profile-summary__card">
+            <h3>@L["Dashboard_Profile_EmailLabel"].Value</h3>
+            <p class="profile-summary__value@(Model.ShowEmail ? string.Empty : " is-muted")">@Model.EmailLabel</p>
+        </article>
+        <article class="profile-summary__card">
+            <h3>@L["Dashboard_Profile_BirthDate"].Value</h3>
+            <p class="profile-summary__value@(Model.ShowBirthDate ? string.Empty : " is-muted")">@Model.BirthDateLabel</p>
+        </article>
+        <article class="profile-summary__card">
+            <h3>@L["Dashboard_Profile_Presence_Label"].Value</h3>
+            <p class="profile-summary__value">@Model.PresenceLabel</p>
+        </article>
+        <article class="profile-summary__card">
+            <h3>@L["Dashboard_Profile_StatusMessage"].Value</h3>
+            <p class="profile-summary__value@(string.IsNullOrWhiteSpace(Model.StatusMessage) ? " is-muted" : string.Empty)">@(!string.IsNullOrWhiteSpace(Model.StatusMessage) ? Model.StatusMessage : L["Dashboard_Profile_View_Status_Empty"].Value)</p>
+        </article>
+    </section>
+
+    @if (hasGoals)
+    {
+        <section class="profile-goals" aria-labelledby="publicProfileGoals">
+            <div class="profile-section-heading">
+                <h3 id="publicProfileGoals">@L["Dashboard_Profile_Goals_Title"].Value</h3>
+                <span>@L["Dashboard_Profile_Goals_Subtitle"].Value</span>
+            </div>
+            <div class="profile-goals__list">
+                @foreach (var goal in Model.DailyGoals)
+                {
+                    <article class="profile-goal@(goal.IsCompleted ? " is-complete" : string.Empty)">
+                        <div class="profile-goal__status" aria-hidden="true">@(goal.IsCompleted ? "✔" : "○")</div>
+                        <div class="profile-goal__content">
+                            <h4>@goal.Title</h4>
+                            <p>@goal.Description</p>
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+
+    @if (hasHighlights)
+    {
+        <section class="profile-insights" aria-labelledby="publicProfileHighlights">
+            <div class="profile-section-heading">
+                <h3 id="publicProfileHighlights">@L["Dashboard_Profile_Insights_Title"].Value</h3>
+                <span>@L["Dashboard_Profile_Insights_Subtitle"].Value</span>
+            </div>
+            <div class="profile-insights__list">
+                @foreach (var highlight in Model.Highlights)
+                {
+                    <article class="profile-insight">
+                        <h4>@highlight.Title</h4>
+                        <p>@highlight.Description</p>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+
+    <footer class="profile-view__footer">
+        <a asp-action="Index" class="btn-outline">@L["Dashboard_Profile_View_Back"].Value</a>
+    </footer>
+</section>

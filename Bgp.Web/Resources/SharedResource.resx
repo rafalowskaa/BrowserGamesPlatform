@@ -3429,4 +3429,110 @@
 	<data name="Games_Details_Platform_Android">
 		<value>Android</value>
 	</data>
+	<data name="Dashboard_Friends_ViewProfile">
+		<value>View profile</value>
+	</data>
+	<data name="Dashboard_Profile_Private_DisplayName">
+		<value>Hidden player</value>
+	</data>
+	<data name="Dashboard_Profile_Private_Email">
+		<value>Hidden</value>
+	</data>
+	<data name="Dashboard_Profile_Private_BirthDate">
+		<value>Hidden</value>
+	</data>
+	<data name="Dashboard_Profile_View_Title">
+		<value>Player profile: {0}</value>
+	</data>
+	<data name="Dashboard_Profile_View_PrivateDisplayNameNote">
+		<value>This player hides their display name from other players.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Status_Empty">
+		<value>No status message yet.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Relationship_Friend">
+		<value>Friends since {0}.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Relationship_Friend_Short">
+		<value>You are friends.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Relationship_Pending">
+		<value>Friend request pending.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Relationship_None">
+		<value>You are not friends yet.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Relationship_BlockedYou">
+		<value>This player has blocked you.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Relationship_BlockedByYou">
+		<value>You have blocked this player.</value>
+	</data>
+	<data name="Dashboard_Profile_View_Back">
+		<value>Back to dashboard</value>
+	</data>
+	<data name="Chat_ViewProfile">
+		<value>View profile</value>
+	</data>
+	<data name="Dashboard_Profile_Local_Profile" xml:space="preserve"><value>Profile</value></data>
+	<data name="Dashboard_Profile_Local_Privacy" xml:space="preserve"><value>Privacy</value></data>
+	<data name="Dashboard_Profile_Local_Security" xml:space="preserve"><value>Security</value></data>
+	<data name="Dashboard_Profile_Local_Preferences" xml:space="preserve"><value>Preferences</value></data>
+	<data name="Dashboard_Profile_Avatar_Change" xml:space="preserve"><value>Change avatar</value></data>
+	<data name="Dashboard_Profile_Hero_NoAvatar_Title" xml:space="preserve"><value>No avatar yet</value></data>
+	<data name="Dashboard_Profile_Hero_NoAvatar_Body" xml:space="preserve"><value>Add a portrait to earn a small XP boost and let friends recognise you faster.</value></data>
+	<data name="Dashboard_Profile_Hero_NoAvatar_Cta" xml:space="preserve"><value>Add avatar</value></data>
+	<data name="Dashboard_Profile_Goals_Title" xml:space="preserve"><value>Daily quests</value></data>
+	<data name="Dashboard_Profile_Goals_Subtitle" xml:space="preserve"><value>Complete them for bonus XP</value></data>
+	<data name="Dashboard_Profile_Insights_Title" xml:space="preserve"><value>Quick insights</value></data>
+	<data name="Dashboard_Profile_Insights_Subtitle" xml:space="preserve"><value>What stands out today</value></data>
+	<data name="Dashboard_Profile_ProfileSection_Title" xml:space="preserve"><value>Player identity</value></data>
+	<data name="Dashboard_Profile_ProfileSection_Subtitle" xml:space="preserve"><value>Tune how others see you in the arena.</value></data>
+	<data name="Dashboard_Profile_Privacy_Title" xml:space="preserve"><value>Privacy controls</value></data>
+	<data name="Dashboard_Profile_Privacy_Subtitle" xml:space="preserve"><value>Choose who can see your information.</value></data>
+	<data name="Dashboard_Profile_Security_Title" xml:space="preserve"><value>Security tools</value></data>
+	<data name="Dashboard_Profile_Security_Subtitle" xml:space="preserve"><value>Keep your account safe and under control.</value></data>
+	<data name="Dashboard_Profile_Security_SaveEmail" xml:space="preserve"><value>Update email</value></data>
+	<data name="Dashboard_Profile_Security_SavePassword" xml:space="preserve"><value>Update password</value></data>
+	<data name="Dashboard_Profile_Sessions_Title" xml:space="preserve"><value>Active sessions</value></data>
+	<data name="Dashboard_Profile_Sessions_Description" xml:space="preserve"><value>Signed-in devices currently using your account.</value></data>
+	<data name="Dashboard_Profile_Sessions_Current" xml:space="preserve"><value>This device</value></data>
+	<data name="Dashboard_Profile_Sessions_Active" xml:space="preserve"><value>Active now</value></data>
+	<data name="Dashboard_Profile_Sessions_SignOutAll" xml:space="preserve"><value>Sign out everywhere</value></data>
+	<data name="Dashboard_Profile_Recovery_Title" xml:space="preserve"><value>Recovery questions</value></data>
+	<data name="Dashboard_Profile_Recovery_Subtitle" xml:space="preserve"><value>Set unique answers so we can help you recover access.</value></data>
+	<data name="Dashboard_Profile_Recovery_QuestionLabel" xml:space="preserve"><value>Question {0}</value></data>
+	<data name="Dashboard_Profile_Recovery_Save" xml:space="preserve"><value>Save recovery answers</value></data>
+	<data name="Dashboard_Profile_Preferences_Title" xml:space="preserve"><value>Preferences</value></data>
+	<data name="Dashboard_Profile_Preferences_Subtitle" xml:space="preserve"><value>Personalise your Browser Games Platform experience.</value></data>
+	<data name="Dashboard_Profile_Preferences_Language" xml:space="preserve"><value>Interface language</value></data>
+	<data name="Dashboard_Profile_Preferences_Theme" xml:space="preserve"><value>Theme</value></data>
+	<data name="Dashboard_Profile_Preferences_Email" xml:space="preserve"><value>Send me platform updates by email</value></data>
+	<data name="Dashboard_Profile_Preferences_Invites" xml:space="preserve"><value>Allow friends to invite me to matches</value></data>
+	<data name="Dashboard_Profile_Status_Idle" xml:space="preserve"><value>All changes saved</value></data>
+	<data name="Dashboard_Profile_Action_Cancel" xml:space="preserve"><value>Cancel</value></data>
+	<data name="Dashboard_Profile_Action_Save" xml:space="preserve"><value>Save changes</value></data>
+	<data name="Dashboard_Profile_Status_Saving" xml:space="preserve"><value>Saving…</value></data>
+	<data name="Dashboard_Profile_Status_Saved" xml:space="preserve"><value>Saved at {0}</value></data>
+	<data name="Dashboard_Profile_Status_Error" xml:space="preserve"><value>We couldn't save your changes. Try again.</value></data>
+	<data name="Dashboard_Profile_Avatar_FormatTitle" xml:space="preserve"><value>Drag &amp; drop or choose a file</value></data>
+	<data name="Dashboard_Profile_Avatar_FormatDescription" xml:space="preserve"><value>PNG or JPG up to 2 MB</value></data>
+	<data name="Dashboard_Profile_Avatar_CropTitle" xml:space="preserve"><value>Adjust your avatar</value></data>
+	<data name="Dashboard_Profile_Avatar_CropZoom" xml:space="preserve"><value>Zoom</value></data>
+	<data name="Dashboard_Profile_Avatar_CropCancel" xml:space="preserve"><value>Cancel</value></data>
+	<data name="Dashboard_Profile_Avatar_CropConfirm" xml:space="preserve"><value>Apply</value></data>
+	<data name="Dashboard_Profile_Goal_PlayMatch_Title" xml:space="preserve"><value>Play a match</value></data>
+	<data name="Dashboard_Profile_Goal_PlayMatch_Body" xml:space="preserve"><value>Warm up with at least one game today.</value></data>
+	<data name="Dashboard_Profile_Goal_AddAvatar_Title" xml:space="preserve"><value>Add an avatar</value></data>
+	<data name="Dashboard_Profile_Goal_AddAvatar_Body" xml:space="preserve"><value>Upload a portrait to unlock the profile bonus.</value></data>
+	<data name="Dashboard_Profile_Goal_CompleteProfile_Title" xml:space="preserve"><value>Complete your security kit</value></data>
+	<data name="Dashboard_Profile_Goal_CompleteProfile_Body" xml:space="preserve"><value>Fill in your birthday and recovery answers to secure the account.</value></data>
+	<data name="Dashboard_Preferences_Language_System" xml:space="preserve"><value>Follow system</value></data>
+	<data name="Dashboard_Preferences_Language_English" xml:space="preserve"><value>English</value></data>
+	<data name="Dashboard_Preferences_Language_Polish" xml:space="preserve"><value>Polish</value></data>
+	<data name="Dashboard_Preferences_Theme_System" xml:space="preserve"><value>Match system</value></data>
+	<data name="Dashboard_Preferences_Theme_Light" xml:space="preserve"><value>Light</value></data>
+	<data name="Dashboard_Preferences_Theme_Dark" xml:space="preserve"><value>Dark</value></data>
+	<data name="Dashboard_Preferences_Theme_Contrast" xml:space="preserve"><value>High contrast</value></data>
+	<data name="Dashboard_Success_Sessions" xml:space="preserve"><value>All other sessions have been signed out.</value></data>
 </root>
