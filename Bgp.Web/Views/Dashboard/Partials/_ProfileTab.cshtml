@@ -388,7 +388,7 @@
                                             @foreach (var option in security.Recovery.SecurityQuestionOptions)
                                             {
                                                 var isSelected = string.Equals(option.Key, selectedKey, StringComparison.OrdinalIgnoreCase);
-                                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" selected="@(isSelected ? "selected" : null)">@option.Prompt</option>
+                                                <option value="@option.Key" data-allows-custom="@(option.AllowsCustomPrompt ? "true" : "false")" selected="@(isSelected ? "selected" : null)">@option.Label</option>
                                             }
                                         </select>
                                         @Html.ValidationMessage($"SecurityQuestion{index}", null, new { @class = "val" })
