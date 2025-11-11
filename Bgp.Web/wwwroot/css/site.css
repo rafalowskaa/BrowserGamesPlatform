@@ -1225,6 +1225,18 @@ textarea {
         right: -0.25rem;
     }
 
+    .chat-status-toggle__avatar.avatar-placeholder,
+    .chat-contact__avatar.avatar-placeholder,
+    .chat-window__avatar.avatar-placeholder {
+        background-color: #fff;
+        background-image: url("../img/avatar-placeholder.svg");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 62%;
+        color: transparent;
+        box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.25);
+    }
+
 .chat-status-toggle__details {
     display: flex;
     flex-direction: column;
@@ -4942,16 +4954,24 @@ details[open] summary {
     overflow: hidden;
 }
 
-    .profile-hero__avatar img,
-    .profile-hero__avatar-placeholder {
+    .profile-hero__avatar img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        border-radius: 50%;
-        font-size: 0.9rem;
-        color: rgba(226, 232, 240, 0.8);
-        background: rgba(30, 41, 59, 0.6);
+        border-radius: 50%;   
     }
+
+.profile-hero__avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: #fff;
+    background-image: url("../img/avatar-placeholder.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 58%;
+    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+}
 
 .profile-hero__avatar-overlay {
     position: absolute;

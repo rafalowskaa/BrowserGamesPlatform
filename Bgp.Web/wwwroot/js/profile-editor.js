@@ -116,9 +116,12 @@
         }
         avatarContainer.dataset.hasAvatar = 'false';
         const placeholder = document.createElement('span');
-        placeholder.className = 'profile-hero__avatar-placeholder';
+        placeholder.className = 'profile-hero__avatar-placeholder avatar-placeholder';
         placeholder.setAttribute('data-profile-avatar-preview', '');
-        placeholder.textContent = avatarPlaceholderText;
+        placeholder.setAttribute('role', 'img');
+        if (avatarPlaceholderText) {
+            placeholder.setAttribute('aria-label', avatarPlaceholderText);
+        }
         if (avatarPreview instanceof HTMLElement) {
             avatarPreview.replaceWith(placeholder);
         } else {

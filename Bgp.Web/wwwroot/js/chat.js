@@ -1049,14 +1049,14 @@
 
             const avatar = document.createElement('span');
             avatar.className = 'chat-contact__avatar';
+            avatar.setAttribute('aria-hidden', 'true');
             if (player.avatarUrl) {
                 const img = document.createElement('img');
                 img.src = player.avatarUrl;
                 img.alt = '';
                 avatar.appendChild(img);
             } else {
-                const source = (displayName || identifier || '?').trim();
-                avatar.textContent = source ? source.slice(0, 1).toUpperCase() : '?';
+                avatar.classList.add('avatar-placeholder');
             }
 
             const meta = document.createElement('span');
@@ -1233,13 +1233,14 @@
 
         const avatar = document.createElement('span');
         avatar.className = 'chat-contact__avatar';
+        avatar.setAttribute('aria-hidden', 'true');
         if (friend.avatarUrl) {
             const img = document.createElement('img');
             img.src = friend.avatarUrl;
             img.alt = '';
             avatar.appendChild(img);
         } else {
-            avatar.textContent = friend.displayName.slice(0, 1).toUpperCase();
+            avatar.classList.add('avatar-placeholder');
         }
 
         const statusDot = document.createElement('span');
@@ -1463,13 +1464,14 @@
 
         const avatar = document.createElement('span');
         avatar.className = 'chat-window__avatar';
+        avatar.setAttribute('aria-hidden', 'true');
         if (friend.avatarUrl) {
             const img = document.createElement('img');
             img.src = friend.avatarUrl;
             img.alt = '';
             avatar.appendChild(img);
         } else {
-            avatar.textContent = friend.displayName.slice(0, 1).toUpperCase();
+            avatar.classList.add('avatar-placeholder');
         }
 
         const labelWrap = document.createElement('div');

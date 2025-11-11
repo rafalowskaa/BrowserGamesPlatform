@@ -10,10 +10,6 @@
     var currentUser = currentUserId is not null ? await UserManager.FindByIdAsync(currentUserId) : null;
     var displayName = DisplayNameFormatter.Format(currentUser?.DisplayName, currentUser?.Email, currentUser?.UserName, currentUser?.Id);
     var fallbackName = currentUser?.UserName ?? User?.Identity?.Name ?? "?";
-    var initialsSource = string.IsNullOrWhiteSpace(displayName) ? fallbackName : displayName;
-    var avatarInitial = string.IsNullOrWhiteSpace(initialsSource)
-        ? "?"
-        : initialsSource.Trim()[0].ToString().ToUpperInvariant();
     var chatStrings = new
     {
         readReceipt = L["Chat_ReadReceipt"].Value,
@@ -88,14 +84,14 @@
                             aria-haspopup="true"
                             aria-expanded="false"
                             aria-label="@L["Chat_Status_Header"].Value">
-                        <span class="chat-status-toggle__avatar">
+                        <span class="chat-status-toggle__avatar@(string.IsNullOrEmpty(currentUser?.AvatarUrl) ? " avatar-placeholder" : string.Empty)">
                             @if (!string.IsNullOrEmpty(currentUser?.AvatarUrl))
                             {
                                 <img src="@currentUser.AvatarUrl" alt="@displayName ?? fallbackName" />
                             }
                             else
                             {
-                                <span>@avatarInitial</span>
+                                <span class="sr-only">@L["Dashboard_Profile_NoAvatar"].Value</span>
                             }
                             <span class="chat-status-dot" data-chat-self-dot></span>
                         </span>
