@@ -747,6 +747,93 @@
   </data>
 	<data name="Admin_Nav_Reports" xml:space="preserve">
     <value>Reports</value>
+		</data>
+	<data name="Admin_Content_Title" xml:space="preserve">
+    <value>Homepage content</value>
+  </data>
+	<data name="Admin_Content_Subtitle" xml:space="preserve">
+    <value>Curate fun facts and events that appear on the public homepage.</value>
+  </data>
+	<data name="Admin_Content_Facts_Title" xml:space="preserve">
+    <value>Fun facts</value>
+  </data>
+	<data name="Admin_Content_Facts_Description" xml:space="preserve">
+    <value>Manage the rotating fun facts displayed to unauthenticated visitors.</value>
+  </data>
+	<data name="Admin_Content_Metadata_Created" xml:space="preserve">
+    <value>Created {0}</value>
+  </data>
+	<data name="Admin_Content_Metadata_Updated" xml:space="preserve">
+    <value>Last updated {0}</value>
+  </data>
+	<data name="Admin_Content_Facts_ContentLabel" xml:space="preserve">
+    <value>Content</value>
+  </data>
+	<data name="Admin_Content_Facts_SortLabel" xml:space="preserve">
+    <value>Display order</value>
+  </data>
+	<data name="Admin_Content_Facts_IsActive" xml:space="preserve">
+    <value>Active</value>
+  </data>
+	<data name="Admin_Content_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+	<data name="Admin_Content_DeleteConfirm" xml:space="preserve">
+    <value>Delete this entry?</value>
+  </data>
+	<data name="Admin_Content_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+	<data name="Admin_Content_Facts_Empty" xml:space="preserve">
+    <value>No fun facts yet.</value>
+  </data>
+	<data name="Admin_Content_Facts_Add" xml:space="preserve">
+    <value>Add fun fact</value>
+  </data>
+	<data name="Admin_Content_Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+	<data name="Admin_Content_Events_Title" xml:space="preserve">
+    <value>Events</value>
+  </data>
+	<data name="Admin_Content_Events_Description" xml:space="preserve">
+    <value>Manage limited-time events promoted on the homepage.</value>
+  </data>
+	<data name="Admin_Content_Event_TitleLabel" xml:space="preserve">
+    <value>Title</value>
+  </data>
+	<data name="Admin_Content_Event_RewardLabel" xml:space="preserve">
+    <value>Reward</value>
+  </data>
+	<data name="Admin_Content_Event_EndLabel" xml:space="preserve">
+    <value>End date</value>
+  </data>
+	<data name="Admin_Content_Event_SortLabel" xml:space="preserve">
+    <value>Display order</value>
+  </data>
+	<data name="Admin_Content_Event_IsActive" xml:space="preserve">
+    <value>Active</value>
+  </data>
+	<data name="Admin_Content_Events_Empty" xml:space="preserve">
+    <value>No events yet.</value>
+  </data>
+	<data name="Admin_Content_Events_Add" xml:space="preserve">
+    <value>Add event</value>
+  </data>
+	<data name="Admin_Content_Error_Validation" xml:space="preserve">
+    <value>Please correct the highlighted errors.</value>
+  </data>
+	<data name="Admin_Content_Error_NotFound" xml:space="preserve">
+    <value>The entry could not be found.</value>
+  </data>
+	<data name="Admin_Content_Saved" xml:space="preserve">
+    <value>Changes saved.</value>
+  </data>
+	<data name="Admin_Content_Added" xml:space="preserve">
+    <value>Entry added.</value>
+  </data>
+	<data name="Admin_Content_Deleted" xml:space="preserve">
+    <value>Entry deleted.</value>
   </data>
 	<data name="Admin_Users_Title" xml:space="preserve">
     <value>User management</value>

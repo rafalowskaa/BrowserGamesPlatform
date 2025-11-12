@@ -771,6 +771,93 @@
   </data>
 	<data name="Admin_Nav_Reports" xml:space="preserve">
     <value>Zgłoszenia</value>
+		</data>
+	<data name="Admin_Content_Title" xml:space="preserve">
+    <value>Zawartość strony głównej</value>
+  </data>
+	<data name="Admin_Content_Subtitle" xml:space="preserve">
+    <value>Zarządzaj ciekawostkami i wydarzeniami widocznymi na stronie głównej.</value>
+  </data>
+	<data name="Admin_Content_Facts_Title" xml:space="preserve">
+    <value>Ciekawostki</value>
+  </data>
+	<data name="Admin_Content_Facts_Description" xml:space="preserve">
+    <value>Zarządzaj karuzelą ciekawostek wyświetlaną niezalogowanym użytkownikom.</value>
+  </data>
+	<data name="Admin_Content_Metadata_Created" xml:space="preserve">
+    <value>Utworzono {0}</value>
+  </data>
+	<data name="Admin_Content_Metadata_Updated" xml:space="preserve">
+    <value>Zaktualizowano {0}</value>
+  </data>
+	<data name="Admin_Content_Facts_ContentLabel" xml:space="preserve">
+    <value>Treść</value>
+  </data>
+	<data name="Admin_Content_Facts_SortLabel" xml:space="preserve">
+    <value>Kolejność wyświetlania</value>
+  </data>
+	<data name="Admin_Content_Facts_IsActive" xml:space="preserve">
+    <value>Aktywne</value>
+  </data>
+	<data name="Admin_Content_Save" xml:space="preserve">
+    <value>Zapisz</value>
+  </data>
+	<data name="Admin_Content_DeleteConfirm" xml:space="preserve">
+    <value>Czy na pewno chcesz usunąć ten wpis?</value>
+  </data>
+	<data name="Admin_Content_Delete" xml:space="preserve">
+    <value>Usuń</value>
+  </data>
+	<data name="Admin_Content_Facts_Empty" xml:space="preserve">
+    <value>Brak ciekawostek.</value>
+  </data>
+	<data name="Admin_Content_Facts_Add" xml:space="preserve">
+    <value>Dodaj ciekawostkę</value>
+  </data>
+	<data name="Admin_Content_Add" xml:space="preserve">
+    <value>Dodaj</value>
+  </data>
+	<data name="Admin_Content_Events_Title" xml:space="preserve">
+    <value>Wydarzenia</value>
+  </data>
+	<data name="Admin_Content_Events_Description" xml:space="preserve">
+    <value>Zarządzaj wydarzeniami promowanymi na stronie głównej.</value>
+  </data>
+	<data name="Admin_Content_Event_TitleLabel" xml:space="preserve">
+    <value>Tytuł</value>
+  </data>
+	<data name="Admin_Content_Event_RewardLabel" xml:space="preserve">
+    <value>Nagroda</value>
+  </data>
+	<data name="Admin_Content_Event_EndLabel" xml:space="preserve">
+    <value>Data zakończenia</value>
+  </data>
+	<data name="Admin_Content_Event_SortLabel" xml:space="preserve">
+    <value>Kolejność wyświetlania</value>
+  </data>
+	<data name="Admin_Content_Event_IsActive" xml:space="preserve">
+    <value>Aktywne</value>
+  </data>
+	<data name="Admin_Content_Events_Empty" xml:space="preserve">
+    <value>Brak wydarzeń.</value>
+  </data>
+	<data name="Admin_Content_Events_Add" xml:space="preserve">
+    <value>Dodaj wydarzenie</value>
+  </data>
+	<data name="Admin_Content_Error_Validation" xml:space="preserve">
+    <value>Popraw zaznaczone błędy.</value>
+  </data>
+	<data name="Admin_Content_Error_NotFound" xml:space="preserve">
+    <value>Wybrany wpis już nie istnieje.</value>
+  </data>
+	<data name="Admin_Content_Saved" xml:space="preserve">
+    <value>Zmiany zostały zapisane.</value>
+  </data>
+	<data name="Admin_Content_Added" xml:space="preserve">
+    <value>Wpis został dodany.</value>
+  </data>
+	<data name="Admin_Content_Deleted" xml:space="preserve">
+    <value>Wpis został usunięty.</value>
   </data>
 	<data name="Admin_Users_Title" xml:space="preserve">
     <value>Zarządzanie użytkownikami</value>
@@ -1003,191 +1090,144 @@
 	<data name="Admin_Games_Validation" xml:space="preserve">
         <value>Podaj powód krótszy niż 500 znaków.</value>
     </data>
-
 	<data name="Admin_Games_State_Saved" xml:space="preserve">
         <value>Zapisano</value>
     </data>
-
 	<data name="Admin_Games_State_Saving" xml:space="preserve">
         <value>Zapisywanie…</value>
     </data>
-
 	<data name="Admin_Games_State_Unsaved" xml:space="preserve">
         <value>Zmiany niezapisane</value>
     </data>
-
 	<data name="Admin_Games_Preview" xml:space="preserve">
         <value>Podgląd</value>
     </data>
-
 	<data name="Admin_Games_Label_New" xml:space="preserve">
         <value>Nowe</value>
     </data>
-
 	<data name="Admin_Games_Label_Rejected" xml:space="preserve">
         <value>Odrzucono</value>
     </data>
-
 	<data name="Admin_Games_Label_Added" xml:space="preserve">
         <value>Dodano</value>
     </data>
-
 	<data name="Admin_Games_Label_Removed" xml:space="preserve">
         <value>Usunięto</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Remove" xml:space="preserve">
         <value>Usuń</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Accept" xml:space="preserve">
         <value>Akceptuj</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Restore" xml:space="preserve">
         <value>Przywróć</value>
     </data>
-
 	<data name="Admin_Games_Bulk_Approve_Success" xml:space="preserve">
         <value>Zatwierdzono zgłoszenia.</value>
     </data>
-
 	<data name="Admin_Games_Bulk_Reject_Success" xml:space="preserve">
         <value>Odrzucono zgłoszenia.</value>
     </data>
-
 	<data name="Admin_Games_Preview_Slug" xml:space="preserve">
         <value>Adres w katalogu: {0}</value>
     </data>
-
 	<data name="Admin_Games_Preview_Owner" xml:space="preserve">
         <value>Autor: {0}</value>
     </data>
-
 	<data name="Admin_Games_Preview_NoDescription" xml:space="preserve">
         <value>Brak opisu.</value>
     </data>
-
 	<data name="Admin_Games_Tags_Empty" xml:space="preserve">
         <value>Brak tagów.</value>
     </data>
-
 	<data name="Admin_Games_Save_Success" xml:space="preserve">
         <value>Zapisano metadane.</value>
     </data>
-
 	<data name="Admin_Games_Save_Error" xml:space="preserve">
         <value>Nie udało się zapisać zmian.</value>
     </data>
-
 	<data name="Admin_Games_Moderation_Approve_Success" xml:space="preserve">
         <value>Gra zatwierdzona.</value>
     </data>
-
 	<data name="Admin_Games_Moderation_Reject_Success" xml:space="preserve">
         <value>Gra odrzucona.</value>
     </data>
-
 	<data name="Admin_Games_Moderation_Error" xml:space="preserve">
         <value>Nie udało się zaktualizować statusu gry.</value>
     </data>
-
 	<data name="Admin_Games_Bulk_SelectAll" xml:space="preserve">
         <value>Zaznacz wszystkie zgłoszenia</value>
     </data>
-
 	<data name="Admin_Games_Bulk_Selected" xml:space="preserve">
         <value>wybranych</value>
     </data>
-
 	<data name="Admin_Games_Grid_Caption" xml:space="preserve">
         <value>Lista zgłoszonych gier do weryfikacji.</value>
     </data>
-
 	<data name="Admin_Games_Grid_SelectGame" xml:space="preserve">
         <value>Zaznacz {0}</value>
     </data>
-
 	<data name="Admin_Games_Accordion_Basics" xml:space="preserve">
         <value>Podstawy</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Title_Help" xml:space="preserve">
         <value>Użyj jasnego tytułu (maks. 120 znaków).</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Slug_Help" xml:space="preserve">
         <value>Bez spacji i znaków specjalnych. Maks. 140 znaków.</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Author_Help" xml:space="preserve">
         <value>Dane twórcy gry tylko do odczytu.</value>
     </data>
-
 	<data name="Admin_Games_Accordion_Media" xml:space="preserve">
         <value>Media</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Cover_Help" xml:space="preserve">
         <value>Wklej adres URL lub wgraj okładkę.</value>
     </data>
-
 	<data name="Admin_Games_Accordion_Classification" xml:space="preserve">
         <value>Klasyfikacja</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Category_Add" xml:space="preserve">
         <value>Dodaj kategorię</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Category_Search" xml:space="preserve">
         <value>Wyszukaj kategorię</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Source_Proposed" xml:space="preserve">
         <value>Propozycje twórcy</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Source_Published" xml:space="preserve">
         <value>Opublikowane</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Mode_Add" xml:space="preserve">
         <value>Dodaj tryb</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Mode_Search" xml:space="preserve">
         <value>Wyszukaj tryb</value>
     </data>
-
 	<data name="Admin_Games_Accordion_Description" xml:space="preserve">
         <value>Opis i tagi</value>
     </data>
-
 	<data name="Admin_Games_Metadata_Description_Help" xml:space="preserve">
         <value>Krótko przedstaw najważniejsze informacje o grze.</value>
     </data>
-
 	<data name="Admin_Games_Accordion_Moderation" xml:space="preserve">
         <value>Moderacja</value>
     </data>
-
 	<data name="Admin_Games_Moderation_Status_Help" xml:space="preserve">
         <value>Status można zmienić tylko przy zatwierdzaniu lub odrzucaniu.</value>
     </data>
-
 	<data name="Admin_Games_Moderation_Notes_Label" xml:space="preserve">
         <value>Notatka moderatora</value>
     </data>
-
 	<data name="Admin_Games_Moderation_Notes_Help" xml:space="preserve">
         <value>Powód ostatniej decyzji (tylko do odczytu).</value>
     </data>
-
 	<data name="Admin_Games_Reject_Notes_Help" xml:space="preserve">
         <value>Wyjaśnij, dlaczego gra została odrzucona.</value>
     </data>
-
 	<data name="Admin_Games_SaveStatus_Draft" xml:space="preserve">
         <value>Stan roboczy</value>
     </data>

@@ -151,31 +151,49 @@
             return;
         }
 
+        const templates = Array.from(items);
+        const hasLoop = templates.length > 1;
+        if (hasLoop) {
+            const firstClone = templates[0].cloneNode(true);
+            const lastClone = templates[templates.length - 1].cloneNode(true);
+            track.insertBefore(lastClone, templates[0]);
+            track.appendChild(firstClone);
+        }
+
+        items = Array.from(track.children);
+        track.dataset.loopReady = 'true';
+
         let itemWidth = 0;
         let gap = 0;
         let autoTimer = null;
+        let firstRealIndex = 0;
+        let lastRealIndex = 0;
+        let currentIndex = 0;
 
         const prevButton = carousel.querySelector('[data-featured-prev]');
         const nextButton = carousel.querySelector('[data-featured-next]');
 
-        const hasLoop = items.length > 1;
-        if (hasLoop) {
-            const firstClone = items[0].cloneNode(true);
-            const lastClone = items[items.length - 1].cloneNode(true);
-            track.insertBefore(lastClone, items[0]);
-            track.appendChild(firstClone);
-            items = Array.from(track.children);
+        function updateBounds() {
+            if (hasLoop) {
+                firstRealIndex = 1;
+                lastRealIndex = items.length - 2;
+            } else {
+                firstRealIndex = 0;
+                lastRealIndex = items.length - 1;
+            }
+
+            if (currentIndex < firstRealIndex || currentIndex > lastRealIndex) {
+                currentIndex = firstRealIndex;
+            }
         }
 
-        track.dataset.loopReady = 'true';
-
-        const firstRealIndex = hasLoop ? 1 : 0;
-        const lastRealIndex = hasLoop ? items.length - 2 : items.length - 1;
-        let currentIndex = firstRealIndex;
+        updateBounds();
 
         function measure() {
-            const reference = hasLoop ? items[firstRealIndex] : items[0];
-            if (!reference) { 
+            const referenceIndex = hasLoop ? firstRealIndex : 0;
+            const reference = items[referenceIndex];
+            if (!reference) {
+                itemWidth = 0;
 
                 return;
             }
@@ -185,6 +203,40 @@
             const styles = window.getComputedStyle(track);
             const gapValue = parseFloat(styles.columnGap || styles.gap || '0');
             gap = Number.isNaN(gapValue) ? 0 : gapValue;
+        }
+
+        function ensureFill() {
+            if (!hasLoop) {
+                return;
+            }
+
+            if (!itemWidth) {
+                measure();
+            }
+
+            const viewportWidth = viewport.getBoundingClientRect().width;
+            const singleWidth = itemWidth + gap;
+            if (!singleWidth) {
+                return;
+            }
+
+            const visibleNeeded = Math.ceil(viewportWidth / singleWidth);
+            const requiredReal = Math.max(visibleNeeded + 1, templates.length);
+            let currentReal = items.length - 2;
+
+            if (currentReal >= requiredReal) {
+                return;
+            }
+
+            const anchor = track.lastElementChild;
+            for (let i = currentReal; i < requiredReal; i++) {
+                const template = templates[i % templates.length];
+                const clone = template.cloneNode(true);
+                track.insertBefore(clone, anchor);
+            }
+
+            items = Array.from(track.children);
+            updateBounds();
         }
 
         function applyTransform(animated = true) {
@@ -210,6 +262,9 @@
         function step(delta) {
             if (!hasLoop) {
                 const total = items.length;
+                if (!total) {
+                    return;
+                }
                 const nextIndex = (currentIndex + delta) % total;
                 currentIndex = (nextIndex + total) % total;
                 applyTransform();
@@ -271,11 +326,15 @@
 
         window.addEventListener('resize', () => {
             measure();
+            ensureFill();
+            measure();
             applyTransform(false);
         });
 
         measure();
-        goTo(currentIndex, false); 
+        ensureFill();
+        measure();
+        goTo(currentIndex, false);
         startAuto();
     }
 
