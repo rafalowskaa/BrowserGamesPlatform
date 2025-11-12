@@ -38,6 +38,17 @@
         }).format(date);
     }
 
+    function formatTemplate(template, ...args) {
+        if (!template) {
+            return '';
+        }
+
+        return args.reduce((result, value, index) => {
+            const pattern = new RegExp(`\\{${index}\\}`, 'g');
+            return result.replace(pattern, value ?? '');
+        }, template);
+    }
+
     function showToast(message, variant = 'success') {
         if (!message || !toastContainer) {
             return;
@@ -329,26 +340,26 @@
                 const remove = document.createElement('button');
                 remove.type = 'button';
                 remove.dataset.chipAction = 'remove';
-                remove.title = 'Usuń';
+                remove.title = this.labels.remove || '';
                 remove.textContent = '✕';
                 actions.appendChild(remove);
             } else if (entry.status === 'proposed') {
                 const accept = document.createElement('button');
                 accept.type = 'button';
                 accept.dataset.chipAction = 'accept';
-                accept.title = 'Akceptuj';
+                accept.title = this.labels.accept || '';
                 accept.textContent = '✓';
                 const reject = document.createElement('button');
                 reject.type = 'button';
                 reject.dataset.chipAction = 'reject';
-                reject.title = 'Odrzuć';
+                reject.title = this.labels.reject || '';
                 reject.textContent = '✕';
                 actions.append(accept, reject);
             } else if (entry.status === 'rejected') {
                 const restore = document.createElement('button');
                 restore.type = 'button';
                 restore.dataset.chipAction = 'restore';
-                restore.title = 'Przywróć';
+                restore.title = this.labels.restore || '';
                 restore.textContent = '↺';
                 actions.appendChild(restore);
             }
@@ -453,18 +464,34 @@
             this.categoryOptions = parseJson(this.root.dataset.categoryOptions, []);
             this.modeOptions = parseJson(this.root.dataset.modeOptions, []);
             this.labels = {
-                saved: this.root.dataset.savedLabel || 'Zapisano',
-                saving: this.root.dataset.savingLabel || 'Zapisywanie…',
-                unsaved: this.root.dataset.unsavedLabel || 'Zmiany niezapisane',
-                preview: this.root.dataset.previewLabel || 'Podgląd',
-                reject: this.root.dataset.rejectLabel || 'Odrzuć',
-                approve: this.root.dataset.approveLabel || 'Zatwierdź',
-                edit: this.root.dataset.editLabel || 'Edytuj metadane',
-                test: this.root.dataset.testLabel || 'Przetestuj grę',
-                newLabel: this.root.dataset.newLabel || 'Nowe',
-                rejectedLabel: this.root.dataset.rejectedLabel || 'Odrzucono',
-                addedLabel: this.root.dataset.addedLabel || 'Dodano',
-                removedLabel: this.root.dataset.removedLabel || 'Usunięto'
+                saved: this.root.dataset.savedLabel || 'Saved',
+                saving: this.root.dataset.savingLabel || 'Saving…',
+                unsaved: this.root.dataset.unsavedLabel || 'Unsaved changes',
+                preview: this.root.dataset.previewLabel || 'Preview',
+                reject: this.root.dataset.rejectLabel || 'Reject',
+                approve: this.root.dataset.approveLabel || 'Approve',
+                edit: this.root.dataset.editLabel || 'Edit metadata',
+                test: this.root.dataset.testLabel || 'Test game',
+                newLabel: this.root.dataset.newLabel || 'New',
+                rejectedLabel: this.root.dataset.rejectedLabel || 'Rejected',
+                addedLabel: this.root.dataset.addedLabel || 'Added',
+                removedLabel: this.root.dataset.removedLabel || 'Removed',
+                remove: this.root.dataset.removeLabel || 'Remove',
+                accept: this.root.dataset.acceptLabel || 'Accept',
+                restore: this.root.dataset.restoreLabel || 'Restore'
+            };
+            this.messages = {
+                bulkApproveSuccess: this.root.dataset.bulkApproveSuccess || 'Approved submissions.',
+                bulkRejectSuccess: this.root.dataset.bulkRejectSuccess || 'Rejected submissions.',
+                previewSlug: this.root.dataset.previewSlugTemplate || 'Slug: {0}',
+                previewOwner: this.root.dataset.previewOwnerTemplate || 'Owner: {0}',
+                previewDescriptionEmpty: this.root.dataset.previewDescriptionEmpty || 'No description provided.',
+                tagsEmpty: this.root.dataset.tagsEmpty || 'No tags.',
+                saveSuccess: this.root.dataset.saveSuccess || 'Metadata saved.',
+                saveError: this.root.dataset.saveError || 'Could not save changes.',
+                moderationApproveSuccess: this.root.dataset.moderationApproveSuccess || 'Game approved.',
+                moderationRejectSuccess: this.root.dataset.moderationRejectSuccess || 'Game rejected.',
+                moderationError: this.root.dataset.moderationError || 'Failed to update game status.'
             };
             this.successMessage = this.root.dataset.successMessage;
             this.errorMessage = this.root.dataset.errorMessage;
@@ -556,7 +583,11 @@
                 newLabel: this.labels.newLabel,
                 rejectedLabel: this.labels.rejectedLabel,
                 addedLabel: this.labels.addedLabel,
-                removedLabel: this.labels.removedLabel
+                removedLabel: this.labels.removedLabel,
+                remove: this.labels.remove,
+                accept: this.labels.accept,
+                reject: this.labels.reject,
+                restore: this.labels.restore
             };
 
             const categoriesContainer = this.drawer?.querySelector('[data-chips-field="categories"]');
@@ -753,7 +784,7 @@
             const processNext = () => {
                 if (!ids.length) {
                     this.updateBulkState();
-                    showToast(action === 'approve' ? 'Zatwierdzono zgłoszenia.' : 'Odrzucono zgłoszenia.', 'success');
+                    showToast(action === 'approve' ? this.messages.bulkApproveSuccess : this.messages.bulkRejectSuccess, 'success');
                     return;
                 }
 
@@ -783,10 +814,10 @@
             this.currentGameId = String(gameId);
 
             this.previewTitle.textContent = game.title;
-            this.previewSlug.textContent = `Adres w katalogu: ${game.slug}`;
-            this.previewOwner.textContent = `Autor: ${game.owner}`;
+            this.previewSlug.textContent = formatTemplate(this.messages.previewSlug, game.slug);
+            this.previewOwner.textContent = formatTemplate(this.messages.previewOwner, game.owner);
             this.previewStatus.textContent = this.statusLabels[game.status] || game.status;
-            this.previewDescription.textContent = game.description || 'Brak opisu';
+            this.previewDescription.textContent = game.description || this.messages.previewDescriptionEmpty;
             this.previewTags.innerHTML = '';
             game.tags.forEach(tag => {
                 const span = document.createElement('span');
@@ -927,7 +958,7 @@
             if (!tags.length) {
                 const empty = document.createElement('p');
                 empty.className = 'muted';
-                empty.textContent = 'Brak tagów.';
+                empty.textContent = this.messages.tagsEmpty || '';
                 this.tagsList.appendChild(empty);
                 return;
             }
@@ -1015,11 +1046,11 @@
 
                 this.isDirty = false;
                 this.setSaveStatus('saved');
-                showToast('Zapisano metadane.', 'success');
+                showToast(this.messages.saveSuccess, 'success');
             } catch (error) {
                 console.error('Failed to save metadata', error);
                 this.setSaveStatus('dirty');
-                showToast('Nie udało się zapisać zmian.', 'error');
+                showToast(this.messages.saveError, 'error');
             } finally {
                 this.isSaving = false;
             }
@@ -1144,13 +1175,13 @@
                     }
                 }
 
-                showToast(action === 'approve' ? 'Gra zatwierdzona.' : 'Gra odrzucona.', 'success');
+                showToast(action === 'approve' ? this.messages.moderationApproveSuccess : this.messages.moderationRejectSuccess, 'success');
                 if (!explicitId) {
                     this.closeDrawer();
                 }
             } catch (error) {
                 console.error('Moderation error', error);
-                showToast('Nie udało się zaktualizować statusu gry.', 'error');
+                showToast(this.messages.moderationError, 'error');
             }
         }
 

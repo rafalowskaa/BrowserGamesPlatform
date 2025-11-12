@@ -123,26 +123,40 @@
          data-error-message="@errorMessage"
          data-anti-forgery-field="@antiForgeryFieldName"
          data-anti-forgery-token="@antiForgeryToken"
-         data-saved-label="Zapisano"
-         data-saving-label="Zapisywanie…"
-         data-unsaved-label="Zmiany niezapisane"
-         data-preview-label="Podgląd"
-         data-reject-label="Odrzuć"
-         data-approve-label="Zatwierdź"
-         data-edit-label="Edytuj metadane"
-         data-test-label="Przetestuj grę"
-         data-new-label="Nowe"
-         data-rejected-label="Odrzucono"
-         data-added-label="Dodano"
-         data-removed-label="Usunięto"
+         data-saved-label="@L["Admin_Games_State_Saved"].Value"
+         data-saving-label="@L["Admin_Games_State_Saving"].Value"
+         data-unsaved-label="@L["Admin_Games_State_Unsaved"].Value"
+         data-preview-label="@L["Admin_Games_Preview"].Value"
+         data-reject-label="@L["Admin_Games_Reject"].Value"
+         data-approve-label="@L["Admin_Games_Approve"].Value"
+         data-edit-label="@L["Admin_Games_Metadata_Edit"].Value"
+         data-test-label="@L["Admin_Games_Test"].Value"
+         data-new-label="@L["Admin_Games_Label_New"].Value"
+         data-rejected-label="@L["Admin_Games_Label_Rejected"].Value"
+         data-added-label="@L["Admin_Games_Label_Added"].Value"
+         data-removed-label="@L["Admin_Games_Label_Removed"].Value"
+         data-remove-label="@L["Admin_Games_Metadata_Remove"].Value"
+         data-accept-label="@L["Admin_Games_Metadata_Accept"].Value"
+         data-restore-label="@L["Admin_Games_Metadata_Restore"].Value"
+         data-bulk-approve-success="@L["Admin_Games_Bulk_Approve_Success"].Value"
+         data-bulk-reject-success="@L["Admin_Games_Bulk_Reject_Success"].Value"
+         data-preview-slug-template="@L["Admin_Games_Preview_Slug"].Value"
+         data-preview-owner-template="@L["Admin_Games_Preview_Owner"].Value"
+         data-preview-description-empty="@L["Admin_Games_Preview_NoDescription"].Value"
+         data-tags-empty="@L["Admin_Games_Tags_Empty"].Value"
+         data-save-success="@L["Admin_Games_Save_Success"].Value"
+         data-save-error="@L["Admin_Games_Save_Error"].Value"
+         data-moderation-approve-success="@L["Admin_Games_Moderation_Approve_Success"].Value"
+         data-moderation-reject-success="@L["Admin_Games_Moderation_Reject_Success"].Value"
+         data-moderation-error="@L["Admin_Games_Moderation_Error"].Value"
          data-empty-label="@L["Admin_Games_Empty"].Value">
         <div class="admin-games__bulkbar" data-bulk-bar>
             <label class="admin-checkbox">
-                <input type="checkbox" data-select-all aria-label="Zaznacz wszystkie zgłoszenia" />
+                <input type="checkbox" data-select-all aria-label="@L["Admin_Games_Bulk_SelectAll"].Value" />
                 <span></span>
             </label>
             <div class="bulk-actions" aria-live="polite">
-                <span data-bulk-count>0</span> wybranych
+                <span data-bulk-count>0</span> @L["Admin_Games_Bulk_Selected"].Value
                 <button type="button" class="btn-outline btn-compact" data-bulk-approve disabled>@L["Admin_Games_Approve"].Value</button>
                 <button type="button" class="btn-outline btn-compact" data-bulk-reject disabled>@L["Admin_Games_Reject"].Value</button>
                 <button type="button" class="btn-outline btn-compact" data-bulk-edit disabled>@L["Admin_Games_Metadata_Edit"].Value</button>
@@ -159,7 +173,7 @@
                 <span class="cell cell--actions" role="columnheader">@L["Admin_Games_Table_Actions"].Value</span>
             </div>
 
-    <div class="sr-only" id="admin-games-caption">Lista zgłoszonych gier do weryfikacji</div>
+    <div class="sr-only" id="admin-games-caption">@L["Admin_Games_Grid_Caption"].Value</div>
 
             @if (Model.Games.Any())
             {
@@ -168,7 +182,7 @@
                     <div class="admin-games__row" role="row" data-game-row data-game-id="@game.Id" tabindex="0">
                         <div class="cell cell--checkbox" role="gridcell">
                             <label class="admin-checkbox">
-                                <input type="checkbox" value="@game.Id" data-row-checkbox aria-label="@($"Zaznacz {game.Title}")" />
+                                <input type="checkbox" value="@game.Id" data-row-checkbox aria-label="@string.Format(L["Admin_Games_Grid_SelectGame"].Value, game.Title)" />
                                 <span></span>
                             </label>
                         </div>
@@ -185,7 +199,7 @@
                         
                         <div class="cell cell--actions" role="gridcell">
                             <a class="btn-outline btn-compact" asp-action="PlayGame" asp-route-id="@game.Id" target="_blank" data-test-button data-shortcut="T">@L["Admin_Games_Test"].Value</a>
-                            <button type="button" class="btn-outline btn-compact" data-preview-button>Podgląd</button>
+                            <button type="button" class="btn-outline btn-compact" data-preview-button>@L["Admin_Games_Preview"].Value</button>
                             <button type="button" class="btn-primary btn-compact" data-edit-button>@L["Admin_Games_Metadata_Edit"].Value</button>
                         </div>
                     </div>
@@ -206,7 +220,7 @@
                 <div class="drawer__header">
                     <h2 id="drawer-title">@L["Admin_Games_Metadata_Edit"].Value</h2>
                     <div class="drawer__header-actions">
-                        <button type="button" class="btn-link" data-drawer-close>Zamknij</button>
+                        <button type="button" class="btn-link" data-drawer-close>@L["Common_Close"].Value</button>
                     </div>
                 </div>
 
@@ -250,7 +264,7 @@
                                             <dd data-summary-created></dd>
                                         </div>
                                         <div>
-                                            <dt>Status</dt>
+                                            <dt>@L["Dashboard_Games_Status"].Value</dt>
                                             <dd data-summary-status></dd>
                                         </div>
                                         <div>
@@ -272,24 +286,24 @@
                                     <article class="accordion-item" data-accordion-item="basics">
                                         <header class="accordion-header">
                                             <button type="button" class="accordion-trigger" aria-expanded="true" data-accordion-trigger>
-                                                <span>Podstawy</span>
+                                                <span>@L["Admin_Games_Accordion_Basics"].Value</span>
                                             </button>
                                         </header>
                                         <div class="accordion-panel" data-accordion-panel>
                                             <label class="form-field">
                                                 <span>@L["Admin_Games_Metadata_Title"].Value</span>
                                                 <input type="text" name="Title" data-field-title maxlength="120" required />
-                                                <small>Użyj jasnego tytułu (maks. 120 znaków).</small>
+                                                <small>@L["Admin_Games_Metadata_Title_Help"].Value</small>
                                             </label>
                                             <label class="form-field">
-                                                <span>Adres w katalogu</span>
+                                                <span>@L["Admin_Games_Metadata_Slug"].Value</span>
                                                 <input type="text" name="Slug" data-field-slug maxlength="140" required />
-                                                <small>Bez spacji i znaków specjalnych. Maks. 140 znaków.</small>
+                                                <small>@L["Admin_Games_Metadata_Slug_Help"].Value</small>
                                             </label>
                                             <label class="form-field">
                                                 <span>@L["Admin_Games_Metadata_Author"].Value</span>
                                                 <input type="text" data-field-owner readonly />
-                                                <small>Dane twórcy gry tylko do odczytu.</small>
+                                                <small>@L["Admin_Games_Metadata_Author_Help"].Value</small>
                                             </label>
                                         </div>
                                     </article>
@@ -297,14 +311,14 @@
                                     <article class="accordion-item" data-accordion-item="media">
                                         <header class="accordion-header">
                                             <button type="button" class="accordion-trigger" aria-expanded="false" data-accordion-trigger>
-                                                <span>Media</span>
+                                                <span>@L["Admin_Games_Accordion_Media"].Value</span>
                                             </button>
                                         </header>
                                         <div class="accordion-panel" data-accordion-panel hidden>
                                             <label class="form-field">
-                                                <span>Okładka (URL / wgraj)</span>
+                                               <span>@L["Admin_Games_Metadata_Cover"].Value</span>
                                                 <input type="text" name="CoverImagePath" data-field-cover maxlength="256" />
-                                                <small>Wklej adres URL lub wgraj okładkę.</small>
+                                                <small>@L["Admin_Games_Metadata_Cover_Help"].Value</small>
                                             </label>
                                         </div>
                                     </article>
@@ -312,7 +326,7 @@
                                     <article class="accordion-item" data-accordion-item="classification">
                                         <header class="accordion-header">
                                             <button type="button" class="accordion-trigger" aria-expanded="false" data-accordion-trigger>
-                                                <span>Klasyfikacja</span>
+                                                <span>@L["Admin_Games_Accordion_Classification"].Value</span>
                                             </button>
                                         </header>
                                         <div class="accordion-panel" data-accordion-panel hidden>
@@ -320,24 +334,24 @@
                                                 <header>
                                                     <h4>@L["Admin_Games_Metadata_Categories"].Value</h4>
                                                     <div class="chips-tools">
-                                                        <button type="button" class="btn-link" data-chips-undo title="Cofnij">↺</button>
-                                                        <button type="button" class="btn-link" data-chips-redo title="Ponów">↻</button>
+                                                        <button type="button" class="btn-link" data-chips-undo title="@L["Common_Undo"].Value">↺</button>
+                                                        <button type="button" class="btn-link" data-chips-redo title="@L["Common_Redo"].Value">↻</button>
                                                     </div>
                                                 </header>
                                                 <div class="chips-input">
                                                     <label>
-                                                        <span>Dodaj kategorię</span>
-                                                        <input type="text" placeholder="Wyszukaj kategorię" data-chips-input />
+                                                       <span>@L["Admin_Games_Metadata_Category_Add"].Value</span>
+                                                        <input type="text" placeholder="@L["Admin_Games_Metadata_Category_Search"].Value" data-chips-input />
                                                     </label>
                                                     <div class="chips-suggestions" data-chips-suggestions></div>
                                                 </div>
                                                 <div class="chips-columns">
                                                     <div class="chips-column">
-                                                        <h5>Propozycje twórcy</h5>
+                                                        <h5>@L["Admin_Games_Metadata_Source_Proposed"].Value</h5>
                                                         <div class="chips-list" data-chips-list="proposed"></div>
                                                     </div>
                                                     <div class="chips-column">
-                                                        <h5>Opublikowane</h5>
+                                                        <h5>@L["Admin_Games_Metadata_Source_Published"].Value</h5>
                                                         <div class="chips-list" data-chips-list="published"></div>
                                                     </div>
                                                 </div>
@@ -348,24 +362,24 @@
                                                 <header>
                                                     <h4>@L["Admin_Games_Metadata_Modes"].Value</h4>
                                                     <div class="chips-tools">
-                                                        <button type="button" class="btn-link" data-chips-undo title="Cofnij">↺</button>
-                                                        <button type="button" class="btn-link" data-chips-redo title="Ponów">↻</button>
+                                                        <button type="button" class="btn-link" data-chips-undo title="@L["Common_Undo"].Value">↺</button>
+                                                        <button type="button" class="btn-link" data-chips-redo title="@L["Common_Redo"].Value">↻</button>
                                                     </div>
                                                 </header>
                                                 <div class="chips-input">
                                                     <label>
-                                                        <span>Dodaj tryb</span>
-                                                        <input type="text" placeholder="Wyszukaj tryb" data-chips-input />
+                                                        <span>@L["Admin_Games_Metadata_Mode_Add"].Value</span>
+                                                        <input type="text" placeholder="@L["Admin_Games_Metadata_Mode_Search"].Value" data-chips-input />
                                                     </label>
                                                     <div class="chips-suggestions" data-chips-suggestions></div>
                                                 </div>
                                                 <div class="chips-columns">
                                                     <div class="chips-column">
-                                                        <h5>Propozycje twórcy</h5>
+                                                        <h5>@L["Admin_Games_Metadata_Source_Proposed"].Value</h5>
                                                         <div class="chips-list" data-chips-list="proposed"></div>
                                                     </div>
                                                     <div class="chips-column">
-                                                        <h5>Opublikowane</h5>
+                                                        <h5>@L["Admin_Games_Metadata_Source_Published"].Value</h5>
                                                         <div class="chips-list" data-chips-list="published"></div>
                                                     </div>
                                                 </div>
@@ -377,14 +391,14 @@
                                     <article class="accordion-item" data-accordion-item="description">
                                         <header class="accordion-header">
                                             <button type="button" class="accordion-trigger" aria-expanded="false" data-accordion-trigger>
-                                                <span>Opis i tagi</span>
+                                                <span>@L["Admin_Games_Accordion_Description"].Value</span>
                                             </button>
                                         </header>
                                         <div class="accordion-panel" data-accordion-panel hidden>
                                             <label class="form-field">
                                                 <span>@L["Admin_Games_Metadata_Description"].Value</span>
                                                 <textarea name="Description" data-field-description maxlength="2000"></textarea>
-                                                <small>Krótko przedstaw najważniejsze informacje o grze.</small>
+                                                <small>@L["Admin_Games_Metadata_Description_Help"].Value</small>
                                             </label>
                                             <div class="metadata-tags">
                                                 <strong>@L["Admin_Games_Metadata_Tags"].Value</strong>
@@ -396,7 +410,7 @@
                                     <article class="accordion-item" data-accordion-item="moderation">
                                         <header class="accordion-header">
                                             <button type="button" class="accordion-trigger" aria-expanded="false" data-accordion-trigger>
-                                                <span>Moderacja</span>
+                                                 <span>@L["Admin_Games_Accordion_Moderation"].Value</span>
                                             </button>
                                         </header>
                                         <div class="accordion-panel" data-accordion-panel hidden>
@@ -409,14 +423,14 @@
                                                             <option value="@status">@FormatStatus(status)</option>
                                                         }
                                                     </select>
-                                                    <small>Status można zmienić tylko przy zatwierdzaniu lub odrzucaniu.</small>
+                                                    <small>@L["Admin_Games_Moderation_Status_Help"].Value</small>
                                                 </label>
                                             </div>
                                             <div class="moderation-field">
                                                 <label>
-                                                    <span>Notatka moderatora</span>
+                                                    <span>@L["Admin_Games_Moderation_Notes_Label"].Value</span>
                                                     <textarea data-field-notes maxlength="500" readonly></textarea>
-                                                    <small>Powód ostatniej decyzji (tylko do odczytu).</small>
+                                                    <small>@L["Admin_Games_Moderation_Notes_Help"].Value</small>
                                                 </label>
                                             </div>
                                             <form asp-action="RejectGame" method="post" class="moderation-reject" data-reject-form>
@@ -425,7 +439,7 @@
                                                 <label>
                                                     <span>@L["Admin_Games_Reject_Notes"].Value</span>
                                                     <textarea name="Notes" maxlength="500" data-reject-notes></textarea>
-                                                    <small>Wyjaśnij, dlaczego gra została odrzucona.</small>
+                                                    <small>@L["Admin_Games_Reject_Notes_Help"].Value</small>
                                                 </label>
                                                 <button type="submit" class="btn-danger">@L["Admin_Games_Reject_Submit"].Value</button>
                                             </form>
@@ -438,12 +452,12 @@
                 </div>
 
                 <footer class="drawer__footer" data-action-bar>
-                    <div class="action-status" data-save-status>Stan roboczy</div>
+                    <div class="action-status" data-save-status>@L["Admin_Games_SaveStatus_Draft"].Value</div>
                     <div class="action-buttons">
-                        <button type="submit" form="metadata-form" class="btn-primary btn-compact" data-save-button>Zapisz</button>
-                        <a class="btn-primary btn-compact" data-preview-link target="_blank">Podgląd</a>
+                        <button type="submit" form="metadata-form" class="btn-primary btn-compact" data-save-button>@L["Common_Save"].Value</button>
+                        <a class="btn-primary btn-compact" data-preview-link target="_blank">@L["Admin_Games_Preview"].Value</a>
                         <button type="button" class="btn-outline btn-compact" data-footer-reject>@L["Admin_Games_Reject"].Value</button>
-                        <button type="button" class="btn-danger btn-compact" data-cancel-edit>Anuluj</button>
+                        <button type="button" class="btn-danger btn-compact" data-cancel-edit>@L["Common_Cancel"].Value</button>
                     </div>
                 </footer>
             </div>

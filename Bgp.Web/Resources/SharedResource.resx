@@ -2710,38 +2710,212 @@
         <value>Please provide a reason shorter than 500 characters.</value>
     </data>
 
+	<data name="Admin_Games_State_Saved" xml:space="preserve">
+        <value>Saved</value>
+    </data>
+
+	<data name="Admin_Games_State_Saving" xml:space="preserve">
+        <value>Saving…</value>
+    </data>
+
+	<data name="Admin_Games_State_Unsaved" xml:space="preserve">
+        <value>Unsaved changes</value>
+    </data>
+
+	<data name="Admin_Games_Preview" xml:space="preserve">
+        <value>Preview</value>
+    </data>
+
+	<data name="Admin_Games_Label_New" xml:space="preserve">
+        <value>New</value>
+    </data>
+
+	<data name="Admin_Games_Label_Rejected" xml:space="preserve">
+        <value>Rejected</value>
+    </data>
+
+	<data name="Admin_Games_Label_Added" xml:space="preserve">
+        <value>Added</value>
+    </data>
+
+	<data name="Admin_Games_Label_Removed" xml:space="preserve">
+        <value>Removed</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Remove" xml:space="preserve">
+        <value>Remove</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Accept" xml:space="preserve">
+        <value>Accept</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Restore" xml:space="preserve">
+        <value>Restore</value>
+    </data>
+
+	<data name="Admin_Games_Bulk_Approve_Success" xml:space="preserve">
+        <value>Approved submissions.</value>
+    </data>
+
+	<data name="Admin_Games_Bulk_Reject_Success" xml:space="preserve">
+        <value>Rejected submissions.</value>
+    </data>
+
+	<data name="Admin_Games_Preview_Slug" xml:space="preserve">
+        <value>Catalog slug: {0}</value>
+    </data>
+
+	<data name="Admin_Games_Preview_Owner" xml:space="preserve">
+        <value>Owner: {0}</value>
+    </data>
+
+	<data name="Admin_Games_Preview_NoDescription" xml:space="preserve">
+        <value>No description provided.</value>
+    </data>
+
+	<data name="Admin_Games_Tags_Empty" xml:space="preserve">
+        <value>No tags.</value>
+    </data>
+
+	<data name="Admin_Games_Save_Success" xml:space="preserve">
+        <value>Metadata saved.</value>
+    </data>
+
+	<data name="Admin_Games_Save_Error" xml:space="preserve">
+        <value>Could not save changes.</value>
+    </data>
+
+	<data name="Admin_Games_Moderation_Approve_Success" xml:space="preserve">
+        <value>Game approved.</value>
+    </data>
+
+	<data name="Admin_Games_Moderation_Reject_Success" xml:space="preserve">
+        <value>Game rejected.</value>
+    </data>
+
+	<data name="Admin_Games_Moderation_Error" xml:space="preserve">
+        <value>Failed to update game status.</value>
+    </data>
+
+	<data name="Admin_Games_Bulk_SelectAll" xml:space="preserve">
+        <value>Select all submissions</value>
+    </data>
+
+	<data name="Admin_Games_Bulk_Selected" xml:space="preserve">
+        <value>selected</value>
+    </data>
+
+	<data name="Admin_Games_Grid_Caption" xml:space="preserve">
+        <value>List of submitted games awaiting review.</value>
+    </data>
+
+	<data name="Admin_Games_Grid_SelectGame" xml:space="preserve">
+        <value>Select {0}</value>
+    </data>
+
+	<data name="Admin_Games_Accordion_Basics" xml:space="preserve">
+        <value>Basics</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Title_Help" xml:space="preserve">
+        <value>Use a clear title (max. 120 characters).</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Slug_Help" xml:space="preserve">
+        <value>Use lowercase letters, digits and hyphens only (max. 140 characters).</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Author_Help" xml:space="preserve">
+        <value>Game creator information is read-only.</value>
+    </data>
+
+	<data name="Admin_Games_Accordion_Media" xml:space="preserve">
+        <value>Media</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Cover_Help" xml:space="preserve">
+        <value>Paste a URL or upload a cover image.</value>
+    </data>
+
+	<data name="Admin_Games_Accordion_Classification" xml:space="preserve">
+        <value>Classification</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Category_Add" xml:space="preserve">
+        <value>Add category</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Category_Search" xml:space="preserve">
+        <value>Search category</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Source_Proposed" xml:space="preserve">
+        <value>Creator proposals</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Source_Published" xml:space="preserve">
+        <value>Published</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Mode_Add" xml:space="preserve">
+        <value>Add mode</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Mode_Search" xml:space="preserve">
+        <value>Search mode</value>
+    </data>
+
+	<data name="Admin_Games_Accordion_Description" xml:space="preserve">
+        <value>Description and tags</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Description_Help" xml:space="preserve">
+        <value>Briefly describe the key information about the game.</value>
+    </data>
+
+	<data name="Admin_Games_Accordion_Moderation" xml:space="preserve">
+        <value>Moderation</value>
+    </data>
+	<data name="Admin_Games_Moderation_Status_Help" xml:space="preserve">
+        <value>Status can only be changed when approving or rejecting.</value>
+    </data>
+	<data name="Admin_Games_Moderation_Notes_Label" xml:space="preserve">
+        <value>Moderator note</value>
+    </data>
+	<data name="Admin_Games_Moderation_Notes_Help" xml:space="preserve">
+        <value>Reason for the last decision (read only).</value>
+    </data>
+	<data name="Admin_Games_Reject_Notes_Help" xml:space="preserve">
+        <value>Explain why the game was rejected.</value>
+    </data>
+	<data name="Admin_Games_SaveStatus_Draft" xml:space="preserve">
+        <value>Work in progress</value>
+    </data>
 	<data name="Policy_Title" xml:space="preserve">
         <value>Platform policy</value>
     </data>
-
 	<data name="Policy_Intro" xml:space="preserve">
         <value>We want Browser Games Platform to be a safe and inspiring space. Below you will find the rules that help us achieve this goal.</value>
     </data>
-
 	<data name="Policy_Section_Data" xml:space="preserve">
         <value>What information do we process?</value>
     </data>
-
 	<data name="Policy_Point_Profile" xml:space="preserve">
         <value>Profile details such as nickname, avatar and contact email.</value>
     </data>
-
 	<data name="Policy_Point_Content" xml:space="preserve">
         <value>Games, screenshots and other materials that you publish.</value>
     </data>
-
 	<data name="Policy_Point_Security" xml:space="preserve">
         <value>Security metadata that allows us to detect abuse and spam.</value>
     </data>
-
 	<data name="Policy_Section_Moderation" xml:space="preserve">
         <value>Moderation and verification</value>
     </data>
-
 	<data name="Policy_Text_Moderation" xml:space="preserve">
         <value>Each new game must be reviewed by an administrator. We reject entries that violate law, contain malware or infringe copyrights.</value>
     </data>
-
 	<data name="Policy_Section_Contact" xml:space="preserve">
         <value>Need help?</value>
     </data>
@@ -3080,6 +3254,21 @@
 	<data name="Common_Optional">
 		<value>Optional</value>
 	</data>
+	<data name="Common_Undo" xml:space="preserve">
+        <value>Undo</value>
+    </data>
+	<data name="Common_Redo" xml:space="preserve">
+        <value>Redo</value>
+    </data>
+	<data name="Common_Save" xml:space="preserve">
+        <value>Save</value>
+    </data>
+	<data name="Common_Cancel" xml:space="preserve">
+        <value>Cancel</value>
+    </data>
+	<data name="Common_Close" xml:space="preserve">
+        <value>Close</value>
+    </data>
 	<data name="Dashboard_Common_SelectFile">
 		<value>Choose file</value>
 	</data>
