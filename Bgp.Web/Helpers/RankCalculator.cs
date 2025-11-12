@@ -80,8 +80,9 @@ public static class RankCalculator
 
         var engagementXp = stats.UploadedGames * 140 + stats.TotalReviews * 30 + stats.FriendsCount * 15;
         var activityXp = Math.Min(stats.TotalScores * 6, 360);
+        var dailyXp = Math.Min(Math.Max(stats.DailyGoalsCompleted, 0) * 40, 160);
 
-        var totalXp = xpFromGames + engagementXp + activityXp;
+        var totalXp = xpFromGames + engagementXp + activityXp + dailyXp;
 
         if (stats.LastScoreSubmittedAt is DateTime lastPlayed)
         {

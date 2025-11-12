@@ -1388,6 +1388,8 @@ public class DashboardController : Controller
                 hasRecoveryConfigured && user.BirthDay.HasValue && user.BirthMonth.HasValue)
         };
 
+        stats.DailyGoalsCompleted = goals.Count(g => g.IsCompleted);
+
         return goals;
     }
 

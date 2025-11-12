@@ -13,7 +13,17 @@ public class GameCatalogViewModel
     public IReadOnlyList<SelectListItem> TagOptions { get; init; } = new List<SelectListItem>();
 }
 
-public record GameCatalogItemViewModel(Guid Id, string Title, string Slug, string? CoverImagePath, double AverageRating, GameMode Modes, GameCategory Categories, IReadOnlyList<string> Tags);
+public record GameCatalogItemViewModel(
+    Guid Id,
+    string Title,
+    string Slug,
+    string? CoverImagePath,
+    double AverageRating,
+    GameMode Modes,
+    GameCategory Categories,
+    IReadOnlyList<string> Tags,
+    string? Description,
+    int ActivePlayerCount);
 
 public class GameCatalogFilterModel
 {

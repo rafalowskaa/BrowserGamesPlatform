@@ -52,6 +52,21 @@
         cancelButton.textContent = matchMessages.cancelLabel;
     }
 
+    const ratingPanel = document.querySelector('[data-rating-panel]');
+    const ratingAverageDisplay = ratingPanel ? ratingPanel.querySelector('[data-rating-average]') : null;
+    const ratingCountDisplay = ratingPanel ? ratingPanel.querySelector('[data-rating-count]') : null;
+    const ratingFeedback = ratingPanel ? ratingPanel.querySelector('[data-rating-feedback]') : null;
+    const ratingInput = ratingPanel ? ratingPanel.querySelector('[data-rating-input]') : null;
+    const ratingButtons = ratingInput ? Array.from(ratingInput.querySelectorAll('[data-star-value]')) : [];
+    const ratingConfig = (config.rating && typeof config.rating === 'object') ? config.rating : {};
+    const ratingMessages = (config.ratingMessages && typeof config.ratingMessages === 'object') ? config.ratingMessages : {};
+    const ratingStarLabelTemplate = typeof config.ratingStarLabel === 'string'
+        ? config.ratingStarLabel
+        : 'Rate {0} stars';
+    let userRating = Number(ratingConfig.user ?? 0) || 0;
+    let currentAverage = Number(ratingConfig.average ?? 0) || 0;
+    let reviewCount = Number(ratingConfig.count ?? 0) || 0;
+
     const stage = playerContainer ? playerContainer.querySelector('[data-game-stage]') : null;
     const viewer = playerContainer ? playerContainer.querySelector('[data-game-viewer]') : null;
     const controls = playerContainer ? playerContainer.querySelector('[data-game-controls]') : null;
@@ -82,6 +97,7 @@
     let controlsInteractive = false;
 
     initializeViewer();
+    initializeRating();
 
     function canLaunchWebGame() {
         return Boolean(config.hasWeb && config.webUrl && frame && playerContainer && viewer);
@@ -918,6 +934,183 @@
             cancelMatchmaking({ silent: true }).catch(() => { });
         }
     });
+
+    function initializeRating() {
+        if (!ratingPanel) {
+            return;
+        }
+
+        updateRatingSummary(currentAverage, reviewCount);
+        updateUserRating(userRating);
+
+        if (!ratingInput || ratingButtons.length === 0 || typeof ratingConfig.submitUrl !== 'string' || ratingConfig.submitUrl.length === 0) {
+            return;
+        }
+
+        ratingButtons.forEach(button => {
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                const value = Number(button.dataset.starValue);
+                if (!Number.isFinite(value) || value < 1 || value > 5) {
+                    return;
+                }
+                submitRating(value);
+            });
+        });
+    }
+
+    async function submitRating(value) {
+        if (!ratingConfig || typeof ratingConfig.submitUrl !== 'string' || ratingConfig.submitUrl.length === 0) {
+            return;
+        }
+
+        setRatingFeedback();
+        setRatingButtonsDisabled(true);
+
+        try {
+            const response = await fetch(ratingConfig.submitUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ stars: value })
+            });
+
+            if (!response.ok) {
+                throw new Error('Rating submission failed');
+            }
+
+            updateUserRating(value);
+            await refreshRating();
+            setRatingFeedback('success');
+        } catch (err) {
+            console.error('Failed to submit rating', err);
+            setRatingFeedback('error');
+        } finally {
+            setRatingButtonsDisabled(false);
+        }
+    }
+
+    async function refreshRating() {
+        if (!ratingConfig || typeof ratingConfig.submitUrl !== 'string' || ratingConfig.submitUrl.length === 0) {
+            return;
+        }
+
+        try {
+            const response = await fetch(ratingConfig.submitUrl, { method: 'GET', credentials: 'include' });
+            if (!response.ok) {
+                throw new Error('Failed to load rating data');
+            }
+
+            const data = await response.json();
+            if (data && typeof data === 'object') {
+                const avg = Number(data.Avg ?? data.avg);
+                const count = Number(data.Count ?? data.count);
+                const user = Number(data.UserStars ?? data.userStars);
+                if (Number.isFinite(avg)) {
+                    currentAverage = avg;
+                }
+                if (Number.isFinite(count)) {
+                    reviewCount = count;
+                }
+                if (Number.isFinite(user)) {
+                    updateUserRating(user);
+                }
+            }
+
+            updateRatingSummary(currentAverage, reviewCount);
+        } catch (err) {
+            console.error('Failed to refresh rating', err);
+        }
+    }
+
+    function updateRatingSummary(avg, count) {
+        if (ratingAverageDisplay) {
+            const normalized = Number.isFinite(avg) ? avg : 0;
+            ratingAverageDisplay.textContent = normalized.toFixed(1);
+        }
+
+        if (ratingCountDisplay) {
+            let text;
+            if (count > 0) {
+                const template = typeof ratingMessages.count === 'string' ? ratingMessages.count : '{0}';
+                text = formatTemplate(template, count);
+            } else {
+                text = typeof ratingMessages.none === 'string' ? ratingMessages.none : '';
+            }
+
+            ratingCountDisplay.textContent = text;
+            ratingCountDisplay.hidden = !text;
+        }
+    }
+
+    function updateUserRating(value) {
+        userRating = Number.isFinite(value) ? value : 0;
+        if (!ratingInput) {
+            return;
+        }
+
+        ratingInput.dataset.userRating = String(userRating);
+        ratingButtons.forEach(button => {
+            const starValue = Number(button.dataset.starValue) || 0;
+            const filled = starValue <= userRating;
+            button.classList.toggle('is-filled', filled);
+            button.setAttribute('aria-pressed', filled ? 'true' : 'false');
+            const label = formatTemplate(ratingStarLabelTemplate, starValue);
+            if (label) {
+                button.setAttribute('aria-label', label);
+            }
+        });
+    }
+
+    function setRatingButtonsDisabled(disabled) {
+        if (!ratingButtons.length) {
+            return;
+        }
+
+        const state = Boolean(disabled);
+        ratingButtons.forEach(button => {
+            button.disabled = state;
+        });
+    }
+
+    function setRatingFeedback(state) {
+        if (!ratingFeedback) {
+            return;
+        }
+
+        let message = '';
+        let isError = false;
+        let isSuccess = false;
+
+        if (state === 'success') {
+            message = typeof ratingMessages.success === 'string' ? ratingMessages.success : '';
+            isSuccess = message.length > 0;
+        } else if (state === 'error') {
+            message = typeof ratingMessages.error === 'string' ? ratingMessages.error : '';
+            isError = message.length > 0;
+        }
+
+        ratingFeedback.textContent = message;
+        ratingFeedback.hidden = !message;
+        ratingFeedback.classList.toggle('is-error', isError);
+        ratingFeedback.classList.toggle('is-success', isSuccess);
+    }
+
+    function formatTemplate(template, ...args) {
+        if (typeof template !== 'string' || template.length === 0) {
+            return '';
+        }
+
+        return template.replace(/\{(\d+)\}/g, (match, index) => {
+            const idx = Number(index);
+            if (!Number.isFinite(idx) || idx < 0 || idx >= args.length) {
+                return match;
+            }
+            return String(args[idx]);
+        });
+    }
 
     const invitePanel = container.querySelector('[data-invite-panel]');
     if (invitePanel && config.inviteTemplate) {

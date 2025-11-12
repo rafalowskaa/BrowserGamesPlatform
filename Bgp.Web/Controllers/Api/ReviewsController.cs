@@ -30,11 +30,17 @@ public class ReviewsController : ControllerBase
         var items = game.Reviews.OrderByDescending(r => r.CreatedAtUtc)
             .Select(r => new { r.Stars, r.Comment, r.CreatedAtUtc });
 
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userStars = string.IsNullOrEmpty(userId)
+            ? (int?)null
+            : game.Reviews.FirstOrDefault(r => r.UserId == userId)?.Stars;
+
         return Ok(new
         {
             Avg = game.Reviews.Any() ? game.Reviews.Average(r => r.Stars) : 0,
             Count = game.Reviews.Count,
-            Items = items
+            Items = items,
+            UserStars = userStars
         });
     }
 

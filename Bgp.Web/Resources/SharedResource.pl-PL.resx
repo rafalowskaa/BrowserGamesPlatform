@@ -2850,12 +2850,18 @@
 	<data name="Games_Index_Categories">
 		<value>Kategorie</value>
 	</data>
+	<data name="Games_Index_CurrentPlayers" xml:space="preserve">
+                <value>Aktualnie gra: {0}</value>
+        </data>
 	<data name="Games_Details_Modes">
 		<value>Tryby</value>
 	</data>
 	<data name="Games_Details_Categories">
 		<value>Kategorie</value>
 	</data>
+	<data name="Games_Details_CurrentPlayers_Label" xml:space="preserve">
+                <value>Gracze online</value>
+        </data>
 	<data name="Games_Details_Tags">
 		<value>Tagi</value>
 	</data>
@@ -3286,6 +3292,30 @@
 	<data name="Games_Details_DownloadHeading">
 		<value>Pobierz</value>
 	</data>
+	<data name="Games_Details_Rating_Title" xml:space="preserve">
+                <value>Oceń tę grę</value>
+        </data>
+	<data name="Games_Details_Rating_Subtitle" xml:space="preserve">
+                <value>Podziel się swoją oceną i pomóż innym graczom.</value>
+        </data>
+	<data name="Games_Details_Rating_Count" xml:space="preserve">
+                <value>Liczba ocen: {0}</value>
+        </data>
+	<data name="Games_Details_Rating_None" xml:space="preserve">
+                <value>Brak ocen</value>
+        </data>
+	<data name="Games_Details_Rating_YourRating" xml:space="preserve">
+                <value>Twoja ocena</value>
+        </data>
+	<data name="Games_Details_Rating_StarLabel" xml:space="preserve">
+                <value>Oceń na {0} gwiazdek</value>
+        </data>
+	<data name="Games_Details_Rating_Success" xml:space="preserve">
+                <value>Dziękujemy! Twoja ocena została zapisana.</value>
+        </data>
+	<data name="Games_Details_Rating_Error" xml:space="preserve">
+                <value>Nie udało się zapisać oceny. Spróbuj ponownie.</value>
+        </data>
 	<data name="Games_Details_InviteHeading">
 		<value>Zaproś znajomego</value>
 	</data>

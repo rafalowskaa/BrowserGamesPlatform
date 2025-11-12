@@ -1,6 +1,8 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Security.Claims;
 using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Helpers;
@@ -63,18 +65,60 @@ public class GamesController : Controller
             gamesQuery = gamesQuery.Where(g => g.Tags.Any(t => t.IsApproved && t.Value == normalizedTag));
         }
 
-        var games = await gamesQuery
+        var projectedGames = await gamesQuery
             .OrderByDescending(g => g.CreatedAtUtc)
+            .Select(g => new
+            {
+                g.Id,
+                g.Title,
+                g.Slug,
+                g.CoverImagePath,
+                g.Description,
+                g.Modes,
+                g.Categories,
+                AverageRating = g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0.0,
+                Tags = g.Tags
+                    .Where(t => t.IsApproved)
+                    .OrderBy(t => t.Value)
+                    .Select(t => t.Value)
+                    .ToList()
+            })
+            .ToListAsync();
+
+        var gameIds = projectedGames.Select(g => g.Id).ToList();
+        var activeLookup = new Dictionary<Guid, int>();
+
+        if (gameIds.Count > 0)
+        {
+            var now = DateTime.UtcNow;
+            activeLookup = await _db.MatchSessions
+                .AsNoTracking()
+                .Where(s => gameIds.Contains(s.GameId) && !s.Used && s.ExpiresAtUtc > now)
+                .GroupBy(s => s.GameId)
+                .Select(group => new
+                {
+                    GameId = group.Key,
+                    Count = group
+                        .Select(s => s.UserId)
+                        .Distinct()
+                        .Count()
+                })
+                .ToDictionaryAsync(x => x.GameId, x => x.Count);
+        }
+
+        var games = projectedGames
             .Select(g => new GameCatalogItemViewModel(
                 g.Id,
                 g.Title,
                 g.Slug,
                 g.CoverImagePath,
-                g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0.0,
+                g.AverageRating,
                 g.Modes,
                 g.Categories,
-                g.Tags.Where(t => t.IsApproved).OrderBy(t => t.Value).Select(t => t.Value).ToList()))
-            .ToListAsync();
+                g.Tags,
+                string.IsNullOrWhiteSpace(g.Description) ? null : g.Description,
+                activeLookup.TryGetValue(g.Id, out var active) ? active : 0))
+            .ToList();
 
         var tagOptions = await _db.GameTags
             .AsNoTracking()
@@ -127,10 +171,43 @@ public class GamesController : Controller
         var latest = g.Versions.OrderByDescending(v => v.PublishedAtUtc).FirstOrDefault();
         var playOptions = _contentResolver.Resolve(latest?.ContentPath);
 
+        var now = DateTime.UtcNow;
+        var activePlayers = await _db.MatchSessions
+            .AsNoTracking()
+            .Where(s => s.GameId == g.Id && !s.Used && s.ExpiresAtUtc > now)
+            .Select(s => s.UserId)
+            .Distinct()
+            .CountAsync();
+
+        var ratingStats = await _db.GameReviews
+            .AsNoTracking()
+            .Where(r => r.GameId == g.Id)
+            .GroupBy(_ => 1)
+            .Select(group => new
+            {
+                Average = group.Average(r => r.Stars),
+                Count = group.Count()
+            })
+            .FirstOrDefaultAsync();
+
+        int? userRating = null;
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.IsNullOrEmpty(userId))
+        {
+            userRating = await _db.GameReviews
+                .Where(r => r.GameId == g.Id && r.UserId == userId)
+                .Select(r => (int?)r.Stars)
+                .FirstOrDefaultAsync();
+        }
+
         var vm = new GameDetailsViewModel
         {
             Game = g,
-            PlayOptions = playOptions
+            PlayOptions = playOptions,
+            AverageRating = ratingStats?.Average ?? 0,
+            ReviewCount = ratingStats?.Count ?? 0,
+            UserRating = userRating,
+            ActivePlayerCount = activePlayers
         };
 
         return View(vm);

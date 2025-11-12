@@ -87,15 +87,36 @@
         matchStarting = L["Games_Details_Matchmaking_Starting"].Value,
         matchError = L["Games_Details_Matchmaking_Error"].Value,
         matchCancel = L["Games_Details_Matchmaking_Cancel"].Value,
-        matchCancelled = L["Games_Details_Matchmaking_Cancelled"].Value
+        matchCancelled = L["Games_Details_Matchmaking_Cancelled"].Value,
+        rating = new
+        {
+            average = Model.AverageRating,
+            count = Model.ReviewCount,
+            user = Model.UserRating,
+            submitUrl = Url.Content($"/api/games/{game.Id}/reviews")
+        },
+        ratingMessages = new
+        {
+            success = L["Games_Details_Rating_Success"].Value,
+            error = L["Games_Details_Rating_Error"].Value,
+            none = L["Games_Details_Rating_None"].Value,
+            count = L["Games_Details_Rating_Count"].Value,
+            label = L["Games_Details_Rating_YourRating"].Value
+        },
+        ratingStarLabel = L["Games_Details_Rating_StarLabel"].Value,
+        activePlayers = Model.ActivePlayerCount
     };
 }
 <h2>@game.Title</h2>
-<p>@game.Description</p>
+@if (!string.IsNullOrWhiteSpace(game.Description))
+{
+    <p>@game.Description</p>
+}
 
 <div class="game-meta-panel">
     <div><strong>@L["Games_Details_Modes"].Value</strong><span>@FormatModes(game.Modes)</span></div>
     <div><strong>@L["Games_Details_Categories"].Value</strong><span>@FormatCategories(game.Categories)</span></div>
+    <div><strong>@L["Games_Details_CurrentPlayers_Label"].Value</strong><span data-current-players>@Model.ActivePlayerCount</span></div>
     @if (approvedTags.Any())
     {
         <div class="game-tags">
@@ -109,6 +130,45 @@
         </div>
     }
 </div>
+
+<section class="panel game-rating" data-rating-panel data-reviews-url="@Url.Content($"/api/games/{game.Id}/reviews")">
+    <header class="panel__header">
+        <div>
+            <h3>@L["Games_Details_Rating_Title"].Value</h3>
+            <p class="muted">@L["Games_Details_Rating_Subtitle"].Value</p>
+        </div>
+    </header>
+    <div class="game-rating__content">
+        <div class="game-rating__summary">
+            <p class="game-rating__value">
+                <span class="game-rating__average" data-rating-average>@Model.AverageRating.ToString("0.0")</span>
+                <span class="game-rating__out-of">/ 5</span>
+            </p>
+            <p class="muted" data-rating-count>
+                @(Model.ReviewCount > 0
+                                ? string.Format(L["Games_Details_Rating_Count"].Value, Model.ReviewCount)
+                                : L["Games_Details_Rating_None"].Value)
+            </p>
+        </div>
+        <div class="game-rating__form" data-rating-form>
+            <p class="game-rating__label">@L["Games_Details_Rating_YourRating"].Value</p>
+            <div class="star-rating star-rating--input" data-rating-input data-user-rating="@(Model.UserRating ?? 0)">
+                @for (var star = 1; star <= 5; star++)
+                {
+                    var selected = Model.UserRating.HasValue && Model.UserRating.Value >= star;
+                    <button type="button"
+                            class="star-rating__star @(selected ? "is-filled" : string.Empty)"
+                            data-star-value="@star"
+                            aria-pressed="@(selected.ToString().ToLowerInvariant())"
+                            aria-label="@string.Format(L["Games_Details_Rating_StarLabel"].Value, star)">
+                        ★
+                    </button>
+                }
+            </div>
+            <p class="game-rating__message muted" data-rating-feedback hidden></p>
+        </div>
+    </div>
+</section>
 
 <section class="panel game-play" data-game-config>
     <header class="panel__header">

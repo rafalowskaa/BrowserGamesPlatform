@@ -157,6 +157,7 @@ public class DashboardStatsViewModel
     public int TotalScores { get; set; }
     public int TotalReviews { get; set; }
     public int FriendsCount { get; set; }
+    public int DailyGoalsCompleted { get; set; }
     public IReadOnlyList<GamePerformanceStat> GamePerformances { get; set; } = Array.Empty<GamePerformanceStat>();
     public DateTime? LastScoreSubmittedAt { get; set; }
 }
