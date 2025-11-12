@@ -439,6 +439,9 @@ textarea {
 
 .player {
     --player-viewport-max-height: min(80vh, calc(100vh - var(--player-safe-area) - var(--player-header-height) - var(--player-desktop-gap)));
+    --player-native-width: 1280;
+    --player-native-height: 720;
+    --player-scale: 1;
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
@@ -460,62 +463,102 @@ textarea {
     --player-stage-padding: clamp(0.5rem, 1vw, 0.75rem);
     position: relative;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(0.5rem, 1.25vw, 0.9rem);
     padding: var(--player-stage-padding);
     background: #0b1220;
     border-radius: inherit;
-    overflow: hidden;
-    max-height: calc(var(--player-viewport-max-height) + 2 * var(--player-stage-padding));
 }
 
 .player__viewport {
-    --player-aspect-width: 16;
-    --player-aspect-height: 9;
-    --player-fallback-padding: calc(var(--player-aspect-height) / var(--player-aspect-width) * 100%);
     position: relative;
     width: 100%;
     margin-inline: auto;
-    max-width: min(100%, calc(var(--player-viewport-max-height) * var(--player-aspect-width) / var(--player-aspect-height)));
+    max-width: 100%;
     max-height: var(--player-viewport-max-height);
     background: #000;
     border-radius: calc(var(--radius) - 0.35rem);
     overflow: hidden;
-    aspect-ratio: var(--player-aspect-width) / var(--player-aspect-height);
     box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(0.25rem, 0.6vw, 0.85rem);
+    height: var(--player-viewport-height, auto);
 }
+
+    .player__viewport[data-scrollable="true"] {
+        overflow: auto;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
 
 .player__canvas {
     position: relative;
-    width: 100%;
-    height: 100%;
+    flex: 0 0 auto;
+    width: calc(var(--player-native-width) * var(--player-scale) * 1px);
+    height: calc(var(--player-native-height) * var(--player-scale) * 1px);
+    min-width: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    border-radius: inherit;
 }
 
-    .player__frame,
-    .player__canvas iframe {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        border: 0;
-        display: block;
-        background: #000;
+.player__viewport[data-scrollable="true"] .player__canvas {
+    min-width: auto;
+    min-height: auto;
+}
+
+.player__canvas iframe {
+    position: absolute;
+    inset: 0;
+    width: calc(var(--player-native-width) * 1px);
+    height: calc(var(--player-native-height) * 1px);
+    border: 0;
+    display: block;
+    background: #000;
+    transform: scale(var(--player-scale));
+    transform-origin: top left;
+}
+
+.player__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0 0.25rem;
+}
+
+    .player__controls .btn-secondary {
+        padding-inline: 1rem;
     }
 
-@supports not (aspect-ratio: 16 / 9) {
-    .player__viewport {
-        height: auto;
+.player__scale {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #94a3b8;
+}
+
+    .player__scale input[type="range"] {
+        width: clamp(10rem, 26vw, 18rem);
+        accent-color: #60a5fa;
     }
 
-        .player__viewport::before {
-            content: "";
-            display: block;
-            padding-top: var(--player-fallback-padding);
-        }
+.player__scale-value {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: #e2e8f0;
+    min-width: 4.5ch;
+    text-align: right;
+}
 
-    .player__canvas {
-        position: absolute;
-        inset: 0;
+@media (max-width: 767px) {
+    .player__scale input[type="range"] {
+        width: clamp(8rem, 50vw, 14rem);
     }
 }
 
@@ -567,6 +610,47 @@ textarea {
         padding: 0.4rem 0.75rem;
         font-size: 0.8125rem;
     }
+}
+
+.leaderboard {
+    margin-top: 0.75rem;
+}
+
+.leaderboard__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+}
+
+    .leaderboard__list li {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 0.75rem;
+        align-items: center;
+        padding: 0.55rem 0.85rem;
+        border-radius: 0.75rem;
+        background: rgba(15, 23, 42, 0.4);
+        color: #f8fafc;
+        font-variant-numeric: tabular-nums;
+    }
+
+.leaderboard__position {
+    font-weight: 700;
+    color: #93c5fd;
+}
+
+.leaderboard__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.leaderboard__score {
+    font-weight: 600;
+    color: #bae6fd;
+    text-align: right;
 }
 
     .panel {

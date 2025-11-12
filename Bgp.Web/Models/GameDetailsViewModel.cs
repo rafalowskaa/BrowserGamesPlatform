@@ -12,8 +12,6 @@ public class GameDetailsViewModel
     public string? OwnerName { get; init; }
         = null;
 
-    public string? LeaderboardDownloadUrl { get; init; }
-        = null;
 }
 
 public record GamePlayOptionViewModel(

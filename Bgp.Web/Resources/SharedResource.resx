@@ -341,6 +341,17 @@
   
     
     </data>
+	<data name="Details_LeaderboardEmpty" xml:space="preserve">
+
+
+
+
+		<value>No scores yet.</value>
+
+
+
+
+	</data>
 
 
 
@@ -3393,6 +3404,15 @@
 	<data name="Games_Details_FullscreenUnavailable" xml:space="preserve">
                 <value>Full screen mode is not available in this browser.</value>
         </data>
+	<data name="Games_Details_DisplayFit" xml:space="preserve">
+		<value>Fit to screen</value>
+	</data>
+	<data name="Games_Details_DisplayScaleLabel" xml:space="preserve">
+		<value>Scale</value>
+	</data>
+	<data name="Games_Details_DisplayScaleHint" xml:space="preserve">
+		<value>Drag to adjust the game window scale.</value>
+	</data>
 	<data name="Games_Details_NoWebBuild">
 		<value>No browser build is available for this game.</value>
 	</data>

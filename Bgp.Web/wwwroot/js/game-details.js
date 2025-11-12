@@ -54,7 +54,11 @@
 
     const stage = playerContainer ? playerContainer.querySelector('[data-game-stage]') : null;
     const viewer = playerContainer ? playerContainer.querySelector('[data-game-viewer]') : null;
+    const controls = playerContainer ? playerContainer.querySelector('[data-game-controls]') : null;
     const fullscreenButton = playerContainer ? playerContainer.querySelector('[data-game-fullscreen]') : null;
+    const scaleFitButton = controls ? controls.querySelector('[data-game-scale-fit]') : null;
+    const scaleRange = controls ? controls.querySelector('[data-game-scale-range]') : null;
+    const scaleValueDisplay = controls ? controls.querySelector('[data-game-scale-value]') : null;
     const fullscreenEnterLabelDefault = fullscreenButton
         ? (fullscreenButton.querySelector('[data-game-fullscreen-enter]')?.textContent || fullscreenButton.textContent || '')
         : '';
@@ -66,9 +70,16 @@
         exit: config.fullScreenExitLabel || fullscreenExitLabelDefault || config.fullScreenLabel || 'Exit full screen'
     };
     const fullscreenUnavailableMessage = config.fullScreenUnavailable || '';
+    const SCALE_MIN_DEFAULT = 0.5;
+    const SCALE_MAX_DEFAULT = 2.25;
     let resizeFrame = null;
     let fullscreenMessageTimeout = null;
-    let currentAspect = { width: 16, height: 9, ratio: 16 / 9 };
+    let nativeDimensions = { width: 1280, height: 720, ratio: 16 / 9 };
+    let viewerMaxHeight = 0;
+    let scaleMode = 'fit';
+    let manualScale = 1;
+    let lastFitScale = 1;
+    let controlsInteractive = false;
 
     initializeViewer();
 
@@ -130,6 +141,8 @@
         }
 
         applyAspectFromMetadata();
+        setControlsVisibility(false);
+        initializeScaleControls();
         syncHeaderHeight();
         updateFullscreenButton(isFullscreenActive());
         updateViewerConstraints();
@@ -138,6 +151,32 @@
             fullscreenButton.addEventListener('click', function (event) {
                 event.preventDefault();
                 toggleFullscreen();
+            });
+        }
+        if (scaleFitButton) {
+            scaleFitButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                scaleMode = 'fit';
+                refreshScale({ force: true });
+            });
+        }
+
+        if (scaleRange) {
+            scaleRange.addEventListener('input', function () {
+                if (!controlsInteractive) {
+                    return;
+                }
+                scaleMode = 'manual';
+                manualScale = clampScaleValue(parseFloat(scaleRange.value));
+                updateScaleDisplay(manualScale);
+                refreshScale();
+            });
+            scaleRange.addEventListener('change', function () {
+                if (!controlsInteractive) {
+                    return;
+                }
+                manualScale = clampScaleValue(parseFloat(scaleRange.value));
+                refreshScale();
             });
         }
 
@@ -150,6 +189,182 @@
             window.visualViewport.addEventListener('resize', scheduleResizeUpdate);
             window.visualViewport.addEventListener('scroll', scheduleResizeUpdate);
         }
+    }
+
+    function initializeScaleControls() {
+        if (!controls) {
+            return;
+        }
+
+        const [min, max] = getScaleRangeBounds();
+        manualScale = clampScaleValue(manualScale, min, max);
+        lastFitScale = clampScaleValue(lastFitScale, min, max);
+
+        if (scaleRange) {
+            scaleRange.value = manualScale.toFixed(2);
+            scaleRange.disabled = true;
+        }
+
+        updateScaleDisplay(scaleMode === 'fit' ? lastFitScale : manualScale);
+    }
+
+    function setControlsVisibility(visible) {
+        if (!controls) {
+            return;
+        }
+        controls.hidden = !visible;
+    }
+
+    function setControlsInteractive(active) {
+        controlsInteractive = Boolean(active);
+        updateScaleControlState();
+    }
+
+    function updateScaleControlState() {
+        if (scaleRange) {
+            scaleRange.disabled = !controlsInteractive || isFullscreenActive();
+        }
+    }
+
+    function refreshScale(options) {
+        if (!viewer) {
+            return;
+        }
+
+        updateScaleControlState();
+
+        const { force = false } = options || {};
+        const width = nativeDimensions.width > 0 ? nativeDimensions.width : 1280;
+        const height = nativeDimensions.height > 0 ? nativeDimensions.height : 720;
+        const [min, max] = getScaleRangeBounds();
+
+        if (isFullscreenActive()) {
+            viewer.dataset.scrollable = 'false';
+            viewer.style.removeProperty('--player-viewport-height');
+            viewer.style.setProperty('--player-scale', '1');
+            updateScaleDisplay(scaleMode === 'fit' ? lastFitScale : manualScale);
+            return;
+        }
+
+        let scale;
+        if (scaleMode === 'fit') {
+            scale = computeFitScale(width, height, min, max);
+            lastFitScale = scale;
+            manualScale = scale;
+            if (scaleRange) {
+                const currentValue = parseFloat(scaleRange.value);
+                if (!controlsInteractive || force || !Number.isFinite(currentValue) || Math.abs(currentValue - scale) > 0.01) {
+                    scaleRange.value = scale.toFixed(2);
+                }
+            }
+        } else {
+            scale = clampScaleValue(manualScale, min, max);
+            manualScale = scale;
+            if (scaleRange) {
+                const currentValue = parseFloat(scaleRange.value);
+                if (!Number.isFinite(currentValue) || Math.abs(currentValue - scale) > 0.005) {
+                    scaleRange.value = scale.toFixed(2);
+                }
+            }
+        }
+
+        viewer.style.setProperty('--player-scale', String(scale));
+
+        const styles = window.getComputedStyle(viewer);
+        const paddingLeft = parseFloat(styles.paddingLeft) || 0;
+        const paddingRight = parseFloat(styles.paddingRight) || 0;
+        const paddingTop = parseFloat(styles.paddingTop) || 0;
+        const paddingBottom = parseFloat(styles.paddingBottom) || 0;
+        const rect = viewer.getBoundingClientRect();
+        const containerWidth = Math.max((rect.width || viewer.clientWidth || width) - paddingLeft - paddingRight, 0);
+        const maxHeight = viewerMaxHeight && Number.isFinite(viewerMaxHeight)
+            ? viewerMaxHeight
+            : Math.max(rect.height || viewer.clientHeight || height, 0);
+        const availableHeight = Math.max(maxHeight - paddingTop - paddingBottom, 0);
+        const scaledWidth = width * scale;
+        const scaledHeight = height * scale;
+        const viewportHeight = Math.min(maxHeight, scaledHeight + paddingTop + paddingBottom);
+
+        if (Number.isFinite(viewportHeight) && viewportHeight > 0) {
+            viewer.style.setProperty('--player-viewport-height', `${viewportHeight}px`);
+        } else {
+            viewer.style.removeProperty('--player-viewport-height');
+        }
+
+        const requiresScroll = scaledWidth > containerWidth + 1 || scaledHeight > availableHeight + 1;
+        viewer.dataset.scrollable = requiresScroll ? 'true' : 'false';
+
+        updateScaleDisplay(scale);
+    }
+
+    function computeFitScale(width, height, min, max) {
+        if (!viewer) {
+            return clampScaleValue(1, min, max);
+        }
+
+        const rect = viewer.getBoundingClientRect();
+        const styles = window.getComputedStyle(viewer);
+        const paddingLeft = parseFloat(styles.paddingLeft) || 0;
+        const paddingRight = parseFloat(styles.paddingRight) || 0;
+        const paddingTop = parseFloat(styles.paddingTop) || 0;
+        const paddingBottom = parseFloat(styles.paddingBottom) || 0;
+        const widthSource = rect.width || viewer.clientWidth || width;
+        const heightLimit = viewerMaxHeight && Number.isFinite(viewerMaxHeight)
+            ? viewerMaxHeight
+            : rect.height || viewer.clientHeight || height;
+        const availableWidth = Math.max(widthSource - paddingLeft - paddingRight, 0);
+        const availableHeight = Math.max(heightLimit - paddingTop - paddingBottom, 0);
+        const widthScale = availableWidth > 0 ? availableWidth / width : 1;
+        const heightScale = availableHeight > 0 ? availableHeight / height : 1;
+        let scale = Math.min(widthScale, heightScale);
+        if (!Number.isFinite(scale) || scale <= 0) {
+            scale = 1;
+        }
+        scale = Math.min(scale, 1);
+        return clampScaleValue(scale, min, max);
+    }
+
+    function getScaleRangeBounds() {
+        if (!scaleRange) {
+            return [SCALE_MIN_DEFAULT, SCALE_MAX_DEFAULT];
+        }
+        let min = parseFloat(scaleRange.min);
+        let max = parseFloat(scaleRange.max);
+        if (!Number.isFinite(min)) {
+            min = SCALE_MIN_DEFAULT;
+            scaleRange.min = String(min);
+        }
+        if (!Number.isFinite(max)) {
+            max = SCALE_MAX_DEFAULT;
+            scaleRange.max = String(max);
+        }
+        if (min > max) {
+            const temp = min;
+            min = max;
+            max = temp;
+            scaleRange.min = String(min);
+            scaleRange.max = String(max);
+        }
+        return [min, max];
+    }
+
+    function clampScaleValue(value, min, max) {
+        const bounds = getScaleRangeBounds();
+        const lower = Number.isFinite(min) ? min : bounds[0];
+        const upper = Number.isFinite(max) ? max : bounds[1];
+        if (upper <= lower) {
+            return lower;
+        }
+        const numeric = Number.isFinite(value) ? value : 1;
+        return Math.min(Math.max(numeric, lower), upper);
+    }
+
+    function updateScaleDisplay(scale) {
+        if (!scaleValueDisplay) {
+            return;
+        }
+        const percentage = Math.round((Number(scale) || 1) * 100);
+        scaleValueDisplay.textContent = `${percentage}%`;
     }
 
     function syncHeaderHeight() {
@@ -191,16 +406,23 @@
         }
 
         if (isFullscreenActive()) {
+            viewerMaxHeight = 0;
+            playerContainer.style.removeProperty('--player-viewport-max-height');
+            refreshScale();
             return;
         }
 
         const maxHeight = computeMaxHeightValue();
         if (!Number.isFinite(maxHeight) || maxHeight <= 0) {
             playerContainer.style.removeProperty('--player-viewport-max-height');
+            viewerMaxHeight = 0;
+            refreshScale();
             return;
         }
 
+        viewerMaxHeight = maxHeight;
         playerContainer.style.setProperty('--player-viewport-max-height', `${maxHeight}px`);
+        refreshScale({ force: scaleMode === 'fit' });
     }
 
     function computeMaxHeightValue() {
@@ -245,26 +467,38 @@
             return;
         }
 
-        currentAspect = resolveAspectFromMetadata();
-        const width = currentAspect.width > 0 ? currentAspect.width : 16;
-        const height = currentAspect.height > 0 ? currentAspect.height : 9;
-        viewer.style.setProperty('--player-aspect-width', String(width));
-        viewer.style.setProperty('--player-aspect-height', String(height));
-        viewer.style.setProperty('--player-fallback-padding', `${(height / width) * 100}%`);
-        if (typeof viewer.style.aspectRatio !== 'undefined') {
-            viewer.style.aspectRatio = `${width} / ${height}`;
+        nativeDimensions = resolveDimensionsFromMetadata();
+        const width = nativeDimensions.width > 0 ? nativeDimensions.width : 1280;
+        const height = nativeDimensions.height > 0 ? nativeDimensions.height : 720;
+        viewer.style.setProperty('--player-native-width', String(width));
+        viewer.style.setProperty('--player-native-height', String(height));
+        viewer.style.setProperty('--player-scale', '1');
+        manualScale = clampScaleValue(1);
+        lastFitScale = manualScale;
+        if (scaleRange) {
+            scaleRange.value = manualScale.toFixed(2);
         }
+        updateScaleDisplay(scaleMode === 'fit' ? lastFitScale : manualScale);
     }
 
-    function resolveAspectFromMetadata() {
+    function resolveDimensionsFromMetadata() {
         const metadata = config.gameMetadata || {};
         const nativeWidth = parseDimension(metadata.nativeWidth);
         const nativeHeight = parseDimension(metadata.nativeHeight);
         let ratio = parseAspectRatioValue(metadata.aspectRatio);
 
         if (nativeWidth > 0 && nativeHeight > 0) {
-            ratio = nativeWidth / nativeHeight;
-            return { width: nativeWidth, height: nativeHeight, ratio };
+            return { width: nativeWidth, height: nativeHeight, ratio: nativeWidth / nativeHeight };
+        }
+
+        if (nativeWidth > 0 && ratio > 0) {
+            const estimatedHeight = Math.max(Math.round(nativeWidth / ratio), 1);
+            return { width: nativeWidth, height: estimatedHeight, ratio: nativeWidth / estimatedHeight };
+        }
+
+        if (nativeHeight > 0 && ratio > 0) {
+            const estimatedWidth = Math.max(Math.round(nativeHeight * ratio), 1);
+            return { width: estimatedWidth, height: nativeHeight, ratio: estimatedWidth / nativeHeight };
         }
 
         if (!ratio || !Number.isFinite(ratio) || ratio <= 0) {
@@ -272,7 +506,11 @@
         }
 
         const approximate = approximateAspect(ratio);
-        return { width: approximate[0], height: approximate[1], ratio };
+        const ratioWidth = Math.max(approximate[0], 1);
+        const ratioHeight = Math.max(approximate[1], 1);
+        const baseHeight = 720;
+        const computedWidth = Math.max(Math.round(baseHeight * (ratioWidth / ratioHeight)), 320);
+        return { width: computedWidth, height: baseHeight, ratio: computedWidth / baseHeight };
     }
 
     function parseDimension(value) {
@@ -425,6 +663,8 @@
 
     function handleFullscreenChange() {
         updateFullscreenButton(isFullscreenActive());
+        updateScaleControlState();
+        refreshScale({ force: true });
         if (!isFullscreenActive()) {
             scheduleResizeUpdate();
         }
@@ -488,7 +728,10 @@
             const src = buildGameUrl(modeNumber, extraParams);
             frame.src = src;
             playerContainer.hidden = false;
+            setControlsVisibility(true);
+            setControlsInteractive(true);
             updateViewerConstraints();
+            refreshScale({ force: true });
             scheduleResizeUpdate();
         } catch (err) {
             console.error('Failed to launch game', err);

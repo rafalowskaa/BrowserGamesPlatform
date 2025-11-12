@@ -851,8 +851,7 @@ public class AdminUiController : Controller
         {
             Game = game,
             OwnerName = owner ?? game.CreatedByUserId.ToUpperInvariant(),
-            PlayOptions = playOptions,
-            LeaderboardDownloadUrl = $"/api/games/{game.Id}/leaderboard/export"
+            PlayOptions = playOptions
         };
 
         return View(vm);

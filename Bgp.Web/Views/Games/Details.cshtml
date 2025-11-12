@@ -147,6 +147,21 @@
                                 <iframe src="about:blank" title="@game.Title" loading="lazy" allow="fullscreen" allowfullscreen scrolling="no" data-game-frame></iframe>
                             </div>
                         </div>
+                        <div class="player__controls" data-game-controls hidden>
+                            <button class="btn-secondary" type="button" data-game-scale-fit>@L["Games_Details_DisplayFit"].Value</button>
+                            <label class="player__scale" data-game-scale-label>
+                                <span>@L["Games_Details_DisplayScaleLabel"].Value</span>
+                                <input type="range"
+                                       min="0.5"
+                                       max="2.25"
+                                       step="0.05"
+                                       value="1"
+                                       data-game-scale-range
+                                       title="@L["Games_Details_DisplayScaleHint"].Value"
+                                       aria-describedby="game-scale-value" />
+                            </label>
+                            <span class="player__scale-value" id="game-scale-value" data-game-scale-value>100%</span>
+                        </div>
                         <button class="player__fullscreen" type="button" data-game-fullscreen aria-pressed="false" data-state="enter">
                             <span data-game-fullscreen-enter>@L["Games_Details_Fullscreen"].Value</span>
                             <span data-game-fullscreen-exit hidden>@L["Games_Details_ExitFullscreen"].Value</span>
@@ -204,24 +219,30 @@
 
 <section class="panel">
     <h3>@L["Details_LeaderboardTitle"].Value</h3>
-    <div class="leaderboard-header">
-        <div id="leaderboard">@L["Details_LeaderboardLoading"].Value</div>
-        @if (!string.IsNullOrEmpty(Model.LeaderboardDownloadUrl))
-        {
-            <a class="btn-secondary" href="@Model.LeaderboardDownloadUrl">@L["Games_Details_LeaderboardDownload"].Value</a>
-        }
-    </div>
+    <div id="leaderboard" class="leaderboard" aria-live="polite">@L["Details_LeaderboardLoading"].Value</div>
 </section>
 
 @section Scripts {
     <script>
         const leaderboardErrorText = @JsonSerializer.Serialize(L["Details_LeaderboardError"].Value);
+        const leaderboardEmptyText = @JsonSerializer.Serialize(L["Details_LeaderboardEmpty"].Value);
         (async () => {
-            const r = await fetch(`/api/games/@game.Id/leaderboard?top=20`);
-            if (!r.ok) { document.getElementById('leaderboard').innerText = leaderboardErrorText; return; }
-            const data = await r.json();
-            const html = ['<ol>'].concat(data.map(x => `<li>${x.userName} &mdash; ${x.bestScore}</li>`)).concat(['</ol>']).join('');
-            document.getElementById('leaderboard').innerHTML = html;
+            const leaderboardElement = document.getElementById('leaderboard');
+            if (!leaderboardElement) { return; }
+            try {
+                const r = await fetch(`/api/games/@game.Id/leaderboard?top=10`);
+                if (!r.ok) { leaderboardElement.innerText = leaderboardErrorText; return; }
+                const data = await r.json();
+                if (!Array.isArray(data) || data.length === 0) {
+                    leaderboardElement.innerHTML = `<p class="muted">${leaderboardEmptyText}</p>`;
+                    return;
+                }
+                const listItems = data.map((x, index) => `<li><span class="leaderboard__position">${index + 1}.</span><span class="leaderboard__name">${x.userName}</span><span class="leaderboard__score">${x.bestScore}</span></li>`);
+                leaderboardElement.innerHTML = `<ol class="leaderboard__list">${listItems.join('')}</ol>`;
+            } catch (err) {
+                console.error(err);
+                leaderboardElement.innerText = leaderboardErrorText;
+            }
         })();
     </script>
     <script src="~/js/game-details.js" asp-append-version="true"></script>

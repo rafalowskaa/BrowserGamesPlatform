@@ -159,6 +159,21 @@
                                     <iframe src="about:blank" title="@game.Title" loading="lazy" allow="fullscreen" allowfullscreen scrolling="no" data-game-frame></iframe>
                                 </div>
                             </div>
+                            <div class="player__controls" data-game-controls hidden>
+                                <button class="btn-secondary" type="button" data-game-scale-fit>@L["Games_Details_DisplayFit"].Value</button>
+                                <label class="player__scale" data-game-scale-label>
+                                    <span>@L["Games_Details_DisplayScaleLabel"].Value</span>
+                                    <input type="range"
+                                           min="0.5"
+                                           max="2.25"
+                                           step="0.05"
+                                           value="1"
+                                           data-game-scale-range
+                                           title="@L["Games_Details_DisplayScaleHint"].Value"
+                                           aria-describedby="admin-game-scale-value" />
+                                </label>
+                                <span class="player__scale-value" id="admin-game-scale-value" data-game-scale-value>100%</span>
+                            </div>
                             <button class="player__fullscreen" type="button" data-game-fullscreen aria-pressed="false" data-state="enter">
                                 <span data-game-fullscreen-enter>@L["Games_Details_Fullscreen"].Value</span>
                                 <span data-game-fullscreen-exit hidden>@L["Games_Details_ExitFullscreen"].Value</span>

@@ -372,7 +372,17 @@
     
     </data>
 
+	<data name="Details_LeaderboardEmpty" xml:space="preserve">
 
+
+
+
+		<value>Brak wyników.</value>
+
+
+
+
+	</data>
 
 
 	<data name="Auth_Login_Heading" xml:space="preserve">
@@ -3261,6 +3271,15 @@
 	<data name="Games_Details_FullscreenUnavailable" xml:space="preserve">
                 <value>Tryb pełnoekranowy nie jest dostępny w tej przeglądarce.</value>
         </data>
+	<data name="Games_Details_DisplayFit" xml:space="preserve">
+		<value>Dopasuj do ekranu</value>
+	</data>
+	<data name="Games_Details_DisplayScaleLabel" xml:space="preserve">
+		<value>Skalowanie</value>
+	</data>
+	<data name="Games_Details_DisplayScaleHint" xml:space="preserve">
+		<value>Przeciągnij, aby zmienić skalę okna gry.</value>
+	</data>
 	<data name="Games_Details_NoWebBuild">
 		<value>Ta gra nie ma wersji działającej w przeglądarce.</value>
 	</data>

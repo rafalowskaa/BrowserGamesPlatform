@@ -130,8 +130,7 @@ public class GamesController : Controller
         var vm = new GameDetailsViewModel
         {
             Game = g,
-            PlayOptions = playOptions,
-            LeaderboardDownloadUrl = $"/api/games/{g.Id}/leaderboard/export"
+            PlayOptions = playOptions
         };
 
         return View(vm);
