@@ -16,6 +16,7 @@
             input.type = isVisible ? 'text' : 'password';
             var isHidden = !isVisible;
             btn.classList.toggle('is-active', isHidden);
+            btn.classList.toggle('is-revealed', isVisible);
             btn.setAttribute('aria-label', isVisible ? hide : show);
             btn.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
             if (lbl) {

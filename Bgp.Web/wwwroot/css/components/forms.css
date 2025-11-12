@@ -11,6 +11,70 @@ textarea {
     color: inherit;
 }
 
+.password-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.password-field__input {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+    .password-field__input input {
+        width: 100%;
+        padding-right: 3rem;
+    }
+
+.password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    border: none;
+    background: rgba(15, 23, 42, 0.6);
+    color: rgba(226, 232, 240, 0.85);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .password-toggle:hover,
+    .password-toggle:focus-visible {
+        background: rgba(148, 163, 184, 0.25);
+        color: #f8fafc;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.35);
+    }
+
+    .password-toggle:focus-visible {
+        outline: none;
+    }
+
+.password-toggle__icon {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.password-toggle__icon-eye-off {
+    display: none;
+}
+
+.password-toggle.is-revealed .password-toggle__icon-eye {
+    display: none;
+}
+
+.password-toggle.is-revealed .password-toggle__icon-eye-off {
+    display: inline;
+}
+
 .form-hint {
     display: flex;
     align-items: flex-start;
