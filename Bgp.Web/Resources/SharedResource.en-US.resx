@@ -748,6 +748,9 @@
 	<data name="Admin_Nav_Reports" xml:space="preserve">
     <value>Reports</value>
 		</data>
+	<data name="Admin_Nav_Content" xml:space="preserve">
+    <value>Content</value>
+  </data>
 	<data name="Admin_Content_Title" xml:space="preserve">
     <value>Homepage content</value>
   </data>

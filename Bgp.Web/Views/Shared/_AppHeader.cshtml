@@ -69,11 +69,28 @@
                     </button>
                     <nav class="user-menu__dropdown" role="menu">
                         <a class="user-menu__item" asp-controller="Dashboard" asp-action="Index" role="menuitem">@L["Navigation_Dashboard"].Value</a>
-                        <a class="user-menu__item" asp-controller="Dashboard" asp-action="Profile" role="menuitem">@L["Navigation_Profile"].Value</a>
-                        <a class="user-menu__item" asp-controller="Dashboard" asp-action="Stats" role="menuitem">@L["Navigation_Stats"].Value</a>
-                        <a class="user-menu__item" asp-controller="Dashboard" asp-action="Games" role="menuitem">@L["Navigation_Submit_Game"].Value</a>
-                        <a class="user-menu__item" asp-controller="Games" asp-action="Create" role="menuitem">@L["Navigation_Submit_Game"].Value</a>
-                        <a class="user-menu__item" asp-controller="Dashboard" asp-action="Settings" role="menuitem">@L["Navigation_Settings"].Value</a>
+                        <a class="user-menu__item"
+                           asp-controller="Dashboard"
+                           asp-action="Index"
+                           asp-route-tab="profile"
+                           asp-route-panel="profile"
+                           role="menuitem">@L["Navigation_Profile"].Value</a>
+                        <a class="user-menu__item"
+                           asp-controller="Dashboard"
+                           asp-action="Index"
+                           asp-route-tab="stats"
+                           role="menuitem">@L["Navigation_Stats"].Value</a>
+                        <a class="user-menu__item"
+                           asp-controller="Dashboard"
+                           asp-action="Index"
+                           asp-route-tab="games"
+                           role="menuitem">@L["Navigation_Submit_Game"].Value</a>
+                        <a class="user-menu__item"
+                           asp-controller="Dashboard"
+                           asp-action="Index"
+                           asp-route-tab="profile"
+                           asp-route-panel="preferences"
+                           role="menuitem">@L["Navigation_Settings"].Value</a>
                         @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
                         {
                             <a class="user-menu__item" asp-controller="AdminUi" asp-action="Users" role="menuitem">@L["Navigation_Admin"].Value</a>
