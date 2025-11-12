@@ -1,6 +1,9 @@
 ﻿@using Bgp.Domain.Enums
 @using Bgp.Web.Helpers
 @model GameCatalogViewModel
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/games.css" asp-append-version="true" />
+}
 @{
     ViewData["Title"] = L["Games_Index_Title"].Value;
 
