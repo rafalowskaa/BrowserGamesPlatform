@@ -118,7 +118,9 @@
                         </h3>
                         <p class="game-card__rating" data-rating-value="@g.AverageRating">@L["Games_Index_Rating"].Value: @($"{g.AverageRating:0.0}")</p>
                         <p class="game-card__stat" data-current-players="@g.ActivePlayerCount">@FormatPlayers(g.ActivePlayerCount)</p>
-                        var summary = Summarize(g.Description);
+                        @{
+                            var summary = Summarize(g.Description);
+                        }
                         @if (!string.IsNullOrWhiteSpace(summary))
                         {
                             <p class="game-card__description">@summary</p>
