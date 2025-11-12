@@ -190,46 +190,6 @@ public class AdminUiController : Controller
         return View(vm);
     }
 
-    public async Task<IActionResult> Content()
-    {
-        var facts = await _db.HomeFacts
-            .AsNoTracking()
-            .OrderBy(f => f.SortOrder)
-            .ThenBy(f => f.Id)
-            .Select(f => new AdminHomeFactViewModel(
-                f.Id,
-                f.Content,
-                f.IsActive,
-                f.SortOrder,
-                f.CreatedAtUtc,
-                f.UpdatedAtUtc))
-            .ToListAsync();
-
-        var events = await _db.HomeEvents
-            .AsNoTracking()
-            .OrderBy(e => e.SortOrder)
-            .ThenBy(e => e.Id)
-            .Select(e => new AdminHomeEventViewModel(
-                e.Id,
-                e.Title,
-                e.Reward,
-                e.EndsAtUtc,
-                e.IsActive,
-                e.SortOrder,
-                e.CreatedAtUtc,
-                e.UpdatedAtUtc))
-            .ToListAsync();
-
-        var vm = new AdminHomeContentViewModel
-        {
-            Facts = facts,
-            Events = events,
-            SuccessKey = TempData["AdminContentSuccess"] as string,
-            ErrorKey = TempData["AdminContentError"] as string
-        };
-
-        return View(vm);
-    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -753,47 +713,7 @@ public class AdminUiController : Controller
         return View(vm);
     }
 
-    public async Task<IActionResult> Content()
-    {
-        var facts = await _db.HomeFacts
-            .AsNoTracking()
-            .OrderBy(f => f.SortOrder)
-            .ThenBy(f => f.Id)
-            .Select(f => new AdminHomeFactViewModel(
-                f.Id,
-                f.Content,
-                f.IsActive,
-                f.SortOrder,
-                f.CreatedAtUtc,
-                f.UpdatedAtUtc))
-            .ToListAsync();
-
-        var events = await _db.HomeEvents
-            .AsNoTracking()
-            .OrderBy(e => e.SortOrder)
-            .ThenBy(e => e.Id)
-            .Select(e => new AdminHomeEventViewModel(
-                e.Id,
-                e.Title,
-                e.Reward,
-                e.EndsAtUtc,
-                e.IsActive,
-                e.SortOrder,
-                e.CreatedAtUtc,
-                e.UpdatedAtUtc))
-            .ToListAsync();
-
-        var vm = new AdminHomeContentViewModel
-        {
-            Facts = facts,
-            Events = events,
-            SuccessKey = TempData["AdminContentSuccess"] as string,
-            ErrorKey = TempData["AdminContentError"] as string
-        };
-
-        return View(vm);
-    }
-
+   
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ApproveGame(Guid id)

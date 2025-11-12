@@ -1687,325 +1687,99 @@
     
         
         <value>Nie dodałeś jeszcze żadnej gry.</value>
-        
-        
 
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Friends_ListHeading" xml:space="preserve">
-        
-        
-    
-        
         <value>Twoi znajomi</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Friends_Since" xml:space="preserve">
-        
-        
-    
-        
         <value>Znajomi od {0}</value>
-        
-        
-
-    
     </data>
-
-
-
-
-	<data name="Dashboard_Friends_Empty" xml:space="preserve">
-        
-        
-    
-        
+	<data name="Dashboard_Friends_Empty" xml:space="preserve">  
         <value>Nie masz jeszcze znajomych.</value>
-        
-        
-
-    
     </data>
-
-
-
-
-	<data name="Dashboard_Overview_Heading" xml:space="preserve">
-        
-        
-    
-        
+	<data name="Dashboard_Overview_Heading" xml:space="preserve"> 
         <value>Najnowsze gry</value>
-        
-        
-
-    
     </data>
-
-
-
-
-	<data name="Dashboard_Overview_Description" xml:space="preserve">
-        
-        
-    
-        
-        <value>Przeglądaj wszystko, co dostępne na platformie.</value>
-        
-        
-
-    
+	<data name="Dashboard_Overview_Description" xml:space="preserve">   
+        <value>Przeglądaj wszystko, co dostępne na platformie.</value> 
     </data>
-
-
-
-
-
 	<data name="Dashboard_Friends_Unknown" xml:space="preserve">
-        
-        
-    
-        
         <value>Nieznany gracz</value>
-        
-        
-
-    
     </data>
-
-
-
-
-	<data name="Admin_Reports_Subtitle" xml:space="preserve">
-        
-        
+	<data name="Admin_Reports_Subtitle" xml:space="preserve">    
         <value>Monitoruj zgłoszenia społeczności i reaguj na nie w jednym miejscu.</value>
-        
-    
     </data>
-
-
-	<data name="Admin_Reports_Total" xml:space="preserve">
-        
-        
-        <value>Wszystkie zgłoszenia</value>
-        
-    
+	<data name="Admin_Reports_Total" xml:space="preserve">    
+        <value>Wszystkie zgłoszenia</value> 
     </data>
-
-
-	<data name="Admin_Reports_Status_Open" xml:space="preserve">
-        
-        
-        <value>Otwarte</value>
-        
-    
+	<data name="Admin_Reports_Status_Open" xml:space="preserve">     
+        <value>Otwarte</value> 
     </data>
-
-
-	<data name="Admin_Reports_Status_Actioned" xml:space="preserve">
-        
-        
+	<data name="Admin_Reports_Status_Actioned" xml:space="preserve">       
         <value>Zrealizowane</value>
-        
-    
     </data>
-
-
-	<data name="Admin_Reports_Status_Dismissed" xml:space="preserve">
-        
-        
+	<data name="Admin_Reports_Status_Dismissed" xml:space="preserve">  
         <value>Odrzucone</value>
-        
-    
     </data>
-
-
-	<data name="Admin_Reports_Status_All" xml:space="preserve">
-        
-        
-        <value>Wszystkie statusy</value>
-        
-    
+	<data name="Admin_Reports_Status_All" xml:space="preserve"> 
+        <value>Wszystkie statusy</value>     
     </data>
-
-
-	<data name="Admin_Reports_Search" xml:space="preserve">
-        
-        
-        <value>Szukaj</value>
-        
-    
+	<data name="Admin_Reports_Search" xml:space="preserve">     
+        <value>Szukaj</value> 
     </data>
-
-
-	<data name="Admin_Reports_Search_Placeholder" xml:space="preserve">
-        
-        
+	<data name="Admin_Reports_Search_Placeholder" xml:space="preserve">    
         <value>Wyszukaj po zgłaszającym, graczu lub słowie kluczowym</value>
-        
-    
     </data>
-
-
-	<data name="Admin_Reports_Filter_Status" xml:space="preserve">
-        
-        
+	<data name="Admin_Reports_Filter_Status" xml:space="preserve">    
         <value>Status</value>
-        
-    
     </data>
-
-
-	<data name="Admin_Reports_Filter_Apply" xml:space="preserve">
-        
-        
+	<data name="Admin_Reports_Filter_Apply" xml:space="preserve">     
         <value>Zastosuj filtry</value>
-        
-    
     </data>
-
-
-	<data name="Admin_Reports_Filter_Reset" xml:space="preserve">
-        
-        
+	<data name="Admin_Reports_Filter_Reset" xml:space="preserve">   
         <value>Wyczyść</value>
-        
-    
     </data>
-
-
-	<data name="Admin_Reports_Actions" xml:space="preserve">
-        
-        
-        <value>Akcje</value>
-        
-    
+	<data name="Admin_Reports_Actions" xml:space="preserve">    
+        <value>Akcje</value> 
     </data>
-
-
-	<data name="Admin_Reports_Update_Button" xml:space="preserve">
-        
-        
-        <value>Zmień</value>
-        
-    
+	<data name="Admin_Reports_Update_Button" xml:space="preserve">    
+        <value>Zmień</value> 
     </data>
-
-
-	<data name="Admin_Reports_Update_Success" xml:space="preserve">
-        
-        
-        <value>Status zgłoszenia został zaktualizowany.</value>
-        
-    
+	<data name="Admin_Reports_Update_Success" xml:space="preserve">    
+        <value>Status zgłoszenia został zaktualizowany.</value>  
     </data>
-
-
-	<data name="Admin_Reports_Update_NotFound" xml:space="preserve">
-        
-        
+	<data name="Admin_Reports_Update_NotFound" xml:space="preserve">    
         <value>Zgłoszenie już nie istnieje.</value>
-        
-    
     </data>
-
-
 	<data name="Admin_Reports_NoDescription" xml:space="preserve">
-        
-        
-        <value>Brak dodatkowego opisu.</value>
-        
-    
+        <value>Brak dodatkowego opisu.</value>   
     </data>
-
-
-	<data name="Admin_Reports_Empty" xml:space="preserve">
-        
-        
+	<data name="Admin_Reports_Empty" xml:space="preserve">   
         <value>Brak zgłoszeń spełniających wybrane kryteria.</value>
-        
-    
     </data>
-
-
-	<data name="Auth_Login_Eyebrow" xml:space="preserve">
-        
-        
+	<data name="Auth_Login_Eyebrow" xml:space="preserve">    
         <value>Miło Cię widzieć</value>
-        
-    
     </data>
-
-
-	<data name="Auth_Login_Tagline" xml:space="preserve">
-        
-        
+	<data name="Auth_Login_Tagline" xml:space="preserve">   
         <value>Zaloguj się, aby kontynuować zarządzanie i odkrywanie gier przeglądarkowych.</value>
-        
-    
     </data>
-
-
-	<data name="Auth_Login_Feature_Games" xml:space="preserve">
-        
-        
+	<data name="Auth_Login_Feature_Games" xml:space="preserve">   
         <value>Śledź swoją bibliotekę na każdym urządzeniu.</value>
-        
-    
     </data>
-
-
-	<data name="Auth_Login_Feature_Community" xml:space="preserve">
-        
-        
-        <value>Dołącz do społeczności twórców i graczy.</value>
-        
-    
+	<data name="Auth_Login_Feature_Community" xml:space="preserve">     
+        <value>Dołącz do społeczności twórców i graczy.</value>  
     </data>
-
-
-	<data name="Auth_Login_Feature_Insights" xml:space="preserve">
-        
-        
+	<data name="Auth_Login_Feature_Insights" xml:space="preserve">      
         <value>Analizuj szczegółowe statystyki swoich gier.</value>
-        
-    
     </data>
-
-
-	<data name="Auth_Login_NoAccount" xml:space="preserve">
-        
-        
-        <value>Nie masz jeszcze konta?</value>
-        
-    
+	<data name="Auth_Login_NoAccount" xml:space="preserve">    
+        <value>Nie masz jeszcze konta?</value>   
     </data>
-
-
-	<data name="Auth_Login_FormTitle" xml:space="preserve">
-        
-        
+	<data name="Auth_Login_FormTitle" xml:space="preserve">    
         <value>Zaloguj się</value>
-        
-    
     </data>
-
-
 	<data name="Auth_Login_FormSubtitle" xml:space="preserve">
-        
-        
         <value>Użyj loginu lub adresu e-mail, aby przejść dalej.</value>    
     </data>
 	<data name="Auth_Login_AdminHint" xml:space="preserve">       

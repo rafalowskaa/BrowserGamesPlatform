@@ -11,7 +11,7 @@
     var loginUrl = Url.Action("Login", "Account", new { returnUrl = detailsUrl, intent = "play" })
         ?? Url.Action("Login", "Account")
         ?? detailsUrl;
-    var targerUrl = User.Identity?.IsAuthenticated == true ? detailsUrl : loginUrl;
+    var targetUrl = User.Identity?.IsAuthenticated == true ? detailsUrl : loginUrl;
 }
 
 <article class="game-card-guest" data-game-card>
