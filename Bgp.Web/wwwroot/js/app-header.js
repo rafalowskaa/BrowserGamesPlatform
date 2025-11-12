@@ -55,4 +55,113 @@
     };
 
     scanImages();
+    function initUserMenus() {
+        const menus = document.querySelectorAll('[data-user-menu]');
+        if (!menus.length) {
+            return;
+        }
+
+        let activeMenu = null;
+
+        function closeMenu(menu, returnFocus) {
+            if (!menu) {
+                return;
+            }
+
+            const trigger = menu.querySelector('.user-menu__trigger');
+            const dropdown = menu.querySelector('.user-menu__dropdown');
+            if (dropdown) {
+                dropdown.classList.remove('is-open');
+            }
+            menu.classList.remove('is-open');
+            if (trigger) {
+                trigger.setAttribute('aria-expanded', 'false');
+                if (returnFocus) {
+                    trigger.focus();
+                }
+            }
+
+            if (activeMenu === menu) {
+                activeMenu = null;
+            }
+        }
+
+        function openMenu(menu) {
+            if (!menu) {
+                return;
+            }
+
+            if (activeMenu && activeMenu !== menu) {
+                closeMenu(activeMenu);
+            }
+
+            const trigger = menu.querySelector('.user-menu__trigger');
+            const dropdown = menu.querySelector('.user-menu__dropdown');
+            if (!trigger || !dropdown) {
+                return;
+            }
+
+            dropdown.classList.add('is-open');
+            menu.classList.add('is-open');
+            trigger.setAttribute('aria-expanded', 'true');
+            activeMenu = menu;
+        }
+
+        menus.forEach(menu => {
+            const trigger = menu.querySelector('.user-menu__trigger');
+            const dropdown = menu.querySelector('.user-menu__dropdown');
+            if (!trigger || !dropdown) {
+                return;
+            }
+
+            trigger.setAttribute('aria-expanded', 'false');
+
+            trigger.addEventListener('click', event => {
+                event.preventDefault();
+                if (menu.classList.contains('is-open')) {
+                    closeMenu(menu, false);
+                } else {
+                    openMenu(menu);
+                }
+            });
+
+            trigger.addEventListener('keydown', event => {
+                if ((event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') && !menu.classList.contains('is-open')) {
+                    event.preventDefault();
+                    openMenu(menu);
+                }
+            });
+
+            dropdown.addEventListener('click', event => {
+                const actionable = event.target.closest('a, button');
+                if (actionable) {
+                    closeMenu(menu, false);
+                }
+            });
+
+            dropdown.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    closeMenu(menu, true);
+                }
+            });
+        });
+
+        document.addEventListener('click', event => {
+            if (!activeMenu) {
+                return;
+            }
+
+            if (!activeMenu.contains(event.target)) {
+                closeMenu(activeMenu, false);
+            }
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && activeMenu) {
+                closeMenu(activeMenu, true);
+            }
+        });
+    }
+
+    initUserMenus();
 })();
