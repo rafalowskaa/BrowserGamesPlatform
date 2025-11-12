@@ -4,6 +4,9 @@
 @using System.Text.Encodings.Web
 @using Bgp.Web.Models
 @model AdminUsersViewModel
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/admin.css" asp-append-version="true" />
+}
 @{
     ViewData["Title"] = L["Admin_Users_Title"].Value;
     var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);

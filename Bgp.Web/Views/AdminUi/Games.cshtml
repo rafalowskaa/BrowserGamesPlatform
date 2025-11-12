@@ -4,6 +4,9 @@
 @using Bgp.Web.Helpers
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @model AdminGamesViewModel
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/admin.css" asp-append-version="true" />
+}
 @{
     ViewData["Title"] = L["Admin_Games_Title"].Value;
     var statuses = Enum.GetValues<GameApprovalStatus>();
