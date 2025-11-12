@@ -229,6 +229,9 @@
         .Where(hint => !string.IsNullOrWhiteSpace(hint))
         .Select(hint => $"• {hint}"));
 }
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/auth.css" asp-append-version="true" />
+}
 <section class="auth auth--register">
     <div class="auth-hero">
         <span class="eyebrow">@L["Auth_Register_Eyebrow"].Value</span>
