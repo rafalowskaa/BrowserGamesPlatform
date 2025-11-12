@@ -1,6 +1,9 @@
 ﻿@using System.Linq
 @using System.Text.Json
 @model Bgp.Web.Models.PlayerProfileViewModel
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/profile.css" asp-append-version="true" />
+}
 @{
     ViewData["Title"] = string.Format(L["Dashboard_Profile_View_Title"].Value, Model.DisplayName);
     var rank = Model.Rank;
