@@ -6,6 +6,8 @@
 
     const popularGrid = root.querySelector('[data-home-popular]');
     const loginUrl = root.dataset.loginUrl || '/Account/Login';
+    const isAuthenticated = root.dataset.authenticated === 'true';
+    const detailsTemplate = root.dataset.detailsUrlTemplate || '/Games/Details/__slug__'; 
     const tagButtons = Array.from(root.querySelectorAll('[data-home-tag]'));
     const playLabel = root.dataset.playLabel || 'Zagraj';
     const detailsLabel = root.dataset.detailsLabel || 'Szczegóły';
@@ -59,7 +61,7 @@
         popularGrid.appendChild(emptyState);
     }
 
-    function buildLoginLink(slug) {
+    function buildGuestLoginLink(slug) {
         const detailsPath = `/Games/Details/${encodeURIComponent(slug)}`;
         try {
             const target = new URL(loginUrl, window.location.origin);
@@ -71,6 +73,15 @@
             return `${loginUrl}?returnUrl=${encodeURIComponent(detailsPath)}&intent=play`;
         }
     }
+
+    function buildGameLink(slug) {
+        const safeSlug = encodeURIComponent(slug);
+        if (isAuthenticated) {
+            return detailsTemplate.replace('__slug__', safeSlug);
+        }
+        return buildGuestLoginLink(slug);
+    } 
+
 
     function renderGames(games) {
         if (!popularGrid) {
@@ -88,7 +99,7 @@
             const card = document.createElement('article');
             card.className = 'game-card-guest';
             const cover = game.coverImagePath || placeholder;
-            const detailsUrl = buildLoginLink(game.slug);
+            const detailsUrl = buildGameLink(game.slug);
             const ratingHtml = game.reviewsCount > 0
                 ? `<span class="game-card-guest__rating" aria-label="${formatRating(game.rating, game.reviewsCount)}">★ ${game.rating.toFixed(1)}</span>`
                 : `<span class="game-card-guest__badge">${escapeHtml(newLabel)}</span>`;
@@ -130,48 +141,94 @@
             return;
         }
 
-        const items = Array.from(track.children);
-        if (items.length === 0) {
+        let items = Array.from(track.children);
+        if (!items.length) {
+            return;
+        }
+
+        if (track.dataset.loopReady === 'true') { 
+
             return;
         }
 
         let itemWidth = 0;
         let gap = 0;
-        let currentIndex = 0;
         let autoTimer = null;
 
         const prevButton = carousel.querySelector('[data-featured-prev]');
         const nextButton = carousel.querySelector('[data-featured-next]');
 
+        const hasLoop = items.length > 1;
+        if (hasLoop) {
+            const firstClone = items[0].cloneNode(true);
+            const lastClone = items[items.length - 1].cloneNode(true);
+            track.insertBefore(lastClone, items[0]);
+            track.appendChild(firstClone);
+            items = Array.from(track.children);
+        }
+
+        track.dataset.loopReady = 'true';
+
+        const firstRealIndex = hasLoop ? 1 : 0;
+        const lastRealIndex = hasLoop ? items.length - 2 : items.length - 1;
+        let currentIndex = firstRealIndex;
+
         function measure() {
-            if (!items.length) {
+            const reference = hasLoop ? items[firstRealIndex] : items[0];
+            if (!reference) { 
+
                 return;
             }
 
-            const rect = items[0].getBoundingClientRect();
+            const rect = reference.getBoundingClientRect(); 
             itemWidth = rect.width;
             const styles = window.getComputedStyle(track);
             const gapValue = parseFloat(styles.columnGap || styles.gap || '0');
             gap = Number.isNaN(gapValue) ? 0 : gapValue;
         }
 
-        function clampIndex(index) {
-            const total = items.length;
-            return (index % total + total) % total;
-        }
+        function applyTransform(animated = true) {
+            if (!animated) {
+                track.style.transition = 'none';
+            } 
 
-        function applyTransform() {
             const offset = -(itemWidth + gap) * currentIndex;
             track.style.transform = `translateX(${offset}px)`;
+            if (!animated) {
+                track.offsetHeight;
+                track.style.transition = '';
+            } 
+
         }
 
-        function goTo(index) {
-            currentIndex = clampIndex(index);
-            applyTransform();
+        function goTo(index, animated = true) {
+            currentIndex = index;
+            applyTransform(animated); 
+
         }
 
         function step(delta) {
-            goTo(currentIndex + delta);
+            if (!hasLoop) {
+                const total = items.length;
+                const nextIndex = (currentIndex + delta) % total;
+                currentIndex = (nextIndex + total) % total;
+                applyTransform();
+                return;
+            }
+
+            currentIndex += delta;
+            applyTransform();
+
+            if (currentIndex > lastRealIndex) {
+                track.addEventListener('transitionend', () => {
+                    goTo(firstRealIndex, false);
+                }, { once: true });
+            } else if (currentIndex < firstRealIndex) {
+                track.addEventListener('transitionend', () => {
+                    goTo(lastRealIndex, false);
+                }, { once: true });
+            } 
+
         }
 
         function stopAuto() {
@@ -182,7 +239,7 @@
         }
 
         function startAuto() {
-            if (items.length <= 1) {
+            if (!hasLoop) { 
                 return;
             }
             stopAuto();
@@ -214,11 +271,11 @@
 
         window.addEventListener('resize', () => {
             measure();
-            applyTransform();
+            applyTransform(false);
         });
 
         measure();
-        applyTransform();
+        goTo(currentIndex, false); 
         startAuto();
     }
 

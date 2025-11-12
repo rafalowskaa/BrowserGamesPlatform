@@ -190,6 +190,47 @@ public class AdminUiController : Controller
         return View(vm);
     }
 
+    public async Task<IActionResult> Content()
+    {
+        var facts = await _db.HomeFacts
+            .AsNoTracking()
+            .OrderBy(f => f.SortOrder)
+            .ThenBy(f => f.Id)
+            .Select(f => new AdminHomeFactViewModel(
+                f.Id,
+                f.Content,
+                f.IsActive,
+                f.SortOrder,
+                f.CreatedAtUtc,
+                f.UpdatedAtUtc))
+            .ToListAsync();
+
+        var events = await _db.HomeEvents
+            .AsNoTracking()
+            .OrderBy(e => e.SortOrder)
+            .ThenBy(e => e.Id)
+            .Select(e => new AdminHomeEventViewModel(
+                e.Id,
+                e.Title,
+                e.Reward,
+                e.EndsAtUtc,
+                e.IsActive,
+                e.SortOrder,
+                e.CreatedAtUtc,
+                e.UpdatedAtUtc))
+            .ToListAsync();
+
+        var vm = new AdminHomeContentViewModel
+        {
+            Facts = facts,
+            Events = events,
+            SuccessKey = TempData["AdminContentSuccess"] as string,
+            ErrorKey = TempData["AdminContentError"] as string
+        };
+
+        return View(vm);
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateUser(AdminUpdateUserInputModel input, string? search)
@@ -712,6 +753,47 @@ public class AdminUiController : Controller
         return View(vm);
     }
 
+    public async Task<IActionResult> Content()
+    {
+        var facts = await _db.HomeFacts
+            .AsNoTracking()
+            .OrderBy(f => f.SortOrder)
+            .ThenBy(f => f.Id)
+            .Select(f => new AdminHomeFactViewModel(
+                f.Id,
+                f.Content,
+                f.IsActive,
+                f.SortOrder,
+                f.CreatedAtUtc,
+                f.UpdatedAtUtc))
+            .ToListAsync();
+
+        var events = await _db.HomeEvents
+            .AsNoTracking()
+            .OrderBy(e => e.SortOrder)
+            .ThenBy(e => e.Id)
+            .Select(e => new AdminHomeEventViewModel(
+                e.Id,
+                e.Title,
+                e.Reward,
+                e.EndsAtUtc,
+                e.IsActive,
+                e.SortOrder,
+                e.CreatedAtUtc,
+                e.UpdatedAtUtc))
+            .ToListAsync();
+
+        var vm = new AdminHomeContentViewModel
+        {
+            Facts = facts,
+            Events = events,
+            SuccessKey = TempData["AdminContentSuccess"] as string,
+            ErrorKey = TempData["AdminContentError"] as string
+        };
+
+        return View(vm);
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ApproveGame(Guid id)
@@ -986,6 +1068,47 @@ public class AdminUiController : Controller
         return View(vm);
     }
 
+    public async Task<IActionResult> Content()
+    {
+        var facts = await _db.HomeFacts
+            .AsNoTracking()
+            .OrderBy(f => f.SortOrder)
+            .ThenBy(f => f.Id)
+            .Select(f => new AdminHomeFactViewModel(
+                f.Id,
+                f.Content,
+                f.IsActive,
+                f.SortOrder,
+                f.CreatedAtUtc,
+                f.UpdatedAtUtc))
+            .ToListAsync();
+
+        var events = await _db.HomeEvents
+            .AsNoTracking()
+            .OrderBy(e => e.SortOrder)
+            .ThenBy(e => e.Id)
+            .Select(e => new AdminHomeEventViewModel(
+                e.Id,
+                e.Title,
+                e.Reward,
+                e.EndsAtUtc,
+                e.IsActive,
+                e.SortOrder,
+                e.CreatedAtUtc,
+                e.UpdatedAtUtc))
+            .ToListAsync();
+
+        var vm = new AdminHomeContentViewModel
+        {
+            Facts = facts,
+            Events = events,
+            SuccessKey = TempData["AdminContentSuccess"] as string,
+            ErrorKey = TempData["AdminContentError"] as string
+        };
+
+        return View(vm);
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateReportStatus(Guid id, ReportStatus status, string? statusFilter = null, string? search = null)
@@ -1005,5 +1128,159 @@ public class AdminUiController : Controller
 
         TempData["AdminReportsSuccess"] = "Admin_Reports_Update_Success";
         return RedirectToAction(nameof(Reports), new { status = statusFilter, search });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveFact(AdminUpsertHomeFactInputModel input)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["AdminContentError"] = "Admin_Content_Error_Validation";
+            return RedirectToAction(nameof(Content));
+        }
+
+        var content = (input.Content ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            TempData["AdminContentError"] = "Admin_Content_Error_Validation";
+            return RedirectToAction(nameof(Content));
+        }
+
+        HomeFact fact;
+
+        if (input.Id.HasValue)
+        {
+            fact = await _db.HomeFacts.FindAsync(input.Id.Value);
+            if (fact is null)
+            {
+                TempData["AdminContentError"] = "Admin_Content_Error_NotFound";
+                return RedirectToAction(nameof(Content));
+            }
+        }
+        else
+        {
+            fact = new HomeFact
+            {
+                CreatedAtUtc = DateTime.UtcNow
+            };
+            await _db.HomeFacts.AddAsync(fact);
+        }
+
+        fact.Content = content;
+        fact.IsActive = input.IsActive;
+        fact.SortOrder = input.SortOrder;
+        fact.UpdatedAtUtc = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        TempData["AdminContentSuccess"] = input.Id.HasValue ? "Admin_Content_Saved" : "Admin_Content_Added";
+        return RedirectToAction(nameof(Content));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteFact(AdminDeleteHomeFactInputModel input)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["AdminContentError"] = "Admin_Content_Error_Validation";
+            return RedirectToAction(nameof(Content));
+        }
+
+        var fact = await _db.HomeFacts.FindAsync(input.Id);
+        if (fact is null)
+        {
+            TempData["AdminContentError"] = "Admin_Content_Error_NotFound";
+            return RedirectToAction(nameof(Content));
+        }
+
+        _db.HomeFacts.Remove(fact);
+        await _db.SaveChangesAsync();
+
+        TempData["AdminContentSuccess"] = "Admin_Content_Deleted";
+        return RedirectToAction(nameof(Content));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveEvent(AdminUpsertHomeEventInputModel input)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["AdminContentError"] = "Admin_Content_Error_Validation";
+            return RedirectToAction(nameof(Content));
+        }
+
+        var title = (input.Title ?? string.Empty).Trim();
+        var reward = (input.Reward ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(reward))
+        {
+            TempData["AdminContentError"] = "Admin_Content_Error_Validation";
+            return RedirectToAction(nameof(Content));
+        }
+
+        var endsAtUtc = input.EndsAt.Kind switch
+        {
+            DateTimeKind.Utc => input.EndsAt,
+            DateTimeKind.Local => input.EndsAt.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(input.EndsAt, DateTimeKind.Local).ToUniversalTime()
+        };
+
+        HomeEvent homeEvent;
+
+        if (input.Id.HasValue)
+        {
+            homeEvent = await _db.HomeEvents.FindAsync(input.Id.Value);
+            if (homeEvent is null)
+            {
+                TempData["AdminContentError"] = "Admin_Content_Error_NotFound";
+                return RedirectToAction(nameof(Content));
+            }
+        }
+        else
+        {
+            homeEvent = new HomeEvent
+            {
+                CreatedAtUtc = DateTime.UtcNow
+            };
+            await _db.HomeEvents.AddAsync(homeEvent);
+        }
+
+        homeEvent.Title = title;
+        homeEvent.Reward = reward;
+        homeEvent.EndsAtUtc = endsAtUtc;
+        homeEvent.IsActive = input.IsActive;
+        homeEvent.SortOrder = input.SortOrder;
+        homeEvent.UpdatedAtUtc = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        TempData["AdminContentSuccess"] = input.Id.HasValue ? "Admin_Content_Saved" : "Admin_Content_Added";
+        return RedirectToAction(nameof(Content));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteEvent(AdminDeleteHomeEventInputModel input)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["AdminContentError"] = "Admin_Content_Error_Validation";
+            return RedirectToAction(nameof(Content));
+        }
+
+        var homeEvent = await _db.HomeEvents.FindAsync(input.Id);
+        if (homeEvent is null)
+        {
+            TempData["AdminContentError"] = "Admin_Content_Error_NotFound";
+            return RedirectToAction(nameof(Content));
+        }
+
+        _db.HomeEvents.Remove(homeEvent);
+        await _db.SaveChangesAsync();
+
+        TempData["AdminContentSuccess"] = "Admin_Content_Deleted";
+        return RedirectToAction(nameof(Content));
     }
 }

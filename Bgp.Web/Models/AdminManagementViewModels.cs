@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Bgp.Domain.Enums;
 
@@ -117,4 +118,57 @@ public class AdminUpdateGameMetadataInputModel
     public List<int> Modes { get; set; } = new();
 
     public List<Guid> ApprovedTags { get; set; } = new();
+}
+public class AdminHomeContentViewModel
+{
+    public IReadOnlyList<AdminHomeFactViewModel> Facts { get; init; } = Array.Empty<AdminHomeFactViewModel>();
+    public IReadOnlyList<AdminHomeEventViewModel> Events { get; init; } = Array.Empty<AdminHomeEventViewModel>();
+    public string? SuccessKey { get; init; }
+    public string? ErrorKey { get; init; }
+}
+
+public record AdminHomeFactViewModel(int Id, string Content, bool IsActive, int SortOrder, DateTime CreatedAtUtc, DateTime? UpdatedAtUtc);
+
+public record AdminHomeEventViewModel(int Id, string Title, string Reward, DateTime EndsAtUtc, bool IsActive, int SortOrder, DateTime CreatedAtUtc, DateTime? UpdatedAtUtc);
+
+public class AdminUpsertHomeFactInputModel
+{
+    public int? Id { get; set; }
+
+    [Required, MaxLength(280)]
+    public string Content { get; set; } = string.Empty;
+
+    public bool IsActive { get; set; } = true;
+
+    public int SortOrder { get; set; }
+}
+
+public class AdminDeleteHomeFactInputModel
+{
+    [Required]
+    public int Id { get; set; }
+}
+
+public class AdminUpsertHomeEventInputModel
+{
+    public int? Id { get; set; }
+
+    [Required, MaxLength(160)]
+    public string Title { get; set; } = string.Empty;
+
+    [Required, MaxLength(160)]
+    public string Reward { get; set; } = string.Empty;
+
+    [Required]
+    public DateTime EndsAt { get; set; } = DateTime.UtcNow;
+
+    public bool IsActive { get; set; } = true;
+
+    public int SortOrder { get; set; }
+}
+
+public class AdminDeleteHomeEventInputModel
+{
+    [Required]
+    public int Id { get; set; }
 }

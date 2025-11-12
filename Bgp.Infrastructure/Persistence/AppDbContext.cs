@@ -19,6 +19,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<MatchSession> MatchSessions => Set<MatchSession>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<GameTag> GameTags => Set<GameTag>();
+    public DbSet<HomeFact> HomeFacts => Set<HomeFact>();
+    public DbSet<HomeEvent> HomeEvents => Set<HomeEvent>();
 
     public DbSet<Friendship> Friendships => Set<Friendship>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
@@ -160,5 +162,48 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         b.Entity<Report>()
             .HasIndex(x => x.CreatedAtUtc);
+        b.Entity<HomeFact>()
+          .Property(x => x.Content)
+          .HasMaxLength(280)
+          .IsRequired();
+
+        b.Entity<HomeFact>()
+        .Property(x => x.IsActive)
+        .HasDefaultValue(true);
+
+        b.Entity<HomeFact>()
+        .Property(x => x.SortOrder)
+        .HasDefaultValue(0);
+
+        b.Entity<HomeFact>()
+        .Property(x => x.CreatedAtUtc)
+        .HasDefaultValueSql("GETUTCDATE()");
+
+        b.Entity<HomeEvent>()
+        .Property(x => x.Title)
+        .HasMaxLength(160)
+        .IsRequired();
+
+        b.Entity<HomeEvent>()
+        .Property(x => x.Reward)
+        .HasMaxLength(160)
+        .IsRequired();
+
+        b.Entity<HomeEvent>()
+        .Property(x => x.IsActive)
+        .HasDefaultValue(true);
+
+        b.Entity<HomeEvent>()
+        .Property(x => x.SortOrder)
+        .HasDefaultValue(0);
+
+        b.Entity<HomeEvent>()
+        .Property(x => x.CreatedAtUtc)
+        .HasDefaultValueSql("GETUTCDATE()");
+
+        b.Entity<HomeEvent>()
+        .Property(x => x.EndsAtUtc)
+        .HasColumnType("datetime2");
+
     }
 }

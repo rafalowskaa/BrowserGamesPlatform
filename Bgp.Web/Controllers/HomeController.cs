@@ -54,6 +54,8 @@ public class HomeController : Controller
         var trending = await _homeContentService.GetTrendingAsync(8);
         var tags = await _homeContentService.GetTopTagsAsync(7);
         var gameOfTheDay = await _homeContentService.GetGameOfTheDayAsync() ?? featured.FirstOrDefault();
+        var facts = await GetHomeFactsAsync();
+        var weeklyEvents = await GetWeeklyEventsAsync();
 
         return new HomeViewModel
         {
@@ -63,13 +65,14 @@ public class HomeController : Controller
                 Title = _localizer["Home_Hero_Headline"].Value,
                 Subtitle = _localizer["Home_Hero_Description"].Value,
                 BackgroundImage = "/img/branding/hero-collage.svg",
-                Fact = GetDailyHeroFact()
+                Fact = SelectDailyHeroFact(facts)
             },
             GameOfTheDay = gameOfTheDay,
             FeaturedGames = featured,
             TopGames = trending,
             TopTags = tags,
-            WeeklyEvents = GenerateWeeklyEvents(),
+            WeeklyEvents = weeklyEvents,
+            FunFacts = facts,
             CommunityMetrics = await BuildCommunityMetricsAsync()
         };
     }
@@ -90,7 +93,26 @@ public class HomeController : Controller
         return baseModel;
     }
 
-    private string GetDailyHeroFact()
+    private async Task<IReadOnlyList<string>> GetHomeFactsAsync()
+    {
+        var facts = await _db.HomeFacts
+            .AsNoTracking()
+            .Where(f => f.IsActive)
+            .OrderBy(f => f.SortOrder)
+            .ThenBy(f => f.Id)
+            .Select(f => f.Content)
+            .Where(content => !string.IsNullOrWhiteSpace(content))
+            .ToListAsync();
+
+        if (facts.Count > 0)
+        {
+            return facts;
+        }
+
+        return GetLocalizedHeroFacts();
+    }
+
+    private IReadOnlyList<string> GetLocalizedHeroFacts()
     {
         var keys = new[]
         {
@@ -100,19 +122,45 @@ public class HomeController : Controller
             "Home_Hero_Fact_4"
         };
 
-        var facts = keys
+        return keys
             .Select(key => _localizer[key].Value)
             .Where(value => !string.IsNullOrWhiteSpace(value))
-            .ToArray();
+            .ToList();
+    }
 
-        if (facts.Length == 0)
+    private string SelectDailyHeroFact(IReadOnlyList<string> facts)
+    {
+        if (facts is null || facts.Count == 0)
         {
             return string.Empty;
         }
 
         var seed = HashCode.Combine(DateTime.UtcNow.Year, DateTime.UtcNow.DayOfYear);
-        var random = new Random(seed);
-        return facts[random.Next(facts.Length)];
+        var index = Math.Abs(seed) % facts.Count;
+        return facts[index];
+    }
+
+    private async Task<IReadOnlyList<EventHighlightViewModel>> GetWeeklyEventsAsync()
+    {
+        var events = await _db.HomeEvents
+            .AsNoTracking()
+            .Where(e => e.IsActive)
+            .OrderBy(e => e.SortOrder)
+            .ThenBy(e => e.Id)
+            .Select(e => new EventHighlightViewModel
+            {
+                Title = e.Title,
+                Reward = e.Reward,
+                EndsAt = e.EndsAtUtc
+            })
+            .ToListAsync();
+
+        if (events.Count > 0)
+        {
+            return events;
+        }
+
+        return GenerateWeeklyEventsFallback();
     }
 
     private IQueryable<GameProjection> CreateGameProjection()
@@ -287,7 +335,7 @@ public class HomeController : Controller
         };
     }
 
-    private IReadOnlyList<EventHighlightViewModel> GenerateWeeklyEvents()
+    private IReadOnlyList<EventHighlightViewModel> GenerateWeeklyEventsFallback()
     {
         var now = DateTime.UtcNow;
         return new List<EventHighlightViewModel>

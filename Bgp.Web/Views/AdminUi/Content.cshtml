@@ -1,0 +1,201 @@
+﻿@using System
+@using Bgp.Web.Models
+@model AdminHomeContentViewModel
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/admin.css" asp-append-version="true" />
+}
+@{
+    ViewData["Title"] = L["Admin_Content_Title"].Value;
+}
+<section class="admin-section">
+    <nav class="admin-nav">
+        <a class="admin-nav__item" asp-action="Users">@L["Admin_Nav_Users"].Value</a>
+        <a class="admin-nav__item" asp-action="Games">@L["Admin_Nav_Games"].Value</a>
+        <a class="admin-nav__item active" asp-action="Content">@L["Admin_Nav_Content"].Value</a>
+        <a class="admin-nav__item" asp-action="Reports">@L["Admin_Nav_Reports"].Value</a>
+    </nav>
+
+    <header class="admin-header">
+        <div>
+            <h1>@L["Admin_Content_Title"].Value</h1>
+            <p>@L["Admin_Content_Subtitle"].Value</p>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrEmpty(Model.SuccessKey))
+    {
+        <div class="alert success">@L[Model.SuccessKey].Value</div>
+    }
+    else if (!string.IsNullOrEmpty(Model.ErrorKey))
+    {
+        <div class="alert error">@L[Model.ErrorKey].Value</div>
+    }
+
+    <section class="admin-subpanel">
+        <h2>@L["Admin_Content_Facts_Title"].Value</h2>
+        <p class="muted">@L["Admin_Content_Facts_Description"].Value</p>
+
+        @if (Model.Facts.Any())
+        {
+            foreach (var fact in Model.Facts)
+            {
+                var updated = fact.UpdatedAtUtc?.ToLocalTime().ToString("g");
+                <article class="admin-content-item">
+                    <header class="admin-content-item__meta">
+                        <span>@string.Format(L["Admin_Content_Metadata_Created"].Value, fact.CreatedAtUtc.ToLocalTime().ToString("g"))</span>
+                        @if (!string.IsNullOrEmpty(updated))
+                        {
+                            <span class="muted">@string.Format(L["Admin_Content_Metadata_Updated"].Value, updated)</span>
+                        }
+                    </header>
+                    <form asp-action="SaveFact" method="post" class="admin-inline-form admin-inline-form--stacked">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Id" value="@fact.Id" />
+                        <input type="hidden" name="IsActive" value="false" />
+                        <label>
+                            <span>@L["Admin_Content_Facts_ContentLabel"].Value</span>
+                            <textarea name="Content" rows="3">@fact.Content</textarea>
+                        </label>
+                        <div class="admin-inline-form__row">
+                            <label>
+                                <span>@L["Admin_Content_Facts_SortLabel"].Value</span>
+                                <input type="number" name="SortOrder" value="@fact.SortOrder" />
+                            </label>
+                            <label class="check">
+                                <input type="checkbox" name="IsActive" value="true" @(fact.IsActive ? "checked" : string.Empty) /> @L["Admin_Content_Facts_IsActive"].Value
+                            </label>
+                        </div>
+                        <div class="admin-actions">
+                            <button class="btn-primary btn-small" type="submit">@L["Admin_Content_Save"].Value</button>
+                        </div>
+                    </form>
+                    <form asp-action="DeleteFact" method="post" class="admin-inline-form admin-inline-form--danger">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Id" value="@fact.Id" />
+                        <button class="btn-ghost btn-small" type="submit" onclick="return confirm('@L["Admin_Content_DeleteConfirm"].Value');">@L["Admin_Content_Delete"].Value</button>
+                    </form>
+                </article>
+            }
+        }
+        else
+        {
+            <p class="muted">@L["Admin_Content_Facts_Empty"].Value</p>
+        }
+
+        <form asp-action="SaveFact" method="post" class="admin-inline-form admin-inline-form--stacked admin-inline-form--accent">
+            @Html.AntiForgeryToken()
+            <h3>@L["Admin_Content_Facts_Add"].Value</h3>
+            <input type="hidden" name="IsActive" value="false" />
+            <label>
+                <span>@L["Admin_Content_Facts_ContentLabel"].Value</span>
+                <textarea name="Content" rows="3"></textarea>
+            </label>
+            <div class="admin-inline-form__row">
+                <label>
+                    <span>@L["Admin_Content_Facts_SortLabel"].Value</span>
+                    <input type="number" name="SortOrder" value="0" />
+                </label>
+                <label class="check">
+                    <input type="checkbox" name="IsActive" value="true" checked /> @L["Admin_Content_Facts_IsActive"].Value
+                </label>
+            </div>
+            <div class="admin-actions">
+                <button class="btn-primary btn-small" type="submit">@L["Admin_Content_Add"].Value</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="admin-subpanel">
+        <h2>@L["Admin_Content_Events_Title"].Value</h2>
+        <p class="muted">@L["Admin_Content_Events_Description"].Value</p>
+
+        @if (Model.Events.Any())
+        {
+            foreach (var evt in Model.Events)
+            {
+                var updated = evt.UpdatedAtUtc?.ToLocalTime().ToString("g");
+                <article class="admin-content-item">
+                    <header class="admin-content-item__meta">
+                        <span>@string.Format(L["Admin_Content_Metadata_Created"].Value, evt.CreatedAtUtc.ToLocalTime().ToString("g"))</span>
+                        @if (!string.IsNullOrEmpty(updated))
+                        {
+                            <span class="muted">@string.Format(L["Admin_Content_Metadata_Updated"].Value, updated)</span>
+                        }
+                    </header>
+                    <form asp-action="SaveEvent" method="post" class="admin-inline-form admin-inline-form--stacked">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Id" value="@evt.Id" />
+                        <input type="hidden" name="IsActive" value="false" />
+                        <div class="admin-inline-form__row">
+                            <label>
+                                <span>@L["Admin_Content_Event_TitleLabel"].Value</span>
+                                <input type="text" name="Title" value="@evt.Title" maxlength="160" />
+                            </label>
+                            <label>
+                                <span>@L["Admin_Content_Event_RewardLabel"].Value</span>
+                                <input type="text" name="Reward" value="@evt.Reward" maxlength="160" />
+                            </label>
+                        </div>
+                        <div class="admin-inline-form__row">
+                            <label>
+                                <span>@L["Admin_Content_Event_EndLabel"].Value</span>
+                                <input type="datetime-local" name="EndsAt" value="@evt.EndsAtUtc.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")" />
+                            </label>
+                            <label>
+                                <span>@L["Admin_Content_Event_SortLabel"].Value</span>
+                                <input type="number" name="SortOrder" value="@evt.SortOrder" />
+                            </label>
+                            <label class="check">
+                                <input type="checkbox" name="IsActive" value="true" @(evt.IsActive ? "checked" : string.Empty) /> @L["Admin_Content_Event_IsActive"].Value
+                            </label>
+                        </div>
+                        <div class="admin-actions">
+                            <button class="btn-primary btn-small" type="submit">@L["Admin_Content_Save"].Value</button>
+                        </div>
+                    </form>
+                    <form asp-action="DeleteEvent" method="post" class="admin-inline-form admin-inline-form--danger">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Id" value="@evt.Id" />
+                        <button class="btn-ghost btn-small" type="submit" onclick="return confirm('@L["Admin_Content_DeleteConfirm"].Value');">@L["Admin_Content_Delete"].Value</button>
+                    </form>
+                </article>
+            }
+        }
+        else
+        {
+            <p class="muted">@L["Admin_Content_Events_Empty"].Value</p>
+        }
+
+        <form asp-action="SaveEvent" method="post" class="admin-inline-form admin-inline-form--stacked admin-inline-form--accent">
+            @Html.AntiForgeryToken()
+            <h3>@L["Admin_Content_Events_Add"].Value</h3>
+            <input type="hidden" name="IsActive" value="false" />
+            <div class="admin-inline-form__row">
+                <label>
+                    <span>@L["Admin_Content_Event_TitleLabel"].Value</span>
+                    <input type="text" name="Title" maxlength="160" />
+                </label>
+                <label>
+                    <span>@L["Admin_Content_Event_RewardLabel"].Value</span>
+                    <input type="text" name="Reward" maxlength="160" />
+                </label>
+            </div>
+            <div class="admin-inline-form__row">
+                <label>
+                    <span>@L["Admin_Content_Event_EndLabel"].Value</span>
+                    <input type="datetime-local" name="EndsAt" value="@DateTime.UtcNow.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")" />
+                </label>
+                <label>
+                    <span>@L["Admin_Content_Event_SortLabel"].Value</span>
+                    <input type="number" name="SortOrder" value="0" />
+                </label>
+                <label class="check">
+                    <input type="checkbox" name="IsActive" value="true" checked /> @L["Admin_Content_Event_IsActive"].Value
+                </label>
+            </div>
+            <div class="admin-actions">
+                <button class="btn-primary btn-small" type="submit">@L["Admin_Content_Add"].Value</button>
+            </div>
+        </form>
+    </section>
+</section>

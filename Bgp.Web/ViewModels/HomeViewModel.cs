@@ -18,6 +18,7 @@ public class HomeViewModel
     public ExperiencePanelViewModel ExperiencePanel { get; set; } = new();
     public IReadOnlyList<DailyChallengeViewModel> DailyChallenges { get; set; } = new List<DailyChallengeViewModel>();
     public CommunityMetricsViewModel CommunityMetrics { get; set; } = new();
+    public IReadOnlyList<string> FunFacts { get; set; } = new List<string>();
     public IReadOnlyList<EventHighlightViewModel> WeeklyEvents { get; set; } = new List<EventHighlightViewModel>();
     public GameSummaryViewModel? GameOfTheDay { get; set; }
 }

@@ -1,8 +1,8 @@
 ﻿.auth {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
     gap: var(--space-lg);
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
     justify-items: center;
     min-height: 70vh;
@@ -23,6 +23,8 @@
     position: relative;
     overflow: hidden;
     width: min(100%, 32rem);
+    align-self: stretch;
+    height: 100%;
 }
 
     .auth-hero::after {

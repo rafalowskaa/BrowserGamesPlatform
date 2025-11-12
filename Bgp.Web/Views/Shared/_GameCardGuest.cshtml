@@ -11,10 +11,12 @@
     var loginUrl = Url.Action("Login", "Account", new { returnUrl = detailsUrl, intent = "play" })
         ?? Url.Action("Login", "Account")
         ?? detailsUrl;
+    var targerUrl = User.Identity?.IsAuthenticated == true ? detailsUrl : loginUrl;
 }
+
 <article class="game-card-guest" data-game-card>
     <div class="@mediaClass">
-        <a class="game-card-guest__cover" href="@loginUrl" aria-label="@Model.Title">
+        <a class="game-card-guest__cover" href="@targetUrl" aria-label="@Model.Title">
             <span class="sr-only">@Model.Title</span>
             <img src="@placeholderImage"
                  data-game-card-img
@@ -30,7 +32,7 @@
     </div>
     <div class="game-card-guest__content">
         <h3 class="game-card-guest__title">
-            <a href="@loginUrl">@Model.Title</a>
+            <a href="@targetUrl">@Model.Title</a>
         </h3>
         <p class="game-card-guest__excerpt">@Model.Excerpt</p>
         <div class="game-card-guest__meta">
