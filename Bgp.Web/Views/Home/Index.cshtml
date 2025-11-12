@@ -1,8 +1,220 @@
-﻿@{
-    ViewData["Title"] = L["Home_Title"].Value;
+﻿@model Bgp.Web.ViewModels.HomeViewModel
+@using Bgp.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> L
+@{
+    ViewData["Title"] = Model.IsAuthenticated ? "Witaj ponownie" : "Start";
 }
-<section class="hero">
-    <h1>@L["Home_HeroTitle"]</h1>
-    <p>@L["Home_HeroDescription"]</p>
-    <a class="btn-primary" asp-controller="Games" asp-action="Index">@L["Home_BrowseButton"]</a>
+<section class="home-hero" style="background-image: url('@Model.Hero.BackgroundImage');">
+    <div class="home-hero__content">
+        <h1>@Model.Hero.Title</h1>
+        <p>@Model.Hero.Subtitle</p>
+        <div class="home-hero__cta">
+            <a class="btn-primary" href="#featured">Zagraj teraz</a>
+            <a class="btn-secondary" asp-controller="Account" asp-action="Register">Dołącz za darmo</a>
+        </div>
+    </div>
+    @if (Model.GameOfTheDay is not null)
+    {
+        <aside class="home-hero__spotlight" aria-label="Gra dnia">
+            <h2>Gra dnia</h2>
+            @await Html.PartialAsync("_GameCard", Model.GameOfTheDay)
+        </aside>
+    }
+</section>
+
+@if (Model.IsAuthenticated)
+{
+    <section class="home-section home-dashboard">
+        <div class="home-dashboard__welcome">
+            <h2>Witaj ponownie</h2>
+            <p>Kontynuuj rozgrywkę i zgarniaj PD.</p>
+        </div>
+        <div class="home-dashboard__grid">
+            <div class="home-panel">
+                <h3>Kontynuuj grę</h3>
+                <div class="card-row">
+                    @foreach (var game in Model.ContinuePlaying)
+                    {
+                        @await Html.PartialAsync("_GameCard", game)
+                    }
+                    @if (!Model.ContinuePlaying.Any())
+                    {
+                        <p>Brak ostatnio rozpoczętych gier.</p>
+                    }
+                </div>
+            </div>
+            <div class="home-panel">
+                <h3>Panel PD</h3>
+                <div class="xp-panel" role="status" aria-live="polite">
+                    <p class="xp-panel__rank">Ranga: @Model.ExperiencePanel.RankName</p>
+                    <div class="xp-panel__bar" aria-label="Postęp do kolejnej rangi">
+                        <div class="xp-panel__progress" style="width:@Model.ExperiencePanel.ProgressPercent%"></div>
+                    </div>
+                    <p class="xp-panel__meta">@Model.ExperiencePanel.CurrentXp XP · Do następnej rangi: @Model.ExperiencePanel.XpToNext XP</p>
+                    <ul class="xp-challenges">
+                        @foreach (var challenge in Model.DailyChallenges)
+                        {
+                            <li>
+                                <label>
+                                    <input type="checkbox" disabled @(challenge.IsCompleted ? "checked" : string.Empty) />
+                                    <span>@challenge.Title</span>
+                                    <span class="xp-reward">+@challenge.RewardXp PD</span>
+                                </label>
+                            </li>
+                        }
+                        @if (!Model.DailyChallenges.Any())
+                        {
+                            <li>Brak dzisiejszych wyzwań.</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+<section id="featured" class="home-section">
+    <div class="home-section__header">
+        <h2>Polecane gry</h2>
+        <p>Odkryj świeże premiery i redakcyjne polecenia.</p>
+    </div>
+    <div class="game-carousel" role="list">
+        @foreach (var game in Model.FeaturedGames)
+        {
+            <div role="listitem">
+                @await Html.PartialAsync("_GameCard", game)
+            </div>
+        }
+    </div>
+</section>
+
+<section class="home-section">
+    <div class="home-section__header">
+        <h2>Najczęściej grane</h2>
+        <p>Gry, które teraz dominują serwery.</p>
+    </div>
+    <div class="tag-filters" role="list">
+        @foreach (var tag in Model.TopTags)
+        {
+            <button type="button" class="tag-chip" aria-pressed="false">#@tag.Tag</button>
+        }
+    </div>
+    <div class="game-grid">
+        @foreach (var game in Model.TopGames)
+        {
+            @await Html.PartialAsync("_GameCard", game)
+        }
+    </div>
+</section>
+
+@if (Model.IsAuthenticated)
+{
+    <section class="home-section">
+        <div class="home-section__header">
+            <h2>Dla Ciebie</h2>
+            <p>Rekomendacje dobrane na podstawie Twojej aktywności.</p>
+        </div>
+        <div class="game-grid">
+            @foreach (var game in Model.ForYou)
+            {
+                @await Html.PartialAsync("_GameCard", game)
+            }
+        </div>
+    </section>
+
+    <section class="home-section">
+        <div class="home-section__header">
+            <h2>Trendy teraz</h2>
+            <p>Najgorętsze gry z ostatnich 24 godzin.</p>
+        </div>
+        <div class="game-grid">
+            @foreach (var game in Model.Trending)
+            {
+                @await Html.PartialAsync("_GameCard", game)
+            }
+        </div>
+    </section>
+
+    <section class="home-section">
+        <div class="home-section__header">
+            <h2>Aktywność znajomych</h2>
+            <p>Zobacz, co dzieje się w Twojej ekipie.</p>
+        </div>
+        <ul class="activity-feed">
+            @foreach (var entry in Model.FriendActivity)
+            {
+                <li>
+                    <span class="activity-feed__actor">@entry.ActorName</span>
+                    <span class="activity-feed__action">@entry.Action</span>
+                    <a asp-controller="Games" asp-action="Details" asp-route-slug="@entry.TargetSlug">@entry.TargetName</a>
+                    <time datetime="@entry.When.ToString("o")">@entry.When.ToLocalTime().ToString("HH:mm")</time>
+                </li>
+            }
+            @if (!Model.FriendActivity.Any())
+            {
+                <li>Znajomi jeszcze nic nie zagrali. Zacznij nową sesję!</li>
+            }
+        </ul>
+    </section>
+
+    <section class="home-section">
+        <div class="home-section__header">
+            <h2>Dla twórców</h2>
+            <p>Dodaj swoją grę lub sprawdź ostatnie aktualizacje.</p>
+        </div>
+        <div class="game-carousel" role="list">
+            @foreach (var game in Model.CreatorHighlights)
+            {
+                <div role="listitem">
+                    @await Html.PartialAsync("_GameCard", game)
+                </div>
+            }
+        </div>
+        <a class="btn-primary" asp-controller="Games" asp-action="Create">Dodaj grę</a>
+    </section>
+}
+
+<section class="home-section home-benefits">
+    <div class="home-section__header">
+        <h2>Dlaczego PlayGrid?</h2>
+    </div>
+    <div class="benefit-grid">
+        <article>
+            <h3>Bez instalacji</h3>
+            <p>Graj natychmiast w przeglądarce na każdym urządzeniu.</p>
+        </article>
+        <article>
+            <h3>Gry społeczności</h3>
+            <p>Twórz drużyny, wyzwania i rywalizuj z najlepszymi.</p>
+        </article>
+        <article>
+            <h3>PD i rangi</h3>
+            <p>Zdobądź punkty doświadczenia i odblokuj unikalne rangi.</p>
+        </article>
+    </div>
+</section>
+
+<section class="home-section home-events">
+    <div class="home-section__header">
+        <h2>Wydarzenia tygodnia</h2>
+    </div>
+    <div class="event-grid">
+        @foreach (var evt in Model.WeeklyEvents)
+        {
+            <article>
+                <h3>@evt.Title</h3>
+                <p>Nagroda: @evt.Reward</p>
+                <time datetime="@evt.EndsAt.ToString("o")">Koniec @evt.EndsAt.ToLocalTime().ToString("dd.MM HH:mm")</time>
+            </article>
+        }
+    </div>
+</section>
+
+<section class="home-section home-community">
+    <div class="community-panel">
+        <h2>Dołącz do społeczności</h2>
+        <p>Już <strong>@Model.CommunityMetrics.PlayersCount</strong> graczy i <strong>@Model.CommunityMetrics.GamesCount</strong> gier dostępnych w PlayGrid.</p>
+        <a class="btn-primary" asp-controller="Account" asp-action="Register">Zarejestruj się</a>
+    </div>
 </section>

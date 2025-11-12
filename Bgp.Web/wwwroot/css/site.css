@@ -6,3 +6,7 @@
 @import url('components/cards.css');
 @import url('components/feedback.css');
 @import url('components/tables.css');
+@import url('layout/app-shell.css');
+@import url('layout/app-header.css');
+@import url('components/game-card.css');
+@import url('pages/home.css');

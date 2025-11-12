@@ -3646,4 +3646,37 @@
 	<data name="Games_Details_Matchmaking_Cancelled" xml:space="preserve">
     <value>Matchmaking cancelled.</value>
   </data>
+	<data name="Navigation_Profile" xml:space="preserve">
+  <value>Profile</value>
+</data>
+	<data name="Navigation_Stats" xml:space="preserve">
+  <value>Statistics</value>
+</data>
+	<data name="Navigation_Friends" xml:space="preserve">
+  <value>Friends</value>
+</data>
+	<data name="Navigation_Submit_Game" xml:space="preserve">
+  <value>Add game</value>
+</data>
+	<data name="Navigation_Settings" xml:space="preserve">
+  <value>Settings</value>
+</data>
+	<data name="Navigation_Search_Label" xml:space="preserve">
+  <value>Search games</value>
+</data>
+	<data name="Navigation_Search_Placeholder" xml:space="preserve">
+  <value>Search by title or tag…</value>
+</data>
+	<data name="Navigation_Search_Submit" xml:space="preserve">
+  <value>Search</value>
+</data>
+	<data name="Navigation_Close_Search" xml:space="preserve">
+  <value>Close search</value>
+</data>
+	<data name="Navigation_Auth_Label" xml:space="preserve">
+  <value>Authentication shortcuts</value>
+</data>
+	<data name="Language_Switcher_Label" xml:space="preserve">
+  <value>Select language</value>
+</data>
 </root>

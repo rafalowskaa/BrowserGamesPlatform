@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600">
+  <defs>
+    <linearGradient id="h" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1e3a8a" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#h)" />
+  <text x="50%" y="45%" font-size="64" fill="#f8fafc" text-anchor="middle" font-family="'Segoe UI', 'Arial', sans-serif" font-weight="600">PlayGrid</text>
+  <text x="50%" y="55%" font-size="28" fill="#bae6fd" text-anchor="middle" font-family="'Segoe UI', 'Arial', sans-serif">Graj w przegl¹darce. Twórz. Rywalizuj.</text>
+</svg>

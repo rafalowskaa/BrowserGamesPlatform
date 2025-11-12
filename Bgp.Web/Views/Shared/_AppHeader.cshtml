@@ -1,0 +1,111 @@
+﻿@model Bgp.Web.ViewModels.AppHeaderViewModel
+@using Microsoft.AspNetCore.Identity
+@using Bgp.Infrastructure.Identity
+@using Bgp.Web.Helpers
+@using Bgp.Web.Resources
+@using Microsoft.Extensions.Localization
+@using Microsoft.Extensions.Options
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IStringLocalizer<SharedResource> L
+@inject IOptions<BrandingOptions> BrandingOptions
+@{
+    var branding = BrandingOptions.Value;
+    string? displayName = null;
+    string? avatarUrl = null;
+    if (SignInManager.IsSignedIn(User))
+    {
+        var currentUser = await UserManager.GetUserAsync(User);
+        displayName = DisplayNameFormatter.Format(currentUser?.DisplayName, currentUser?.Email, currentUser?.UserName, User.Identity?.Name);
+        avatarUrl = currentUser?.AvatarUrl;
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            displayName = User.Identity?.Name?.ToUpperInvariant();
+        }
+    }
+    displayName ??= User.Identity?.Name?.ToUpperInvariant();
+    var currentCulture = Model?.CurrentCulture ?? "pl-PL";
+}
+<header class="app-header" role="banner">
+    <div class="app-header__inner">
+        <div class="app-header__start">
+            <a class="app-header__brand" asp-controller="Home" asp-action="Index" aria-label="@branding.DisplayName">
+                <img src="@branding.LogoPath" alt="@branding.LogoAlt" width="144" height="40" loading="lazy" decoding="async" />
+            </a>
+        </div>
+        <div class="app-header__center">
+            <form class="app-search" asp-controller="Games" asp-action="Index" method="get" role="search">
+                <label class="sr-only" for="app-search-input">@L["Navigation_Search_Label"].Value</label>
+                <input id="app-search-input" name="search" class="app-search__input" type="search" autocomplete="off" placeholder="@L["Navigation_Search_Placeholder"].Value" data-search-autocomplete aria-autocomplete="list" aria-expanded="false" aria-controls="search-suggestions" />
+                <button class="app-search__submit" type="submit" aria-label="@L["Navigation_Search_Submit"].Value">
+                    <span aria-hidden="true">🔍</span>
+                </button>
+            </form>
+        </div>
+        <div class="app-header__end">
+            <div class="language-switcher" role="group" aria-label="@L["Language_Switcher_Label"].Value">
+                <a class="lang-toggle@(currentCulture == "pl-PL" ? " active" : string.Empty)" asp-controller="Language" asp-action="Set" asp-route-culture="pl-PL" asp-route-returnUrl="@Model?.ReturnUrl" title="@L["Language_Polish"].Value">
+                    <img src="~/img/flags/flag_pl.png" alt="@L["Language_Polish"].Value" width="28" height="20" loading="lazy" decoding="async" />
+                </a>
+                <a class="lang-toggle@(currentCulture == "en-US" ? " active" : string.Empty)" asp-controller="Language" asp-action="Set" asp-route-culture="en-US" asp-route-returnUrl="@Model?.ReturnUrl" title="@L["Language_English"].Value">
+                    <img src="~/img/flags/flag_gb.png" alt="@L["Language_English"].Value" width="28" height="20" loading="lazy" decoding="async" />
+                </a>
+            </div>
+            @if (SignInManager.IsSignedIn(User))
+            {
+                <div class="user-menu" data-user-menu>
+                    <button class="user-menu__trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        <span class="user-menu__avatar" data-avatar>
+                            @if (!string.IsNullOrWhiteSpace(avatarUrl))
+                            {
+                                <img src="@avatarUrl" alt="@displayName" width="32" height="32" loading="lazy" decoding="async" />
+                            }
+                            else
+                            {
+                                <span class="user-menu__avatar-fallback" aria-hidden="true">@((displayName ?? "").FirstOrDefault())</span>
+                            }
+                        </span>
+                        <span class="user-menu__name">@displayName</span>
+                    </button>
+                    <nav class="user-menu__dropdown" role="menu">
+                        <a class="user-menu__item" asp-controller="Dashboard" asp-action="Index" role="menuitem">@L["Navigation_Dashboard"].Value</a>
+                        <a class="user-menu__item" asp-controller="Dashboard" asp-action="Profile" role="menuitem">@L["Navigation_Profile"].Value</a>
+                        <a class="user-menu__item" asp-controller="Dashboard" asp-action="Stats" role="menuitem">@L["Navigation_Stats"].Value</a>
+                        <a class="user-menu__item" asp-controller="Friends" asp-action="Index" role="menuitem">@L["Navigation_Friends"].Value</a>
+                        <a class="user-menu__item" asp-controller="Games" asp-action="Create" role="menuitem">@L["Navigation_Submit_Game"].Value</a>
+                        <a class="user-menu__item" asp-controller="Dashboard" asp-action="Settings" role="menuitem">@L["Navigation_Settings"].Value</a>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
+                        {
+                            <a class="user-menu__item" asp-controller="AdminUi" asp-action="Users" role="menuitem">@L["Navigation_Admin"].Value</a>
+                        }
+                        <form class="user-menu__item" asp-controller="Account" asp-action="Logout" method="post" role="none">
+                            <button type="submit">@L["Navigation_Logout"].Value</button>
+                        </form>
+                    </nav>
+                </div>
+            }
+            else
+            {
+                <div class="auth-links" role="group" aria-label="@L["Navigation_Auth_Label"].Value">
+                    <a class="btn-link" asp-controller="Account" asp-action="Login">@L["Navigation_Login"].Value</a>
+                    <a class="btn-primary" asp-controller="Account" asp-action="Register">@L["Navigation_Register"].Value</a>
+                </div>
+            }
+            <button class="app-header__search-toggle" type="button" data-search-toggle aria-label="@L["Navigation_Search_Label"].Value">
+                <span aria-hidden="true">🔍</span>
+            </button>
+        </div>
+    </div>
+    <div class="app-search-overlay" data-search-overlay>
+        <div class="app-search-overlay__content">
+            <form class="app-search" asp-controller="Games" asp-action="Index" method="get" role="search">
+                <label class="sr-only" for="app-search-input-overlay">@L["Navigation_Search_Label"].Value</label>
+                <input id="app-search-input-overlay" name="search" class="app-search__input" type="search" autocomplete="off" placeholder="@L["Navigation_Search_Placeholder"].Value" data-search-autocomplete aria-autocomplete="list" aria-expanded="false" aria-controls="search-suggestions-overlay" />
+                <button class="app-search__submit" type="submit" aria-label="@L["Navigation_Search_Submit"].Value">
+                    <span aria-hidden="true">🔍</span>
+                </button>
+            </form>
+            <button class="app-search-overlay__close" type="button" data-search-close aria-label="@L["Navigation_Close_Search"].Value">×</button>
+        </div>
+    </div>
+</header>

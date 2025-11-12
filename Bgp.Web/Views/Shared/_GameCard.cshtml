@@ -1,0 +1,25 @@
+﻿@model Bgp.Web.ViewModels.GameSummaryViewModel
+<article class="game-card" data-game-card>
+    <div class="game-card__media">
+        <a asp-controller="Games" asp-action="Details" asp-route-slug="@Model.Slug" class="game-card__link" aria-label="@Model.Title">
+            <div class="game-card__image-wrapper">
+                <img data-game-card-img data-src="@(string.IsNullOrWhiteSpace(Model.CoverImagePath) ? Url.Content("~/img/placeholders/game-cover.svg") : Model.CoverImagePath)" alt="@Model.Title" width="320" height="180" loading="lazy" decoding="async" />
+                @if (!string.IsNullOrWhiteSpace(Model.HighlightTag))
+                {
+                    <span class="game-card__tag">@Model.HighlightTag</span>
+                }
+            </div>
+        </a>
+        <div class="game-card__overlay">
+            <a class="btn-primary" asp-controller="Games" asp-action="Details" asp-route-slug="@Model.Slug">@("Zagraj")</a>
+            <a class="btn-secondary" asp-controller="Games" asp-action="Details" asp-route-slug="@Model.Slug">@("Szczegóły")</a>
+        </div>
+    </div>
+    <div class="game-card__content">
+        <h3 class="game-card__title"><a asp-controller="Games" asp-action="Details" asp-route-slug="@Model.Slug">@Model.Title</a></h3>
+        <p class="game-card__excerpt">@Model.Excerpt</p>
+        <div class="game-card__meta">
+            <span class="game-card__rating" aria-label="@($"Ocena {Model.Rating:F1} gwiazd")">★ @Model.Rating:F1</span>
+        </div>
+    </div>
+</article>

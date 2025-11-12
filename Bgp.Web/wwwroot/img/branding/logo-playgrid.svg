@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="40" viewBox="0 0 160 40" role="img" aria-labelledby="title">
+  <title>PlayGrid</title>
+  <rect width="160" height="40" rx="12" fill="#0f172a" />
+  <text x="20" y="26" font-family="'Segoe UI', 'Arial', sans-serif" font-size="20" fill="#38bdf8" font-weight="600">PlayGrid</text>
+</svg>

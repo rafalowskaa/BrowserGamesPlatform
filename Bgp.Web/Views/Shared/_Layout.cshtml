@@ -1,111 +1,77 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using Bgp.Infrastructure.Identity
 @using Bgp.Web.Resources;
+@using Bgp.Web.Helpers
 @using Microsoft.Extensions.Localization
+@using Microsoft.Extensions.Options
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject IStringLocalizer<SharedResource> L
+@inject IOptions<BrandingOptions> BrandingOptions
 @{
     Layout = null;
-    var title = ViewData["Title"]?.ToString() ?? L["Home_Title"].Value;
+    var branding = BrandingOptions.Value;
+    var title = ViewData["Title"]?.ToString();
+    title = string.IsNullOrWhiteSpace(title) ? branding.DisplayName : $"{title} · {branding.ShortName}";
     var ret = Context.Request.Path + Context.Request.QueryString;
     var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name;
-    string? displayName = null;
-    if (SignInManager.IsSignedIn(User))
-    {
-        var currentUser = await UserManager.GetUserAsync(User);
-        displayName = DisplayNameFormatter.Format(currentUser?.DisplayName, currentUser?.Email, currentUser?.UserName, User.Identity?.Name);
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            displayName = User.Identity?.Name?.ToUpperInvariant();
-        }
-    }
-    displayName ??= User.Identity?.Name?.ToUpperInvariant();
+    var theme = ViewData["Theme"]?.ToString();
+    theme = string.IsNullOrWhiteSpace(theme) ? "dark" : theme;
 }
 <!DOCTYPE html>
-<html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name">
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name" data-theme="@theme">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@title</title>
+    <meta name="application-name" content="@branding.DisplayName" />
+    <meta name="apple-mobile-web-app-title" content="@branding.DisplayName" />
+    <meta property="og:site_name" content="@branding.DisplayName" />
+    <meta property="og:image" content="@branding.OgImagePath" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="@System.Globalization.CultureInfo.CurrentUICulture.Name" />
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="icon" href="@branding.FaviconPath" type="image/svg+xml" />
     <link rel="stylesheet" href="~/css/site.css" />
-    @if (SignInManager.IsSignedIn(User))
-    {
-        <link rel="stylesheet" href="~/css/pages/chat.css" asp-append-version="true" />
-    }
+    <meta name="application-name" content="@branding.DisplayName" />
+    <meta name="apple-mobile-web-app-title" content="@branding.DisplayName" />
+    <meta property="og:site_name" content="@branding.DisplayName" />
+    <meta property="og:image" content="@branding.OgImagePath" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="@System.Globalization.CultureInfo.CurrentUICulture.Name" />
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="icon" href="@branding.FaviconPath" type="image/svg+xml" />
     @RenderSection("Styles", required: false)
 </head>
-<body class="theme-dark">
-    <header class="bg-gradient">
-        <div class="container nav">
-            <a class="brand" asp-controller="Home" asp-action="Index">BGP</a>
-            <nav class="nav-main">
-                <div class="nav-tabs">
-                    @if (SignInManager.IsSignedIn(User))
-                    {
-                        <a class="nav-tab" asp-controller="Dashboard" asp-action="Index">@L["Navigation_Dashboard"].Value</a>
-                        <a class="nav-tab" asp-controller="Games" asp-action="Index">@L["Navigation_Games"].Value</a>
-                        <a class="nav-tab" href="/swagger" title="@L["Navigation_Api_Tooltip"].Value">@L["Navigation_Api"].Value</a>
-                        @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
-                        {
-                            <a class="nav-tab" asp-controller="AdminUi" asp-action="Users">@L["Navigation_Admin"].Value</a>
-                        }
-                    }
-                    else
-                    {
-                        <a class="nav-tab" asp-controller="Games" asp-action="Index">@L["Navigation_Games"].Value</a>
-                    }
-                </div>
-                <div class="nav-actions">
-                    
+<body class="app-shell">
+    @await Html.PartialAsync("_AppHeader", new Bgp.Web.ViewModels.AppHeaderViewModel
+    {
+        ReturnUrl = ret,
+        CurrentCulture = currentCulture
+        })
 
-                    @if (SignInManager.IsSignedIn(User))
-                    {
-                        <span class="user-greeting">@displayName</span>
-                        <form class="inline" asp-controller="Account" asp-action="Logout" method="post">
-                            <button class="btn-link" type="submit">@L["Navigation_Logout"].Value</button>
-                        </form>
-                    }
-                    else
-                    {
-                        <a asp-controller="Account" asp-action="Login">@L["Navigation_Login"].Value</a>
-                        <a asp-controller="Account" asp-action="Register">@L["Navigation_Register"].Value</a>
-                    }
-
-                    <div class="language-switcher">
-                        <a class="lang-toggle@(currentCulture == "pl-PL" ? " active" : string.Empty)" asp-controller="Language" asp-action="Set" asp-route-culture="pl-PL" asp-route-returnUrl="@ret" title="@L["Language_Polish"].Value">
-                            <img src="~/img/flags/flag_pl.png" alt="@L["Language_Polish"].Value" />
-                        </a>
-                        <a class="lang-toggle@(currentCulture == "en-US" ? " active" : string.Empty)" asp-controller="Language" asp-action="Set" asp-route-culture="en-US" asp-route-returnUrl="@ret" title="@L["Language_English"].Value">
-                            <img src="~/img/flags/flag_gb.png" alt="@L["Language_English"].Value" />
-                        </a>
-                    </div>
-                    
-                </div>
-            </nav>
-        </div>
-    </header>
-
-    <main class="container">
+    <main id="main-content" class="app-main" tabindex="-1">
         @RenderBody()
     </main>
 
-    <!-- Wysuwany panel czatu -->
     @if (SignInManager.IsSignedIn(User))
     {
         @await Html.PartialAsync("_ChatSidebar")
     }
 
-    <footer class="container footer">
-        <span>@string.Format(L["Footer_Legal"].Value, DateTime.UtcNow.Year)</span>
+    <footer class="app-footer">
+        <div class="app-footer__inner">
+            <span>@string.Format(L["Footer_Legal"].Value, DateTime.UtcNow.Year)</span>
+        </div>
     </footer>
 
 
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/app-header.js" asp-append-version="true"></script>
+    <script src="~/js/game-cards.js" asp-append-version="true"></script>
     @if (SignInManager.IsSignedIn(User))
     {
-        <!-- SignalR + Chat -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.5/signalr.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.5/signalr.min.js" integrity="sha384-VeL4F2cuglRez2oJ6TP2PzefDs2fzGEylh4G6dkprdOCi/hTyBC0bYKT1eZqUPV3" crossorigin="anonymous"></script>
         <script src="~/js/chat.js" asp-append-version="true"></script>
     }
     @RenderSection("Scripts", required: false)

@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using Bgp.Infrastructure.Extensions;
 using Bgp.Infrastructure.Persistence;
+using Bgp.Web.Helpers;
 using Bgp.Web.Hubs;
 using Bgp.Web.Localization;
 using Bgp.Web.Resources;
@@ -39,6 +40,16 @@ builder.Services.AddScoped<IPresenceNotifier, PresenceNotifier>();
 builder.Services.AddScoped<IChatMessageService, ChatMessageService>();
 builder.Services.AddScoped<IGameContentResolver, GameContentResolver>();
 builder.Services.AddSingleton<IMatchmakingService, InMemoryMatchmakingService>();
+builder.Services.Configure<BrandingOptions>(builder.Configuration.GetSection("Branding"));
+builder.Services.PostConfigure<BrandingOptions>(options =>
+{
+    options.DisplayName = Environment.GetEnvironmentVariable("PLAYGRID_BRAND_NAME") ?? options.DisplayName ?? "PlayGrid";
+    options.ShortName = Environment.GetEnvironmentVariable("PLAYGRID_BRAND_SHORT") ?? options.ShortName ?? options.DisplayName ?? "PlayGrid";
+    options.LogoPath = Environment.GetEnvironmentVariable("PLAYGRID_BRAND_LOGO") ?? options.LogoPath ?? "/img/branding/logo-playgrid.svg";
+    options.LogoAlt = Environment.GetEnvironmentVariable("PLAYGRID_BRAND_LOGO_ALT") ?? options.LogoAlt ?? options.DisplayName ?? "PlayGrid";
+    options.FaviconPath = Environment.GetEnvironmentVariable("PLAYGRID_BRAND_FAVICON") ?? options.FaviconPath ?? "/img/branding/favicon-playgrid.svg";
+    options.OgImagePath = Environment.GetEnvironmentVariable("PLAYGRID_BRAND_OG_IMAGE") ?? options.OgImagePath ?? "/img/branding/og-playgrid.png";
+});
 
 // CORS
 builder.Services.AddCors(o =>
@@ -67,7 +78,7 @@ builder.Services.AddAuthentication()
 // Swagger
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "BGP API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "PlayGrid API", Version = "v1" });
 });
 
 // SignalR (czat)
@@ -258,7 +269,7 @@ app.UseAuthorization();
 
 // Swagger
 app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BGP API v1"));
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PlayGrid API v1"));
 
 app.MapRazorPages();
 
