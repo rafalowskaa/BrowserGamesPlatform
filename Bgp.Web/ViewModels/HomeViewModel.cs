@@ -24,7 +24,7 @@ public class HomeViewModel
 
 public class HeroViewModel
 {
-    public string Title { get; set; } = "Graj w przeglądarce. Twórz. Rywalizuj.";
+    public string Title { get; set; } = string.Empty;
     public string Subtitle { get; set; } = string.Empty;
     public string? BackgroundImage { get; set; }
 }

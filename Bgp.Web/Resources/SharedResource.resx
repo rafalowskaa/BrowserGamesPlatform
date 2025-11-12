@@ -3679,4 +3679,178 @@
 	<data name="Language_Switcher_Label" xml:space="preserve">
   <value>Select language</value>
 </data>
+	<data name="Home_Title_Authenticated" xml:space="preserve">
+  <value>Welcome back</value>
+</data>
+	<data name="Home_Title_Guest" xml:space="preserve">
+  <value>Start</value>
+</data>
+	<data name="Home_Hero_Title" xml:space="preserve">
+  <value>Play in your browser. Create. Compete.</value>
+</data>
+	<data name="Home_Hero_Subtitle" xml:space="preserve">
+  <value>PlayGrid is a community of creators and players. Discover new titles, join events, and grow your profile.</value>
+</data>
+	<data name="Home_Hero_Cta_Play" xml:space="preserve">
+  <value>Play now</value>
+</data>
+	<data name="Home_Hero_Cta_Register" xml:space="preserve">
+  <value>Join for free</value>
+</data>
+	<data name="Home_GameOfTheDay_Label" xml:space="preserve">
+  <value>Game of the day</value>
+</data>
+	<data name="Home_Dashboard_Welcome_Title" xml:space="preserve">
+  <value>Welcome back</value>
+</data>
+	<data name="Home_Dashboard_Welcome_Description" xml:space="preserve">
+  <value>Pick up where you left off and earn XP.</value>
+</data>
+	<data name="Home_Dashboard_Continue_Playing_Title" xml:space="preserve">
+  <value>Continue playing</value>
+</data>
+	<data name="Home_Dashboard_Continue_Playing_Empty" xml:space="preserve">
+  <value>No recently started games.</value>
+</data>
+	<data name="Home_Dashboard_XpPanel_Title" xml:space="preserve">
+  <value>XP panel</value>
+</data>
+	<data name="Home_Dashboard_XpPanel_Rank" xml:space="preserve">
+  <value>Rank: {0}</value>
+</data>
+	<data name="Home_Dashboard_XpPanel_Progress_Aria" xml:space="preserve">
+  <value>Progress towards the next rank</value>
+</data>
+	<data name="Home_Dashboard_XpPanel_Meta" xml:space="preserve">
+  <value>{0} XP · To next rank: {1} XP</value>
+</data>
+	<data name="Home_Dashboard_DailyChallenges_Empty" xml:space="preserve">
+  <value>No daily challenges available.</value>
+</data>
+	<data name="Home_Dashboard_DailyChallenges_Reward" xml:space="preserve">
+  <value>+{0} XP</value>
+</data>
+	<data name="Home_Featured_Title" xml:space="preserve">
+  <value>Featured games</value>
+</data>
+	<data name="Home_Featured_Subtitle" xml:space="preserve">
+  <value>Discover fresh releases and editorial picks.</value>
+</data>
+	<data name="Home_Top_Title" xml:space="preserve">
+  <value>Most played</value>
+</data>
+	<data name="Home_Top_Subtitle" xml:space="preserve">
+  <value>Games dominating the servers right now.</value>
+</data>
+	<data name="Home_ForYou_Title" xml:space="preserve">
+  <value>For you</value>
+</data>
+	<data name="Home_ForYou_Subtitle" xml:space="preserve">
+  <value>Recommendations tailored to your activity.</value>
+</data>
+	<data name="Home_Trending_Title" xml:space="preserve">
+  <value>Trending now</value>
+</data>
+	<data name="Home_Trending_Subtitle" xml:space="preserve">
+  <value>The hottest games from the last 24 hours.</value>
+</data>
+	<data name="Home_FriendActivity_Title" xml:space="preserve">
+  <value>Friends' activity</value>
+</data>
+	<data name="Home_FriendActivity_Subtitle" xml:space="preserve">
+  <value>See what's happening in your crew.</value>
+</data>
+	<data name="Home_FriendActivity_Empty" xml:space="preserve">
+  <value>Your friends haven't played anything yet. Start a new session!</value>
+</data>
+	<data name="Home_FriendActivity_Action" xml:space="preserve">
+  <value>played</value>
+</data>
+	<data name="Home_Creator_Title" xml:space="preserve">
+  <value>For creators</value>
+</data>
+	<data name="Home_Creator_Subtitle" xml:space="preserve">
+  <value>Publish your game or review the latest updates.</value>
+</data>
+	<data name="Home_Creator_Cta" xml:space="preserve">
+  <value>Submit a game</value>
+</data>
+	<data name="Home_Benefits_Title" xml:space="preserve">
+  <value>Why PlayGrid?</value>
+</data>
+	<data name="Home_Benefits_NoInstall_Title" xml:space="preserve">
+  <value>No installation</value>
+</data>
+	<data name="Home_Benefits_NoInstall_Description" xml:space="preserve">
+  <value>Play instantly in your browser on any device.</value>
+</data>
+	<data name="Home_Benefits_Community_Title" xml:space="preserve">
+  <value>Community games</value>
+</data>
+	<data name="Home_Benefits_Community_Description" xml:space="preserve">
+  <value>Form teams, tackle challenges, and compete with the best.</value>
+</data>
+	<data name="Home_Benefits_Ranks_Title" xml:space="preserve">
+  <value>XP and ranks</value>
+</data>
+	<data name="Home_Benefits_Ranks_Description" xml:space="preserve">
+  <value>Earn experience points and unlock unique ranks.</value>
+</data>
+	<data name="Home_Events_Title" xml:space="preserve">
+  <value>Events of the week</value>
+</data>
+	<data name="Home_Events_Reward" xml:space="preserve">
+  <value>Reward: {0}</value>
+</data>
+	<data name="Home_Events_End" xml:space="preserve">
+  <value>Ends {0}</value>
+</data>
+	<data name="Home_Community_Title" xml:space="preserve">
+  <value>Join the community</value>
+</data>
+	<data name="Home_Community_Description" xml:space="preserve">
+  <value>Already &lt;strong&gt;{0}&lt;/strong&gt; players and &lt;strong&gt;{1}&lt;/strong&gt; games available on PlayGrid.</value>
+</data>
+	<data name="Home_Community_Cta" xml:space="preserve">
+  <value>Sign up</value>
+</data>
+	<data name="Home_Challenge_Play" xml:space="preserve">
+  <value>Play any game</value>
+</data>
+	<data name="Home_Challenge_Rate" xml:space="preserve">
+  <value>Rate a favourite release</value>
+</data>
+	<data name="Home_Challenge_Share" xml:space="preserve">
+  <value>Share a game with a friend</value>
+</data>
+	<data name="Home_Event_TournamentSprint_Title" xml:space="preserve">
+  <value>Tournament sprint</value>
+</data>
+	<data name="Home_Event_TournamentSprint_Reward" xml:space="preserve">
+  <value>+50 XP</value>
+</data>
+	<data name="Home_Event_CreatorBattle_Title" xml:space="preserve">
+  <value>Creators battle</value>
+</data>
+	<data name="Home_Event_CreatorBattle_Reward" xml:space="preserve">
+  <value>Exclusive skin</value>
+</data>
+	<data name="Home_Event_RankedMarathon_Title" xml:space="preserve">
+  <value>Ranked marathon</value>
+</data>
+	<data name="Home_Event_RankedMarathon_Reward" xml:space="preserve">
+  <value>+100 XP</value>
+</data>
+	<data name="Home_Rank_Grandmaster" xml:space="preserve">
+  <value>Grandmaster</value>
+</data>
+	<data name="Home_Rank_Veteran" xml:space="preserve">
+  <value>Veteran</value>
+</data>
+	<data name="Home_Rank_Adept" xml:space="preserve">
+  <value>Adept</value>
+</data>
+	<data name="Home_Rank_Novice" xml:space="preserve">
+  <value>Novice</value>
+</data>
 </root>

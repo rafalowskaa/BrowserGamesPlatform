@@ -3,21 +3,21 @@
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<SharedResource> L
 @{
-    ViewData["Title"] = Model.IsAuthenticated ? "Witaj ponownie" : "Start";
+    ViewData["Title"] = Model.IsAuthenticated ? L["Home_Title_Authenticated"].Value : L["Home_Title_Guest"].Value;
 }
 <section class="home-hero" style="background-image: url('@Model.Hero.BackgroundImage');">
     <div class="home-hero__content">
         <h1>@Model.Hero.Title</h1>
         <p>@Model.Hero.Subtitle</p>
         <div class="home-hero__cta">
-            <a class="btn-primary" href="#featured">Zagraj teraz</a>
-            <a class="btn-secondary" asp-controller="Account" asp-action="Register">Dołącz za darmo</a>
+            <a class="btn-primary" href="#featured">@L["Home_Hero_Cta_Play"].Value</a>
+            <a class="btn-secondary" asp-controller="Account" asp-action="Register">@L["Home_Hero_Cta_Register"].Value</a>
         </div>
     </div>
     @if (Model.GameOfTheDay is not null)
     {
-        <aside class="home-hero__spotlight" aria-label="Gra dnia">
-            <h2>Gra dnia</h2>
+        <aside class="home-hero__spotlight" aria-label="@L["Home_GameOfTheDay_Label"].Value">
+            <h2>@L["Home_GameOfTheDay_Label"].Value</h2>
             @await Html.PartialAsync("_GameCard", Model.GameOfTheDay)
         </aside>
     }
@@ -27,12 +27,12 @@
 {
     <section class="home-section home-dashboard">
         <div class="home-dashboard__welcome">
-            <h2>Witaj ponownie</h2>
-            <p>Kontynuuj rozgrywkę i zgarniaj PD.</p>
+            <h2>@L["Home_Dashboard_Welcome_Title"].Value</h2>
+            <p>@L["Home_Dashboard_Welcome_Description"].Value</p>
         </div>
         <div class="home-dashboard__grid">
             <div class="home-panel">
-                <h3>Kontynuuj grę</h3>
+                <h3>@L["Home_Dashboard_Continue_Playing_Title"].Value</h3>
                 <div class="card-row">
                     @foreach (var game in Model.ContinuePlaying)
                     {
@@ -40,18 +40,18 @@
                     }
                     @if (!Model.ContinuePlaying.Any())
                     {
-                        <p>Brak ostatnio rozpoczętych gier.</p>
+                        <p>@L["Home_Dashboard_Continue_Playing_Empty"].Value</p>
                     }
                 </div>
             </div>
             <div class="home-panel">
-                <h3>Panel PD</h3>
+                <h3>@L["Home_Dashboard_XpPanel_Title"].Value</h3>
                 <div class="xp-panel" role="status" aria-live="polite">
-                    <p class="xp-panel__rank">Ranga: @Model.ExperiencePanel.RankName</p>
-                    <div class="xp-panel__bar" aria-label="Postęp do kolejnej rangi">
+                    <p class="xp-panel__rank">@string.Format(L["Home_Dashboard_XpPanel_Rank"].Value, Model.ExperiencePanel.RankName)</p>
+                    <div class="xp-panel__bar" aria-label="@L["Home_Dashboard_XpPanel_Progress_Aria"].Value">
                         <div class="xp-panel__progress" style="width:@Model.ExperiencePanel.ProgressPercent%"></div>
                     </div>
-                    <p class="xp-panel__meta">@Model.ExperiencePanel.CurrentXp XP · Do następnej rangi: @Model.ExperiencePanel.XpToNext XP</p>
+                    <p class="xp-panel__meta">@string.Format(L["Home_Dashboard_XpPanel_Meta"].Value, Model.ExperiencePanel.CurrentXp, Model.ExperiencePanel.XpToNext)</p>
                     <ul class="xp-challenges">
                         @foreach (var challenge in Model.DailyChallenges)
                         {
@@ -59,13 +59,13 @@
                                 <label>
                                     <input type="checkbox" disabled @(challenge.IsCompleted ? "checked" : string.Empty) />
                                     <span>@challenge.Title</span>
-                                    <span class="xp-reward">+@challenge.RewardXp PD</span>
+                                    <span class="xp-reward">@string.Format(L["Home_Dashboard_DailyChallenges_Reward"].Value, challenge.RewardXp)</span>
                                 </label>
                             </li>
                         }
                         @if (!Model.DailyChallenges.Any())
                         {
-                            <li>Brak dzisiejszych wyzwań.</li>
+                            <li>@L["Home_Dashboard_DailyChallenges_Empty"].Value</li>
                         }
                     </ul>
                 </div>
@@ -76,8 +76,8 @@
 
 <section id="featured" class="home-section">
     <div class="home-section__header">
-        <h2>Polecane gry</h2>
-        <p>Odkryj świeże premiery i redakcyjne polecenia.</p>
+        <h2>@L["Home_Featured_Title"].Value</h2>
+        <p>@L["Home_Featured_Subtitle"].Value</p>
     </div>
     <div class="game-carousel" role="list">
         @foreach (var game in Model.FeaturedGames)
@@ -91,8 +91,8 @@
 
 <section class="home-section">
     <div class="home-section__header">
-        <h2>Najczęściej grane</h2>
-        <p>Gry, które teraz dominują serwery.</p>
+        <h2>@L["Home_Top_Title"].Value</h2>
+        <p>@L["Home_Top_Subtitle"].Value</p>
     </div>
     <div class="tag-filters" role="list">
         @foreach (var tag in Model.TopTags)
@@ -112,8 +112,8 @@
 {
     <section class="home-section">
         <div class="home-section__header">
-            <h2>Dla Ciebie</h2>
-            <p>Rekomendacje dobrane na podstawie Twojej aktywności.</p>
+            <h2>@L["Home_ForYou_Title"].Value</h2>
+            <p>@L["Home_ForYou_Subtitle"].Value</p>
         </div>
         <div class="game-grid">
             @foreach (var game in Model.ForYou)
@@ -125,8 +125,8 @@
 
     <section class="home-section">
         <div class="home-section__header">
-            <h2>Trendy teraz</h2>
-            <p>Najgorętsze gry z ostatnich 24 godzin.</p>
+            <h2>@L["Home_Trending_Title"].Value</h2>
+            <p>@L["Home_Trending_Subtitle"].Value</p>
         </div>
         <div class="game-grid">
             @foreach (var game in Model.Trending)
@@ -138,8 +138,8 @@
 
     <section class="home-section">
         <div class="home-section__header">
-            <h2>Aktywność znajomych</h2>
-            <p>Zobacz, co dzieje się w Twojej ekipie.</p>
+            <h2>@L["Home_FriendActivity_Title"].Value</h2>
+            <p>@L["Home_FriendActivity_Subtitle"].Value</p>
         </div>
         <ul class="activity-feed">
             @foreach (var entry in Model.FriendActivity)
@@ -153,15 +153,15 @@
             }
             @if (!Model.FriendActivity.Any())
             {
-                <li>Znajomi jeszcze nic nie zagrali. Zacznij nową sesję!</li>
+                <li>@L["Home_FriendActivity_Empty"].Value</li>
             }
         </ul>
     </section>
 
     <section class="home-section">
         <div class="home-section__header">
-            <h2>Dla twórców</h2>
-            <p>Dodaj swoją grę lub sprawdź ostatnie aktualizacje.</p>
+            <h2>@L["Home_Creator_Title"].Value</h2>
+            <p>@L["Home_Creator_Subtitle"].Value</p>
         </div>
         <div class="game-carousel" role="list">
             @foreach (var game in Model.CreatorHighlights)
@@ -171,41 +171,41 @@
                 </div>
             }
         </div>
-        <a class="btn-primary" asp-controller="Games" asp-action="Create">Dodaj grę</a>
+        <a class="btn-primary" asp-controller="Games" asp-action="Create">@L["Home_Creator_Cta"].Value</a>
     </section>
 }
 
 <section class="home-section home-benefits">
     <div class="home-section__header">
-        <h2>Dlaczego PlayGrid?</h2>
+        <h2>@L["Home_Benefits_Title"].Value</h2>
     </div>
     <div class="benefit-grid">
         <article>
-            <h3>Bez instalacji</h3>
-            <p>Graj natychmiast w przeglądarce na każdym urządzeniu.</p>
+            <h3>@L["Home_Benefits_NoInstall_Title"].Value</h3>
+            <p>@L["Home_Benefits_NoInstall_Description"].Value</p>
         </article>
         <article>
-            <h3>Gry społeczności</h3>
-            <p>Twórz drużyny, wyzwania i rywalizuj z najlepszymi.</p>
+            <h3>@L["Home_Benefits_Community_Title"].Value</h3>
+            <p>@L["Home_Benefits_Community_Description"].Value</p>
         </article>
         <article>
-            <h3>PD i rangi</h3>
-            <p>Zdobądź punkty doświadczenia i odblokuj unikalne rangi.</p>
+            <h3>@L["Home_Benefits_Ranks_Title"].Value</h3>
+            <p>@L["Home_Benefits_Ranks_Description"].Value</p>
         </article>
     </div>
 </section>
 
 <section class="home-section home-events">
     <div class="home-section__header">
-        <h2>Wydarzenia tygodnia</h2>
+        <h2>@L["Home_Events_Title"].Value</h2>
     </div>
     <div class="event-grid">
         @foreach (var evt in Model.WeeklyEvents)
         {
             <article>
                 <h3>@evt.Title</h3>
-                <p>Nagroda: @evt.Reward</p>
-                <time datetime="@evt.EndsAt.ToString("o")">Koniec @evt.EndsAt.ToLocalTime().ToString("dd.MM HH:mm")</time>
+                <p>@string.Format(L["Home_Events_Reward"].Value, evt.Reward)</p>
+                <time datetime="@evt.EndsAt.ToString("o")">@string.Format(L["Home_Events_End"].Value, evt.EndsAt.ToLocalTime().ToString("dd.MM HH:mm"))</time>
             </article>
         }
     </div>
@@ -213,8 +213,8 @@
 
 <section class="home-section home-community">
     <div class="community-panel">
-        <h2>Dołącz do społeczności</h2>
-        <p>Już <strong>@Model.CommunityMetrics.PlayersCount</strong> graczy i <strong>@Model.CommunityMetrics.GamesCount</strong> gier dostępnych w PlayGrid.</p>
-        <a class="btn-primary" asp-controller="Account" asp-action="Register">Zarejestruj się</a>
+        <h2>@L["Home_Community_Title"].Value</h2>
+        <p>@Html.Raw(string.Format(L["Home_Community_Description"].Value, Model.CommunityMetrics.PlayersCount, Model.CommunityMetrics.GamesCount))</p>
+        <a class="btn-primary" asp-controller="Account" asp-action="Register">@L["Home_Community_Cta"].Value</a>
     </div>
 </section>

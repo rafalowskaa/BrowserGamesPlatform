@@ -3545,5 +3545,179 @@
 </data>
 	<data name="Language_Switcher_Label" xml:space="preserve">
   <value>Wybierz język</value>
+		</data>
+	<data name="Home_Title_Authenticated" xml:space="preserve">
+  <value>Witaj ponownie</value>
+</data>
+	<data name="Home_Title_Guest" xml:space="preserve">
+  <value>Start</value>
+</data>
+	<data name="Home_Hero_Title" xml:space="preserve">
+  <value>Graj w przeglądarce. Twórz. Rywalizuj.</value>
+</data>
+	<data name="Home_Hero_Subtitle" xml:space="preserve">
+  <value>PlayGrid to społeczność twórców i graczy. Odkrywaj nowe tytuły, dołączaj do wydarzeń i rozwijaj swój profil.</value>
+</data>
+	<data name="Home_Hero_Cta_Play" xml:space="preserve">
+  <value>Zagraj teraz</value>
+</data>
+	<data name="Home_Hero_Cta_Register" xml:space="preserve">
+  <value>Dołącz za darmo</value>
+</data>
+	<data name="Home_GameOfTheDay_Label" xml:space="preserve">
+  <value>Gra dnia</value>
+</data>
+	<data name="Home_Dashboard_Welcome_Title" xml:space="preserve">
+  <value>Witaj ponownie</value>
+</data>
+	<data name="Home_Dashboard_Welcome_Description" xml:space="preserve">
+  <value>Kontynuuj rozgrywkę i zgarniaj PD.</value>
+</data>
+	<data name="Home_Dashboard_Continue_Playing_Title" xml:space="preserve">
+  <value>Kontynuuj grę</value>
+</data>
+	<data name="Home_Dashboard_Continue_Playing_Empty" xml:space="preserve">
+  <value>Brak ostatnio rozpoczętych gier.</value>
+</data>
+	<data name="Home_Dashboard_XpPanel_Title" xml:space="preserve">
+  <value>Panel PD</value>
+</data>
+	<data name="Home_Dashboard_XpPanel_Rank" xml:space="preserve">
+  <value>Ranga: {0}</value>
+</data>
+	<data name="Home_Dashboard_XpPanel_Progress_Aria" xml:space="preserve">
+  <value>Postęp do kolejnej rangi</value>
+</data>
+	<data name="Home_Dashboard_XpPanel_Meta" xml:space="preserve">
+  <value>{0} XP · Do następnej rangi: {1} XP</value>
+</data>
+	<data name="Home_Dashboard_DailyChallenges_Empty" xml:space="preserve">
+  <value>Brak dzisiejszych wyzwań.</value>
+</data>
+	<data name="Home_Dashboard_DailyChallenges_Reward" xml:space="preserve">
+  <value>+{0} PD</value>
+</data>
+	<data name="Home_Featured_Title" xml:space="preserve">
+  <value>Polecane gry</value>
+</data>
+	<data name="Home_Featured_Subtitle" xml:space="preserve">
+  <value>Odkryj świeże premiery i redakcyjne polecenia.</value>
+</data>
+	<data name="Home_Top_Title" xml:space="preserve">
+  <value>Najczęściej grane</value>
+</data>
+	<data name="Home_Top_Subtitle" xml:space="preserve">
+  <value>Gry, które teraz dominują serwery.</value>
+</data>
+	<data name="Home_ForYou_Title" xml:space="preserve">
+  <value>Dla Ciebie</value>
+</data>
+	<data name="Home_ForYou_Subtitle" xml:space="preserve">
+  <value>Rekomendacje dobrane na podstawie Twojej aktywności.</value>
+</data>
+	<data name="Home_Trending_Title" xml:space="preserve">
+  <value>Trendy teraz</value>
+</data>
+	<data name="Home_Trending_Subtitle" xml:space="preserve">
+  <value>Najgorętsze gry z ostatnich 24 godzin.</value>
+</data>
+	<data name="Home_FriendActivity_Title" xml:space="preserve">
+  <value>Aktywność znajomych</value>
+</data>
+	<data name="Home_FriendActivity_Subtitle" xml:space="preserve">
+  <value>Zobacz, co dzieje się w Twojej ekipie.</value>
+</data>
+	<data name="Home_FriendActivity_Empty" xml:space="preserve">
+  <value>Znajomi jeszcze nic nie zagrali. Zacznij nową sesję!</value>
+</data>
+	<data name="Home_FriendActivity_Action" xml:space="preserve">
+  <value>zagrał w</value>
+</data>
+	<data name="Home_Creator_Title" xml:space="preserve">
+  <value>Dla twórców</value>
+</data>
+	<data name="Home_Creator_Subtitle" xml:space="preserve">
+  <value>Dodaj swoją grę lub sprawdź ostatnie aktualizacje.</value>
+</data>
+	<data name="Home_Creator_Cta" xml:space="preserve">
+  <value>Dodaj grę</value>
+</data>
+	<data name="Home_Benefits_Title" xml:space="preserve">
+  <value>Dlaczego PlayGrid?</value>
+</data>
+	<data name="Home_Benefits_NoInstall_Title" xml:space="preserve">
+  <value>Bez instalacji</value>
+</data>
+	<data name="Home_Benefits_NoInstall_Description" xml:space="preserve">
+  <value>Graj natychmiast w przeglądarce na każdym urządzeniu.</value>
+</data>
+	<data name="Home_Benefits_Community_Title" xml:space="preserve">
+  <value>Gry społeczności</value>
+</data>
+	<data name="Home_Benefits_Community_Description" xml:space="preserve">
+  <value>Twórz drużyny, wyzwania i rywalizuj z najlepszymi.</value>
+</data>
+	<data name="Home_Benefits_Ranks_Title" xml:space="preserve">
+  <value>PD i rangi</value>
+</data>
+	<data name="Home_Benefits_Ranks_Description" xml:space="preserve">
+  <value>Zdobądź punkty doświadczenia i odblokuj unikalne rangi.</value>
+</data>
+	<data name="Home_Events_Title" xml:space="preserve">
+  <value>Wydarzenia tygodnia</value>
+</data>
+	<data name="Home_Events_Reward" xml:space="preserve">
+  <value>Nagroda: {0}</value>
+</data>
+	<data name="Home_Events_End" xml:space="preserve">
+  <value>Koniec {0}</value>
+</data>
+	<data name="Home_Community_Title" xml:space="preserve">
+  <value>Dołącz do społeczności</value>
+</data>
+	<data name="Home_Community_Description" xml:space="preserve">
+  <value>Już &lt;strong&gt;{0}&lt;/strong&gt; graczy i &lt;strong&gt;{1}&lt;/strong&gt; gier dostępnych w PlayGrid.</value>
+</data>
+	<data name="Home_Community_Cta" xml:space="preserve">
+  <value>Zarejestruj się</value>
+</data>
+	<data name="Home_Challenge_Play" xml:space="preserve">
+  <value>Zagraj w dowolną grę</value>
+</data>
+	<data name="Home_Challenge_Rate" xml:space="preserve">
+  <value>Oceń ulubioną produkcję</value>
+</data>
+	<data name="Home_Challenge_Share" xml:space="preserve">
+  <value>Udostępnij grę znajomemu</value>
+</data>
+	<data name="Home_Event_TournamentSprint_Title" xml:space="preserve">
+  <value>Sprint turniejowy</value>
+</data>
+	<data name="Home_Event_TournamentSprint_Reward" xml:space="preserve">
+  <value>+50 PD</value>
+</data>
+	<data name="Home_Event_CreatorBattle_Title" xml:space="preserve">
+  <value>Bitwa twórców</value>
+</data>
+	<data name="Home_Event_CreatorBattle_Reward" xml:space="preserve">
+  <value>Ekskluzywny skin</value>
+</data>
+	<data name="Home_Event_RankedMarathon_Title" xml:space="preserve">
+  <value>Maraton rankingowy</value>
+</data>
+	<data name="Home_Event_RankedMarathon_Reward" xml:space="preserve">
+  <value>+100 PD</value>
+</data>
+	<data name="Home_Rank_Grandmaster" xml:space="preserve">
+  <value>Arcymistrz</value>
+</data>
+	<data name="Home_Rank_Veteran" xml:space="preserve">
+  <value>Weteran</value>
+</data>
+	<data name="Home_Rank_Adept" xml:space="preserve">
+  <value>Adept</value>
+</data>
+	<data name="Home_Rank_Novice" xml:space="preserve">
+  <value>Nowicjusz</value>
 </data>
 </root>

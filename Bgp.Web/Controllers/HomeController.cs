@@ -2,7 +2,7 @@ using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Identity;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Helpers;
-using Bgp.Web.Models;
+using Bgp.Web.Resources;
 using Bgp.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Localization;
 
 namespace Bgp.Web.Controllers;
 
@@ -20,11 +21,13 @@ public class HomeController : Controller
 {
     private readonly AppDbContext _db;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
-    public HomeController(AppDbContext db, UserManager<ApplicationUser> userManager)
+    public HomeController(AppDbContext db, UserManager<ApplicationUser> userManager, IStringLocalizer<SharedResource> localizer)
     {
         _db = db;
         _userManager = userManager;
+        _localizer = localizer;
     }
 
     public async Task<IActionResult> Index()
@@ -49,8 +52,8 @@ public class HomeController : Controller
             IsAuthenticated = false,
             Hero = new HeroViewModel
             {
-                Title = "Graj w przegl¹darce. Twórz. Rywalizuj.",
-                Subtitle = "PlayGrid to spo³ecznoœæ twórców i graczy. Odkrywaj nowe tytu³y, do³¹czaj do wydarzeñ i rozwijaj swój profil.",
+                Title = _localizer["Home_Hero_Title"].Value,
+                Subtitle = _localizer["Home_Hero_Subtitle"].Value,
                 BackgroundImage = "/img/branding/hero-collage.svg"
             },
             GameOfTheDay = featured.FirstOrDefault(),
@@ -136,7 +139,7 @@ public class HomeController : Controller
         var since = DateTime.UtcNow.AddDays(-1);
         var topIds = await _db.Scores
             .AsNoTracking()
-            .Where(s => s.CreatedAtUtc >= since)
+            .Where(s => s.SubmittedAtUtc >= since)
             .GroupBy(s => s.GameId)
             .OrderByDescending(g => g.Count())
             .Select(g => g.Key)
@@ -176,7 +179,7 @@ public class HomeController : Controller
         var recentIds = await _db.Scores
             .AsNoTracking()
             .Where(s => s.UserId == user.Id)
-            .OrderByDescending(s => s.CreatedAtUtc)
+            .OrderByDescending(s => s.SubmittedAtUtc)
             .Select(s => s.GameId)
             .Distinct()
             .Take(limit)
@@ -248,16 +251,16 @@ public class HomeController : Controller
         var feed = await _db.Scores
             .AsNoTracking()
             .Where(s => friendIds.Contains(s.UserId))
-            .OrderByDescending(s => s.CreatedAtUtc)
+            .OrderByDescending(s => s.SubmittedAtUtc)
             .Take(limit)
             .Join(_db.Users.AsNoTracking(), s => s.UserId, u => u.Id, (s, u) => new { s, u })
             .Join(_db.Games.AsNoTracking(), su => su.s.GameId, g => g.Id, (su, g) => new ActivityFeedItemViewModel
             {
                 ActorName = DisplayNameFormatter.Format(su.u.DisplayName, su.u.Email, su.u.UserName, su.u.Id),
-                Action = "zagra³ w",
+                Action = _localizer["Home_FriendActivity_Action"].Value,
                 TargetName = g.Title,
                 TargetSlug = g.Slug,
-                When = su.s.CreatedAtUtc
+                When = su.s.SubmittedAtUtc
             })
             .ToListAsync();
 
@@ -268,10 +271,10 @@ public class HomeController : Controller
     {
         var rankName = xp switch
         {
-            >= 500 => "Arcymistrz",
-            >= 200 => "Weteran",
-            >= 50 => "Adept",
-            _ => "Nowicjusz"
+            >= 500 => _localizer["Home_Rank_Grandmaster"].Value,
+            >= 200 => _localizer["Home_Rank_Veteran"].Value,
+            >= 50 => _localizer["Home_Rank_Adept"].Value,
+            _ => _localizer["Home_Rank_Novice"].Value
         };
 
         var nextThreshold = xp switch
@@ -309,9 +312,9 @@ public class HomeController : Controller
     {
         return new List<DailyChallengeViewModel>
         {
-            new() { Key = "challenge-play", Title = "Zagraj w dowoln¹ grê", RewardXp = 10, IsCompleted = false },
-            new() { Key = "challenge-rate", Title = "Oceñ ulubion¹ produkcjê", RewardXp = 10, IsCompleted = false },
-            new() { Key = "challenge-share", Title = "Udostêpnij grê znajomemu", RewardXp = 10, IsCompleted = false }
+           new() { Key = "challenge-play", Title = _localizer["Home_Challenge_Play"].Value, RewardXp = 10, IsCompleted = false },
+            new() { Key = "challenge-rate", Title = _localizer["Home_Challenge_Rate"].Value, RewardXp = 10, IsCompleted = false },
+            new() { Key = "challenge-share", Title = _localizer["Home_Challenge_Share"].Value, RewardXp = 10, IsCompleted = false }
         };
     }
 
@@ -320,9 +323,9 @@ public class HomeController : Controller
         var now = DateTime.UtcNow;
         return new List<EventHighlightViewModel>
         {
-            new() { Title = "Sprint turniejowy", Reward = "+50 PD", EndsAt = now.AddDays(3) },
-            new() { Title = "Bitwa twórców", Reward = "Ekskluzywny skin", EndsAt = now.AddDays(5) },
-            new() { Title = "Maraton rankingowy", Reward = "+100 PD", EndsAt = now.AddDays(7) }
+            new() { Title = _localizer["Home_Event_TournamentSprint_Title"].Value, Reward = _localizer["Home_Event_TournamentSprint_Reward"].Value, EndsAt = now.AddDays(3) },
+            new() { Title = _localizer["Home_Event_CreatorBattle_Title"].Value, Reward = _localizer["Home_Event_CreatorBattle_Reward"].Value, EndsAt = now.AddDays(5) },
+            new() { Title = _localizer["Home_Event_RankedMarathon_Title"].Value, Reward = _localizer["Home_Event_RankedMarathon_Reward"].Value, EndsAt = now.AddDays(7) }
         };
     }
 
