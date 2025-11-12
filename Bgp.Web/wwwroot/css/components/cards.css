@@ -1,0 +1,100 @@
+﻿.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: var(--space-md);
+}
+
+@media (max-width: 48rem) {
+    .grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.card {
+    border: 1px solid #1f2937;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: var(--space-sm);
+    background: var(--card);
+}
+
+    .card img {
+        width: 100%;
+        height: 8.75rem;
+        object-fit: cover;
+        border-radius: 0.625rem;
+    }
+
+    .card h3 {
+        margin: 0.625rem 0 0.25rem;
+    }
+
+.panel {
+    margin: var(--space-md) 0;
+    padding: var(--space-sm);
+    border: 1px solid #1f2937;
+    border-radius: var(--radius);
+    background: var(--card);
+}
+
+.two-column {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+}
+
+.stats-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 0;
+    margin: 0;
+}
+
+    .stats-list li {
+        border: 1px solid #1f2937;
+        border-radius: var(--radius);
+        padding: 1rem;
+        background: rgba(15, 23, 42, 0.6);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .stats-list span {
+        color: #cbd5e1;
+        font-size: 0.875rem;
+    }
+
+    .stats-list strong {
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+
+.placeholder {
+    color: #94a3b8;
+}
+
+.empty {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.avatar-small.placeholder {
+    background: #273244;
+}
+
+.game-meta {
+    color: #94a3b8;
+    font-size: 0.8125rem;
+}
+
+.game-note {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius);
+    background: rgba(239, 68, 68, 0.12);
+    color: #fecaca;
+    font-size: 0.8125rem;
+}

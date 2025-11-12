@@ -1,0 +1,144 @@
+﻿.nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+}
+
+.nav-main {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex: 1 1 15rem;
+}
+
+.nav-tabs {
+    display: flex;
+    flex: 1;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+}
+
+.nav-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-align: center;
+    padding: 0.625rem 0.875rem;
+    min-height: 2.75rem;
+    border-radius: var(--radius);
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    color: #e2e8f0;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.45);
+}
+
+    .nav-tab:hover {
+        background: rgba(30, 41, 59, 0.95);
+        border-color: rgba(148, 197, 255, 0.5);
+        transform: translateY(-1px);
+    }
+
+    .nav-tab.active {
+        background: rgba(30, 64, 175, 0.9);
+        border-color: rgba(191, 219, 254, 0.65);
+        color: #f8fafc;
+    }
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-left: auto;
+}
+
+    .nav-actions form {
+        margin: 0;
+    }
+
+    .nav-actions a {
+        color: #fff;
+        text-decoration: none;
+        opacity: 0.95;
+    }
+
+    .nav-actions .btn-link {
+        color: #fff;
+        opacity: 0.95;
+    }
+
+        .nav-actions a:hover,
+        .nav-actions .btn-link:hover {
+            opacity: 1;
+        }
+
+.language-switcher {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-2xs);
+    align-items: center;
+}
+
+.lang-toggle {
+    display: flex;
+    padding: 0.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+    .lang-toggle:hover {
+        border-color: rgba(255, 255, 255, 0.65);
+    }
+
+    .lang-toggle.active {
+        border-color: #fff;
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .lang-toggle img {
+        width: 1.75rem;
+        height: 1.25rem;
+        display: block;
+        border-radius: 0.1875rem;
+    }
+
+.user-greeting {
+    color: #fff;
+    font-size: 0.875rem;
+}
+
+@media (max-width: 60rem) {
+    .nav-main {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-sm);
+    }
+
+    .nav-tabs {
+        width: 100%;
+    }
+
+    .nav-actions {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: var(--space-xs);
+    }
+
+        .nav-actions form,
+        .nav-actions a {
+            font-size: 1rem;
+        }
+}
+
+@media (min-width: 90rem) {
+    .nav {
+        gap: var(--space-xl);
+    }
+}

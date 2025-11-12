@@ -1,0 +1,17 @@
+﻿.muted {
+    color: #94a3b8;
+    font-size: 0.8125rem;
+}
+
+details summary {
+    cursor: pointer;
+    color: #cbd5e1;
+}
+
+details[open] summary {
+    margin-bottom: 0.5rem;
+}
+
+.is-hidden {
+    display: none !important;
+}
