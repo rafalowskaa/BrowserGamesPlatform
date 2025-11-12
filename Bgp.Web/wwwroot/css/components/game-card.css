@@ -16,11 +16,21 @@
     padding: 0 var(--space-4);
 }
 
-.app-header__brand img {
-    display: block;
-    height: 2.5rem;
-    width: auto;
+.app-header__brand {
+    display: inline-flex;
+    align-items: center;
+    perspective: 900px;
 }
+
+    .app-header__brand img {
+        display: block;
+        height: 2.5rem;
+        width: auto;
+        transform-origin: center;
+        transform-style: preserve-3d;
+        animation: playgrid-axis-spin 10s ease-in-out infinite;
+        will-change: transform;
+    }
 
 .app-header__center {
     display: flex;
@@ -437,5 +447,33 @@
 
     100% {
         transform: translateX(100%);
+    }
+}
+
+@keyframes playgrid-axis-spin {
+    0% {
+        transform: rotateY(0deg);
+    }
+
+    20% {
+        transform: rotateY(18deg);
+    }
+
+    50% {
+        transform: rotateY(0deg);
+    }
+
+    75% {
+        transform: rotateY(-18deg);
+    }
+
+    100% {
+        transform: rotateY(0deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-header__brand img {
+        animation: none;
     }
 }

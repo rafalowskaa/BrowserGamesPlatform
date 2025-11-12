@@ -151,32 +151,82 @@
             return;
         }
 
-        const templates = Array.from(items);
-        const hasLoop = templates.length > 1;
-        if (hasLoop) {
-            const firstClone = templates[0].cloneNode(true);
-            const lastClone = templates[templates.length - 1].cloneNode(true);
-            track.insertBefore(lastClone, templates[0]);
-            track.appendChild(firstClone);
-        }
-
-        items = Array.from(track.children);
-        track.dataset.loopReady = 'true';
+        const templateSources = items.map(item => item.cloneNode(true));
+        const templateCount = templateSources.length;
+        const hasLoop = templateCount > 1;
 
         let itemWidth = 0;
         let gap = 0;
         let autoTimer = null;
+        let leadingClones = 0;
+        let trailingClones = 0;
         let firstRealIndex = 0;
-        let lastRealIndex = 0;
+        let lastRealIndex = templateCount - 1;
         let currentIndex = 0;
 
         const prevButton = carousel.querySelector('[data-featured-prev]');
         const nextButton = carousel.querySelector('[data-featured-next]');
 
+        function refreshItems() {
+            items = Array.from(track.children);
+        }
+
+        function cloneTemplate(index) {
+            if (!templateCount) {
+                return null;
+            }
+            const normalized = ((index % templateCount) + templateCount) % templateCount;
+            const source = templateSources[normalized];
+            if (!source) {
+                return null;
+            }
+            const clone = source.cloneNode(true);
+            clone.dataset.carouselClone = 'true';
+            return clone;
+        }
+
+        function addLeadingClone(templateIndex) {
+            if (!hasLoop) {
+                return;
+            }
+            const clone = cloneTemplate(templateIndex);
+            if (!clone) {
+                return;
+            }
+            const targetIndex = Math.min(leadingClones, items.length);
+            const insertBeforeNode = items[targetIndex] || items[0] || null;
+            track.insertBefore(clone, insertBeforeNode);
+            leadingClones += 1;
+            refreshItems();
+        }
+
+        function addTrailingClone(templateIndex) {
+            if (!hasLoop) {
+                return;
+            }
+            const clone = cloneTemplate(templateIndex);
+            if (!clone) {
+                return;
+            }
+            const anchorIndex = Math.max(0, items.length - trailingClones);
+            const anchorNode = items[anchorIndex] || null;
+            track.insertBefore(clone, anchorNode);
+            trailingClones += 1;
+            refreshItems();
+        }
+
+        if (hasLoop) {
+            addLeadingClone(templateCount - 1);
+            addTrailingClone(0);
+        }
+
+        track.dataset.loopReady = 'true';
+
         function updateBounds() {
+            refreshItems();
             if (hasLoop) {
-                firstRealIndex = 1;
-                lastRealIndex = items.length - 2;
+                firstRealIndex = leadingClones;
+                lastRealIndex = Math.max(leadingClones, items.length - trailingClones - 1);
             } else {
                 firstRealIndex = 0;
                 lastRealIndex = items.length - 1;
@@ -187,10 +237,8 @@
             }
         }
 
-        updateBounds();
-
-        function measure() {
-            const referenceIndex = hasLoop ? firstRealIndex : 0;
+        refreshItems();
+        const referenceIndex = Math.min(Math.max(firstRealIndex, 0), items.length - 1);
             const reference = items[referenceIndex];
             if (!reference) {
                 itemWidth = 0;
@@ -206,9 +254,12 @@
         }
 
         function ensureFill() {
-            if (!hasLoop) {
+            if (!hasLoop || !templateCount) {
                 return;
             }
+
+            refreshItems();
+
 
             if (!itemWidth) {
                 measure();
@@ -220,22 +271,17 @@
                 return;
             }
 
-            const visibleNeeded = Math.ceil(viewportWidth / singleWidth);
-            const requiredReal = Math.max(visibleNeeded + 1, templates.length);
-            let currentReal = items.length - 2;
+            const visibleNeeded = Math.max(1, Math.ceil(viewportWidth / singleWidth));
+            const targetClones = Math.max(visibleNeeded + 1, 2);
 
-            if (currentReal >= requiredReal) {
-                return;
+            while (leadingClones < targetClones) {
+                addLeadingClone(templateCount - 1 - (leadingClones % templateCount));
             }
 
-            const anchor = track.lastElementChild;
-            for (let i = currentReal; i < requiredReal; i++) {
-                const template = templates[i % templates.length];
-                const clone = template.cloneNode(true);
-                track.insertBefore(clone, anchor);
+            while (trailingClones < targetClones) {
+                addTrailingClone(trailingClones % templateCount);
             }
 
-            items = Array.from(track.children);
             updateBounds();
         }
 
@@ -259,12 +305,13 @@
 
         }
 
-        function step(delta) {
+    function step(delta) {
+        if (!items.length) {
+            return;
+        }
             if (!hasLoop) {
                 const total = items.length;
-                if (!total) {
-                    return;
-                }
+               
                 const nextIndex = (currentIndex + delta) % total;
                 currentIndex = (nextIndex + total) % total;
                 applyTransform();
@@ -272,17 +319,20 @@
             }
 
             currentIndex += delta;
-            applyTransform();
+        applyTransform();
+
+    }
+
+    function handleLoopBoundary(event) {
+        if (!hasLoop || event.target !== track || event.propertyName !== 'transform') {
+            return;
+        }
 
             if (currentIndex > lastRealIndex) {
-                track.addEventListener('transitionend', () => {
-                    goTo(firstRealIndex, false);
-                }, { once: true });
+                goTo(firstRealIndex, false);
             } else if (currentIndex < firstRealIndex) {
-                track.addEventListener('transitionend', () => {
-                    goTo(lastRealIndex, false);
-                }, { once: true });
-            } 
+                goTo(lastRealIndex, false);
+            }
 
         }
 
@@ -330,6 +380,11 @@
             measure();
             applyTransform(false);
         });
+
+    track.addEventListener('transitionend', handleLoopBoundary);
+
+    updateBounds();
+    currentIndex = firstRealIndex;
 
         measure();
         ensureFill();

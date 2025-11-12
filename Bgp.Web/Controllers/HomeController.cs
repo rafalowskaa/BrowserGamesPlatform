@@ -2,6 +2,7 @@ using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Identity;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Helpers;
+using Bgp.Web.Models;
 using Bgp.Web.Resources;
 using Bgp.Web.ViewModels;
 using Bgp.Web.Services;
@@ -321,8 +322,99 @@ public class HomeController : Controller
             return new ExperiencePanelViewModel();
         }
 
-        var xp = await _db.Scores.CountAsync(s => s.UserId == user.Id) * 10;
+        var stats = await BuildUserStatsSnapshotAsync(user);
+        var xp = RankCalculator.CalculateExperiencePoints(stats);
         return BuildExperiencePanel(xp);
+    }
+
+    private async Task<DashboardStatsViewModel> BuildUserStatsSnapshotAsync(ApplicationUser user)
+    {
+        var stats = new DashboardStatsViewModel
+        {
+            UploadedGames = await _db.Games.CountAsync(g => g.CreatedByUserId == user.Id),
+            TotalScores = await _db.Scores.CountAsync(s => s.UserId == user.Id),
+            TotalReviews = await _db.GameReviews.CountAsync(r => r.UserId == user.Id),
+            FriendsCount = await _db.Friendships.CountAsync(f =>
+                f.Status == FriendshipStatus.Accepted &&
+                (f.RequesterId == user.Id || f.AddresseeId == user.Id))
+        };
+
+        var userScoreGroups = await _db.Scores
+            .AsNoTracking()
+            .Where(s => s.UserId == user.Id)
+            .GroupBy(s => s.GameId)
+            .Select(g => new
+            {
+                GameId = g.Key,
+                PlayCount = g.Count(),
+                BestScore = g.Max(x => x.Value),
+                LastPlayedAt = g.Max(x => x.SubmittedAtUtc)
+            })
+            .ToListAsync();
+
+        if (userScoreGroups.Count > 0)
+        {
+            var gameIds = userScoreGroups.Select(g => g.GameId).ToArray();
+
+            var gameTitles = await _db.Games
+                .AsNoTracking()
+                .Where(g => gameIds.Contains(g.Id))
+                .Select(g => new { g.Id, g.Title })
+                .ToDictionaryAsync(g => g.Id, g => g.Title ?? string.Empty);
+
+            var bestScores = await _db.Scores
+                .AsNoTracking()
+                .Where(s => gameIds.Contains(s.GameId))
+                .GroupBy(s => new { s.GameId, s.UserId })
+                .Select(g => new
+                {
+                    g.Key.GameId,
+                    g.Key.UserId,
+                    BestScore = g.Max(x => x.Value)
+                })
+                .ToListAsync();
+
+            var performances = new List<GamePerformanceStat>(userScoreGroups.Count);
+
+            foreach (var entry in userScoreGroups)
+            {
+                var scoreboard = bestScores
+                    .Where(bs => bs.GameId == entry.GameId)
+                    .OrderByDescending(bs => bs.BestScore)
+                    .ToList();
+
+                var totalPlayers = Math.Max(1, scoreboard.Count);
+                var rankPosition = scoreboard.FindIndex(bs => bs.UserId == user.Id) + 1;
+                if (rankPosition <= 0)
+                {
+                    rankPosition = totalPlayers;
+                }
+
+                var title = gameTitles.TryGetValue(entry.GameId, out var name) ? name : string.Empty;
+
+                performances.Add(new GamePerformanceStat(
+                    entry.GameId,
+                    title,
+                    entry.PlayCount,
+                    entry.BestScore,
+                    rankPosition,
+                    totalPlayers,
+                    entry.LastPlayedAt));
+            }
+
+            if (performances.Count > 0)
+            {
+                stats.GamePerformances = performances;
+                stats.LastScoreSubmittedAt = performances.Max(p => p.LastPlayedAt);
+            }
+        }
+
+        if (stats.LastScoreSubmittedAt is null && userScoreGroups.Count > 0)
+        {
+            stats.LastScoreSubmittedAt = userScoreGroups.Max(g => g.LastPlayedAt);
+        }
+
+        return stats;
     }
 
     private IReadOnlyList<DailyChallengeViewModel> FetchDailyChallengesFallback()
