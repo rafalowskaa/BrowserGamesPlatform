@@ -1,32 +1,58 @@
 ﻿(function () {
-    const observer = new IntersectionObserver((entries, obs) => {
-        entries.forEach(entry => {
-            if (!entry.isIntersecting) {
-                return;
-            }
-            const img = entry.target;
-            const source = img.getAttribute('data-src');
-            if (source) {
-                img.src = source;
-                img.srcset = `${source} 1x`;
-                img.removeAttribute('data-src');
-            }
-            obs.unobserve(img);
-        });
-    }, {
-        rootMargin: '200px 0px'
-    });
+    const supportLazy = 'loading' in HTMLImageElement.prototype;
 
-    document.querySelectorAll('[data-game-card-img]').forEach(img => {
-        if ('loading' in HTMLImageElement.prototype) {
-            const source = img.getAttribute('data-src');
-            if (source) {
-                img.src = source;
-                img.srcset = `${source} 1x`;
-                img.removeAttribute('data-src');
-            }
+    const observer = !supportLazy
+        ? new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) {
+                    return;
+                }
+                hydrateImage(entry.target);
+                obs.unobserve(entry.target);
+            });
+        }, { rootMargin: '200px 0px' })
+        : null;
+
+    function hydrateImage(img) {
+        if (!img || img.dataset.processed === 'true') {
             return;
         }
-        observer.observe(img);
-    });
+
+        const source = img.getAttribute('data-src');
+        const sourceSet = img.getAttribute('data-srcset');
+        if (source) {
+            img.src = source;
+            img.removeAttribute('data-src');
+        }
+        if (sourceSet) {
+            img.srcset = sourceSet;
+            img.removeAttribute('data-srcset');
+        } else if (source && !img.srcset) {
+            img.srcset = `${source} 1x`;
+        }
+        img.dataset.processed = 'true';
+    }
+
+    function scanImages(images) {
+        const nodes = images || document.querySelectorAll('[data-game-card-img]');
+        nodes.forEach(img => {
+            if (supportLazy) {
+                hydrateImage(img);
+            } else if (observer) {
+                observer.observe(img);
+            }
+        });
+    }
+
+    window.playgridRefreshGameCardImages = function (images) {
+        if (images instanceof NodeList || Array.isArray(images)) {
+            scanImages(images);
+        } else if (images) {
+            scanImages([images]);
+        } else {
+            scanImages();
+        }
+    };
+
+    scanImages();
 })();

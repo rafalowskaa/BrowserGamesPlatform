@@ -3731,16 +3731,16 @@
   <value>+{0} XP</value>
 </data>
 	<data name="Home_Featured_Title" xml:space="preserve">
-  <value>Featured games</value>
+  <value>Highlights</value>
 </data>
 	<data name="Home_Featured_Subtitle" xml:space="preserve">
-  <value>Discover fresh releases and editorial picks.</value>
+  <value>Curated picks from our editors.</value>
 </data>
 	<data name="Home_Top_Title" xml:space="preserve">
-  <value>Most played</value>
+  <value>Popular now</value>
 </data>
 	<data name="Home_Top_Subtitle" xml:space="preserve">
-  <value>Games dominating the servers right now.</value>
+  <value>Based on the last 24 hours of play.</value>
 </data>
 	<data name="Home_ForYou_Title" xml:space="preserve">
   <value>For you</value>
@@ -3853,4 +3853,37 @@
 	<data name="Home_Rank_Novice" xml:space="preserve">
   <value>Novice</value>
 </data>
+	<data name="Home_Hero_Headline">
+		<value>Play in your browser. Create. Compete.</value>
+	</data>
+	<data name="Home_Hero_Description">
+		<value>No installs, just play community games. Build worlds and climb leaderboards.</value>
+	</data>
+	<data name="Home_Hero_Cta_Browse">
+		<value>Browse games</value>
+	</data>
+	<data name="Home_Section_ViewMore">
+		<value>See more</value>
+	</data>
+	<data name="Home_Events_Cta">
+		<value>Register to join</value>
+	</data>
+	<data name="Home_Popular_Empty">
+		<value>No trending games for this tag yet.</value>
+	</data>
+	<data name="Home_Game_PlayNow">
+		<value>Play now</value>
+	</data>
+	<data name="Home_Game_Play">
+		<value>Play</value>
+	</data>
+	<data name="Home_Game_Details">
+		<value>Details</value>
+	</data>
+	<data name="Home_Game_New">
+		<value>New</value>
+	</data>
+	<data name="Home_Game_Rating">
+		<value>Rating {0} out of 5 from {1} reviews.</value>
+	</data>
 </root>

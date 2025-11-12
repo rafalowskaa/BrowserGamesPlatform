@@ -1,22 +1,30 @@
 ﻿:root {
-    --primary: #3b82f6;
-    --accent: #8b5cf6;
-    --bg: #0b0f1a;
-    --card: #141a28;
-    --text: #e5e7eb;
-    --muted: #94a3b8;
-    --radius: 0.75rem;
-    --radius-sm: 0.5rem;
-    --radius-lg: 1rem;
-    --shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-    --space-2xs: 0.5rem;
-    --space-xs: 0.75rem;
-    --space-sm: 1rem;
-    --space-md: 1.5rem;
-    --space-lg: 2rem;
-    --space-xl: 3rem;
+    --primary: #4c6fff;
+    --accent: #9f6bff;
+    --bg: #0d1220;
+    --bg-soft: #12192b;
+    --card: rgba(22, 28, 45, 0.92);
+    --card-strong: #1a2136;
+    --border-soft: rgba(157, 180, 255, 0.16);
+    --border-strong: rgba(157, 180, 255, 0.28);
+    --color-text-primary: #c9d2e8;
+    --color-text-strong: #eaf0ff;
+    --color-text-subtle: rgba(201, 210, 232, 0.65);
+    --color-link: #9db4ff;
+    --color-link-hover: #c6d4ff;
+    --shadow-soft: 0 20px 50px rgba(2, 6, 23, 0.45);
+    --shadow-hover: 0 24px 60px rgba(2, 6, 23, 0.55);
+    --radius-xs: 0.5rem;
+    --radius-sm: 0.75rem;
+    --radius: 1rem;
+    --radius-lg: 1.5rem;
+    --space-1: 0.5rem;
+    --space-2: 1rem;
+    --space-3: 1.5rem;
+    --space-4: 2rem;
+    --space-5: 3rem;
     --container-max: 80rem;
-    --success: #22c55e;
+    --success: #39d98a;
     --form-control-padding-block: 0.55rem;
     --form-control-padding-inline: 0.875rem;
     --form-control-min-height: 2.625rem;
@@ -35,11 +43,12 @@ html {
 
 body {
     margin: 0;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, sans-serif;
-    font-size: clamp(1rem, 0.975rem + 0.25vw, 1.1rem);
+    font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    font-size: 1rem;
     line-height: 1.6;
-    color: var(--text);
-    background: var(--bg);
+    color: var(--color-text-primary);
+    background: radial-gradient(120% 120% at 50% -20%, rgba(157, 180, 255, 0.08), rgba(13, 18, 32, 0)) var(--bg);
+    background-color: var(--bg);
     text-rendering: optimizeLegibility;
 }
 
@@ -56,30 +65,51 @@ textarea {
 
 p {
     margin-top: 0;
-    margin-bottom: var(--space-sm);
-    line-height: 1.7;
+    margin-bottom: var(--space-2);
+    line-height: 1.6;
+    color: var(--color-text-primary);
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-weight: 600;
+    color: var(--color-text-strong);
+    margin-top: 0;
 }
 
 h1 {
-    margin: 0 0 var(--space-sm);
-    font-size: clamp(1.75rem, 1.5vw + 1rem, 2.5rem);
-    line-height: 1.2;
+    margin-bottom: var(--space-2);
+    font-size: clamp(2.5rem, 2rem + 1.2vw, 3rem);
+    line-height: 1.17;
 }
 
 h2 {
-    margin: 0 0 var(--space-xs);
-    font-size: clamp(1.5rem, 1vw + 1.1rem, 2rem);
+    margin-bottom: var(--space-2);
+    font-size: clamp(1.75rem, 1.4rem + 0.6vw, 2rem);
     line-height: 1.3;
 }
 
 h3 {
-    margin: 0 0 var(--space-xs);
-    font-size: clamp(1.25rem, 0.75vw + 1rem, 1.625rem);
+    margin-bottom: var(--space-2);
+    font-size: clamp(1.75rem, 1.4rem + 0.6vw, 2rem);
     line-height: 1.35;
 }
 
+a {
+    color: var(--color-link);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+    a:hover,
+    a:focus {
+        color: var(--color-link-hover);
+    }
+
 .theme-dark {
-    scrollbar-color: rgba(59, 130, 246, 0.35) transparent;
+    scrollbar-color: rgba(157, 180, 255, 0.25) transparent;
     scrollbar-width: thin;
 }
 
@@ -92,8 +122,8 @@ h3 {
     }
 
     .theme-dark::-webkit-scrollbar-thumb {
-        background: rgba(59, 130, 246, 0.35);
-        border-radius: 62.4375rem;
+        background: rgba(157, 180, 255, 0.25);
+        border-radius: 62.5rem;
         border: 2px solid transparent;
         background-clip: padding-box;
     }
@@ -102,19 +132,19 @@ h3 {
     width: min(100%, var(--container-max));
     margin-inline: auto;
     padding-inline: clamp(1rem, 4vw, 1.5rem);
-    padding-block: var(--space-md);
+    padding-block: var(--space-4);
 }
 
 header .container {
-    padding-block: var(--space-sm);
+    padding-block: var(--space-2);
 }
 
 main.container {
-    padding-block: var(--space-lg);
+    padding-block: var(--space-5);
 }
 
 .bg-gradient {
-    background: linear-gradient(90deg, var(--primary), var(--accent));
+    background: linear-gradient(135deg, var(--primary), var(--accent));
     color: #fff;
 }
 
@@ -132,28 +162,28 @@ main.container {
 .btn-link {
     background: transparent;
     border: 0;
-    color: #fff;
+    color: var(--color-link);
     text-decoration: underline;
     cursor: pointer;
 }
 
 .hero {
-    padding: var(--space-xl) 0;
+    padding: var(--space-5) 0;
     text-align: center;
 }
 
 .footer {
-    padding: var(--space-lg) 0;
-    color: var(--muted);
+    padding: var(--space-4) 0;
+    color: var(--color-text-subtle);
     font-size: 0.875rem;
 }
 
 .sr-only {
     position: absolute;
-    width: 0.0625rem;
-    height: 0.0625rem;
+    width: 1px;
+    height: 1px;
     padding: 0;
-    margin: -0.0625rem;
+    margin: -1px;
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
@@ -162,12 +192,12 @@ main.container {
 
 @media (max-width: 48rem) {
     main.container {
-        padding-block: var(--space-md);
+        padding-block: var(--space-4);
     }
 }
 
 @media (min-width: 90rem) {
     body {
-        font-size: clamp(1.0625rem, 0.9rem + 0.4vw, 1.2rem);
+        font-size: 1.0625rem;
     }
 }

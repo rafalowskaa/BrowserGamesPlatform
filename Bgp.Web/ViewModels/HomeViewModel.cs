@@ -37,6 +37,7 @@ public class GameSummaryViewModel
     public string? CoverImagePath { get; set; }
     public string Excerpt { get; set; } = string.Empty;
     public double Rating { get; set; }
+    public int ReviewsCount { get; set; }
     public string? HighlightTag { get; set; }
 }
 

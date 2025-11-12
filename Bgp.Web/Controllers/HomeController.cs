@@ -4,6 +4,7 @@ using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Helpers;
 using Bgp.Web.Resources;
 using Bgp.Web.ViewModels;
+using Bgp.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -22,12 +23,18 @@ public class HomeController : Controller
     private readonly AppDbContext _db;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IStringLocalizer<SharedResource> _localizer;
+    private readonly HomeContentService _homeContentService;
 
-    public HomeController(AppDbContext db, UserManager<ApplicationUser> userManager, IStringLocalizer<SharedResource> localizer)
+    public HomeController(
+        AppDbContext db,
+        UserManager<ApplicationUser> userManager,
+        IStringLocalizer<SharedResource> localizer,
+        HomeContentService homeContentService)
     {
         _db = db;
         _userManager = userManager;
         _localizer = localizer;
+        _homeContentService = homeContentService;
     }
 
     public async Task<IActionResult> Index()
@@ -43,22 +50,23 @@ public class HomeController : Controller
 
     private async Task<HomeViewModel> BuildGuestViewModel()
     {
-        var featured = await FetchFeaturedGamesAsync(6);
-        var top = await FetchTopGamesAsync(12);
-        var tags = await FetchPopularTagsAsync(12);
+        var featured = await _homeContentService.GetFeaturedAsync(8);
+        var trending = await _homeContentService.GetTrendingAsync(8);
+        var tags = await _homeContentService.GetTopTagsAsync(7);
+        var gameOfTheDay = await _homeContentService.GetGameOfTheDayAsync() ?? featured.FirstOrDefault();
 
         return new HomeViewModel
         {
             IsAuthenticated = false,
             Hero = new HeroViewModel
             {
-                Title = _localizer["Home_Hero_Title"].Value,
-                Subtitle = _localizer["Home_Hero_Subtitle"].Value,
+                Title = _localizer["Home_Hero_Headline"].Value,
+                Subtitle = _localizer["Home_Hero_Description"].Value,
                 BackgroundImage = "/img/branding/hero-collage.svg"
             },
-            GameOfTheDay = featured.FirstOrDefault(),
+            GameOfTheDay = gameOfTheDay,
             FeaturedGames = featured,
-            TopGames = top,
+            TopGames = trending,
             TopTags = tags,
             WeeklyEvents = GenerateWeeklyEvents(),
             CommunityMetrics = await BuildCommunityMetricsAsync()
@@ -72,7 +80,7 @@ public class HomeController : Controller
 
         baseModel.ContinuePlaying = await FetchRecentSessionsAsync(3);
         baseModel.ForYou = await FetchPersonalisedGamesAsync(6);
-        baseModel.Trending = await FetchTrendingGamesAsync(6);
+        baseModel.Trending = await _homeContentService.GetTrendingAsync(6);
         baseModel.FriendActivity = await FetchFriendActivityAsync(6);
         baseModel.CreatorHighlights = await FetchCreatorHighlightsAsync(3);
         baseModel.ExperiencePanel = await BuildExperiencePanelAsync();
@@ -101,58 +109,12 @@ public class HomeController : Controller
             });
     }
 
-    private async Task<IReadOnlyList<GameSummaryViewModel>> FetchFeaturedGamesAsync(int limit)
-    {
-        var items = await CreateGameProjection()
-            .OrderByDescending(g => g.CreatedAtUtc)
-            .ThenByDescending(g => g.AvgRating)
-            .Take(limit)
-            .ToListAsync();
-
-        return items.Select(MapToSummary).ToList();
-    }
-
-    private async Task<IReadOnlyList<GameSummaryViewModel>> FetchTopGamesAsync(int limit)
-    {
-        var items = await CreateGameProjection()
-            .OrderByDescending(g => g.AvgRating)
-            .ThenByDescending(g => g.ReviewsCount)
-            .Take(limit)
-            .ToListAsync();
-
-        return items.Select(MapToSummary).ToList();
-    }
-
     private async Task<IReadOnlyList<GameSummaryViewModel>> FetchPersonalisedGamesAsync(int limit)
     {
         var items = await CreateGameProjection()
             .OrderByDescending(g => g.UpdatedAtUtc ?? g.CreatedAtUtc)
             .ThenByDescending(g => g.AvgRating)
             .Take(limit)
-            .ToListAsync();
-
-        return items.Select(MapToSummary).ToList();
-    }
-
-    private async Task<IReadOnlyList<GameSummaryViewModel>> FetchTrendingGamesAsync(int limit)
-    {
-        var since = DateTime.UtcNow.AddDays(-1);
-        var topIds = await _db.Scores
-            .AsNoTracking()
-            .Where(s => s.SubmittedAtUtc >= since)
-            .GroupBy(s => s.GameId)
-            .OrderByDescending(g => g.Count())
-            .Select(g => g.Key)
-            .Take(limit)
-            .ToListAsync();
-
-        if (!topIds.Any())
-        {
-            return await FetchTopGamesAsync(limit);
-        }
-
-        var items = await CreateGameProjection()
-            .Where(g => topIds.Contains(g.Id))
             .ToListAsync();
 
         return items.Select(MapToSummary).ToList();
@@ -195,25 +157,6 @@ public class HomeController : Controller
             .ToListAsync();
 
         return items.Select(MapToSummary).ToList();
-    }
-
-    private async Task<IReadOnlyList<TagFilterViewModel>> FetchPopularTagsAsync(int limit)
-    {
-        var tags = await _db.GameTags
-            .AsNoTracking()
-            .Where(t => t.IsApproved)
-            .GroupBy(t => t.Value)
-            .Select(g => new TagFilterViewModel
-            {
-                Tag = g.Key,
-                GameCount = g.Select(t => t.GameId).Distinct().Count()
-            })
-            .OrderByDescending(t => t.GameCount)
-            .ThenBy(t => t.Tag)
-            .Take(limit)
-            .ToListAsync();
-
-        return tags;
     }
 
     private async Task<CommunityMetricsViewModel> BuildCommunityMetricsAsync()
@@ -339,6 +282,7 @@ public class HomeController : Controller
             CoverImagePath = game.CoverImagePath,
             Excerpt = BuildExcerpt(game.Description),
             Rating = Math.Round(game.AvgRating, 1),
+            ReviewsCount = game.ReviewsCount,
             HighlightTag = game.HighlightTag
         };
     }

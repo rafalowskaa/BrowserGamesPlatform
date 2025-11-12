@@ -1,0 +1,40 @@
+﻿@model Bgp.Web.ViewModels.GameSummaryViewModel
+@using Bgp.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> L
+<article class="game-card-guest" data-game-card>
+    <div class="game-card-guest__media">
+        <a class="game-card-guest__cover" asp-controller="Games" asp-action="Details" asp-route-slug="@Model.Slug" aria-label="@Model.Title">
+            <span class="sr-only">@Model.Title</span>
+            <img src="@Url.Content("~/img/placeholders/game-cover.svg")"
+                 data-game-card-img
+                 data-src="@(string.IsNullOrWhiteSpace(Model.CoverImagePath) ? Url.Content("~/img/placeholders/game-cover.svg") : Model.CoverImagePath)"
+                 data-srcset="@(string.IsNullOrWhiteSpace(Model.CoverImagePath) ? Url.Content("~/img/placeholders/game-cover.svg") + " 1x" : Model.CoverImagePath + " 1x")"
+                 alt="@Model.Title"
+                 width="320"
+                 height="180"
+                 loading="lazy"
+                 decoding="async" />
+        </a>
+        <div class="game-card-guest__actions">
+            <a class="game-card-guest__play" asp-controller="Games" asp-action="Details" asp-route-slug="@Model.Slug">@L["Home_Game_Play"].Value</a>
+        </div>
+    </div>
+    <div class="game-card-guest__content">
+        <h3 class="game-card-guest__title">
+            <a asp-controller="Games" asp-action="Details" asp-route-slug="@Model.Slug">@Model.Title</a>
+        </h3>
+        <p class="game-card-guest__excerpt">@Model.Excerpt</p>
+        <div class="game-card-guest__meta">
+            @if (Model.ReviewsCount > 0)
+            {
+                <span class="game-card-guest__rating" aria-label="@string.Format(L["Home_Game_Rating"].Value, Model.Rating.ToString("F1"), Model.ReviewsCount)">★ @Model.Rating.ToString("F1")</span>
+            }
+            else
+            {
+                <span class="game-card-guest__badge">@L["Home_Game_New"].Value</span>
+            }
+            <a class="game-card-guest__details" asp-controller="Games" asp-action="Details" asp-route-slug="@Model.Slug">@L["Home_Game_Details"].Value</a>
+        </div>
+    </div>
+</article>

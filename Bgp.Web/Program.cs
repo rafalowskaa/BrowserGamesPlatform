@@ -39,9 +39,12 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IPresenceNotifier, PresenceNotifier>();
 builder.Services.AddScoped<IChatMessageService, ChatMessageService>();
 builder.Services.AddScoped<IGameContentResolver, GameContentResolver>();
+builder.Services.AddScoped<HomeContentService>();
 builder.Services.AddSingleton<IMatchmakingService, InMemoryMatchmakingService>();
 builder.Services.Configure<BrandingOptions>(builder.Configuration.GetSection("Branding"));
+builder.Services.Configure<HomeContentOptions>(builder.Configuration.GetSection("HomeContent"));
 builder.Services.PostConfigure<BrandingOptions>(options =>
+
 {
     options.DisplayName = Environment.GetEnvironmentVariable("PLAYGRID_BRAND_NAME") ?? options.DisplayName ?? "PlayGrid";
     options.ShortName = Environment.GetEnvironmentVariable("PLAYGRID_BRAND_SHORT") ?? options.ShortName ?? options.DisplayName ?? "PlayGrid";

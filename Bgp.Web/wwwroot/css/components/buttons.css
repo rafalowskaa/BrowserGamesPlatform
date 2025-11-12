@@ -2,97 +2,78 @@
 .btn {
     min-height: 2.75rem;
     font-size: 1rem;
-    padding: 0.625rem 1rem;
+    padding: 0.625rem 1.25rem;
     border-radius: var(--radius);
     line-height: 1.4;
+    font-weight: 600;
+    cursor: pointer;
 }
 
-.btn-primary {
-    display: inline-block;
-    padding: 0.75rem 1.25rem;
-    border-radius: var(--radius);
-    background: linear-gradient(90deg, var(--primary), var(--accent));
+.btn-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.75rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
     color: #fff;
     text-decoration: none;
-    box-shadow: var(--shadow);
-    border: 0;
-    cursor: pointer;
-    min-height: 2.75rem;
-    font-size: 1rem;
+    border: none;
+    box-shadow: var(--shadow-soft);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-    .btn-primary:hover {
-        transform: translateY(-1px);
+    .btn-cta:hover,
+    .btn-cta:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hover);
     }
 
-.btn-icon-leading {
+.btn-primary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-right: 0.375rem;
-    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 999px;
+    background: rgba(157, 180, 255, 0.16);
+    border: 1px solid var(--border-soft);
+    color: var(--color-text-strong);
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
-.btn-chat {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-weight: 600;
-}
-
-    .btn-chat .btn-icon-leading {
-        margin-right: 0;
-    }
-
-.btn-rank {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.625rem 1.125rem;
-    border-radius: 62.4375rem;
-    border: 1px solid rgba(148, 197, 255, 0.45);
-    background: var(--accent-color, linear-gradient(90deg, var(--primary), var(--accent)));
-    color: #0f172a;
-    font-weight: 600;
-    font-size: 0.9375rem;
-    line-height: 1.1;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.55);
-}
-
-    .btn-rank:hover {
+    .btn-primary:hover,
+    .btn-primary:focus-visible {
+        background: rgba(157, 180, 255, 0.22);
+        border-color: var(--border-strong);
         transform: translateY(-1px);
-        filter: brightness(1.05);
     }
 
 .btn-outline {
-    display: inline-block;
-    padding: 0.75rem 1.25rem;
-    border-radius: var(--radius);
-    border: 1px solid #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-soft);
     background: transparent;
-    color: #e5e7eb;
+    color: var(--color-text-primary);
     text-decoration: none;
-    cursor: pointer;
-    min-height: 2.75rem;
-    font-size: 1rem;
+    transition: border-color 0.2s ease, color 0.2s ease;
 }
+
+    .btn-outline:hover,
+    .btn-outline:focus-visible {
+        border-color: var(--border-strong);
+        color: var(--color-link-hover);
+    }
 
 .btn-icon {
     background: transparent;
     border: 0;
-    color: #e5e7eb;
+    color: var(--color-text-primary);
     font-size: 1.125rem;
-    cursor: pointer;
-}
-
-.btn-ghost {
-    background: transparent;
-    border: 1px solid rgba(148, 163, 184, 0.4);
-    color: #cbd5e1;
-    padding: 0.375rem 0.75rem;
-    border-radius: 0.5rem;
     cursor: pointer;
 }
 
@@ -100,40 +81,31 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: rgba(239, 68, 68, 0.2);
-    border: 1px solid rgba(248, 113, 113, 0.45);
-    color: #fecaca;
+    background: rgba(255, 99, 132, 0.12);
+    border: 1px solid rgba(255, 99, 132, 0.4);
+    color: #ff9aa6;
     padding: 0.75rem 1.25rem;
     border-radius: var(--radius);
     cursor: pointer;
-    min-height: 2.75rem;
     font-size: 1rem;
-    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.45);
+    box-shadow: 0 10px 22px rgba(2, 6, 23, 0.45);
     transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
     .btn-danger:hover,
     .btn-danger:focus-visible {
-        background: rgba(239, 68, 68, 0.3);
-        border-color: rgba(248, 113, 113, 0.65);
-        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.5);
+        background: rgba(255, 99, 132, 0.2);
+        border-color: rgba(255, 99, 132, 0.55);
+        box-shadow: 0 12px 26px rgba(2, 6, 23, 0.5);
         outline: none;
     }
 
 .btn-small {
-    font-size: 0.8125rem;
-    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
 }
 
 .btn-compact {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-}
-
-.btn-primary.btn-compact {
-    box-shadow: none;
-}
-
-.btn-outline.btn-compact {
-    border-color: rgba(148, 163, 184, 0.5);
+    padding: 0.5rem 1.125rem;
+    font-size: 0.9rem;
 }

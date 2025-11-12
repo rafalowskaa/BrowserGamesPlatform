@@ -3598,16 +3598,16 @@
   <value>+{0} PD</value>
 </data>
 	<data name="Home_Featured_Title" xml:space="preserve">
-  <value>Polecane gry</value>
+  <value>Polecane</value>
 </data>
 	<data name="Home_Featured_Subtitle" xml:space="preserve">
-  <value>Odkryj świeże premiery i redakcyjne polecenia.</value>
+  <value>Wybrane przez zespół PlayGrid.</value>
 </data>
 	<data name="Home_Top_Title" xml:space="preserve">
-  <value>Najczęściej grane</value>
+  <value>Popularne teraz</value>
 </data>
 	<data name="Home_Top_Subtitle" xml:space="preserve">
-  <value>Gry, które teraz dominują serwery.</value>
+  <value>Na podstawie aktywności z ostatnich 24 godzin.</value>
 </data>
 	<data name="Home_ForYou_Title" xml:space="preserve">
   <value>Dla Ciebie</value>
@@ -3720,4 +3720,37 @@
 	<data name="Home_Rank_Novice" xml:space="preserve">
   <value>Nowicjusz</value>
 </data>
+	<data name="Home_Hero_Headline">
+		<value>Graj w przeglądarce. Twórz. Rywalizuj.</value>
+	</data>
+	<data name="Home_Hero_Description">
+		<value>Bez instalacji — wskakuj do gier społeczności, twórz własne i wspinaj się w rankingach.</value>
+	</data>
+	<data name="Home_Hero_Cta_Browse">
+		<value>Przeglądaj gry</value>
+	</data>
+	<data name="Home_Section_ViewMore">
+		<value>Zobacz więcej</value>
+	</data>
+	<data name="Home_Events_Cta">
+		<value>Zarejestruj się, by dołączyć</value>
+	</data>
+	<data name="Home_Popular_Empty">
+		<value>Brak gorących gier dla tego tagu.</value>
+	</data>
+	<data name="Home_Game_PlayNow">
+		<value>Zagraj teraz</value>
+	</data>
+	<data name="Home_Game_Play">
+		<value>Zagraj</value>
+	</data>
+	<data name="Home_Game_Details">
+		<value>Szczegóły</value>
+	</data>
+	<data name="Home_Game_New">
+		<value>Nowość</value>
+	</data>
+	<data name="Home_Game_Rating">
+		<value>Ocena {0}/5 na podstawie {1} opinii.</value>
+	</data>
 </root>
