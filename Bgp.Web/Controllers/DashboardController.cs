@@ -90,6 +90,22 @@ public class DashboardController : Controller
         return View(vm);
     }
 
+    [HttpGet]
+    public Task<IActionResult> Profile(string? panel = null) => Index("profile", panel);
+
+    [HttpGet]
+    public Task<IActionResult> Stats() => Index("stats");
+
+    [HttpGet]
+    public Task<IActionResult> Games() => Index("games");
+
+    [HttpGet]
+    public Task<IActionResult> Settings(string? panel = null)
+    {
+        var targetPanel = string.IsNullOrWhiteSpace(panel) ? "preferences" : panel;
+        return Index("profile", targetPanel);
+    }
+
     [HttpGet("dashboard/profile/{id}")]
     public async Task<IActionResult> ViewProfile(string id)
     {
