@@ -4,6 +4,7 @@
 @section Styles {
     <link rel="stylesheet" href="~/css/pages/admin.css" asp-append-version="true" />
 }
+@{
     ViewData["Title"] = L["Admin_Reports_Title"].Value;
     var successKey = TempData["AdminReportsSuccess"] as string;
     var errorKey = TempData["AdminReportsError"] as string;
