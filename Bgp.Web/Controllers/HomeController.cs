@@ -5,6 +5,7 @@ using Bgp.Web.Helpers;
 using Bgp.Web.Models;
 using Bgp.Web.Resources;
 using Bgp.Web.ViewModels;
+using GameSummaryViewModel = Bgp.Web.ViewModels.GameSummaryViewModel;
 using Bgp.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
