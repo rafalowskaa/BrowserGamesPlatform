@@ -27,6 +27,7 @@ public class HeroViewModel
     public string Title { get; set; } = string.Empty;
     public string Subtitle { get; set; } = string.Empty;
     public string? BackgroundImage { get; set; }
+    public string Fact { get; set; } = string.Empty;
 }
 
 public class GameSummaryViewModel

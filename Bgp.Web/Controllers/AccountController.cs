@@ -31,17 +31,23 @@ public class AccountController : Controller
     }
 
     [AllowAnonymous]
-
-    public IActionResult Login(string? returnUrl = null, string? prefillLogin = null)
-        => View(new LoginVm
+    public IActionResult Login(string? returnUrl = null, string? prefillLogin = null, string? intent = null)
+    {
+        var vm = new LoginVm
         {
             ReturnUrl = returnUrl,
-            LoginOrEmail = prefillLogin ?? string.Empty
-        });
+            LoginOrEmail = prefillLogin ?? string.Empty,
+            Intent = intent,
+            PromptMessage = GetLoginPrompt(intent)
+        };
+
+        return View(vm);
+    }
 
     [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginVm vm)
     {
+        vm.PromptMessage = GetLoginPrompt(vm.Intent);
         if (!ModelState.IsValid) return View(vm);
         var identifier = vm.LoginOrEmail.Trim();
         vm.LoginOrEmail = identifier;
@@ -398,6 +404,18 @@ public class AccountController : Controller
         await _signIn.SignOutAsync();
         return LocalRedirect(returnUrl ?? "/");
     }
+
+    private string? GetLoginPrompt(string? intent)
+    {
+        if (string.Equals(intent, "play", StringComparison.OrdinalIgnoreCase))
+        {
+            return _localizer["Auth_Login_PlayPrompt"].Value;
+        }
+
+        return null;
+    }
+
+}
 }
 
 public class LoginVm
@@ -406,6 +424,8 @@ public class LoginVm
     [Required] public string Password { get; set; } = string.Empty;
     public bool RememberMe { get; set; }
     public string? ReturnUrl { get; set; }
+    public string? Intent { get; set; }
+    public string? PromptMessage { get; set; }
 }
 
 public class RegisterVm : IValidatableObject

@@ -5,6 +5,7 @@
     }
 
     const popularGrid = root.querySelector('[data-home-popular]');
+    const loginUrl = root.dataset.loginUrl || '/Account/Login';
     const tagButtons = Array.from(root.querySelectorAll('[data-home-tag]'));
     const playLabel = root.dataset.playLabel || 'Zagraj';
     const detailsLabel = root.dataset.detailsLabel || 'Szczegóły';
@@ -58,6 +59,19 @@
         popularGrid.appendChild(emptyState);
     }
 
+    function buildLoginLink(slug) {
+        const detailsPath = `/Games/Details/${encodeURIComponent(slug)}`;
+        try {
+            const target = new URL(loginUrl, window.location.origin);
+            target.searchParams.set('returnUrl', detailsPath);
+            target.searchParams.set('intent', 'play');
+            return target.pathname + target.search;
+        }
+        catch (error) {
+            return `${loginUrl}?returnUrl=${encodeURIComponent(detailsPath)}&intent=play`;
+        }
+    }
+
     function renderGames(games) {
         if (!popularGrid) {
             return;
@@ -74,7 +88,7 @@
             const card = document.createElement('article');
             card.className = 'game-card-guest';
             const cover = game.coverImagePath || placeholder;
-            const detailsUrl = `/Games/Details/${encodeURIComponent(game.slug)}`;
+            const detailsUrl = buildLoginLink(game.slug);
             const ratingHtml = game.reviewsCount > 0
                 ? `<span class="game-card-guest__rating" aria-label="${formatRating(game.rating, game.reviewsCount)}">★ ${game.rating.toFixed(1)}</span>`
                 : `<span class="game-card-guest__badge">${escapeHtml(newLabel)}</span>`;
@@ -108,6 +122,108 @@
             window.playgridRefreshGameCardImages(popularGrid.querySelectorAll('[data-game-card-img]'));
         }
     }
+
+    function setupFeaturedCarousel(carousel) {
+        const viewport = carousel.querySelector('[data-featured-viewport]');
+        const track = carousel.querySelector('[data-featured-track]');
+        if (!viewport || !track) {
+            return;
+        }
+
+        const items = Array.from(track.children);
+        if (items.length === 0) {
+            return;
+        }
+
+        let itemWidth = 0;
+        let gap = 0;
+        let currentIndex = 0;
+        let autoTimer = null;
+
+        const prevButton = carousel.querySelector('[data-featured-prev]');
+        const nextButton = carousel.querySelector('[data-featured-next]');
+
+        function measure() {
+            if (!items.length) {
+                return;
+            }
+
+            const rect = items[0].getBoundingClientRect();
+            itemWidth = rect.width;
+            const styles = window.getComputedStyle(track);
+            const gapValue = parseFloat(styles.columnGap || styles.gap || '0');
+            gap = Number.isNaN(gapValue) ? 0 : gapValue;
+        }
+
+        function clampIndex(index) {
+            const total = items.length;
+            return (index % total + total) % total;
+        }
+
+        function applyTransform() {
+            const offset = -(itemWidth + gap) * currentIndex;
+            track.style.transform = `translateX(${offset}px)`;
+        }
+
+        function goTo(index) {
+            currentIndex = clampIndex(index);
+            applyTransform();
+        }
+
+        function step(delta) {
+            goTo(currentIndex + delta);
+        }
+
+        function stopAuto() {
+            if (autoTimer) {
+                clearInterval(autoTimer);
+                autoTimer = null;
+            }
+        }
+
+        function startAuto() {
+            if (items.length <= 1) {
+                return;
+            }
+            stopAuto();
+            autoTimer = setInterval(() => {
+                step(1);
+            }, 5000);
+        }
+
+        if (prevButton) {
+            prevButton.addEventListener('click', () => {
+                stopAuto();
+                step(-1);
+                startAuto();
+            });
+        }
+
+        if (nextButton) {
+            nextButton.addEventListener('click', () => {
+                stopAuto();
+                step(1);
+                startAuto();
+            });
+        }
+
+        carousel.addEventListener('mouseenter', stopAuto);
+        carousel.addEventListener('mouseleave', startAuto);
+        carousel.addEventListener('focusin', stopAuto);
+        carousel.addEventListener('focusout', startAuto);
+
+        window.addEventListener('resize', () => {
+            measure();
+            applyTransform();
+        });
+
+        measure();
+        applyTransform();
+        startAuto();
+    }
+
+    root.querySelectorAll('[data-featured-carousel]').forEach(setupFeaturedCarousel);
+
 
     function fetchGames(tag) {
         const params = new URLSearchParams();

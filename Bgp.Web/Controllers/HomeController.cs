@@ -62,7 +62,8 @@ public class HomeController : Controller
             {
                 Title = _localizer["Home_Hero_Headline"].Value,
                 Subtitle = _localizer["Home_Hero_Description"].Value,
-                BackgroundImage = "/img/branding/hero-collage.svg"
+                BackgroundImage = "/img/branding/hero-collage.svg",
+                Fact = GetDailyHeroFact()
             },
             GameOfTheDay = gameOfTheDay,
             FeaturedGames = featured,
@@ -87,6 +88,31 @@ public class HomeController : Controller
         baseModel.DailyChallenges = FetchDailyChallengesFallback();
 
         return baseModel;
+    }
+
+    private string GetDailyHeroFact()
+    {
+        var keys = new[]
+        {
+            "Home_Hero_Fact_1",
+            "Home_Hero_Fact_2",
+            "Home_Hero_Fact_3",
+            "Home_Hero_Fact_4"
+        };
+
+        var facts = keys
+            .Select(key => _localizer[key].Value)
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .ToArray();
+
+        if (facts.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        var seed = HashCode.Combine(DateTime.UtcNow.Year, DateTime.UtcNow.DayOfYear);
+        var random = new Random(seed);
+        return facts[random.Next(facts.Length)];
     }
 
     private IQueryable<GameProjection> CreateGameProjection()

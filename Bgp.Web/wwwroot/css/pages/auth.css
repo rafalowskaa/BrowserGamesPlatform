@@ -22,6 +22,7 @@
     gap: var(--space-sm);
     position: relative;
     overflow: hidden;
+    width: min(100%, 32rem);
 }
 
     .auth-hero::after {
@@ -95,6 +96,16 @@
     gap: 1.5rem;
     width: min(100%, 32rem);
     max-width: 100%;
+}
+.auth-card__notice {
+    background: rgba(59, 130, 246, 0.18);
+    border: 1px solid rgba(96, 165, 250, 0.4);
+    color: rgba(226, 232, 240, 0.95);
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius);
+    line-height: 1.5;
+    font-size: 0.95rem;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.35);
 }
 
 .auth-card__header {

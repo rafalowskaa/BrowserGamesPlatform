@@ -30,7 +30,7 @@
         <h3 class="game-card__title"><a asp-controller="Games" asp-action="Details" asp-route-slug="@Model.Slug">@Model.Title</a></h3>
         <p class="game-card__excerpt">@Model.Excerpt</p>
         <div class="game-card__meta">
-            <span class="game-card__rating" aria-label="@($"Ocena {Model.Rating:F1} gwiazd")">★ @Model.Rating:F1</span>
+            <span class="game-card__rating" aria-label="@($"Ocena {Model.Rating:F1} gwiazd")">★ @Model.Rating.ToString("F1")</span>
         </div>
     </div>
 </article>

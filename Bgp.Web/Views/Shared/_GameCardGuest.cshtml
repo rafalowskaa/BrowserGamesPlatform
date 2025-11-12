@@ -7,10 +7,14 @@
     var hasCoverImage = !string.IsNullOrWhiteSpace(Model.CoverImagePath);
     var mediaClass = $"game-card-guest__media{(hasCoverImage ? string.Empty : " game-card-guest__media--placeholder")}";
     var coverImage = hasCoverImage ? Model.CoverImagePath : placeholderImage;
+    var detailsUrl = Url.Action("Details", "Games", new { slug = Model.Slug }) ?? string.Empty;
+    var loginUrl = Url.Action("Login", "Account", new { returnUrl = detailsUrl, intent = "play" })
+        ?? Url.Action("Login", "Account")
+        ?? detailsUrl;
 }
 <article class="game-card-guest" data-game-card>
     <div class="@mediaClass">
-        <a class="game-card-guest__cover" asp-controller="Games" asp-action="Details" asp-route-slug="@Model.Slug" aria-label="@Model.Title">
+        <a class="game-card-guest__cover" href="@loginUrl" aria-label="@Model.Title">
             <span class="sr-only">@Model.Title</span>
             <img src="@placeholderImage"
                  data-game-card-img
@@ -26,7 +30,7 @@
     </div>
     <div class="game-card-guest__content">
         <h3 class="game-card-guest__title">
-            <a asp-controller="Games" asp-action="Details" asp-route-slug="@Model.Slug">@Model.Title</a>
+            <a href="@loginUrl">@Model.Title</a>
         </h3>
         <p class="game-card-guest__excerpt">@Model.Excerpt</p>
         <div class="game-card-guest__meta">

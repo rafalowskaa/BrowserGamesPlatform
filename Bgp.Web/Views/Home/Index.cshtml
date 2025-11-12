@@ -6,46 +6,29 @@
     ViewData["Title"] = Model.IsAuthenticated ? L["Home_Title_Authenticated"].Value : L["Home_Title_Guest"].Value;
 }
 
-@if (Model.IsAuthenticated)
+@if (!Model.IsAuthenticated)
 {
-    <div class="home-guest" data-home-guest data-play-label='@L["Home_Game_Play"].Value' data-details-label='@L["Home_Game_Details"].Value' data-new-label='@L["Home_Game_New"].Value' data-rating-template='@L["Home_Game_Rating"].Value' data-placeholder='@Url.Content("~/img/placeholders/game-cover.svg")' data-empty-label='@L["Home_Popular_Empty"].Value'>
-        <section class="home-guest__hero" style="background-image: url('@Model.Hero.BackgroundImage');">
-            <div class="home-guest__hero-inner">
-                <div class="home-guest__copy">
-                    <h1>@L["Home_Hero_Headline"].Value</h1>
-                    <p>@L["Home_Hero_Description"].Value</p>
-                    <div class="home-guest__actions">
-                        <a class="btn-cta" asp-controller="Account" asp-action="Register">@L["Home_Hero_Cta_Register"].Value</a>
-                        <a class="btn-outline" href="#featured">@L["Home_Hero_Cta_Browse"].Value</a>
-                    </div>
-                </div>
-                @if (Model.GameOfTheDay is not null)
+    <div class="home-guest" data-home-guest data-play-label='@L["Home_Game_Play"].Value' data-details-label='@L["Home_Game_Details"].Value' data-new-label='@L["Home_Game_New"].Value' data-rating-template='@L["Home_Game_Rating"].Value' data-placeholder='@Url.Content("~/img/placeholders/game-cover.svg")' data-empty-label='@L["Home_Popular_Empty"].Value' data-login-url='@Url.Action("Login", "Account")'>
+        <section class="home-hero" style="background-image: url('@Model.Hero.BackgroundImage');">
+            <div class="home-hero__content">
+                <h1>@Model.Hero.Title</h1>
+                <p>@Model.Hero.Subtitle</p>
+                @if (!string.IsNullOrWhiteSpace(Model.Hero.Fact))
                 {
-                    <aside class="home-guest__spotlight" aria-labelledby="game-of-day-heading">
-                        <div class="spotlight-card">
-                            <div class="spotlight-card__media">
-                                <img src="@(string.IsNullOrWhiteSpace(Model.GameOfTheDay.CoverImagePath) ? Url.Content("~/img/placeholders/game-cover.svg") : Model.GameOfTheDay.CoverImagePath)" alt="@Model.GameOfTheDay.Title" width="420" height="236" loading="lazy" decoding="async" />
-                            </div>
-                            <div class="spotlight-card__body">
-                                <span class="spotlight-card__label">@L["Home_GameOfTheDay_Label"].Value</span>
-                                <h2 id="game-of-day-heading">@Model.GameOfTheDay.Title</h2>
-                                <p>@Model.GameOfTheDay.Excerpt</p>
-                                <div class="spotlight-card__meta">
-                                    @if (Model.GameOfTheDay.ReviewsCount > 0)
-                                    {
-                                        <span class="spotlight-card__rating" aria-label="@string.Format(L["Home_Game_Rating"].Value, Model.GameOfTheDay.Rating.ToString("F1"), Model.GameOfTheDay.ReviewsCount)">★ @Model.GameOfTheDay.Rating.ToString("F1")</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="spotlight-card__badge">@L["Home_Game_New"].Value</span>
-                                    }
-                                </div>
-                                <a class="spotlight-card__cta" asp-controller="Games" asp-action="Details" asp-route-slug="@Model.GameOfTheDay.Slug">@L["Home_Game_PlayNow"].Value</a>
-                            </div>
-                        </div>
-                    </aside>
+                    <p class="home-hero__fact">@Model.Hero.Fact</p>
                 }
+                <div class="home-hero__cta">
+                    <a class="btn-primary" href="#featured">@L["Home_Hero_Cta_Play"].Value</a>
+                    <a class="btn-secondary" asp-controller="Account" asp-action="Register">@L["Home_Hero_Cta_Register"].Value</a>
+                </div>
             </div>
+            @if (Model.GameOfTheDay is not null)
+            {
+                <aside class="home-hero__spotlight" aria-label="@L["Home_GameOfTheDay_Label"].Value">
+                    <h2>@L["Home_GameOfTheDay_Label"].Value</h2>
+                    @await Html.PartialAsync("_GameCardGuest", Model.GameOfTheDay)
+                </aside>
+            }
         </section>
 
         <section id="featured" class="home-guest__section" aria-labelledby="featured-heading">
@@ -56,11 +39,23 @@
                 </div>
                 <a class="section-header__link" asp-controller="Games" asp-action="Index">@L["Home_Section_ViewMore"].Value</a>
             </header>
-            <div class="home-guest__grid" data-home-featured>
-                @foreach (var game in Model.FeaturedGames)
-                {
-                    @await Html.PartialAsync("_GameCardGuest", game)
-                }
+            <div class="featured-carousel" data-featured-carousel>
+                <button type="button" class="featured-carousel__control featured-carousel__control--prev" data-featured-prev aria-label="@L["Home_Featured_Prev"].Value">
+                    <span aria-hidden="true">«</span>
+                </button>
+                <div class="featured-carousel__viewport" data-featured-viewport>
+                    <div class="featured-carousel__track" data-featured-track>
+                        @foreach (var game in Model.FeaturedGames)
+                        {
+                            <div class="featured-carousel__item">
+                                @await Html.PartialAsync("_GameCardGuest", game)
+                            </div>
+                        }
+                    </div>
+                </div>
+                <button type="button" class="featured-carousel__control featured-carousel__control--next" data-featured-next aria-label="@L["Home_Featured_Next"].Value">
+                    <span aria-hidden="true">»</span>
+                </button>
             </div>
         </section>
 
@@ -84,53 +79,66 @@
                     }
                 }
             </div>
-
-
-            <section class="home-guest__section home-guest__section--why" aria-labelledby="why-heading">
-                <header class="home-guest__section-header">
-                    <div>
-                        <h2 id="why-heading">@L["Home_Benefits_Title"].Value</h2>
-                    </div>
-                </header>
-                <div class="home-guest__benefits">
-                    <article class="benefit-card">
-                        <span class="benefit-card__icon" aria-hidden="true">⚡</span>
-                        <h3>@L["Home_Benefits_NoInstall_Title"].Value</h3>
-                        <p>@L["Home_Benefits_NoInstall_Description"].Value</p>
-                    </article>
-                    <article class="benefit-card">
-                        <span class="benefit-card__icon" aria-hidden="true">🤝</span>
-                        <h3>@L["Home_Benefits_Community_Title"].Value</h3>
-                        <p>@L["Home_Benefits_Community_Description"].Value</p>
-                    </article>
-                    <article class="benefit-card">
-                        <span class="benefit-card__icon" aria-hidden="true">🏆</span>
-                        <h3>@L["Home_Benefits_Ranks_Title"].Value</h3>
-                        <p>@L["Home_Benefits_Ranks_Description"].Value</p>
-                    </article>
-                </div>
-            </section>
-
-            <section class="home-guest__section home-guest__section--events" aria-labelledby="events-heading">
-                <header class="home-guest__section-header">
-                    <div>
-                        <h2 id="events-heading">@L["Home_Events_Title"].Value</h2>
-                    </div>
-                </header>
-                <div class="home-guest__events" role="list">
-                    @foreach (var evt in Model.WeeklyEvents)
+<div class="home-guest__grid home-guest__grid--popular" data-home-popular role="list">
+                @if (Model.TopGames.Any())
+                {
+                    foreach (var game in Model.TopGames)
                     {
-                        <article class="event-card" role="listitem">
-                            <h3>@evt.Title</h3>
-                            <p>@string.Format(L["Home_Events_Reward"].Value, evt.Reward)</p>
-                            <time datetime="@evt.EndsAt.ToString("o")">@string.Format(L["Home_Events_End"].Value, evt.EndsAt.ToLocalTime().ToString("dd.MM HH:mm"))</time>
-                        </article>
+                        @await Html.PartialAsync("_GameCardGuest", game)
                     }
+                }
+                else
+                {
+                    <p class="home-guest__empty">@L["Home_Popular_Empty"].Value</p>
+                }
+            </div>
+        </section>
+
+        <section class="home-guest__section home-guest__section--why" aria-labelledby="why-heading">
+            <header class="home-guest__section-header">
+                <div>
+                    <h2 id="why-heading">@L["Home_Benefits_Title"].Value</h2>
                 </div>
-                <div class="home-guest__event-cta">
-                    <a class="btn-outline" asp-controller="Account" asp-action="Register">@L["Home_Events_Cta"].Value</a>
+            </header>
+            <div class="home-guest__benefits">
+                <article class="benefit-card">
+                    <span class="benefit-card__icon" aria-hidden="true">⚡</span>
+                    <h3>@L["Home_Benefits_NoInstall_Title"].Value</h3>
+                    <p>@L["Home_Benefits_NoInstall_Description"].Value</p>
+                </article>
+                <article class="benefit-card">
+                    <span class="benefit-card__icon" aria-hidden="true">🤝</span>
+                    <h3>@L["Home_Benefits_Community_Title"].Value</h3>
+                    <p>@L["Home_Benefits_Community_Description"].Value</p>
+                </article>
+                <article class="benefit-card">
+                    <span class="benefit-card__icon" aria-hidden="true">🏆</span>
+                    <h3>@L["Home_Benefits_Ranks_Title"].Value</h3>
+                    <p>@L["Home_Benefits_Ranks_Description"].Value</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="home-guest__section home-guest__section--events" aria-labelledby="events-heading">
+            <header class="home-guest__section-header">
+                <div>
+                    <h2 id="events-heading">@L["Home_Events_Title"].Value</h2>
                 </div>
-            </section>
+            </header>
+            <div class="home-guest__events" role="list">
+                @foreach (var evt in Model.WeeklyEvents)
+                {
+                    <article class="event-card" role="listitem">
+                        <h3>@evt.Title</h3>
+                        <p>@string.Format(L["Home_Events_Reward"].Value, evt.Reward)</p>
+                        <time datetime="@evt.EndsAt.ToString("o")">@string.Format(L["Home_Events_End"].Value, evt.EndsAt.ToLocalTime().ToString("dd.MM HH:mm"))</time>
+                    </article>
+                }
+            </div>
+            <div class="home-guest__event-cta">
+                <a class="btn-outline" asp-controller="Account" asp-action="Register">@L["Home_Events_Cta"].Value</a>
+            </div>
+        </section>
     </div>
     }
 else
@@ -139,6 +147,10 @@ else
         <div class="home-hero__content">
             <h1>@Model.Hero.Title</h1>
             <p>@Model.Hero.Subtitle</p>
+            @if (!string.IsNullOrWhiteSpace(Model.Hero.Fact))
+            {
+                <p class="home-hero__fact">@Model.Hero.Fact</p>
+            }
             <div class="home-hero__cta">
                 <a class="btn-primary" href="#featured">@L["Home_Hero_Cta_Play"].Value</a>
                 <a class="btn-secondary" asp-controller="Account" asp-action="Register">@L["Home_Hero_Cta_Register"].Value</a>
@@ -153,56 +165,53 @@ else
         }
 </section>
 
-    @if (Model.IsAuthenticated)
-    {
-        <section class="home-section home-dashboard">
-            <div class="home-dashboard__welcome">
-                <h2>@L["Home_Dashboard_Welcome_Title"].Value</h2>
-                <p>@L["Home_Dashboard_Welcome_Description"].Value</p>
-            </div>
-            <div class="home-dashboard__grid">
-                <div class="home-panel">
-                    <h3>@L["Home_Dashboard_Continue_Playing_Title"].Value</h3>
-                    <div class="card-row">
-                        @foreach (var game in Model.ContinuePlaying)
-                        {
-                            @await Html.PartialAsync("_GameCard", game)
-                        }
-                        @if (!Model.ContinuePlaying.Any())
-                        {
-                            <p>@L["Home_Dashboard_Continue_Playing_Empty"].Value</p>
-                        }
-                    </div>
-                </div>
-                <div class="home-panel">
-                    <h3>@L["Home_Dashboard_XpPanel_Title"].Value</h3>
-                    <div class="xp-panel" role="status" aria-live="polite">
-                        <p class="xp-panel__rank">@string.Format(L["Home_Dashboard_XpPanel_Rank"].Value, Model.ExperiencePanel.RankName)</p>
-                        <div class="xp-panel__bar" aria-label="@L["Home_Dashboard_XpPanel_Progress_Aria"].Value">
-                            <div class="xp-panel__progress" style="width:@Model.ExperiencePanel.ProgressPercent%"></div>
-                        </div>
-                        <p class="xp-panel__meta">@string.Format(L["Home_Dashboard_XpPanel_Meta"].Value, Model.ExperiencePanel.CurrentXp, Model.ExperiencePanel.XpToNext)</p>
-                        <ul class="xp-challenges">
-                            @foreach (var challenge in Model.DailyChallenges)
-                            {
-                                <li>
-                                    <label>
-                                        <input type="checkbox" disabled @(challenge.IsCompleted ? "checked" : string.Empty) />
-                                        <span>@challenge.Title</span>
-                                        <span class="xp-reward">@string.Format(L["Home_Dashboard_DailyChallenges_Reward"].Value, challenge.RewardXp)</span>
-                                    </label>
-                                </li>
-                            }
-                            @if (!Model.DailyChallenges.Any())
-                            {
-                                <li>@L["Home_Dashboard_DailyChallenges_Empty"].Value</li>
-                            }
-                        </ul>
-                    </div>
+    <section class="home-section home-dashboard">
+        <div class="home-dashboard__welcome">
+            <h2>@L["Home_Dashboard_Welcome_Title"].Value</h2>
+            <p>@L["Home_Dashboard_Welcome_Description"].Value</p>
+        </div>
+        <div class="home-dashboard__grid">
+            <div class="home-panel">
+                <h3>@L["Home_Dashboard_Continue_Playing_Title"].Value</h3>
+                <div class="card-row">
+                    @foreach (var game in Model.ContinuePlaying)
+                    {
+                        @await Html.PartialAsync("_GameCard", game)
+                    }
+                    @if (!Model.ContinuePlaying.Any())
+                    {
+                        <p>@L["Home_Dashboard_Continue_Playing_Empty"].Value</p>
+                    }
                 </div>
             </div>
-        </section>
-    }
+            <div class="home-panel">
+                <h3>@L["Home_Dashboard_XpPanel_Title"].Value</h3>
+                <div class="xp-panel" role="status" aria-live="polite">
+                    <p class="xp-panel__rank">@string.Format(L["Home_Dashboard_XpPanel_Rank"].Value, Model.ExperiencePanel.RankName)</p>
+                    <div class="xp-panel__bar" aria-label="@L["Home_Dashboard_XpPanel_Progress_Aria"].Value">
+                        <div class="xp-panel__progress" style="width:@Model.ExperiencePanel.ProgressPercent%"></div>
+                    </div>
+                    <p class="xp-panel__meta">@string.Format(L["Home_Dashboard_XpPanel_Meta"].Value, Model.ExperiencePanel.CurrentXp, Model.ExperiencePanel.XpToNext)</p>
+                    <ul class="xp-challenges">
+                        @foreach (var challenge in Model.DailyChallenges)
+                        {
+                            <li>
+                                <label>
+                                    <input type="checkbox" disabled @(challenge.IsCompleted ? "checked" : string.Empty) />
+                                    <span>@challenge.Title</span>
+                                    <span class="xp-reward">@string.Format(L["Home_Dashboard_DailyChallenges_Reward"].Value, challenge.RewardXp)</span>
+                                </label>
+                            </li>
+                        }
+                        @if (!Model.DailyChallenges.Any())
+                        {
+                            <li>@L["Home_Dashboard_DailyChallenges_Empty"].Value</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <section id="featured" class="home-section">
         <div class="home-section__header">
@@ -238,72 +247,69 @@ else
         </div>
     </section>
 
-    @if (Model.IsAuthenticated)
-    {
-        <section class="home-section">
-            <div class="home-section__header">
-                <h2>@L["Home_ForYou_Title"].Value</h2>
-                <p>@L["Home_ForYou_Subtitle"].Value</p>
-            </div>
-            <div class="game-grid">
-                @foreach (var game in Model.ForYou)
-                {
+    <section class="home-section">
+        <div class="home-section__header">
+            <h2>@L["Home_ForYou_Title"].Value</h2>
+            <p>@L["Home_ForYou_Subtitle"].Value</p>
+        </div>
+        <div class="game-grid">
+            @foreach (var game in Model.ForYou)
+            {
+                @await Html.PartialAsync("_GameCard", game)
+            }
+        </div>
+    </section>
+
+    <section class="home-section">
+        <div class="home-section__header">
+            <h2>@L["Home_Trending_Title"].Value</h2>
+            <p>@L["Home_Trending_Subtitle"].Value</p>
+        </div>
+        <div class="game-grid">
+            @foreach (var game in Model.Trending)
+            {
+                @await Html.PartialAsync("_GameCard", game)
+            }
+        </div>
+    </section>
+
+    <section class="home-section">
+        <div class="home-section__header">
+            <h2>@L["Home_FriendActivity_Title"].Value</h2>
+            <p>@L["Home_FriendActivity_Subtitle"].Value</p>
+        </div>
+        <ul class="activity-feed">
+            @foreach (var entry in Model.FriendActivity)
+            {
+                <li>
+                    <span class="activity-feed__actor">@entry.ActorName</span>
+                    <span class="activity-feed__action">@entry.Action</span>
+                    <a asp-controller="Games" asp-action="Details" asp-route-slug="@entry.TargetSlug">@entry.TargetName</a>
+                    <time datetime="@entry.When.ToString("o")">@entry.When.ToLocalTime().ToString("HH:mm")</time>
+                </li>
+            }
+            @if (!Model.FriendActivity.Any())
+            {
+                <li>@L["Home_FriendActivity_Empty"].Value</li>
+            }
+        </ul>
+    </section>
+
+    <section class="home-section">
+        <div class="home-section__header">
+            <h2>@L["Home_Creator_Title"].Value</h2>
+            <p>@L["Home_Creator_Subtitle"].Value</p>
+        </div>
+        <div class="game-carousel" role="list">
+            @foreach (var game in Model.CreatorHighlights)
+            {
+                <div role="listitem">
                     @await Html.PartialAsync("_GameCard", game)
-                }
-            </div>
-        </section>
-
-        <section class="home-section">
-            <div class="home-section__header">
-                <h2>@L["Home_Trending_Title"].Value</h2>
-                <p>@L["Home_Trending_Subtitle"].Value</p>
-            </div>
-            <div class="game-grid">
-                @foreach (var game in Model.Trending)
-                {
-                    @await Html.PartialAsync("_GameCard", game)
-                }
-            </div>
-        </section>
-
-        <section class="home-section">
-            <div class="home-section__header">
-                <h2>@L["Home_FriendActivity_Title"].Value</h2>
-                <p>@L["Home_FriendActivity_Subtitle"].Value</p>
-            </div>
-            <ul class="activity-feed">
-                @foreach (var entry in Model.FriendActivity)
-                {
-                    <li>
-                        <span class="activity-feed__actor">@entry.ActorName</span>
-                        <span class="activity-feed__action">@entry.Action</span>
-                        <a asp-controller="Games" asp-action="Details" asp-route-slug="@entry.TargetSlug">@entry.TargetName</a>
-                        <time datetime="@entry.When.ToString("o")">@entry.When.ToLocalTime().ToString("HH:mm")</time>
-                    </li>
-                }
-                @if (!Model.FriendActivity.Any())
-                {
-                    <li>@L["Home_FriendActivity_Empty"].Value</li>
-                }
-            </ul>
-        </section>
-
-        <section class="home-section">
-            <div class="home-section__header">
-                <h2>@L["Home_Creator_Title"].Value</h2>
-                <p>@L["Home_Creator_Subtitle"].Value</p>
-            </div>
-            <div class="game-carousel" role="list">
-                @foreach (var game in Model.CreatorHighlights)
-                {
-                    <div role="listitem">
-                        @await Html.PartialAsync("_GameCard", game)
-                    </div>
-                }
-            </div>
-            <a class="btn-primary" asp-controller="Games" asp-action="Create">@L["Home_Creator_Cta"].Value</a>
-        </section>
-    }
+                </div>
+            }
+        </div>
+        <a class="btn-primary" asp-controller="Games" asp-action="Create">@L["Home_Creator_Cta"].Value</a>
+    </section>
 
     <section class="home-section home-benefits">
         <div class="home-section__header">
@@ -350,10 +356,10 @@ else
         <a class="btn-primary" asp-controller="Account" asp-action="Register">@L["Home_Community_Cta"].Value</a>
     </div>
 </section>
-}
+
 @section Scripts
 {
-        if (!Model.IsAuthenticated)
+            if (!Model.IsAuthenticated)
         {
     <script src="~/js/home-guest.js" asp-append-version="true"></script>
         }

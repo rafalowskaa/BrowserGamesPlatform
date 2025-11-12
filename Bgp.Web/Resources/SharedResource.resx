@@ -3886,4 +3886,25 @@
 	<data name="Home_Game_Rating">
 		<value>Rating {0} out of 5 from {1} reviews.</value>
 	</data>
+	<data name="Auth_Login_PlayPrompt" xml:space="preserve">
+  <value>Sign in to jump into this game. Your progress and scores await on the other side!</value>
+</data>
+	<data name="Home_Featured_Prev" xml:space="preserve">
+  <value>Show previous featured games</value>
+</data>
+	<data name="Home_Featured_Next" xml:space="preserve">
+  <value>Show next featured games</value>
+</data>
+	<data name="Home_Hero_Fact_1" xml:space="preserve">
+  <value>The very first multiplayer browser game launched in 1995 and ran entirely on simple HTML forms, proving that communities can form even without fancy graphics.</value>
+</data>
+	<data name="Home_Hero_Fact_2" xml:space="preserve">
+  <value>Speedrunners once completed a classic platformer directly in a browser emulator in under five minutes—showing just how far web performance has come.</value>
+</data>
+	<data name="Home_Hero_Fact_3" xml:space="preserve">
+  <value>Modern WebAssembly lets game developers reuse up to 70% of their native codebase online, unlocking instant demos without downloads.</value>
+</data>
+	<data name="Home_Hero_Fact_4" xml:space="preserve">
+  <value>One of the largest online tournaments hosted entirely in the browser gathered over 100,000 concurrent players without a single installer.</value>
+</data>
 </root>

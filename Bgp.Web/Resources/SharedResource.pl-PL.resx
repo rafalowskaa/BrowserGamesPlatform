@@ -3753,4 +3753,25 @@
 	<data name="Home_Game_Rating">
 		<value>Ocena {0}/5 na podstawie {1} opinii.</value>
 	</data>
-</root>
+	<data name="Auth_Login_PlayPrompt" xml:space="preserve">
+  <value>Aby zagrać w tę grę, zaloguj się – wtedy zapiszemy Twoje postępy i punkty.</value>
+</data>
+	<data name="Home_Featured_Prev" xml:space="preserve">
+  <value>Pokaż poprzednie wyróżnione gry</value>
+</data>
+	<data name="Home_Featured_Next" xml:space="preserve">
+  <value>Pokaż kolejne wyróżnione gry</value>
+</data>
+	<data name="Home_Hero_Fact_1" xml:space="preserve">
+  <value>Pierwsza wieloosobowa gra przeglądarkowa zadebiutowała w 1995 roku i działała na zwykłych formularzach HTML – udowadniając, że społeczność powstanie nawet bez zaawansowanej grafiki.</value>
+</data>
+	<data name="Home_Hero_Fact_2" xml:space="preserve">
+  <value>Speedrunnerzy ukończyli kultową platformówkę bezpośrednio w emulatorze przeglądarkowym w mniej niż pięć minut – tak bardzo wzrosła wydajność sieciowych technologii.</value>
+</data>
+	<data name="Home_Hero_Fact_3" xml:space="preserve">
+  <value>Nowoczesny WebAssembly pozwala przenieść nawet 70% natywnego kodu gier do przeglądarki, dzięki czemu dema uruchamiają się natychmiast, bez pobierania.</value>
+</data>
+	<data name="Home_Hero_Fact_4" xml:space="preserve">
+  <value>Jeden z największych turniejów online, prowadzony całkowicie w przeglądarce, zgromadził ponad 100 tysięcy jednoczesnych graczy – bez instalatorów.</value>
+</data>
+</root?>
