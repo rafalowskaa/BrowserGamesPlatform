@@ -815,6 +815,58 @@
     gap: 0.6rem;
 }
 
+.metadata-cover-upload {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.metadata-cover-upload__button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.45rem 1.35rem;
+    border-radius: 999px;
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    background: rgba(59, 130, 246, 0.15);
+    color: #e2e8f0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+    .metadata-cover-upload__button input[type="file"] {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .metadata-cover-upload__button:focus-within {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+    }
+
+    .metadata-cover-upload__button:hover {
+        background: rgba(59, 130, 246, 0.25);
+        border-color: rgba(59, 130, 246, 0.7);
+    }
+
+.metadata-cover-upload__filename {
+    font-size: 0.85rem;
+    color: rgba(226, 232, 240, 0.85);
+    min-height: 1.25rem;
+}
+
 .tag-list .option-chip,
 .preview-tags .tag,
 .chips-list .chip {

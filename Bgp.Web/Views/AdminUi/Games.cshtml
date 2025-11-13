@@ -284,7 +284,7 @@
                                 </div>
                             </aside>
 
-                            <form class="editor-form" asp-action="UpdateGameMetadata" method="post" id="metadata-form" data-metadata-form>
+                            <form class="editor-form" asp-action="UpdateGameMetadata" method="post" enctype="multipart/form-data" id="metadata-form" data-metadata-form>
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="Id" value="" data-field-id />
                                 <div class="accordion" data-accordion>
@@ -324,6 +324,13 @@
                                                <span>@L["Admin_Games_Metadata_Cover"].Value</span>
                                                 <input type="text" name="CoverImagePath" data-field-cover maxlength="256" />
                                                 <small>@L["Admin_Games_Metadata_Cover_Help"].Value</small>
+                                                <div class="metadata-cover-upload">
+                                                    <label class="metadata-cover-upload__button">
+                                                        <span>@L["Dashboard_Common_SelectFile"].Value</span>
+                                                        <input type="file" name="CoverImageUpload" accept="image/*" data-field-cover-upload />
+                                                    </label>
+                                                    <span class="metadata-cover-upload__filename" data-cover-upload-label data-default-label="@L["Dashboard_Common_NoFile"].Value">@L["Dashboard_Common_NoFile"].Value</span>
+                                                </div>
                                             </label>
                                         </div>
                                     </article>

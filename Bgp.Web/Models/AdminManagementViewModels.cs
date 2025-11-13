@@ -126,6 +126,8 @@ public class AdminUpdateGameMetadataInputModel
     [MaxLength(256)]
     public string? CoverImagePath { get; set; }
 
+    public IFormFile? CoverImageUpload { get; set; }
+
     public List<int> Categories { get; set; } = new();
 
     public List<int> Modes { get; set; } = new();

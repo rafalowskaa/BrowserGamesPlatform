@@ -819,6 +819,38 @@ public class AdminUiController : Controller
             return RedirectToAction(nameof(Games));
         }
 
+        string? uploadedCoverPath = null;
+        if (input.CoverImageUpload is { Length: > 0 })
+        {
+            const long maxCoverSize = 5 * 1024 * 1024;
+            if (input.CoverImageUpload.Length > maxCoverSize ||
+                string.IsNullOrWhiteSpace(input.CoverImageUpload.ContentType) ||
+                !input.CoverImageUpload.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["AdminGamesError"] = "Admin_Games_Metadata_Cover_Upload_Error";
+                return RedirectToAction(nameof(Games));
+            }
+
+            var extension = Path.GetExtension(input.CoverImageUpload.FileName);
+            if (string.IsNullOrWhiteSpace(extension) || extension.Length > 8)
+            {
+                extension = ".png";
+            }
+
+            var coverFileName = $"{normalizedSlug}{extension}";
+            try
+            {
+                await using var stream = input.CoverImageUpload.OpenReadStream();
+                uploadedCoverPath = await _fileStorage.SaveAsync(stream, coverFileName, Path.Combine("uploads", "covers"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to upload cover image for game {GameId}", game.Id);
+                TempData["AdminGamesError"] = "Admin_Games_Metadata_Cover_Upload_Error";
+                return RedirectToAction(nameof(Games));
+            }
+        }
+
         GameCategory categories = GameCategory.None;
         if (input.Categories is not null)
         {
@@ -858,7 +890,8 @@ public class AdminUiController : Controller
         game.Title = title;
         game.Slug = normalizedSlug;
         game.Description = string.IsNullOrWhiteSpace(input.Description) ? null : input.Description.Trim();
-        game.CoverImagePath = string.IsNullOrWhiteSpace(input.CoverImagePath) ? null : input.CoverImagePath.Trim();
+        var manualCoverPath = string.IsNullOrWhiteSpace(input.CoverImagePath) ? null : input.CoverImagePath.Trim();
+        game.CoverImagePath = uploadedCoverPath ?? manualCoverPath;
         game.Categories = categories == GameCategory.None ? GameCategory.Indie : categories;
         game.Modes = modes;
         game.UpdatedAtUtc = DateTime.UtcNow;
@@ -867,7 +900,7 @@ public class AdminUiController : Controller
 
         if (IsAjaxRequest())
         {
-            return NoContent();
+            return Json(new { coverImagePath = game.CoverImagePath });
         }
 
         TempData["AdminGamesSuccess"] = "Admin_Games_Metadata_Success";

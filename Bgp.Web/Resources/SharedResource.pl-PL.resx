@@ -1387,6 +1387,9 @@
 	<data name="Admin_Games_Metadata_Cover_Help" xml:space="preserve">
         <value>Wklej adres URL lub wgraj okładkę.</value>
     </data>
+	<data name="Admin_Games_Metadata_Cover_Upload_Error" xml:space="preserve">
+		<value>Plik okładki musi być obrazem i nie może przekraczać 5 MB.</value>
+	</data>
 	<data name="Admin_Games_Accordion_Classification" xml:space="preserve">
         <value>Klasyfikacja</value>
     </data>

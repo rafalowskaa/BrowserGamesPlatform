@@ -13,6 +13,9 @@
     var identityClass = hasRankTrophy
         ? "profile-hero__identity profile-hero__identity--decorated"
         : "profile-hero__identity";
+    var heroCoreClass = hasRankTrophy
+    ? "profile-hero__core profile-hero__core--has-trophy"
+    : "profile-hero__core";
     var months = Enumerable.Range(1, 12)
         .Select(i => new { Value = i, Name = CultureInfo.CurrentCulture.DateTimeFormat.MonthNames[i - 1] })
         .Select(m => new { m.Value, Name = string.IsNullOrWhiteSpace(m.Name) ? m.Value.ToString("00") : m.Name })
@@ -239,7 +242,7 @@
 <section class="profile-shell" data-profile-root>
     <header class="profile-hero" style="--rank-accent:@rank.AccentColor; --rank-highlight:@rank.AccentHighlightColor; --rank-glow:@rank.AccentGlowColor;">
         
-        <div class="profile-hero__core">
+        <div class="@heroCoreClass">
             
             <div class="@identityClass">
                 <div class="profile-hero__avatar"
@@ -284,15 +287,15 @@
                         </div>
                     </div>
                 </div>
-                @if (hasRankTrophy)
-                {
-                    <div class="profile-hero__trophy-block" aria-label="@L["Dashboard_Profile_Rank_CurrentTrophy"].Value">
-                        <div class="profile-hero__trophy-frame" data-profile-trophy>
-                            <img src="@rank.TrophyImage" alt="@L["Dashboard_Profile_Rank_CurrentTrophy"].Value" class="profile-hero__trophy" />
-                        </div>
-                    </div>
-                }
             </div>
+            @if (hasRankTrophy)
+            {
+                <div class="profile-hero__trophy-block" aria-label="@L["Dashboard_Profile_Rank_CurrentTrophy"].Value">
+                    <div class="profile-hero__trophy-frame" data-profile-trophy>
+                        <img src="@rank.TrophyImage" alt="@L["Dashboard_Profile_Rank_CurrentTrophy"].Value" class="profile-hero__trophy" />
+                    </div>
+                </div>
+            }
         </div>
        
     </header>

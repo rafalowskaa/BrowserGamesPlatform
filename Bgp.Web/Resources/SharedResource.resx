@@ -2634,7 +2634,9 @@
 	<data name="Admin_Games_Metadata_Cover_Help" xml:space="preserve">
         <value>Paste a URL or upload a cover image.</value>
     </data>
-
+	<data name="Admin_Games_Metadata_Cover_Upload_Error" xml:space="preserve">
+		<value>Cover image upload must be an image file up to 5 MB.</value>
+	</data>
 	<data name="Admin_Games_Accordion_Classification" xml:space="preserve">
         <value>Classification</value>
     </data>

@@ -536,6 +536,9 @@
             this.fieldSlug = this.drawer?.querySelector('[data-field-slug]');
             this.fieldOwner = this.drawer?.querySelector('[data-field-owner]');
             this.fieldCover = this.drawer?.querySelector('[data-field-cover]');
+            this.fieldCoverUpload = this.drawer?.querySelector('[data-field-cover-upload]');
+            this.coverUploadLabel = this.drawer?.querySelector('[data-cover-upload-label]');
+            this.coverUploadLabelDefault = this.coverUploadLabel?.dataset.defaultLabel || this.coverUploadLabel?.textContent || '';
             this.fieldDescription = this.drawer?.querySelector('[data-field-description]');
             this.fieldStatus = this.drawer?.querySelector('[data-field-status]');
             this.fieldNotes = this.drawer?.querySelector('[data-field-notes]');
@@ -551,6 +554,7 @@
             this.categoriesField = null;
             this.modesField = null;
             this.activeRow = null;
+            this.coverUploadObjectUrl = null;
             this.initializeGames(parseJson(this.root.dataset.games, []));
             this.setupChips();
             this.bind();
@@ -670,17 +674,29 @@
                 });
 
                 this.metadataForm.addEventListener('input', (event) => {
+                    if (event.target === this.fieldCover) {
+                        this.handleCoverFieldChange();
+                    }
                     if (event.target.name !== this.antiForgeryField) {
                         this.onMetadataChanged();
                     }
                 });
 
                 this.metadataForm.addEventListener('change', (event) => {
+                    if (event.target === this.fieldCover) {
+                        this.handleCoverFieldChange();
+                    }
                     if (event.target.name !== this.antiForgeryField) {
                         this.onMetadataChanged();
                     }
                 });
             }
+
+            this.fieldCoverUpload?.addEventListener('change', (event) => {
+                const file = event.target?.files?.length ? event.target.files[0] : null;
+                this.handleCoverUploadChange(file);
+                this.onMetadataChanged();
+            });
 
             this.previewApproveForm?.addEventListener('submit', (event) => {
                 event.preventDefault();
@@ -829,13 +845,7 @@
                 this.previewTags.appendChild(span);
             });
 
-            if (this.previewCover) {
-                if (game.coverImagePath) {
-                    this.previewCover.style.backgroundImage = `url('${game.coverImagePath}')`;
-                } else {
-                    this.previewCover.style.backgroundImage = 'none';
-                }
-            }
+            this.setCoverPreview(game.coverImagePath || null);
 
             if (this.previewTestLink) {
                 this.previewTestLink.href = `/AdminUi/PlayGame/${game.id}`;
@@ -887,6 +897,7 @@
             if (this.fieldCover) {
                 this.fieldCover.value = game.coverImagePath || '';
             }
+            this.resetCoverUpload();
             if (this.fieldDescription) {
                 this.fieldDescription.value = game.description || '';
             }
@@ -906,13 +917,7 @@
                 this.previewTestLink.href = `/AdminUi/PlayGame/${game.id}`;
             }
 
-            if (this.summaryCover) {
-                if (game.coverImagePath) {
-                    this.summaryCover.style.backgroundImage = `url('${game.coverImagePath}')`;
-                } else {
-                    this.summaryCover.style.backgroundImage = 'none';
-                }
-            }
+            this.setCoverPreview(game.coverImagePath || null);
             if (this.summaryTitle) {
                 this.summaryTitle.textContent = game.title;
             }
@@ -991,6 +996,60 @@
             this.summaryCategories.textContent = categoryLabels.length ? categoryLabels.join(', ') : this.emptyLabel;
             this.summaryModes.textContent = modeLabels.length ? modeLabels.join(', ') : this.emptyLabel;
         }
+
+        setCoverPreview(source) {
+            const hasSource = typeof source === 'string' && source.length > 0;
+            const safeSource = hasSource ? source.replace(/"/g, '\\"') : null;
+            const imageValue = hasSource ? `url("${safeSource}")` : 'none';
+            if (this.previewCover) {
+                this.previewCover.style.backgroundImage = imageValue;
+            }
+            if (this.summaryCover) {
+                this.summaryCover.style.backgroundImage = imageValue;
+            }
+        }
+
+        resetCoverUpload() {
+            if (this.fieldCoverUpload) {
+                this.fieldCoverUpload.value = '';
+            }
+            if (this.coverUploadLabel) {
+                this.coverUploadLabel.textContent = this.coverUploadLabelDefault;
+            }
+            if (this.coverUploadObjectUrl) {
+                URL.revokeObjectURL(this.coverUploadObjectUrl);
+                this.coverUploadObjectUrl = null;
+            }
+        }
+
+        handleCoverUploadChange(file) {
+            if (this.coverUploadObjectUrl) {
+                URL.revokeObjectURL(this.coverUploadObjectUrl);
+                this.coverUploadObjectUrl = null;
+            }
+            if (file) {
+                this.coverUploadObjectUrl = URL.createObjectURL(file);
+                if (this.coverUploadLabel) {
+                    this.coverUploadLabel.textContent = file.name;
+                }
+                this.setCoverPreview(this.coverUploadObjectUrl);
+            } else {
+                if (this.coverUploadLabel) {
+                    this.coverUploadLabel.textContent = this.coverUploadLabelDefault;
+                }
+                const current = this.fieldCover?.value?.trim();
+                this.setCoverPreview(current || null);
+            }
+        }
+
+        handleCoverFieldChange() {
+            if (this.fieldCoverUpload?.files?.length) {
+                return;
+            }
+            const current = this.fieldCover?.value?.trim();
+            this.setCoverPreview(current || null);
+        }
+
         setSaveStatus(state) {
             if (!this.actionStatus) {
                 return;
@@ -1039,11 +1098,29 @@
 
                 const game = this.games.get(this.currentGameId);
                 if (game) {
-                    this.applyFormToGame(game);
+                    let payload = null;
+                    const contentType = response.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        try {
+                            payload = await response.json();
+                        } catch (error) {
+                            payload = null;
+                        }
+                    }
+                    const overrides = {};
+                    if (payload && Object.prototype.hasOwnProperty.call(payload, 'coverImagePath')) {
+                        overrides.coverImagePath = payload.coverImagePath;
+                        if (this.fieldCover) {
+                            this.fieldCover.value = payload.coverImagePath || '';
+                        }
+                    }
+                    this.applyFormToGame(game, overrides);
                     this.updateRow(game);
                     this.updateSummaries();
+                    this.setCoverPreview(game.coverImagePath || null);
                 }
 
+                this.resetCoverUpload();
                 this.isDirty = false;
                 this.setSaveStatus('saved');
                 showToast(this.messages.saveSuccess, 'success');
@@ -1056,14 +1133,19 @@
             }
         }
 
-        applyFormToGame(game) {
+        applyFormToGame(game, overrides = {}) {
             if (!this.metadataForm) {
                 return;
             }
 
             game.title = this.fieldTitle?.value || game.title;
             game.slug = this.fieldSlug?.value || game.slug;
-            game.coverImagePath = this.fieldCover?.value || null;
+            const coverFieldValue = this.fieldCover?.value?.trim();
+            if (Object.prototype.hasOwnProperty.call(overrides, 'coverImagePath')) {
+                game.coverImagePath = overrides.coverImagePath || null;
+            } else if (typeof coverFieldValue === 'string') {
+                game.coverImagePath = coverFieldValue || null;
+            }
             game.description = this.fieldDescription?.value || null;
             if (this.categoriesField) {
                 game.categories = this.categoriesField.getPublishedValues();
@@ -1211,6 +1293,13 @@
             this.drawer.classList.remove('is-open');
             this.previewSection.hidden = true;
             this.editorSection.hidden = true;
+            if (this.currentGameId && this.games.has(this.currentGameId)) {
+                const current = this.games.get(this.currentGameId);
+                this.setCoverPreview(current?.coverImagePath || null);
+            } else {
+                this.setCoverPreview(null);
+            }
+            this.resetCoverUpload();
             this.currentGameId = null;
             this.isDirty = false;
             this.isLoadingForm = false;
