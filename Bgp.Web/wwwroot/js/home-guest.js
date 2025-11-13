@@ -144,6 +144,7 @@
             return;
         }
 
+        const shouldAutoPlay = carousel.dataset.featuredAutoplay === 'on';
         let items = Array.from(track.children);
         if (!items.length) {
             return;
@@ -341,6 +342,9 @@
         }
 
         function stopAuto() {
+            if (!shouldAutoPlay) {
+                return;
+            }
             if (autoTimer) {
                 clearInterval(autoTimer);
                 autoTimer = null;
@@ -348,7 +352,7 @@
         }
 
         function startAuto() {
-            if (!hasLoop) { 
+            if (!shouldAutoPlay || !hasLoop) {
                 return;
             }
             stopAuto();
@@ -373,10 +377,12 @@
             });
         }
 
-        carousel.addEventListener('mouseenter', stopAuto);
-        carousel.addEventListener('mouseleave', startAuto);
-        carousel.addEventListener('focusin', stopAuto);
-        carousel.addEventListener('focusout', startAuto);
+        if (shouldAutoPlay) {
+            carousel.addEventListener('mouseenter', stopAuto);
+            carousel.addEventListener('mouseleave', startAuto);
+            carousel.addEventListener('focusin', stopAuto);
+            carousel.addEventListener('focusout', startAuto);
+        }
 
         window.addEventListener('resize', () => {
             measure();
@@ -394,7 +400,9 @@
         ensureFill();
         measure();
         goTo(currentIndex, false);
-        startAuto();
+        if (shouldAutoPlay) {
+            startAuto();
+        }
     }
 
     root.querySelectorAll('[data-featured-carousel]').forEach(setupFeaturedCarousel);
