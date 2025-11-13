@@ -8,16 +8,26 @@
     const panel = document.getElementById('chatPanel');
     const closeBtn = panel ? panel.querySelector('[data-chat-close]') : null;
     const searchInput = panel ? panel.querySelector('[data-chat-search]') : null;
-    const friendsList = panel ? panel.querySelector('[data-chat-friends]') : null;
-    const friendsEmpty = panel ? panel.querySelector('[data-chat-friends-empty]') : null;
+    const friendsList = panel ? panel.querySelector('[data-chat-active]') : null;
+    const friendsEmpty = panel ? panel.querySelector('[data-chat-active-empty]') : null;
+    const archivedList = panel ? panel.querySelector('[data-chat-archived]') : null;
+    const archivedEmpty = panel ? panel.querySelector('[data-chat-archived-empty]') : null;
     const requestsList = panel ? panel.querySelector('[data-chat-requests]') : null;
     const requestsEmpty = panel ? panel.querySelector('[data-chat-requests-empty]') : null;
     const strangersList = panel ? panel.querySelector('[data-chat-strangers]') : null;
     const strangersEmpty = panel ? panel.querySelector('[data-chat-strangers-empty]') : null;
     const windowsContainer = dock.querySelector('[data-chat-windows]');
+    const overflowToggle = dock.querySelector('[data-chat-overflow]');
+    const overflowMenu = dock.querySelector('[data-chat-overflow-menu]');
+    const overflowList = dock.querySelector('[data-chat-overflow-list]');
+    const overflowCount = dock.querySelector('[data-chat-overflow-count]');
+    const overflowClose = dock.querySelector('[data-chat-overflow-close]');
     const unreadBadge = dock.querySelector('[data-chat-unread]');
     const liveRegion = dock.querySelector('[data-chat-live]');
     const stringsElement = document.getElementById('chatStrings');
+    const popoutLayer = dock.querySelector('[data-chat-popout]');
+    const popoutBody = popoutLayer ? popoutLayer.querySelector('[data-chat-popout-body]') : null;
+    const popoutDismiss = popoutLayer ? popoutLayer.querySelector('[data-chat-popout-dismiss]') : null;
     const statusForm = panel ? panel.querySelector('[data-chat-status-form]') : null;
     const statusMessageInput = statusForm ? statusForm.querySelector('[data-chat-status-message]') : null;
     const statusSelect = statusForm ? statusForm.querySelector('[data-chat-presence]') : null;
@@ -57,11 +67,19 @@
     const pendingPresence = new Map();
     const STORAGE_LAST_SEEN_KEY = 'bgp.chat.lastSeen';
     const lastSeenMessages = loadLastSeenMessages();
+    const STORAGE_ARCHIVED_KEY = 'bgp.chat.archived';
+    const archivedThreads = loadArchivedThreads();
     let pollTimer = null;
     let pollInFlight = false;
     const POLL_INTERVAL_MS = 7000;
     let pollErrorLogged = false;
     let lastUnreadTotal = 0;
+    const windowOrder = [];
+    const MAX_VISIBLE_WINDOWS = 4;
+    let activeConversationId = null;
+    let popoutConversationId = null;
+    let overflowMenuOpen = false;
+    const emojiPalette = ['😀', '😁', '😂', '😎', '😍', '🤔', '👍', '🎉', '🔥', '❤️', '✅', '❗', '🙌', '🥳', '🤖', '🕹️', '🏆', '⚡'];
 
     const strings = {
         readReceipt: 'Read at {0}',
@@ -94,7 +112,23 @@
         send: 'Send',
         deliveredReceiptLabel: 'Delivered',
         sending: 'Sending…',
-        sendError: 'Failed to send message'
+        sendError: 'Failed to send message',
+        fabLabel: 'Messages',
+        activeHeading: 'Active',
+        archivedHeading: 'Archive',
+        archivedEmpty: 'No archived threads',
+        archive: 'Archive',
+        unarchive: 'Restore',
+        keepArchived: 'Keep archived',
+        releaseArchived: 'Return when new messages arrive',
+        popout: 'Pop out',
+        overflow: 'More conversations',
+        invite: 'Invite to game',
+        searchThread: 'Search thread',
+        searchThreadPlaceholder: 'Search messages…',
+        searchThreadPrev: 'Prev',
+        searchThreadNext: 'Next',
+        searchThreadNone: 'No results'
     };
 
     try {
@@ -172,6 +206,68 @@
         persistLastSeenMessages();
     }
 
+    function loadArchivedThreads() {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return new Map();
+        }
+        try {
+            const raw = window.localStorage.getItem(STORAGE_ARCHIVED_KEY);
+            if (!raw) {
+                return new Map();
+            }
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== 'object') {
+                return new Map();
+            }
+            const entries = Object.entries(parsed).map(([key, value]) => [
+                normalizeId(key),
+                { keep: !!(value && value.keep) }
+            ]);
+            return new Map(entries);
+        } catch (err) {
+            console.warn('Unable to load archived threads.', err);
+            return new Map();
+        }
+    }
+
+    function persistArchivedThreads() {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return;
+        }
+        try {
+            const payload = {};
+            archivedThreads.forEach((value, key) => {
+                payload[key] = { keep: !!(value && value.keep) };
+            });
+            window.localStorage.setItem(STORAGE_ARCHIVED_KEY, JSON.stringify(payload));
+        } catch (err) {
+            console.warn('Unable to persist archived threads.', err);
+        }
+    }
+
+    function getArchiveEntry(friendId) {
+        if (!friendId) {
+            return null;
+        }
+        return archivedThreads.get(normalizeId(friendId)) || null;
+    }
+
+    function setArchiveEntry(friendId, keep) {
+        if (!friendId) {
+            return;
+        }
+        archivedThreads.set(normalizeId(friendId), { keep: !!keep });
+        persistArchivedThreads();
+    }
+
+    function clearArchiveEntry(friendId) {
+        if (!friendId) {
+            return;
+        }
+        archivedThreads.delete(normalizeId(friendId));
+        persistArchivedThreads();
+    }
+
     function clearLastSeenEntry(friendId) {
         if (!friendId) {
             return;
@@ -182,6 +278,18 @@
 
     function normalizeId(id) {
         return typeof id === 'string' ? id.trim().toLowerCase() : '';
+    }
+
+    function isThreadArchived(friendId) {
+        if (!friendId) {
+            return false;
+        }
+        return archivedThreads.has(normalizeId(friendId));
+    }
+
+    function shouldKeepArchived(friendId) {
+        const entry = getArchiveEntry(friendId);
+        return !!(entry && entry.keep);
     }
 
     function getFriend(id) {
@@ -373,14 +481,90 @@
         closeBtn.addEventListener('click', () => togglePanel(false));
     }
 
+    function focusChatSearch(options = {}) {
+        togglePanel(true);
+        if (!searchInput) {
+            return;
+        }
+        if (Object.prototype.hasOwnProperty.call(options, 'value')) {
+            searchInput.value = options.value;
+        }
+        searchInput.focus();
+        searchInput.select();
+        if (options.dispatchInput) {
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
+
     document.addEventListener('keydown', (evt) => {
-        if (evt.key === 'Escape') {
+        const key = evt.key || '';
+        const lower = key.toLowerCase();
+        if (key === 'Escape') {
+            if (popoutConversationId) {
+                closePopout();
+                return;
+            }
             if (statusMenuOpen) {
                 setStatusMenu(false);
                 return;
             }
+            closeOverflowMenu();
             if (dock.classList.contains('is-open')) {
                 togglePanel(false);
+            }
+            return;
+        }
+        if (evt.ctrlKey && !evt.shiftKey && !evt.altKey) {
+            if (lower === 'k') {
+                evt.preventDefault();
+                focusChatSearch();
+                return;
+            }
+            if (lower === 'n') {
+                evt.preventDefault();
+                focusChatSearch({ value: '', dispatchInput: true });
+                return;
+            }
+            if (lower === 'g') {
+                evt.preventDefault();
+                focusChatSearch({ value: '@', dispatchInput: true });
+                return;
+            }
+        }
+        if (evt.ctrlKey && !evt.shiftKey && !evt.altKey && lower === 'f') {
+            const active = getActiveConversation();
+            if (active) {
+                evt.preventDefault();
+                toggleThreadSearch(active, true);
+            }
+            return;
+        }
+        if (evt.ctrlKey && evt.shiftKey && !evt.altKey && lower === 'a') {
+            const active = getActiveConversation();
+            if (active) {
+                evt.preventDefault();
+                toggleFriendArchive(active.friendId);
+            }
+            return;
+        }
+        if (!evt.ctrlKey && !evt.metaKey && !evt.altKey && lower === 'delete' && panelContainsFocus()) {
+            const friendId = getFocusedFriendId();
+            if (friendId) {
+                evt.preventDefault();
+                toggleFriendArchive(friendId);
+            }
+            return;
+        }
+        if (!evt.ctrlKey && !evt.metaKey && !evt.altKey && (key === 'ArrowDown' || key === 'ArrowUp') && panelContainsFocus()) {
+            evt.preventDefault();
+            focusRelativeContact(key === 'ArrowDown' ? 1 : -1);
+            return;
+        }
+        if (!evt.ctrlKey && !evt.metaKey && !evt.altKey && key === 'Enter' && panelContainsFocus()) {
+            const friendId = getFocusedFriendId();
+            if (friendId) {
+                evt.preventDefault();
+                openConversation(friendId);
             }
         }
     });
@@ -415,6 +599,35 @@
                 setStatusMenu(false);
             }
         });
+    }
+    
+    document.addEventListener('click', (evt) => {
+        const target = evt.target;
+        if (overflowMenuOpen && overflowMenu && overflowToggle) {
+            if (!target || !(target instanceof Node)) {
+                closeOverflowMenu();
+            } else if (!overflowMenu.contains(target) && !overflowToggle.contains(target)) {
+                closeOverflowMenu();
+            }
+        }
+        if (dock && target instanceof Node && !dock.contains(target)) {
+            closeAllEmojiPickers();
+        }
+    });
+
+    if (overflowToggle) {
+        overflowToggle.addEventListener('click', (evt) => {
+            evt.preventDefault();
+            if (overflowMenuOpen) {
+                closeOverflowMenu();
+            } else {
+                openOverflowMenu();
+            }
+        });
+    }
+
+    if (overflowClose) {
+        overflowClose.addEventListener('click', () => closeOverflowMenu());
     }
 
     function showStatusFeedback(message, isError) {
@@ -938,7 +1151,8 @@
     }
 
     function applyFriendFilter() {
-        let visibleFriends = 0;
+        let visibleActive = 0;
+        let visibleArchived = 0;
         let visibleStrangers = 0;
         friends.forEach((friend) => {
             if (!friend.element) {
@@ -949,20 +1163,39 @@
             friend.element.hidden = !matches;
             if (matches) {
                 if (friend.isFriend) {
-                    visibleFriends++;
+                    if (friend.isArchived) {
+                        visibleArchived++;
+                    } else {
+                        visibleActive++;
+                    }
                 } else {
                     visibleStrangers++;
                 }
             }
         });
 
-        if (friendsEmpty) {
-            const hasFriends = Array.from(friends.values()).some((f) => f.isFriend);
-            friendsEmpty.textContent = searchTerm && hasFriends ? strings.noMatches : strings.noFriends;
-            friendsEmpty.style.display = visibleFriends > 0 ? 'none' : 'block';
+        updateActiveEmptyState(visibleActive);
+        updateArchivedEmptyState(visibleArchived);
+        updateStrangerEmptyState(visibleStrangers);
+    }
+
+    function updateActiveEmptyState(count) {
+        if (!friendsEmpty) {
+            return;
         }
 
-        updateStrangerEmptyState(visibleStrangers);
+        const hasFriends = Array.from(friends.values()).some((f) => f.isFriend && !f.isArchived);
+        friendsEmpty.textContent = searchTerm && hasFriends ? strings.noMatches : strings.noFriends;
+        friendsEmpty.style.display = count > 0 ? 'none' : 'block';
+    }
+
+    function updateArchivedEmptyState(count) {
+        if (!archivedEmpty) {
+            return;
+        }
+        const hasArchived = Array.from(friends.values()).some((f) => f.isFriend && f.isArchived);
+        archivedEmpty.textContent = searchTerm && hasArchived ? strings.noMatches : (strings.archivedEmpty || strings.noMatches);
+        archivedEmpty.style.display = count > 0 ? 'none' : 'block';
     }
 
     function renderStrangerContacts() {
@@ -1208,6 +1441,71 @@
         if (!shouldFlagUnread && hasUnreadClass) {
             friend.element.classList.remove('is-unread');
         }
+        updateFriendPlacement(friend);
+        updateArchiveActions(friend);
+    }
+
+    function updateFriendPlacement(friend) {
+        if (!friend || !friend.element) {
+            return;
+        }
+        if (friend.isFriend) {
+            const target = friend.isArchived ? archivedList : friendsList;
+            if (target && target !== friend.element.parentElement) {
+                target.appendChild(friend.element);
+            }
+        }
+        friend.element.classList.toggle('is-archived', !!friend.isArchived);
+    }
+
+    function updateArchiveActions(friend) {
+        if (!friend) {
+            return;
+        }
+        if (friend.archiveButton) {
+            const label = friend.isArchived ? strings.unarchive : strings.archive;
+            friend.archiveButton.textContent = label;
+            friend.archiveButton.setAttribute('aria-label', label);
+        }
+        if (friend.keepButton) {
+            const label = friend.keepArchived ? strings.releaseArchived : strings.keepArchived;
+            friend.keepButton.textContent = label;
+            friend.keepButton.setAttribute('aria-label', label);
+            friend.keepButton.hidden = !friend.isArchived;
+        }
+    }
+
+    function setFriendArchived(friendId, archived, keep) {
+        const friend = getFriend(friendId);
+        if (!friend || !friend.isFriend) {
+            return;
+        }
+        friend.isArchived = !!archived;
+        friend.keepArchived = friend.isArchived && !!keep;
+        if (friend.isArchived) {
+            setArchiveEntry(friend.userId, friend.keepArchived);
+        } else {
+            clearArchiveEntry(friend.userId);
+        }
+        updateFriendPlacement(friend);
+        updateFriendVisual(friend);
+        applyFriendFilter();
+    }
+
+    function toggleFriendArchive(friendId) {
+        const friend = getFriend(friendId);
+        if (!friend) {
+            return;
+        }
+        setFriendArchived(friendId, !friend.isArchived, friend.keepArchived);
+    }
+
+    function toggleFriendKeepArchived(friendId) {
+        const friend = getFriend(friendId);
+        if (!friend || !friend.isArchived) {
+            return;
+        }
+        setFriendArchived(friendId, true, !friend.keepArchived);
     }
 
     function updateConversationHeader(conversation) {
@@ -1251,15 +1549,38 @@
         return btn;
     }
 
+    function createInviteAction(userId, displayName) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chat-contact__action';
+        btn.title = strings.invite;
+        btn.setAttribute('aria-label', strings.invite);
+        btn.textContent = '🎮';
+        btn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            dispatchInvite(userId, displayName);
+        });
+        return btn;
+    }
+
+    function dispatchInvite(userId, displayName) {
+        const detail = { userId, displayName };
+        document.dispatchEvent(new CustomEvent('bgp:chat:invite', { detail }));
+    }
+
     function createFriendElement(friend, options = {}) {
         const li = document.createElement('li');
         li.className = 'chat-contact';
+        li.dataset.chatFriend = friend.userId;
         const button = document.createElement('button');
         button.type = 'button';
         const buttonClasses = ['chat-contact__button'];
         if (options.ghost) {
             buttonClasses.push('chat-contact__button--ghost');
         }
+        button.dataset.chatItem = 'contact';
+        button.dataset.chatFriend = friend.userId;
         button.className = buttonClasses.join(' ');
         button.addEventListener('click', () => openConversation(friend.userId));
 
@@ -1299,6 +1620,29 @@
         const actions = document.createElement('div');
         actions.className = 'chat-contact__actions';
         actions.appendChild(createProfileAction(friend.userId));
+        if (!options.ghost) {
+            actions.appendChild(createInviteAction(friend.userId, friend.displayName));
+            const archiveBtn = document.createElement('button');
+            archiveBtn.type = 'button';
+            archiveBtn.className = 'chat-contact__action';
+            archiveBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleFriendArchive(friend.userId);
+            });
+            actions.appendChild(archiveBtn);
+            const keepBtn = document.createElement('button');
+            keepBtn.type = 'button';
+            keepBtn.className = 'chat-contact__action';
+            keepBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleFriendKeepArchived(friend.userId);
+            });
+            actions.appendChild(keepBtn);
+            friend.archiveButton = archiveBtn;
+            friend.keepButton = keepBtn;
+        }
         li.appendChild(actions);
         friend.element = li;
         updateFriendVisual(friend);
@@ -1332,6 +1676,8 @@
             isInvisible: false,
             unreadCount: 0,
             isFriend: false,
+            isArchived: false,
+            keepArchived: false,
             lastNotifiedMessageId: null
         };
         setFriend(friend);
@@ -1347,8 +1693,12 @@
     }
 
     function renderFriends(accepted) {
-        if (!friendsList) return;
-        friendsList.innerHTML = '';
+        if (friendsList) {
+            friendsList.innerHTML = '';
+        }
+        if (archivedList) {
+            archivedList.innerHTML = '';
+        }
         const ordered = accepted.slice().sort((a, b) => {
             const unreadDiff = (b.unreadCount || 0) - (a.unreadCount || 0);
             if (unreadDiff !== 0) {
@@ -1361,8 +1711,13 @@
             return a.displayName.localeCompare(b.displayName);
         });
         ordered.forEach((friend) => {
+            friend.isArchived = friend.isArchived === true;
+            friend.keepArchived = friend.isArchived && shouldKeepArchived(friend.userId);
             removeStrangerContact(friend.userId);
-            friendsList.appendChild(createFriendElement(friend));
+            if (!friend.element) {
+                createFriendElement(friend);
+            }
+            updateFriendPlacement(friend);
         });
         applyFriendFilter();
         updateUnreadBadge();
@@ -1466,9 +1821,12 @@
         if (!conversation) {
             conversation = createConversation(friend, options);
             setConversation(friend.userId, conversation);
+            registerConversation(conversation);
         }
 
-        if (windowsContainer) {
+        if (windowsContainer && conversation.element
+            && !conversation.element.classList.contains('chat-window--popout')
+            && conversation.element.parentElement !== windowsContainer) {
             windowsContainer.appendChild(conversation.element);
         }
         updateConversationHeader(conversation);
@@ -1477,8 +1835,11 @@
         if (shouldAutoRead) {
             markThreadRead(friendId);
         }
-        if (shouldFocus && conversation.input) {
-            conversation.input.focus();
+        if (shouldFocus) {
+            setActiveConversation(conversation);
+            if (conversation.input) {
+                conversation.input.focus();
+            }
         }
         return conversation;
     }
@@ -1526,6 +1887,11 @@
         statusDot.className = 'chat-window__status-dot';
         controls.appendChild(statusDot);
 
+        const badge = document.createElement('span');
+        badge.className = 'chat-window__badge';
+        badge.hidden = true;
+        controls.appendChild(badge);
+
         const profileBtn = document.createElement('button');
         profileBtn.type = 'button';
         profileBtn.className = 'btn-icon';
@@ -1534,6 +1900,14 @@
         profileBtn.textContent = '👤';
         profileBtn.addEventListener('click', () => openProfile(friend.userId));
         controls.appendChild(profileBtn);
+
+        const popoutBtn = document.createElement('button');
+        popoutBtn.type = 'button';
+        popoutBtn.className = 'btn-icon';
+        popoutBtn.title = strings.popout;
+        popoutBtn.setAttribute('aria-label', strings.popout);
+        popoutBtn.textContent = '↗';
+        controls.appendChild(popoutBtn);
 
         const closeBtn = document.createElement('button');
         closeBtn.type = 'button';
@@ -1546,27 +1920,86 @@
         header.appendChild(title);
         header.appendChild(controls);
 
+        const searchBar = document.createElement('div');
+        searchBar.className = 'chat-window__search';
+        searchBar.hidden = true;
+
+        const searchInput = document.createElement('input');
+        searchInput.type = 'search';
+        searchInput.placeholder = strings.searchThreadPlaceholder;
+        searchBar.appendChild(searchInput);
+
+        const searchControls = document.createElement('div');
+        searchControls.className = 'chat-window__search-controls';
+        const prevBtn = document.createElement('button');
+        prevBtn.type = 'button';
+        prevBtn.textContent = strings.searchThreadPrev;
+        const nextBtn = document.createElement('button');
+        nextBtn.type = 'button';
+        nextBtn.textContent = strings.searchThreadNext;
+        const searchStatus = document.createElement('span');
+        searchStatus.className = 'chat-window__search-status';
+        searchControls.appendChild(prevBtn);
+        searchControls.appendChild(nextBtn);
+        searchControls.appendChild(searchStatus);
+        searchBar.appendChild(searchControls);
+
+
         const body = document.createElement('div');
         body.className = 'chat-window__body';
 
         const inputWrap = document.createElement('div');
         inputWrap.className = 'chat-window__input';
 
-        const input = document.createElement('input');
-        input.type = 'text';
+        const input = document.createElement('textarea');
+        input.rows = 1;
         input.autocomplete = 'off';
         input.maxLength = 2000;
         input.placeholder = strings.writePlaceholder;
+
+        const actions = document.createElement('div');
+        actions.className = 'chat-window__actions';
+
+        const emojiBtn = document.createElement('button');
+        emojiBtn.type = 'button';
+        emojiBtn.title = 'Emoji';
+        emojiBtn.textContent = '🙂';
+        actions.appendChild(emojiBtn);
+
+        const attachBtn = document.createElement('button');
+        attachBtn.type = 'button';
+        attachBtn.title = 'Attachment';
+        attachBtn.textContent = '📎';
+        actions.appendChild(attachBtn);
 
         const sendBtn = document.createElement('button');
         sendBtn.type = 'button';
         sendBtn.className = 'btn-primary btn-compact';
         sendBtn.textContent = strings.send;
+        actions.appendChild(sendBtn);
+
+        const emojiPicker = document.createElement('div');
+        emojiPicker.className = 'chat-emoji-picker';
+        emojiPicker.hidden = true;
+        emojiPalette.forEach((emoji) => {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.textContent = emoji;
+            option.addEventListener('click', (event) => {
+                event.preventDefault();
+                insertTextAtCursor(input, `${emoji} `);
+                autoGrowInput(input);
+                toggleEmojiPicker(conversation, false);
+            });
+            emojiPicker.appendChild(option);
+        });
 
         inputWrap.appendChild(input);
-        inputWrap.appendChild(sendBtn);
+        inputWrap.appendChild(actions);
+        inputWrap.appendChild(emojiPicker);
 
         element.appendChild(header);
+        element.appendChild(searchBar);
         element.appendChild(body);
         element.appendChild(inputWrap);
 
@@ -1580,6 +2013,16 @@
             nameEl: name,
             statusEl: status,
             dotEl: statusDot,
+            searchBar,
+            searchInput,
+            searchStatus,
+            searchMatches: [],
+            searchIndex: -1,
+            searchVisible: false,
+            badgeEl: badge,
+            unreadBadge: 0,
+            emojiPicker,
+            emojiToggle: emojiBtn,
             latestSentAtMs: null,
             latestMessageId: null,
             lastAttentionMessageId: null
@@ -1587,8 +2030,16 @@
 
         closeBtn.addEventListener('click', (evt) => {
             evt.stopPropagation();
-            element.remove();
-            deleteConversation(friend.userId);
+            destroyConversation(conversation);
+        });
+
+        popoutBtn.addEventListener('click', (evt) => {
+            evt.preventDefault();
+            if (popoutConversationId && normalizeId(popoutConversationId) === normalizeId(friend.userId)) {
+                closePopout();
+            } else {
+                openPopout(conversation);
+            }
         });
 
         header.addEventListener('click', (evt) => {
@@ -1598,27 +2049,32 @@
             if (conversation.input) {
                 conversation.input.focus();
             }
+            setActiveConversation(conversation);
             markThreadRead(friend.userId);
         });
 
+        element.addEventListener('mousedown', () => setActiveConversation(conversation));
+
         const send = async () => {
-            const message = input.value.trim();
-            if (!message) {
+            const value = input.value;
+            if (!value || !value.trim()) {
                 return;
             }
             input.value = '';
-            const pendingId = registerPendingMessage(conversation, message);
-            const sentViaSignalR = await trySendViaSignalR(friend.userId, message);
+            autoGrowInput(input);
+            const pendingId = registerPendingMessage(conversation, value);
+            const sentViaSignalR = await trySendViaSignalR(friend.userId, value);
             if (sentViaSignalR) {
                 return;
             }
             try {
-                await sendMessageViaHttp(friend.userId, message);
+                await sendMessageViaHttp(friend.userId, value);
             } catch (err) {
                 console.error('Failed to send message.', err);
 
-                markPendingMessageFailed(conversation, pendingId, message);
-                input.value = message;
+                markPendingMessageFailed(conversation, pendingId, value);
+                input.value = value;
+                autoGrowInput(input);
                 input.focus();
             }
 
@@ -1632,8 +2088,37 @@
             }
         });
 
-        input.addEventListener('focus', () => markThreadRead(friend.userId));
-        body.addEventListener('mouseenter', () => markThreadRead(friend.userId));
+        input.addEventListener('input', () => autoGrowInput(input));
+        input.addEventListener('focus', () => {
+            setActiveConversation(conversation);
+            markThreadRead(friend.userId);
+        });
+        body.addEventListener('mouseenter', () => {
+            setActiveConversation(conversation);
+            markThreadRead(friend.userId);
+        });
+
+        searchInput.addEventListener('input', () => runThreadSearch(conversation, searchInput.value));
+        prevBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            stepThreadSearch(conversation, -1);
+        });
+        nextBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            stepThreadSearch(conversation, 1);
+        });
+
+        emojiBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            toggleEmojiPicker(conversation);
+        });
+
+        attachBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            dispatchAttachment(friend.userId);
+        });
+
+        autoGrowInput(input);
 
         
         updateConversationHeader(conversation);
@@ -1641,6 +2126,320 @@
             .catch((err) => console.error('Failed to load chat history.', err));
 
         return conversation;
+    }
+
+    function autoGrowInput(textarea) {
+        if (!textarea) {
+            return;
+        }
+        textarea.style.height = 'auto';
+        const maxHeight = 128;
+        textarea.style.height = `${Math.min(maxHeight, Math.max(textarea.scrollHeight, 40))}px`;
+    }
+
+    function insertTextAtCursor(input, value) {
+        if (!input) {
+            return;
+        }
+        const start = input.selectionStart || 0;
+        const end = input.selectionEnd || 0;
+        const text = input.value || '';
+        input.value = `${text.slice(0, start)}${value}${text.slice(end)}`;
+        const next = start + value.length;
+        if (typeof input.setSelectionRange === 'function') {
+            input.setSelectionRange(next, next);
+        }
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function toggleEmojiPicker(conversation, force) {
+        if (!conversation || !conversation.emojiPicker) {
+            return;
+        }
+        const shouldOpen = typeof force === 'boolean' ? force : conversation.emojiPicker.hidden;
+        conversations.forEach((other) => {
+            if (other !== conversation && other.emojiPicker) {
+                other.emojiPicker.hidden = true;
+            }
+        });
+        conversation.emojiPicker.hidden = !shouldOpen;
+        if (shouldOpen && conversation.input) {
+            conversation.input.focus();
+        }
+    }
+
+    function closeAllEmojiPickers() {
+        conversations.forEach((conversation) => {
+            if (conversation.emojiPicker) {
+                conversation.emojiPicker.hidden = true;
+            }
+        });
+    }
+
+    function dispatchAttachment(userId) {
+        const detail = { userId };
+        document.dispatchEvent(new CustomEvent('bgp:chat:attachment', { detail }));
+    }
+
+    function pushWindowToOrder(friendId) {
+        const key = normalizeId(friendId);
+        if (!key) {
+            return;
+        }
+        const index = windowOrder.indexOf(key);
+        if (index !== -1) {
+            windowOrder.splice(index, 1);
+        }
+        windowOrder.push(key);
+    }
+
+    function removeWindowFromOrder(friendId) {
+        const key = normalizeId(friendId);
+        if (!key) {
+            return;
+        }
+        const index = windowOrder.indexOf(key);
+        if (index !== -1) {
+            windowOrder.splice(index, 1);
+        }
+    }
+
+    function setActiveConversation(conversation) {
+        if (!conversation) {
+            return;
+        }
+        activeConversationId = conversation.friendId;
+        pushWindowToOrder(conversation.friendId);
+        layoutDockWindows();
+    }
+
+    function getActiveConversation() {
+        if (!activeConversationId) {
+            return null;
+        }
+        return getConversation(activeConversationId);
+    }
+
+    function registerConversation(conversation) {
+        if (!conversation || !conversation.element || !windowsContainer) {
+            return;
+        }
+        windowsContainer.appendChild(conversation.element);
+        pushWindowToOrder(conversation.friendId);
+        layoutDockWindows();
+    }
+
+    function layoutDockWindows() {
+        if (!windowsContainer) {
+            return;
+        }
+        const availableIds = windowOrder.filter((id) => id && conversations.has(id)
+            && (!popoutConversationId || normalizeId(popoutConversationId) !== id));
+        const total = availableIds.length;
+        const visible = availableIds.slice(Math.max(0, total - MAX_VISIBLE_WINDOWS));
+        const hidden = availableIds.slice(0, Math.max(0, total - MAX_VISIBLE_WINDOWS));
+        visible.forEach((id) => {
+            const conversation = conversations.get(id);
+            if (conversation && conversation.element) {
+                conversation.element.classList.remove('chat-window--stacked');
+                if (conversation.element.parentElement !== windowsContainer) {
+                    windowsContainer.appendChild(conversation.element);
+                }
+            }
+        });
+        hidden.forEach((id) => {
+            const conversation = conversations.get(id);
+            if (conversation && conversation.element) {
+                conversation.element.classList.add('chat-window--stacked');
+                if (conversation.element.parentElement !== windowsContainer) {
+                    windowsContainer.appendChild(conversation.element);
+                }
+            }
+        });
+        if (overflowCount) {
+            overflowCount.textContent = String(hidden.length);
+        }
+        if (overflowToggle) {
+            overflowToggle.hidden = hidden.length === 0;
+            overflowToggle.setAttribute('aria-expanded', overflowMenuOpen ? 'true' : 'false');
+        }
+        updateOverflowMenu(hidden);
+    }
+
+    function updateOverflowMenu(hiddenIds) {
+        if (!overflowList) {
+            return;
+        }
+        overflowList.innerHTML = '';
+        hiddenIds.forEach((id) => {
+            const friend = getFriend(id);
+            if (!friend) {
+                return;
+            }
+            const item = document.createElement('li');
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = friend.displayName;
+            button.addEventListener('click', () => {
+                ensureConversation(friend.userId, { focus: true, autoRead: true });
+                closeOverflowMenu();
+            });
+            item.appendChild(button);
+            overflowList.appendChild(item);
+        });
+        if (hiddenIds.length === 0) {
+            closeOverflowMenu();
+        }
+    }
+
+    function openOverflowMenu() {
+        if (!overflowMenu) {
+            return;
+        }
+        overflowMenu.hidden = false;
+        overflowMenuOpen = true;
+        if (overflowToggle) {
+            overflowToggle.setAttribute('aria-expanded', 'true');
+        }
+    }
+
+    function closeOverflowMenu() {
+        if (!overflowMenu) {
+            return;
+        }
+        overflowMenu.hidden = true;
+        overflowMenuOpen = false;
+        if (overflowToggle) {
+            overflowToggle.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    function toggleThreadSearch(conversation, force) {
+        if (!conversation || !conversation.searchBar) {
+            return;
+        }
+        const shouldOpen = typeof force === 'boolean' ? force : !conversation.searchVisible;
+        conversation.searchVisible = shouldOpen;
+        if (typeof conversation.searchBar.toggleAttribute === 'function') {
+            conversation.searchBar.toggleAttribute('hidden', !shouldOpen);
+        } else {
+            conversation.searchBar.hidden = !shouldOpen;
+        }
+        if (shouldOpen && conversation.searchInput) {
+            conversation.searchInput.focus();
+            conversation.searchInput.select();
+            runThreadSearch(conversation, conversation.searchInput.value);
+        } else {
+            clearThreadSearch(conversation);
+        }
+    }
+
+    function runThreadSearch(conversation, term) {
+        if (!conversation) {
+            return;
+        }
+        const query = (term || '').trim().toLowerCase();
+        conversation.searchMatches = [];
+        conversation.searchIndex = -1;
+        if (!query) {
+            clearThreadSearch(conversation);
+            return;
+        }
+        conversation.messages.forEach((entry) => {
+            if (!entry || !entry.data || !entry.data.content) {
+                return;
+            }
+            const content = entry.data.content.toLowerCase();
+            if (content.includes(query)) {
+                conversation.searchMatches.push(entry);
+            }
+            entry.element.classList.remove('chat-message--search-hit');
+        });
+        if (conversation.searchMatches.length > 0) {
+            conversation.searchIndex = 0;
+            stepThreadSearch(conversation, 0);
+        } else if (conversation.searchStatus) {
+            conversation.searchStatus.textContent = strings.searchThreadNone;
+        }
+    }
+
+    function clearThreadSearch(conversation) {
+        if (!conversation) {
+            return;
+        }
+        conversation.searchMatches.forEach((entry) => {
+            if (entry && entry.element) {
+                entry.element.classList.remove('chat-message--search-hit');
+            }
+        });
+        conversation.searchMatches = [];
+        conversation.searchIndex = -1;
+        if (conversation.searchStatus) {
+            conversation.searchStatus.textContent = '';
+        }
+    }
+
+    function stepThreadSearch(conversation, delta) {
+        if (!conversation || !conversation.searchMatches.length) {
+            return;
+        }
+        if (typeof delta === 'number' && delta !== 0) {
+            conversation.searchIndex = (conversation.searchIndex + delta + conversation.searchMatches.length)
+                % conversation.searchMatches.length;
+        }
+        const match = conversation.searchMatches[conversation.searchIndex];
+        conversation.searchMatches.forEach((entry, index) => {
+            if (entry && entry.element) {
+                entry.element.classList.toggle('chat-message--search-hit', index === conversation.searchIndex);
+            }
+        });
+        if (match && match.element && typeof match.element.scrollIntoView === 'function') {
+            match.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        if (conversation.searchStatus) {
+            conversation.searchStatus.textContent = `${conversation.searchIndex + 1} / ${conversation.searchMatches.length}`;
+        }
+    }
+
+    function openPopout(conversation) {
+        if (!popoutLayer || !popoutBody || !conversation || !conversation.element) {
+            return;
+        }
+        popoutLayer.hidden = false;
+        popoutBody.innerHTML = '';
+        popoutBody.appendChild(conversation.element);
+        conversation.element.classList.add('chat-window--popout');
+        popoutConversationId = normalizeId(conversation.friendId);
+    }
+
+    function closePopout() {
+        if (!popoutLayer || !popoutBody || !popoutConversationId) {
+            return;
+        }
+        const conversation = conversations.get(popoutConversationId);
+        if (conversation && conversation.element && windowsContainer) {
+            conversation.element.classList.remove('chat-window--popout');
+            windowsContainer.appendChild(conversation.element);
+        }
+        popoutLayer.hidden = true;
+        popoutConversationId = null;
+        layoutDockWindows();
+    }
+
+    function destroyConversation(conversation) {
+        if (!conversation) {
+            return;
+        }
+        const friendId = conversation.friendId;
+        if (popoutConversationId && normalizeId(popoutConversationId) === normalizeId(friendId)) {
+            closePopout();
+        }
+        if (conversation.element) {
+            conversation.element.remove();
+        }
+        deleteConversation(friendId);
+        removeWindowFromOrder(friendId);
+        layoutDockWindows();
     }
 
     function isConversationActive(conversation) {
@@ -1827,6 +2626,9 @@
         const shouldFlagUnread = !message.fromSelf && senderMatchesFriend && receiverMatchesSelf && !alreadySeen;
 
         if (shouldFlagUnread) {
+            if (friend.isArchived && !friend.keepArchived) {
+                setFriendArchived(friend.userId, false, false);
+            }
             if (isConversationActive(conversation)) {
                 markThreadRead(friendId);
             } else {
@@ -1839,6 +2641,14 @@
                     announceNewMessage(friend);
                 }
                 triggerConversationAttention(conversation, message);
+                if (friend.element) {
+                    friend.element.classList.add('is-attention');
+                }
+                conversation.unreadBadge = (conversation.unreadBadge || 0) + 1;
+                if (conversation.badgeEl) {
+                    conversation.badgeEl.textContent = String(conversation.unreadBadge);
+                    conversation.badgeEl.hidden = false;
+                }
             }
         } else if (!message.fromSelf) {
             updateFriendVisual(friend);
@@ -1866,11 +2676,19 @@
         friend.unreadCount = 0;
         friend.lastNotifiedMessageId = null;
         updateFriendVisual(friend);
+        if (friend.element) {
+            friend.element.classList.remove('is-attention');
+        }
         updateUnreadBadge();
         const conversation = getConversation(friend.userId);
         if (conversation) {
             conversation.element.classList.remove('chat-window--attention');
             conversation.lastAttentionMessageId = null;
+            conversation.unreadBadge = 0;
+            if (conversation.badgeEl) {
+                conversation.badgeEl.textContent = '0';
+                conversation.badgeEl.hidden = true;
+            }
             recordConversationSeen(conversation);
         } else {
             setLastSeenEntry(friend.userId, null, new Date().toISOString());
@@ -1927,6 +2745,8 @@
                             isInvisible: !!row.isInvisible,
                             unreadCount: previousUnread.get(normalizeId(row.userId)) || row.unreadCount || 0,
                             isFriend: true,
+                            isArchived: isThreadArchived(row.userId),
+                            keepArchived: shouldKeepArchived(row.userId),
                             lastNotifiedMessageId: null
                         };
                         setFriend(friend);
@@ -2097,6 +2917,8 @@
                     isInvisible: false,
                     unreadCount: 0,
                     isFriend: false,
+                    isArchived: false,
+                    keepArchived: false,
                     lastNotifiedMessageId: null
                 };
                 setFriend(friend);
