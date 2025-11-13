@@ -107,7 +107,12 @@
         </div>
         <div id="chatPanel" class="chat-panel" aria-hidden="true">
             <header class="chat-panel__header" data-chat-panel-header>
-                <div class="chat-panel__title">
+                <div class="chat-panel__title"
+                     data-chat-panel-title
+                     role="button"
+                     tabindex="0"
+                     aria-expanded="true"
+                     aria-controls="chatPanelBody">
                     <strong>@L["Chat_Title"].Value</strong>
                     <small>@L["Chat_Conversations"].Value</small>
                 </div>
@@ -134,7 +139,7 @@
                        autocomplete="off" />
             </div>
 
-            <div class="chat-panel__body">
+            <div class="chat-panel__body" id="chatPanelBody">
                 <div class="chat-panel__profile" data-chat-status>
                     <button type="button"
                             class="chat-status-toggle"
