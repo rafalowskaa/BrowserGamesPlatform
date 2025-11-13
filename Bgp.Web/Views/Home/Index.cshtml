@@ -36,7 +36,7 @@
                 {
                     <a class="btn-secondary" asp-controller="Account" asp-action="Register">@L["Home_Hero_Cta_Register"].Value</a>
                 }
-                @else
+                else
                 {
                     <a class="btn-secondary" asp-controller="Games" asp-action="Index">@L["Home_Hero_Cta_Browse"].Value</a>
                 }
@@ -108,7 +108,7 @@
                     @await Html.PartialAsync("_GameCardGuest", game)
                 }
             }
-            @else
+            else
             {
                 <p class="home-guest__empty">@L["Home_Popular_Empty"].Value</p>
             }
@@ -195,7 +195,7 @@
             </div>
         
     }
-            @else
+            else
         {
             <p class="home-guest__empty">@L["Home_Events_Empty"].Value</p>
         }
@@ -224,7 +224,7 @@
                         {
                             @await Html.PartialAsync("_GameCardGuest", Model.GameOfTheDay)
                         }
-                    @else
+                    else
                         {
                             <p class="home-panel__empty">@L["Home_Dashboard_GameOfTheDay_Empty"].Value</p>
                         }
