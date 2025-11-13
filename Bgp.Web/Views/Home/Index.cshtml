@@ -315,11 +315,7 @@
 
         <section class="home-section home-creators">
             <div class="home-creators__header">
-                <div class="home-creators__copy">
-                    <h2>@L["Home_Creator_Title"].Value</h2>
-                    <p>@L["Home_Creator_Subtitle"].Value</p>
-                    <p class="home-creators__tagline">@L["Home_Creator_Tagline"].Value</p>
-                </div>
+                
                 <a class="btn-primary home-creators__cta" asp-controller="Games" asp-action="Create">@L["Home_Creator_Cta"].Value</a>
             </div>
             <div class="game-carousel" role="list">
@@ -329,6 +325,11 @@
                          @await Html.PartialAsync("_GameCardGuest", game)
                     </div>
                 }
+            </div>
+            <div class="home-creators__copy">
+                <h2>@L["Home_Creator_Title"].Value</h2>
+                <p>@L["Home_Creator_Subtitle"].Value</p>
+                <p class="home-creators__tagline">@L["Home_Creator_Tagline"].Value</p>
             </div>
         </section>
 

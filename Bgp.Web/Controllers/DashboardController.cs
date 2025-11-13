@@ -904,6 +904,12 @@ public class DashboardController : Controller
             stats.LastScoreSubmittedAt = userScoreGroups.Max(g => g.LastPlayedAt);
         }
 
+        var hasRecoveryConfigured = !string.IsNullOrWhiteSpace(user.SecurityQuestion1AnswerHash)
+                                     && !string.IsNullOrWhiteSpace(user.SecurityQuestion2AnswerHash)
+                                     && !string.IsNullOrWhiteSpace(user.SecurityQuestion3AnswerHash);
+        var hasAvatar = !string.IsNullOrWhiteSpace(user.AvatarUrl);
+        var dailyGoals = BuildDailyGoals(user, stats, hasAvatar, hasRecoveryConfigured);
+
         var rank = RankCalculator.CalculateRank(stats);
 
         var bestGameProjection = await _db.Scores
@@ -979,11 +985,7 @@ public class DashboardController : Controller
             SecurityQuestionOptions = recoveryOptions
         };
 
-        var hasRecoveryConfigured = !string.IsNullOrWhiteSpace(user.SecurityQuestion1AnswerHash)
-                                     && !string.IsNullOrWhiteSpace(user.SecurityQuestion2AnswerHash)
-                                     && !string.IsNullOrWhiteSpace(user.SecurityQuestion3AnswerHash);
-
-        profile.DailyGoals = BuildDailyGoals(user, stats, profile, hasRecoveryConfigured);
+        profile.DailyGoals = dailyGoals;
 
         return new DashboardViewModel
         {
@@ -1386,7 +1388,7 @@ public class DashboardController : Controller
         return highlights;
     }
 
-    private IReadOnlyList<ProfileGoalViewModel> BuildDailyGoals(ApplicationUser user, DashboardStatsViewModel stats, ProfileSectionViewModel profile, bool hasRecoveryConfigured)
+    private IReadOnlyList<ProfileGoalViewModel> BuildDailyGoals(ApplicationUser user, DashboardStatsViewModel stats, bool hasAvatar, bool hasRecoveryConfigured)
     {
         var goals = new List<ProfileGoalViewModel>
         {
@@ -1397,7 +1399,7 @@ public class DashboardController : Controller
             new ProfileGoalViewModel(
                 Localize("Dashboard_Profile_Goal_AddAvatar_Title"),
                 Localize("Dashboard_Profile_Goal_AddAvatar_Body"),
-                profile.HasAvatar),
+                hasAvatar),
             new ProfileGoalViewModel(
                 Localize("Dashboard_Profile_Goal_CompleteProfile_Title"),
                 Localize("Dashboard_Profile_Goal_CompleteProfile_Body"),

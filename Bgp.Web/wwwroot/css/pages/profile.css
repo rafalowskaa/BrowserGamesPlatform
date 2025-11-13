@@ -1262,17 +1262,11 @@
         color: rgba(148, 163, 184, 0.85);
     }
 
-.profile-view__actions-main,
-.profile-view__actions-secondary {
+.profile-view__actions-controls {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-}
-
-.profile-view__actions-secondary {
-    border-top: 1px solid rgba(148, 163, 184, 0.14);
-    padding-top: 0.75rem;
-    margin-top: 0.25rem;
+    align-items: center;
 }
 
 .profile-view__actions button {
@@ -1315,7 +1309,7 @@
         gap: 0.75rem;
     }
 
-    .profile-view__actions-secondary {
+    .profile-view__actions-controls {
         flex-direction: column;
         align-items: stretch;
     }

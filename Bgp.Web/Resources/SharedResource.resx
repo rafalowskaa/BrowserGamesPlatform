@@ -1,754 +1,169 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
 	<resheader name="resmimetype">
-
-
-
-
 		<value>text/microsoft-resx</value>
-
-
-
-
 	</resheader>
-
-
-
-
 	<resheader name="version">
-
-
-
-
 		<value>2.0</value>
-
-
-
-
 	</resheader>
-
-
-
-
 	<resheader name="reader">
-
-
-
-
 		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-
-
-
-
 	</resheader>
-
-
-
-
 	<resheader name="writer">
-
-
-
-
 		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-
-
-
-
 	</resheader>
-
-
-
-
 	<data name="Navigation_Home" xml:space="preserve">
-        
-        
-    
-        
         <value>Home</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Navigation_Games" xml:space="preserve">
-        
-        
-    
-        
         <value>Games</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Navigation_Api" xml:space="preserve">
-        
-        
-    
-        
         <value>API</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Navigation_Login" xml:space="preserve">
-        
-        
-    
-        
         <value>Log in</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Navigation_Register" xml:space="preserve">
-        
-        
-    
-        
         <value>Sign up</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Navigation_Logout" xml:space="preserve">
-        
-        
-    
-        
         <value>Log out</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Navigation_ChatToggleTitle" xml:space="preserve">
-        
-        
-    
-        
         <value>Open chat</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Language_Polish" xml:space="preserve">
-        
-        
-    
-        
         <value>Polish</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Language_English" xml:space="preserve">
-        
-        
-    
-        
         <value>English</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Home_Title" xml:space="preserve">
-        
-        
-    
-        
         <value>BGP – Browser Games Platform</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Home_HeroTitle" xml:space="preserve">
-        
-        
-    
-        
         <value>Browser Games Platform</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Home_HeroDescription" xml:space="preserve">
-        
-        
-    
-        
         <value>HTML5 games catalog. Upload, ratings, leaderboards, single/multiplayer modes, score API.</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Home_BrowseButton" xml:space="preserve">
-        
-        
-    
-        
         <value>Browse games</value>
-        
-        
-  
-    
     </data>
-
-
-
-
-	<data name="Games_Index_Title" xml:space="preserve">
-        
-        
-    
-        
+	<data name="Games_Index_Title" xml:space="preserve">  
         <value>Games catalog</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Games_Index_Heading" xml:space="preserve">
-        
-        
-    
-        
         <value>Games catalog</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Games_Index_Rating" xml:space="preserve">
-        
-        
-    
-        
         <value>Rating</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Details_NoBuild" xml:space="preserve">
-        
-        
-    
-        
         <value>No published build available.</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Details_LeaderboardTitle" xml:space="preserve">
-        
-        
-    
-        
         <value>Leaderboard (Top 20)</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Details_LeaderboardLoading" xml:space="preserve">
-        
-        
-    
-        
         <value>Loading…</value>
-        
-        
-  
-    
     </data>
 	<data name="Details_LeaderboardEmpty" xml:space="preserve">
-
-
-
-
 		<value>No scores yet.</value>
-
-
-
-
 	</data>
-
-
-
-
 	<data name="Details_LeaderboardError" xml:space="preserve">
-        
-        
-    
-        
         <value>Error</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Login_Title" xml:space="preserve">
-        
-        
-    
-        
         <value>Sign in</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Login_Heading" xml:space="preserve">
-        
-        
-    
-        
         <value>Game platform</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Login_LoginOrEmail" xml:space="preserve">
-        
-        
-    
-        
         <value>Login or email</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Login_Password" xml:space="preserve">
-        
-        
-    
-        
         <value>Password</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Login_RememberMe" xml:space="preserve">
-        
-        
-    
-        
         <value>Remember me</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Login_RegisterLink" xml:space="preserve">
-        
-        
-    
-        
         <value>Register</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Login_LoginButton" xml:space="preserve">
-        
-        
-    
-        
         <value>Sign in</value>
-        
-        
-  
-    
     </data>
-
 	<data name="Auth_Password_Show" xml:space="preserve">
         <value>Show</value>
 	</data>
-
 	<data name="Auth_Password_Hide" xml:space="preserve">
         <value>Hide</value>
 	</data>
-
-
 	<data name="Auth_Register_Title" xml:space="preserve">
-        
-        
-    
-        
         <value>Sign up</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Register_Heading" xml:space="preserve">
-        
-        
-    
-        
         <value>New account</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Register_Login" xml:space="preserve">
-        
-        
-    
-        
         <value>Login</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Register_Email" xml:space="preserve">
-        
-        
-    
-        
         <value>E-mail</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Register_Password" xml:space="preserve">
-        
-        
-    
-        
         <value>Password</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Register_ConfirmPassword" xml:space="preserve">
-        
-        
-    
-        
         <value>Confirm password</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Register_Back" xml:space="preserve">
-        
-        
-    
-        
         <value>Back</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Auth_Register_Create" xml:space="preserve">
-        
-        
-    
-        
         <value>Create account</value>
-        
-        
-  
-    
     </data>
-
 	<data name="Auth_Register_NextStep" xml:space="preserve">
         <value>Next step</value>
     </data>
-
 	<data name="Auth_Register_PreviousStep" xml:space="preserve">
         <value>Back</value>
     </data>
-
-
-
 	<data name="Footer_Legal" xml:space="preserve">
-        
-        
-    
-        
         <value>© {0} Browser Games Platform</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Account_InvalidCredentials" xml:space="preserve">
-        
-        
-    
-        
         <value>Invalid credentials.</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Account_LockedOut" xml:space="preserve">
-        
-        
-    
-        
         <value>Account temporarily locked. Try again later.</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Chat_Title" xml:space="preserve">
-        
-        
-    
-        
         <value>Chat</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Chat_Close" xml:space="preserve">
-        
-        
-    
-        
         <value>Close</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Chat_SearchPlaceholder" xml:space="preserve">
-        
-        
-    
-        
         <value>Search player...</value>
-        
         <data name="Chat_SearchHint" xml:space="preserve">
-
-
-
-
         <value>Start typing to find players</value>
-
-
-
-
     </data>
-  
-    
     </data>
-
-
-
-
 	<data name="Chat_Friends" xml:space="preserve">
-        
-        
-    
-        
         <value>Friends</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Chat_Invites" xml:space="preserve">
-        
-        
-    
-        
         <value>Invites</value>
-        
-        
-  
-    
+         </data>
+	<data name="Chat_Conversations" xml:space="preserve">
+        <value>Active conversations</value>
     </data>
-
-
-
-
 	<data name="Chat_WriteMessage" xml:space="preserve">
-        
-        
-    
-        
         <value>Type a message...</value>
-        
-        
-  
-    
     </data>
 
 

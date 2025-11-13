@@ -8,7 +8,6 @@
     ViewData["Title"] = string.Format(L["Dashboard_Profile_View_Title"].Value, Model.DisplayName);
     var rank = Model.Rank;
     var hasGoals = Model.DailyGoals?.Any() == true;
-    var hasHighlights = Model.Highlights?.Any() == true;
     var bestGame = Model.BestGame;
     var hasBestGame = bestGame is not null;
     var presenceClass = Model.IsInvisible
@@ -123,7 +122,7 @@
 
     <div class="profile-view__actions" data-profile-actions>
         <div class="profile-view__actions-status" data-profile-actions-status data-tone="@Model.RelationshipTone">@Model.RelationshipLabel</div>
-        <div class="profile-view__actions-main">
+        <div class="profile-view__actions-controls">
             <button type="button"
                     class="btn-primary"
                     data-profile-action="add"
@@ -160,8 +159,7 @@
                     hidden="@((!Model.IsFriend || Model.IsSelf || Model.BlockedByViewer || Model.BlockedByTarget) ? "hidden" : null)">
                 @L["Dashboard_Friends_InviteToGame"].Value
             </button>
-        </div>
-        <div class="profile-view__actions-secondary">
+       
             <button type="button"
                     class="btn-danger"
                     data-profile-action="block"
@@ -219,24 +217,6 @@
     }
 
 
-    @if (hasHighlights)
-    {
-        <section class="profile-insights" aria-labelledby="publicProfileHighlights">
-            <div class="profile-section-heading">
-                <h3 id="publicProfileHighlights">@L["Dashboard_Profile_Insights_Title"].Value</h3>
-                <span>@L["Dashboard_Profile_Insights_Subtitle"].Value</span>
-            </div>
-            <div class="profile-insights__list">
-                @foreach (var highlight in Model.Highlights)
-                {
-                    <article class="profile-insight">
-                        <h4>@highlight.Title</h4>
-                        <p>@highlight.Description</p>
-                    </article>
-                }
-            </div>
-        </section>
-    }
 
     <footer class="profile-view__footer">
         <a asp-action="Index" class="btn-outline">@L["Dashboard_Profile_View_Back"].Value</a>

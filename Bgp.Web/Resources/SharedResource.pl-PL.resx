@@ -165,6 +165,9 @@
 	<data name="Chat_Invites" xml:space="preserve">
         <value>Zaproszenia</value>
     </data>
+	<data name="Chat_Conversations" xml:space="preserve">
+        <value>Aktywne rozmowy</value>
+    </data>
 	<data name="Chat_WriteMessage" xml:space="preserve">
         <value>Napisz wiadomość...</value>
     </data>

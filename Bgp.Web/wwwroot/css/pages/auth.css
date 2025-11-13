@@ -358,9 +358,9 @@
     padding: 0;
     width: 100%;
     border-radius: 999px;
-    background: #16a34a;
+    background: #15803d;
     overflow: hidden;
-    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 12px 30px rgba(21, 128, 61, 0.35);
 }
 
 .security-question.is-collapsed .security-question__summary {
