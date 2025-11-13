@@ -1552,6 +1552,9 @@
 	<data name="Dashboard_Profile_Rank_TotalXp" xml:space="preserve">
     <value>Łączne doświadczenie: {0} PD</value>
   </data>
+	<data name="Dashboard_Profile_Rank_CurrentTrophy" xml:space="preserve">
+    <value>Bieżący puchar</value>
+  </data>
 	<data name="Dashboard_Profile_Tip_Balance_Body" xml:space="preserve">
     <value>Pamiętaj o rozciąganiu i nawodnieniu między kolejkami – równowaga ciała ostrzy umysł.</value>
   </data>
@@ -2861,5 +2864,41 @@
   </data>
 	<data name="Admin_Users_Xp_Submit" xml:space="preserve">
 <value>Przyznaj PD</value>
+  </data>
+	<data name="Dashboard_FriendsLeaderboards_Title" xml:space="preserve">
+    <value>Rankingi znajomych</value>
+  </data>
+	<data name="Dashboard_FriendsLeaderboards_Subtitle" xml:space="preserve">
+    <value>Sprawdź, kto prowadzi w waszych grach.</value>
+  </data>
+	<data name="Dashboard_FriendsLeaderboards_SearchPlaceholder" xml:space="preserve">
+    <value>Szukaj gier...</value>
+  </data>
+	<data name="Dashboard_FriendsLeaderboards_SortLabel" xml:space="preserve">
+    <value>Sortowanie</value>
+  </data>
+	<data name="Dashboard_FriendsLeaderboards_SelectLabel" xml:space="preserve">
+    <value>Gra</value>
+  </data>
+	<data name="Dashboard_FriendsLeaderboards_Sort_Recent" xml:space="preserve">
+    <value>Najnowsza aktywność</value>
+  </data>
+	<data name="Dashboard_FriendsLeaderboards_Sort_Rating" xml:space="preserve">
+    <value>Najwyższa ocena</value>
+  </data>
+	<data name="Dashboard_FriendsLeaderboards_Sort_Alphabetical" xml:space="preserve">
+    <value>Alfabetycznie</value>
+  </data>
+	<data name="Dashboard_FriendsLeaderboards_RatingLabel" xml:space="preserve">
+    <value>Ocena {0}/5</value>
+  </data>
+	<data name="Dashboard_FriendsLeaderboards_Empty" xml:space="preserve">
+    <value>Zagraj ze znajomymi, aby pojawiły się rankingi.</value>
+  </data>
+	<data name="Dashboard_FriendsLeaderboards_NoPlayers" xml:space="preserve">
+    <value>Brak wyników znajomych w tej grze.</value>
+  </data>
+	<data name="Dashboard_FriendsLeaderboards_NoResults" xml:space="preserve">
+    <value>Brak gier spełniających kryteria.</value>
   </data>
 </root>

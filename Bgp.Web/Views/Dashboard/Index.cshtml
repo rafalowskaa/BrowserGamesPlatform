@@ -30,6 +30,7 @@
     var includeProfileScripts = false;
     var includeOverviewScripts = false;
     var includeGamesScripts = false;
+    var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     string StatusClass(GameApprovalStatus status) => status switch
     {
@@ -348,6 +349,11 @@
             break;
         default:
             includeOverviewScripts = true;
+            var friendLeaderboards = Model.FriendLeaderboards;
+            var friendGames = friendLeaderboards.Games;
+            var selectedFriendGame = friendGames.FirstOrDefault(g => friendLeaderboards.SelectedGameId.HasValue && g.GameId == friendLeaderboards.SelectedGameId)
+            ?? friendGames.FirstOrDefault();
+            var friendPlaceholder = Url.Content("~/img/placeholder.png");
             <section class="dashboard-panel">
                 <h2>@L["Dashboard_Overview_Heading"].Value</h2>
                 <p>@L["Dashboard_Overview_Subheading"].Value</p>
@@ -363,6 +369,121 @@
                 </div>
             </section>
             
+            <section class="dashboard-panel friend-leaderboard-panel"
+                     data-friend-leaderboards
+                     data-leaderboard-rating-label="@L["Dashboard_FriendsLeaderboards_RatingLabel"].Value"
+                     data-leaderboard-no-players="@L["Dashboard_FriendsLeaderboards_NoPlayers"].Value"
+                     data-leaderboard-no-results="@L["Dashboard_FriendsLeaderboards_NoResults"].Value"
+                     data-leaderboard-placeholder="@friendPlaceholder">
+                <header class="friend-leaderboards__header">
+                    <div>
+                        <h2>@L["Dashboard_FriendsLeaderboards_Title"].Value</h2>
+                        <p>@L["Dashboard_FriendsLeaderboards_Subtitle"].Value</p>
+                    </div>
+                    @if (friendGames.Any())
+                    {
+                        <div class="friend-leaderboards__controls">
+                            <label class="friend-leaderboards__control">
+                                <span class="sr-only">@L["Dashboard_FriendsLeaderboards_SearchPlaceholder"].Value</span>
+                                <input type="search"
+                                       data-leaderboard-search
+                                       placeholder="@L["Dashboard_FriendsLeaderboards_SearchPlaceholder"].Value"
+                                       aria-label="@L["Dashboard_FriendsLeaderboards_SearchPlaceholder"].Value" />
+                            </label>
+                            <label class="friend-leaderboards__control">
+                                <span>@L["Dashboard_FriendsLeaderboards_SortLabel"].Value</span>
+                                <select data-leaderboard-sort>
+                                    <option value="recent">@L["Dashboard_FriendsLeaderboards_Sort_Recent"].Value</option>
+                                    <option value="rating">@L["Dashboard_FriendsLeaderboards_Sort_Rating"].Value</option>
+                                    <option value="alpha">@L["Dashboard_FriendsLeaderboards_Sort_Alphabetical"].Value</option>
+                                </select>
+                            </label>
+                            <label class="friend-leaderboards__control">
+                                <span>@L["Dashboard_FriendsLeaderboards_SelectLabel"].Value</span>
+                                <select data-leaderboard-game>
+                                    @foreach (var game in friendGames)
+                                    {
+                                        var isSelectedGame = selectedFriendGame is not null && game.GameId == selectedFriendGame.GameId;
+                                        <option value="@game.GameId" selected="@(isSelectedGame ? "selected" : null)">@game.Title</option>
+                                    }
+                                </select>
+                            </label>
+                        </div>
+                    }
+                </header>
+
+                @if (friendGames.Any() && selectedFriendGame is not null)
+                {
+                    var selectedCover = Url.Content(selectedFriendGame.CoverImagePath ?? "~/img/placeholder.png");
+                    <p class="friend-leaderboards__empty" data-leaderboard-no-results hidden>@L["Dashboard_FriendsLeaderboards_NoResults"].Value</p>
+                    <article class="friend-leaderboard-card" data-leaderboard-card>
+                        <div class="friend-leaderboard-card__game">
+                            <img src="@selectedCover" alt="" data-leaderboard-game-image />
+                            <div>
+                                <h3 data-leaderboard-game-title>
+                                    <a asp-controller="Games" asp-action="Details" asp-route-slug="@selectedFriendGame.Slug" data-leaderboard-game-link>@selectedFriendGame.Title</a>
+                                </h3>
+                                <p data-leaderboard-game-rating>@string.Format(L["Dashboard_FriendsLeaderboards_RatingLabel"].Value, $"{selectedFriendGame.AverageRating:0.0}")</p>
+                            </div>
+                        </div>
+                        <ol class="friend-leaderboard-card__list" data-leaderboard-list>
+                            @foreach (var entry in selectedFriendGame.TopPlayers)
+                            {
+                                var rowClass = entry.IsCurrentUser ? "friend-leaderboard-card__row is-self" : "friend-leaderboard-card__row";
+                                var fallback = !string.IsNullOrWhiteSpace(entry.DisplayName) ? entry.DisplayName.Trim()[0] : '?';
+                                <li class="@rowClass">
+                                    <span class="friend-leaderboard-card__rank">@entry.Rank</span>
+                                    <div class="friend-leaderboard-card__player">
+                                        @if (!string.IsNullOrEmpty(entry.AvatarUrl))
+                                        {
+                                            <img src="@entry.AvatarUrl" alt="" />
+                                        }
+                                        else
+                                        {
+                                            <span class="friend-leaderboard-card__avatar-placeholder" aria-hidden="true">@fallback</span>
+                                        }
+                                        <span class="friend-leaderboard-card__name">@entry.DisplayName</span>
+                                    </div>
+                                    <span class="friend-leaderboard-card__score">@entry.BestScore.ToString("0.##", System.Globalization.CultureInfo.CurrentCulture)</span>
+                                </li>
+                            }
+                        </ol>
+                        <p class="friend-leaderboard-card__empty" data-leaderboard-empty@(selectedFriendGame.TopPlayers.Any() ? " hidden" : string.Empty)>@L["Dashboard_FriendsLeaderboards_NoPlayers"].Value</p>
+                    </article>
+                }
+                else
+                {
+                    <p class="empty">@L["Dashboard_FriendsLeaderboards_Empty"].Value</p>
+                }
+            </section>
+
+            @if (friendGames.Any())
+            {
+                var leaderboardPayload = new
+                {
+                    selectedGameId = friendLeaderboards.SelectedGameId ?? selectedFriendGame?.GameId,
+                    games = friendGames.Select(game => new
+                    {
+                        game.GameId,
+                        game.Title,
+                        game.Slug,
+                        coverImage = Url.Content(game.CoverImagePath ?? "~/img/placeholder.png"),
+                        averageRating = game.AverageRating,
+                        lastActivityAt = game.LastActivityAt,
+                        topPlayers = game.TopPlayers.Select(entry => new
+                        {
+                            entry.UserId,
+                            entry.DisplayName,
+                            entry.BestScore,
+                            entry.Rank,
+                            entry.AvatarUrl,
+                            entry.IsCurrentUser
+                        })
+                    })
+                };
+                <script type="application/json" id="friendLeaderboardData">@Html.Raw(JsonSerializer.Serialize(leaderboardPayload, jsonOptions))</script>
+            }
+
             break;
     }
 </section>

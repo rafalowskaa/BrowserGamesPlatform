@@ -9,6 +9,10 @@
     var preferences = vm.Preferences;
     var selectedPanel = string.IsNullOrWhiteSpace(Model.SelectedPanel) ? "profile" : Model.SelectedPanel;
     var rank = profile.Rank;
+    var hasRankTrophy = !string.IsNullOrEmpty(rank.TrophyImage);
+    var identityClass = hasRankTrophy
+        ? "profile-hero__identity profile-hero__identity--decorated"
+        : "profile-hero__identity";
     var months = Enumerable.Range(1, 12)
         .Select(i => new { Value = i, Name = CultureInfo.CurrentCulture.DateTimeFormat.MonthNames[i - 1] })
         .Select(m => new { m.Value, Name = string.IsNullOrWhiteSpace(m.Name) ? m.Value.ToString("00") : m.Name })
@@ -234,15 +238,10 @@
 
 <section class="profile-shell" data-profile-root>
     <header class="profile-hero" style="--rank-accent:@rank.AccentColor; --rank-highlight:@rank.AccentHighlightColor; --rank-glow:@rank.AccentGlowColor;">
-        <div class="profile-hero__decor profile-hero__decor--left" aria-hidden="true">
-            @if (!string.IsNullOrEmpty(rank.TrophyImage))
-            {
-                <img src="@rank.TrophyImage" alt="" class="profile-hero__trophy" />
-            }
-        </div>
+        
         <div class="profile-hero__core">
             
-            <div class="profile-hero__identity">
+            <div class="@identityClass">
                 <div class="profile-hero__avatar"
                      data-profile-avatar
                      data-has-avatar="@(profile.HasAvatar ? "true" : "false")"
@@ -285,14 +284,17 @@
                         </div>
                     </div>
                 </div>
+                @if (hasRankTrophy)
+                {
+                    <div class="profile-hero__trophy-block" aria-label="@L["Dashboard_Profile_Rank_CurrentTrophy"].Value">
+                        <div class="profile-hero__trophy-frame" data-profile-trophy>
+                            <img src="@rank.TrophyImage" alt="@L["Dashboard_Profile_Rank_CurrentTrophy"].Value" class="profile-hero__trophy" />
+                        </div>
+                    </div>
+                }
             </div>
         </div>
-        <div class="profile-hero__decor profile-hero__decor--right" aria-hidden="true">
-            @if (!string.IsNullOrEmpty(rank.NextTrophyImage))
-            {
-                <img src="@rank.NextTrophyImage" alt="" class="profile-hero__trophy" />
-            }
-        </div>
+       
     </header>
 
     @if (!profile.HasAvatar)
@@ -386,7 +388,9 @@
           data-error-text="@L["Dashboard_Profile_Status_Error"].Value"
           data-toast-success="@L["Dashboard_Success_Profile"].Value"
           data-display-name-agreement-error="@L["Dashboard_Profile_DisplayName_ConfirmAgreementError"].Value"
-          data-display-name-password-error="@L["Dashboard_Profile_DisplayName_ConfirmPasswordError"].Value">
+          data-display-name-password-error="@L["Dashboard_Profile_DisplayName_ConfirmPasswordError"].Value"
+          data-initial-language="@(!string.IsNullOrWhiteSpace(preferences.PreferredLanguage) ? preferences.PreferredLanguage : 'system')"
+          data-initial-theme="@(!string.IsNullOrWhiteSpace(preferences.PreferredTheme) ? preferences.PreferredTheme : 'system')">
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true, null, new { @class = "val-summary" })
 

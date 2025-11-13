@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +43,7 @@ public class DashboardController : Controller
 
     private const long MaxAvatarBytes = 2 * 1024 * 1024;
     private const int AvatarTargetSize = 256;
+    private const string ThemeCookieName = "bgp-theme";
 
     private static readonly Regex SlugRegex = new("[^a-z0-9-]", RegexOptions.Compiled);
     private static readonly Regex VersionSanitizer = new("[^a-zA-Z0-9._-]", RegexOptions.Compiled);
@@ -262,6 +264,7 @@ public class DashboardController : Controller
 
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogInformation("User {UserId} updated profile settings.", user.Id);
+        ApplyPreferenceCookies(user);
 
         if (IsAjaxRequest())
         {
@@ -791,18 +794,25 @@ public class DashboardController : Controller
             .Distinct()
             .ToList();
 
-        var friendProfiles = await _db.Users
+        var rawFriendProfiles = await _db.Users
             .AsNoTracking()
             .Where(u => friendIds.Contains(u.Id))
             .Select(u => new { u.Id, u.DisplayName, u.AvatarUrl, u.Email, u.UserName })
-            .ToDictionaryAsync(u => u.Id);
+            .ToListAsync();
+
+        var profileLookup = new Dictionary<string, BasicProfile>(rawFriendProfiles.Count + 1, StringComparer.Ordinal);
+        foreach (var profile in rawFriendProfiles)
+        {
+            profileLookup[profile.Id] = new BasicProfile(profile.DisplayName, profile.AvatarUrl, profile.Email, profile.UserName);
+        }
+        profileLookup[user.Id] = new BasicProfile(user.DisplayName, user.AvatarUrl, user.Email, user.UserName);
 
         var unknownFriend = Localize("Dashboard_Friends_Unknown");
 
         var friendVms = friendships
             .Select(f =>
             {
-                friendProfiles.TryGetValue(f.FriendId, out var profile);
+                profileLookup.TryGetValue(f.FriendId, out var profile);
                 var displayName = profile is not null
                     ? DisplayNameFormatter.Format(profile.DisplayName, profile.Email, profile.UserName)
                     : string.Empty;
@@ -820,6 +830,8 @@ public class DashboardController : Controller
             })
             .OrderBy(f => f.DisplayName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
+
+        var friendLeaderboards = await BuildFriendLeaderboardsAsync(user, friendIds, profileLookup);
 
         var stats = new DashboardStatsViewModel
         {
@@ -1012,7 +1024,8 @@ public class DashboardController : Controller
 
             Stats = stats,
             NewGame = BuildEmptyCreateGameForm(),
-            Friends = friendVms
+            Friends = friendVms,
+            FriendLeaderboards = friendLeaderboards
         };
     }
 
@@ -1412,6 +1425,126 @@ public class DashboardController : Controller
         return goals;
     }
 
+    private async Task<FriendLeaderboardCollectionViewModel> BuildFriendLeaderboardsAsync(
+        ApplicationUser currentUser,
+        IReadOnlyCollection<string> friendIds,
+        IReadOnlyDictionary<string, BasicProfile> profileLookup)
+    {
+        var participantIds = new HashSet<string>(friendIds, StringComparer.Ordinal);
+        participantIds.Add(currentUser.Id);
+
+        if (participantIds.Count == 0)
+        {
+            return new FriendLeaderboardCollectionViewModel();
+        }
+
+        var scoreGroups = await _db.Scores
+            .AsNoTracking()
+            .Where(s => participantIds.Contains(s.UserId))
+            .GroupBy(s => new { s.GameId, s.UserId })
+            .Select(g => new
+            {
+                g.Key.GameId,
+                g.Key.UserId,
+                BestScore = g.Max(x => x.Value),
+                LastPlayed = g.Max(x => x.SubmittedAtUtc)
+            })
+            .ToListAsync();
+
+        if (scoreGroups.Count == 0)
+        {
+            return new FriendLeaderboardCollectionViewModel();
+        }
+
+        var gameIds = scoreGroups.Select(g => g.GameId).Distinct().ToArray();
+        var games = await _db.Games
+            .AsNoTracking()
+            .Where(g => gameIds.Contains(g.Id))
+            .Select(g => new
+            {
+                g.Id,
+                g.Title,
+                g.Slug,
+                g.CoverImagePath,
+                Rating = g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0.0
+            })
+            .ToListAsync();
+
+        var gameLookup = games.ToDictionary(g => g.Id);
+        var leaderboards = new List<FriendLeaderboardGameViewModel>(games.Count);
+
+        foreach (var gameGroup in scoreGroups.GroupBy(x => x.GameId))
+        {
+            if (!gameLookup.TryGetValue(gameGroup.Key, out var game))
+            {
+                continue;
+            }
+
+            var entries = gameGroup
+                .OrderByDescending(x => x.BestScore)
+                .ThenByDescending(x => x.LastPlayed)
+                .Take(20)
+                .Select((entry, index) =>
+                {
+                    profileLookup.TryGetValue(entry.UserId, out var profile);
+                    var resolvedName = profile is not null
+                        ? DisplayNameFormatter.Format(profile.DisplayName, profile.Email, profile.UserName)
+                        : Localize("Dashboard_Friends_Unknown");
+
+                    if (string.IsNullOrWhiteSpace(resolvedName))
+                    {
+                        resolvedName = Localize("Dashboard_Friends_Unknown");
+                    }
+
+                    return new FriendLeaderboardEntryViewModel
+                    {
+                        UserId = entry.UserId,
+                        DisplayName = resolvedName,
+                        BestScore = entry.BestScore,
+                        Rank = index + 1,
+                        AvatarUrl = profile?.AvatarUrl,
+                        IsCurrentUser = string.Equals(entry.UserId, currentUser.Id, StringComparison.Ordinal)
+                    };
+                })
+                .Where(e => !string.IsNullOrWhiteSpace(e.DisplayName))
+                .ToList();
+
+            if (entries.Count == 0)
+            {
+                continue;
+            }
+
+            var lastActivity = gameGroup.Max(x => x.LastPlayed);
+
+            leaderboards.Add(new FriendLeaderboardGameViewModel
+            {
+                GameId = game.Id,
+                Title = game.Title,
+                Slug = game.Slug,
+                CoverImagePath = game.CoverImagePath,
+                AverageRating = game.Rating,
+                LastActivityAt = lastActivity,
+                TopPlayers = entries
+            });
+        }
+
+        if (leaderboards.Count == 0)
+        {
+            return new FriendLeaderboardCollectionViewModel();
+        }
+
+        var orderedGames = leaderboards
+            .OrderByDescending(g => g.LastActivityAt ?? DateTime.MinValue)
+            .ThenBy(g => g.Title, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+
+        return new FriendLeaderboardCollectionViewModel
+        {
+            Games = orderedGames,
+            SelectedGameId = orderedGames.First().GameId
+        };
+    }
+
     private IReadOnlyList<SelectListItem> BuildLanguageOptions(string? current)
     {
         var normalized = NormalizePreference(current, SupportedLanguages, "system");
@@ -1459,6 +1592,51 @@ public class DashboardController : Controller
         var normalized = value.Trim().ToLowerInvariant();
         var match = allowed.FirstOrDefault(option => string.Equals(option, normalized, StringComparison.OrdinalIgnoreCase));
         return match ?? fallback;
+    }
+
+    private void ApplyPreferenceCookies(ApplicationUser user)
+    {
+        ApplyLanguageCookie(user.PreferredLanguage);
+        ApplyThemeCookie(user.PreferredTheme);
+    }
+
+    private void ApplyLanguageCookie(string? preference)
+    {
+        var normalized = NormalizePreference(preference, SupportedLanguages, "system");
+        if (normalized is "en" or "pl")
+        {
+            var cultureName = normalized == "pl" ? "pl-PL" : "en-US";
+            var cookieValue = CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(cultureName));
+            Response.Cookies.Append(CookieRequestCultureProvider.DefaultCookieName, cookieValue, BuildPreferenceCookieOptions());
+        }
+        else
+        {
+            Response.Cookies.Delete(CookieRequestCultureProvider.DefaultCookieName);
+        }
+    }
+
+    private void ApplyThemeCookie(string? preference)
+    {
+        var normalized = NormalizePreference(preference, SupportedThemes, "system");
+        if (normalized is "light" or "dark" or "contrast")
+        {
+            Response.Cookies.Append(ThemeCookieName, normalized, BuildPreferenceCookieOptions());
+        }
+        else
+        {
+            Response.Cookies.Delete(ThemeCookieName);
+        }
+    }
+
+    private CookieOptions BuildPreferenceCookieOptions()
+    {
+        return new CookieOptions
+        {
+            IsEssential = true,
+            Expires = DateTimeOffset.UtcNow.AddYears(1),
+            SameSite = SameSiteMode.Lax,
+            Secure = Request?.IsHttps ?? false
+        };
     }
 
     private PlayerProfileViewModel BuildPublicProfileViewModel(ProfileSectionViewModel profile, ApplicationUser target, RelationshipInfo relationship, string viewerId)
@@ -1666,7 +1844,10 @@ public class DashboardController : Controller
             return fallback;
         }
 
-        var friendly = Regex.Replace(key, "([a-z])([A-Z])", "$1 $2");
+
+    private sealed record BasicProfile(string? DisplayName, string? AvatarUrl, string? Email, string? UserName);
+
+    var friendly = Regex.Replace(key, "([a-z])([A-Z])", "$1 $2");
         friendly = friendly.Replace('_', ' ');
         friendly = Regex.Replace(friendly, "\\s+", " ").Trim();
 

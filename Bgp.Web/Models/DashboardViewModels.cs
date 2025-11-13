@@ -21,6 +21,7 @@ public class DashboardViewModel
     public DashboardStatsViewModel Stats { get; init; } = new();
     public CreateGameFormViewModel NewGame { get; init; } = new();
     public IReadOnlyList<FriendViewModel> Friends { get; init; } = Array.Empty<FriendViewModel>();
+    public FriendLeaderboardCollectionViewModel FriendLeaderboards { get; init; } = new();
 }
 
 public record GameSummaryViewModel(Guid Id, string Title, string Slug, string? CoverImagePath, double AverageRating, GameApprovalStatus ApprovalStatus, DateTime CreatedAtUtc, string? ModerationNotes);
@@ -205,6 +206,33 @@ public class FriendViewModel
     public string DisplayName { get; set; } = string.Empty;
     public string? AvatarUrl { get; set; }
     public DateTime Since { get; set; }
+}
+
+public class FriendLeaderboardCollectionViewModel
+{
+    public IReadOnlyList<FriendLeaderboardGameViewModel> Games { get; init; } = Array.Empty<FriendLeaderboardGameViewModel>();
+    public Guid? SelectedGameId { get; init; }
+}
+
+public class FriendLeaderboardGameViewModel
+{
+    public Guid GameId { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string Slug { get; init; } = string.Empty;
+    public string? CoverImagePath { get; init; }
+    public double AverageRating { get; init; }
+    public DateTime? LastActivityAt { get; init; }
+    public IReadOnlyList<FriendLeaderboardEntryViewModel> TopPlayers { get; init; } = Array.Empty<FriendLeaderboardEntryViewModel>();
+}
+
+public class FriendLeaderboardEntryViewModel
+{
+    public string UserId { get; init; } = string.Empty;
+    public string DisplayName { get; init; } = string.Empty;
+    public double BestScore { get; init; }
+    public int Rank { get; init; }
+    public string? AvatarUrl { get; init; }
+    public bool IsCurrentUser { get; init; }
 }
 
 public class UpdateProfileInputModel

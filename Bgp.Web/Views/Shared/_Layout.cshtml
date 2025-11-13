@@ -16,6 +16,15 @@
     var ret = Context.Request.Path + Context.Request.QueryString;
     var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name;
     var theme = ViewData["Theme"]?.ToString();
+    if (string.IsNullOrWhiteSpace(theme) && Context.Items.TryGetValue("PreferredTheme", out var themeItem))
+    {
+        theme = themeItem?.ToString();
+    }
+
+    if (string.IsNullOrWhiteSpace(theme))
+    {
+        Context.Request.Cookies.TryGetValue("bgp-theme", out theme);
+    }
     theme = string.IsNullOrWhiteSpace(theme) ? "dark" : theme;
 }
 <!DOCTYPE html>

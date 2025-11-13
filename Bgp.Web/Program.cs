@@ -9,6 +9,7 @@ using Bgp.Web.Helpers;
 using Bgp.Web.Hubs;
 using Bgp.Web.Localization;
 using Bgp.Web.Resources;
+using Bgp.Web.Middleware;
 using Bgp.Web.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Localization;
@@ -267,6 +268,7 @@ app.UseRouting();
 app.UseCors("Games");
 
 app.UseAuthentication();
+app.UseMiddleware<UserPreferenceMiddleware>();
 app.UseAuthorization();
 
 

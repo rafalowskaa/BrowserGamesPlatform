@@ -152,7 +152,11 @@
                         var hasAnyActions = canEditUser || canBlockUser || canDeleteUser;
                         var allowedAccessAttribute = string.Join(',', allowedAccessLevels.Select(level => level.ToString()));
                         <tr>
-                            <td>@user.DisplayName</td>
+                            <td>
+                                <a class="admin-user-link" asp-controller="Dashboard" asp-action="ViewProfile" asp-route-id="@user.Id" target="_blank" rel="noopener">
+                                    @user.DisplayName
+                                </a>
+                            </td>
                             <td>@user.Email</td>
                             <td>@user.CreatedAtUtc.ToLocalTime().ToString("g")</td>
                             <td>

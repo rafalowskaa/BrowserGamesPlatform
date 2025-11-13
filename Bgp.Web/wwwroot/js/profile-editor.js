@@ -54,8 +54,59 @@
         src: avatarPreview instanceof HTMLImageElement ? avatarPreview.src : null
     };
 
+    const htmlElement = document.documentElement;
+    const languageSelect = form.querySelector('#PreferredLanguage');
+    const themeRadios = Array.from(form.querySelectorAll('input[name="PreferredTheme"]'));
+    const systemThemeQuery = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    let initialLanguage = form.dataset.initialLanguage || (languageSelect ? languageSelect.value || 'system' : 'system');
+    let initialTheme = form.dataset.initialTheme || (themeRadios.find((radio) => radio.checked)?.value || 'system');
+    let pendingLanguage = initialLanguage;
+    let pendingTheme = initialTheme;
+    let languageReloadTimer = null;
+
     function getDisplayNameBlockedMessage() {
         return form.dataset.displayNameBlockedMessage || '';
+    }
+
+    function resolveThemeValue(value) {
+        if (!value || value === 'system') {
+            if (systemThemeQuery && typeof systemThemeQuery.matches === 'boolean') {
+                return systemThemeQuery.matches ? 'dark' : 'light';
+            }
+            return 'dark';
+        }
+        return value;
+    }
+
+    function applyThemePreview(value) {
+        if (!htmlElement) {
+            return;
+        }
+        const resolved = resolveThemeValue(value || 'system');
+        htmlElement.setAttribute('data-theme', resolved);
+        htmlElement.dataset.themePreference = value || 'system';
+    }
+
+    function handleSystemThemeChange() {
+        if (!pendingTheme || pendingTheme === 'system') {
+            applyThemePreview('system');
+        }
+    }
+
+    if (systemThemeQuery) {
+        const listener = () => handleSystemThemeChange();
+        if (typeof systemThemeQuery.addEventListener === 'function') {
+            systemThemeQuery.addEventListener('change', listener);
+        } else if (typeof systemThemeQuery.addListener === 'function') {
+            systemThemeQuery.addListener(listener);
+        }
+    }
+
+    function requestLanguageReload() {
+        if (languageReloadTimer) {
+            window.clearTimeout(languageReloadTimer);
+        }
+        languageReloadTimer = window.setTimeout(() => window.location.reload(), 750);
     }
 
     function setStatus(message, tone) {
@@ -205,6 +256,21 @@
             }
         });
 
+        if (languageSelect) {
+            const normalizedLanguage = languageSelect.value || 'system';
+            initialLanguage = normalizedLanguage;
+            pendingLanguage = normalizedLanguage;
+            form.dataset.initialLanguage = normalizedLanguage;
+        }
+
+        if (themeRadios.length > 0) {
+            const checkedTheme = themeRadios.find((radio) => radio.checked);
+            const normalizedTheme = checkedTheme ? checkedTheme.value || 'system' : 'system';
+            initialTheme = normalizedTheme;
+            pendingTheme = normalizedTheme;
+            form.dataset.initialTheme = normalizedTheme;
+        }
+
         updateActionBarState();
 
         avatarInitialState = {
@@ -320,6 +386,7 @@
             setStatus(idleText, '');
         }
         captureInitialValues();
+        applyThemePreview(initialTheme || 'system');
     }
 
     function handleChange(event) {
@@ -741,16 +808,33 @@
             }
         }
         if (payload.preferredLanguage) {
-            const select = form.querySelector('#PreferredLanguage');
-            if (select instanceof HTMLSelectElement) {
-                select.value = payload.preferredLanguage;
+            const normalizedLanguage = payload.preferredLanguage || 'system';
+            if (languageSelect instanceof HTMLSelectElement) {
+                languageSelect.value = normalizedLanguage;
+            } else {
+                const select = form.querySelector('#PreferredLanguage');
+                if (select instanceof HTMLSelectElement) {
+                    select.value = normalizedLanguage;
+                }
+            }
+            const languageChanged = normalizedLanguage !== initialLanguage;
+            initialLanguage = normalizedLanguage;
+            pendingLanguage = normalizedLanguage;
+            form.dataset.initialLanguage = normalizedLanguage;
+            if (languageChanged) {
+                requestLanguageReload();
             }
         }
         if (payload.preferredTheme) {
-            const themeRadio = form.querySelector(`input[name="PreferredTheme"][value="${CSS.escape(payload.preferredTheme)}"]`);
+            const normalizedTheme = payload.preferredTheme || 'system';
+            const themeRadio = form.querySelector(`input[name="PreferredTheme"][value="${CSS.escape(normalizedTheme)}"]`);
             if (themeRadio instanceof HTMLInputElement) {
                 themeRadio.checked = true;
             }
+            initialTheme = normalizedTheme;
+            pendingTheme = normalizedTheme;
+            form.dataset.initialTheme = normalizedTheme;
+            applyThemePreview(normalizedTheme);
         }
         if (Object.prototype.hasOwnProperty.call(payload, 'avatarUrl')) {
             if (payload.avatarUrl) {
@@ -907,6 +991,21 @@
             cancelBtn.addEventListener('click', (event) => {
                 event.preventDefault();
                 cancelEditing();
+            });
+        }
+
+        if (languageSelect) {
+            languageSelect.addEventListener('change', () => {
+                pendingLanguage = languageSelect.value || 'system';
+            });
+        }
+
+        if (themeRadios.length > 0) {
+            themeRadios.forEach((radio) => {
+                radio.addEventListener('change', () => {
+                    pendingTheme = radio.value || 'system';
+                    applyThemePreview(pendingTheme);
+                });
             });
         }
 
@@ -1219,6 +1318,7 @@
     }
 
     captureInitialValues();
+    applyThemePreview(initialTheme || 'system');
     setupNav();
     setupListeners();
     if (statusEl) {

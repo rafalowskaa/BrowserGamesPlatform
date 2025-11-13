@@ -25,54 +25,64 @@
         pointer-events: none;
     }
 
-.profile-hero__trophy {
-    --trophy-color: #38bdf8;
-    --trophy-highlight: #a855f7;
-    --trophy-glow: rgba(56,189,248,0.35);
+.profile-hero__trophy-block {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.875rem;
-    text-align: center;
-    color: #e2e8f0;
-    font-weight: 600;
-    position: relative;
-    z-index: 1;
-    padding: 1,5rem 1rem;
-    border-radius: calc(var(--radius) * 1.3);
-    background: linear-gradient(155deg, var(--trophy-highlight), rgba(15,23,42,0.82));
-    border: 1px solid rgba(255,255,255,0.08);
-    box-shadow: 0 18px 35px var(--trophy-glow);
-    overflow: hidden;
+    padding: 0.5rem 0;
+    margin-left: 1rem;
 }
 
-    .profile-hero__trophy span {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.375rem 0.875rem;
-        border-radius: 62.4375rem;
-        background: rgba(15,23,42,0.65);
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        font-size: 0.8125rem;
+.profile-hero__trophy-frame {
+    position: relative;
+    padding: 0.45rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    isolation: isolate;
+}
+
+    .profile-hero__trophy-frame::before {
+        content: "";
+        position: absolute;
+        inset: auto;
+        width: clamp(6rem, 11vw, 7.5rem);
+        height: clamp(6rem, 11vw, 7.5rem);
+        border-radius: 50%;
+        background: radial-gradient(circle, color-mix(in srgb, var(--rank-glow, rgba(56,189,248,0.45)) 80%, transparent) 0%, transparent 70%);
+        filter: blur(12px);
+        opacity: 0.65;
+        animation: profile-trophy-glow 2.8s ease-in-out infinite;
+        z-index: -2;
     }
 
-.profile-hero__trophy-image {
-    width: 5.75rem;
+    .profile-hero__trophy-frame::after {
+        content: "";
+        position: absolute;
+        inset: auto;
+        width: clamp(6rem, 12vw, 8.5rem);
+        height: clamp(6rem, 12vw, 8.5rem);
+        border-radius: 50%;
+        border: 1px solid color-mix(in srgb, var(--rank-accent, #38bdf8) 70%, transparent);
+        opacity: 0.55;
+        animation: profile-trophy-pulse 2.6s ease-in-out infinite;
+        z-index: -3;
+    }
+
+.profile-hero__trophy {
+    width: clamp(3.25rem, 8vw, 5rem);
     height: auto;
-    filter: drop-shadow(0 12px 20px rgba(15,23,42,0.6));
-    transition: transform .35s ease;
+    display: block;
+    transform-origin: 50% 75%;
+    filter: drop-shadow(0 16px 28px color-mix(in srgb, var(--rank-glow, rgba(56,189,248,0.45)) 85%, transparent));
+    animation: profile-trophy-shimmer 3s ease-in-out infinite;
+    transition: transform .3s ease, filter .3s ease;
 }
 
-.profile-hero__trophy:hover .profile-hero__trophy-image {
-    transform: translateY(-6px);
-}
-
-.profile-hero__trophy-image--muted {
-    opacity: 0.45;
-    filter: drop-shadow(0 6px 12px rgba(15,23,42,0.4));
+.profile-hero__trophy-frame:hover .profile-hero__trophy {
+    transform: translateY(-4px) scale(1.04);
+    filter: drop-shadow(0 20px 34px color-mix(in srgb, var(--rank-glow, rgba(56,189,248,0.45)) 95%, transparent));
 }
 
 .profile-hero__identity {
@@ -509,19 +519,15 @@
         text-align: center;
     }
 
-    .profile-hero__trophy {
-        flex-direction: row;
-        justify-content: center;
-        gap: 1rem;
-        padding: 1.125rem 1.25rem;
+    .profile-hero__identity,
+    .profile-hero__identity--decorated {
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: center;
     }
 
-        .profile-hero__trophy span {
-            font-size: 0.75rem;
-        }
-
-    .profile-hero__trophy-image {
-        width: 4.75rem;
+    .profile-hero__trophy-block {
+        margin: 0 auto;
+        padding-block: 1rem;
     }
 
     .profile-field {
@@ -590,49 +596,15 @@
         animation: profile-hero-shimmer 7.5s ease-in-out infinite;
     }
 
-.profile-hero__decor {
-    position: absolute;
-    top: 50%;
-    width: clamp(10rem, 18vw, 14rem);
-    height: auto;
-    transform: translateY(-50%);
-    filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.45));
-    opacity: 0.68;
-    animation: profile-trophy-shimmer 7.5s ease-in-out infinite;
-    pointer-events: none;
+.profile-hero__trophy-block {
+    margin-left: clamp(1rem, 2.4vw, 1.75rem);
+    padding-inline: clamp(0.25rem, 1vw, 0.75rem);
+    align-self: stretch;
 }
 
-    .profile-hero__decor::after {
-        content: "";
-        position: absolute;
-        inset: 16% 22% 4% 22%;
-        border-radius: 50%;
-        background: radial-gradient(circle, color-mix(in srgb, var(--rank-glow, rgba(14, 116, 144, 0.65)) 40%, transparent) 0%, transparent 65%);
-        filter: blur(26px);
-        opacity: 0.75;
-        z-index: -1;
-        animation: profile-trophy-glow 8s ease-in-out infinite;
-    }
-
-.profile-hero__decor--left {
-    left: -2.5rem;
-}
-
-.profile-hero__decor--right {
-    right: -2.5rem;
-    animation-delay: 3.5s;
-}
-
-.profile-hero__trophy {
-    width: 100%;
-    height: auto;
-    transform: rotate(-6deg);
-    display: block;
-    background: transparent;
-}
-
-.profile-hero__decor--right .profile-hero__trophy {
-    transform: rotate(9deg);
+.profile-hero__identity--decorated {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+    gap: clamp(1rem, 2.8vw, 2.5rem);
 }
 
 .profile-hero__core {
@@ -640,6 +612,9 @@
     gap: clamp(1.25rem, 3vw, 1.75rem);
     align-items: center;
     justify-items: start;
+    padding-right: clamp(1.5rem, 4vw, 4rem);
+    position: relative;
+    z-index: 1;
 }
 
 .profile-hero__identity {
@@ -1465,27 +1440,40 @@
 
 @keyframes profile-trophy-shimmer {
     0%, 100% {
-        filter: drop-shadow(0 18px 32px rgba(0, 0, 0, 0.45));
-        opacity: 0.6;
-        transform: translateY(-50%) scale(0.98);
+        transform: translateY(0) scale(1);
     }
 
     50% {
-        filter: drop-shadow(0 22px 46px rgba(94, 234, 212, 0.32));
-        opacity: 0.9;
-        transform: translateY(-49%) scale(1.02);
+        transform: translateY(-6px) scale(1.06);
     }
 }
 
 @keyframes profile-trophy-glow {
     0%, 100% {
-        opacity: 0.55;
-        transform: scale(0.98);
+        opacity: 0.45;
+        transform: scale(0.85);
     }
 
-    45% {
-        opacity: 0.85;
-        transform: scale(1.05);
+    50% {
+        opacity: 0.9;
+        transform: scale(1.15);
+    }
+}
+
+@keyframes profile-trophy-pulse {
+    0% {
+        opacity: 0.35;
+        transform: scale(0.75);
+    }
+
+    60% {
+        opacity: 0.75;
+        transform: scale(1.2);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(1.4);
     }
 }
 
@@ -1530,7 +1518,7 @@
         padding: 2rem;
     }
 
-    .profile-hero__decor {
+    .profile-hero__trophy-block {
         display: none;
     }
 
