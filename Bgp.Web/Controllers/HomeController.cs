@@ -123,16 +123,23 @@ public class HomeController : Controller
 
     private async Task<IReadOnlyList<EventHighlightViewModel>> GetWeeklyEventsAsync()
     {
+        var now = DateTime.UtcNow;
         var events = await _db.HomeEvents
             .AsNoTracking()
-            .Where(e => e.IsActive)
+            .Include(e => e.Game)
+            .Where(e => e.IsActive && e.EndsAtUtc >= now)
             .OrderBy(e => e.SortOrder)
-            .ThenBy(e => e.Id)
+            .ThenBy(e => e.StartsAtUtc)
             .Select(e => new EventHighlightViewModel
             {
                 Title = e.Title,
                 Reward = e.Reward,
-                EndsAt = e.EndsAtUtc
+                StartsAt = e.StartsAtUtc,
+                EndsAt = e.EndsAtUtc,
+                GameSlug = e.Game != null ? e.Game.Slug : null,
+                GameTitle = e.Game != null ? e.Game.Title : null,
+                ImagePath = e.ImagePath,
+                IsJoinable = e.GameId != null && now >= e.StartsAtUtc && now <= e.EndsAtUtc
             })
             .ToListAsync();
 
@@ -212,12 +219,14 @@ public class HomeController : Controller
     private async Task<CommunityMetricsViewModel> BuildCommunityMetricsAsync()
     {
         var gamesCount = await _db.Games.CountAsync(g => g.ApprovalStatus == GameApprovalStatus.Approved);
+        var onlinePlayers = await _db.Users.CountAsync(u => !u.IsInvisible && u.PresenceStatus != UserPresenceStatus.Offline);
         var playersCount = await _db.Users.CountAsync();
 
         return new CommunityMetricsViewModel
         {
             GamesCount = gamesCount,
-            PlayersCount = playersCount
+            PlayersCount = playersCount,
+            OnlinePlayersCount = onlinePlayers
         };
     }
 
@@ -309,7 +318,8 @@ public class HomeController : Controller
             TotalReviews = await _db.GameReviews.CountAsync(r => r.UserId == user.Id),
             FriendsCount = await _db.Friendships.CountAsync(f =>
                 f.Status == FriendshipStatus.Accepted &&
-                (f.RequesterId == user.Id || f.AddresseeId == user.Id))
+               (f.RequesterId == user.Id || f.AddresseeId == user.Id)),
+            BonusExperience = user.BonusExperience
         };
 
         var userScoreGroups = await _db.Scores

@@ -10,6 +10,7 @@
     var nextEventSort = Model.Events.Any() ? Model.Events.Max(e => e.SortOrder) + 1 : 1;
     var previewUrlBase = Url.Action("Index", "Home") ?? "/";
     var previewUrl = $"{previewUrlBase}?preview=draft&token=demo";
+    var gameOptions = Model.GameOptions ?? Array.Empty<AdminFeaturedGameOptionViewModel>();
 
     string BuildExpiryBadge(DateTime endsAtUtc)
     {
@@ -136,11 +137,34 @@
                         <form asp-action="SaveFeaturedGame" method="post" class="admin-card-form" data-featured-form>
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="Id" value="@Model.FeaturedGame?.Id" data-featured-id />
-                            <input type="hidden" name="GameId" value="@Model.FeaturedGame?.GameId" data-featured-game-id />
+                            
                             <div class="admin-field admin-field--inline">
                                 <label>
                                     <span>@L["Admin_Content_Feature_GameLabel"].Value</span>
-                                    <input type="text" value="@Model.FeaturedGame?.GameTitle" readonly data-featured-title-input placeholder="@L["Admin_Content_Feature_GamePlaceholder"].Value" />
+                                    <select name="GameId" data-featured-select>
+                                        <option value="">@L["Admin_Content_Feature_SelectPlaceholder"].Value</option>
+                                        @foreach (var option in gameOptions)
+                                        {
+                                            var isSelected = Model.FeaturedGame?.GameId == option.Id;
+                                            var coverPath = Url.Content(option.CoverImagePath ?? featuredPlaceholder);
+                                            <option value="@option.Id"
+                                                    data-title="@option.Title"
+                                                    data-slug="@option.Slug"
+                                                    data-cover="@coverPath"
+                                                    data-description="@Html.AttributeEncode(option.Description ?? string.Empty)"
+                                                    selected="@(isSelected ? "selected" : null)">@option.Title</option>
+                                        }
+                                        if (Model.FeaturedGame is not null && !gameOptions.Any(o => o.Id == Model.FeaturedGame.GameId))
+                                        {
+                                        var fallbackCover = Url.Content(Model.FeaturedGame.CoverImagePath ?? featuredPlaceholder);
+                                        <option value="@Model.FeaturedGame.GameId"
+                                                data-title="@Model.FeaturedGame.GameTitle"
+                                                data-slug="@Model.FeaturedGame.GameSlug"
+                                                data-cover="@fallbackCover"
+                                                data-description="@Html.AttributeEncode(Model.FeaturedGame.Description ?? string.Empty)"
+                                                selected>@Model.FeaturedGame.GameTitle</option>
+                                        }
+                                    </select>
                                 </label>
                                 <label>
                                     <span>@L["Admin_Content_Feature_SlugLabel"].Value</span>
@@ -315,7 +339,7 @@
                                     <span class="admin-badge @(evt.IsActive ? "admin-badge--success" : "admin-badge--muted")">@status</span>
                                     <span class="admin-badge admin-badge--warning">@expiryBadge</span>
                                 </div>
-                                <form asp-action="SaveEvent" method="post" class="admin-card-form">
+                                <form asp-action="SaveEvent" method="post" class="admin-card-form" enctype="multipart/form-data">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="Id" value="@evt.Id" />
                                     <input type="hidden" name="IsActive" value="@(evt.IsActive ? "true" : "false")" data-status-input />
@@ -332,6 +356,10 @@
                                     </div>
                                     <div class="admin-field admin-field--inline">
                                         <label>
+                                            <span>@L["Admin_Content_Event_StartLabel"].Value</span>
+                                            <input type="datetime-local" name="StartsAt" value="@evt.StartsAtUtc.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")" data-inline-input readonly />
+                                        </label>
+                                        <label>
                                             <span>@L["Admin_Content_Event_EndLabel"].Value</span>
                                             <input type="datetime-local" name="EndsAt" value="@evt.EndsAtUtc.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")" data-inline-input readonly />
                                         </label>
@@ -344,6 +372,41 @@
                                             </select>
                                         </label>
                                         <span class="admin-order-indicator">@string.Format(L["Admin_Content_OrderIndicator"].Value, evt.SortOrder)</span>
+                                    </div>
+                                    <div class="admin-field">
+                                        <label>
+                                            <span>@L["Admin_Content_Event_GameLabel"].Value</span>
+                                            <select name="GameId">
+                                                <option value="">@L["Admin_Content_Event_GamePlaceholder"].Value</option>
+                                                @foreach (var option in gameOptions)
+                                                {
+                                                    var isSelected = evt.GameId == option.Id;
+                                                    <option value="@option.Id" selected="@(isSelected ? "selected" : null)">@option.Title</option>
+                                                }
+                                                if (evt.GameId.HasValue && !gameOptions.Any(o => o.Id == evt.GameId))
+                                                {
+                                                <option value="@evt.GameId" selected>@(evt.GameTitle ?? evt.Title)</option>
+                                                }
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div class="admin-field admin-field--stacked">
+                                        <label>
+                                            <span>@L["Admin_Content_Event_ImageLabel"].Value</span>
+                                            <input type="file" name="Image" accept="image/*" />
+                                            <small class="muted">@L["Admin_Content_Event_ImageHelp"].Value</small>
+                                        </label>
+                                        @if (!string.IsNullOrWhiteSpace(evt.ImagePath))
+                                        {
+                                            <div class="admin-event-media">
+                                                <img src="@Url.Content(evt.ImagePath)" alt="@evt.Title" loading="lazy" decoding="async" />
+                                            </div>
+                                            <label class="admin-inline-checkbox">
+                                                <input type="checkbox" name="RemoveImage" value="true" />
+                                                <span>@L["Admin_Content_Event_RemoveImage_Label"].Value</span>
+                                            </label>
+                                            <small class="muted">@L["Admin_Content_Event_RemoveImage_Help"].Value</small>
+                                        }
                                     </div>
                                     <div class="admin-card-buttons">
                                         <button class="btn-primary btn-small" type="submit">@L["Admin_Content_Save"].Value</button>
@@ -364,7 +427,7 @@
                 </div>
                 <article class="admin-editor-card admin-editor-card--accent">
                     <h3>@L["Admin_Content_Events_Add"].Value</h3>
-                    <form asp-action="SaveEvent" method="post" class="admin-card-form">
+                    <form asp-action="SaveEvent" method="post" class="admin-card-form" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
                         
                         <input type="hidden" name="IsActive" value="false" />
@@ -381,6 +444,10 @@
                         </div>
                         <div class="admin-field admin-field--inline">
                             <label>
+                                <span>@L["Admin_Content_Event_StartLabel"].Value</span>
+                                <input type="datetime-local" name="StartsAt" value="@DateTime.UtcNow.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")" />
+                            </label>
+                            <label>
                                 <span>@L["Admin_Content_Event_EndLabel"].Value</span>
                                 <input type="datetime-local" name="EndsAt" value="@DateTime.UtcNow.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")" />
                             </label>
@@ -393,6 +460,25 @@
                                 </select>
                             </label>
                             <span class="admin-order-indicator">@string.Format(L["Admin_Content_OrderIndicator"].Value, nextEventSort)</span>
+                        </div>
+                        <div class="admin-field">
+                            <label>
+                                <span>@L["Admin_Content_Event_GameLabel"].Value</span>
+                                <select name="GameId">
+                                    <option value="">@L["Admin_Content_Event_GamePlaceholder"].Value</option>
+                                    @foreach (var option in gameOptions)
+                                    {
+                                        <option value="@option.Id">@option.Title</option>
+                                    }
+                                </select>
+                            </label>
+                        </div>
+                        <div class="admin-field">
+                            <label>
+                                <span>@L["Admin_Content_Event_ImageLabel"].Value</span>
+                                <input type="file" name="Image" accept="image/*" />
+                                <small class="muted">@L["Admin_Content_Event_ImageHelp"].Value</small>
+                            </label>
                         </div>
                         <div class="admin-card-buttons">
                             <button class="btn-primary btn-small" type="submit">@L["Admin_Content_Add"].Value</button>

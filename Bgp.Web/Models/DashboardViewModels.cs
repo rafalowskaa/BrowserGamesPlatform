@@ -160,6 +160,7 @@ public class DashboardStatsViewModel
     public int DailyGoalsCompleted { get; set; }
     public IReadOnlyList<GamePerformanceStat> GamePerformances { get; set; } = Array.Empty<GamePerformanceStat>();
     public DateTime? LastScoreSubmittedAt { get; set; }
+    public int BonusExperience { get; set; }
 }
 
 public record GamePerformanceStat(

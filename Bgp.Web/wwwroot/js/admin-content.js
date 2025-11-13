@@ -111,13 +111,24 @@
         let draggedItem = null;
 
         list.querySelectorAll('[data-dnd-item]').forEach((item) => {
+            const handle = item.querySelector('[data-dnd-handle]');
+            const enableDrag = () => {
+                item.dataset.dndReady = 'true';
+            };
+            const disableDrag = () => {
+                delete item.dataset.dndReady;
+            };
+
+            handle?.addEventListener('pointerdown', enableDrag);
+            handle?.addEventListener('pointerup', disableDrag);
+            handle?.addEventListener('pointerleave', disableDrag);
             item.setAttribute('draggable', 'true');
             item.addEventListener('dragstart', (event) => {
-                const handle = event.target instanceof HTMLElement ? event.target.closest('[data-dnd-handle]') : null;
-                if (!handle) {
+                if (item.dataset.dndReady !== 'true') {
                     event.preventDefault();
                     return;
                 }
+                disableDrag();
                 draggedItem = item;
                 item.classList.add('is-dragging');
             });
@@ -125,6 +136,7 @@
             item.addEventListener('dragend', () => {
                 item.classList.remove('is-dragging');
                 draggedItem = null;
+                disableDrag();
             });
         });
 
@@ -160,8 +172,6 @@
         updateSortOrder(list);
     });
 
-    const trendingUrl = root.getAttribute('data-trending-url');
-    const lookupUrl = root.getAttribute('data-game-lookup-url');
     const slugPrompt = root.getAttribute('data-featured-slug-prompt') || '';
     const featuredError = root.getAttribute('data-featured-error') || '';
     const randomError = root.getAttribute('data-featured-random-error') || '';
@@ -174,9 +184,8 @@
         const titleOutput = featuredSection.querySelector('[data-featured-title-display]');
         const descriptionPreview = featuredSection.querySelector('[data-featured-preview-description]');
         const descriptionInput = featuredSection.querySelector('textarea[name="Description"]');
-        const titleInput = featuredSection.querySelector('[data-featured-title-input]');
         const slugInput = featuredSection.querySelector('[data-featured-slug-input]');
-        const gameIdInput = featuredSection.querySelector('[data-featured-game-id]');
+        const selectInput = featuredSection.querySelector('[data-featured-select]');
         const randomButton = featuredSection.querySelector('[data-featured-random]');
         const replaceButton = featuredSection.querySelector('[data-featured-replace]');
 
@@ -198,106 +207,91 @@
             }
         };
 
-        const applyFeaturedGame = (game) => {
-            if (!game) {
-                return;
-            }
-            if (gameIdInput) {
-                gameIdInput.value = game.id ?? '';
-            }
-            if (titleInput) {
-                titleInput.value = game.title ?? '';
-            }
-            if (slugInput) {
-                slugInput.value = game.slug ?? '';
-            }
-            if (titleOutput) {
-                titleOutput.textContent = game.title ?? '';
-            }
-            if (slugOutput) {
-                slugOutput.textContent = game.slug ?? '';
-            }
-
-            const newDescription = game.description || game.excerpt || '';
-            if (descriptionInput && !descriptionInput.value) {
-                descriptionInput.value = newDescription;
-            }
-            updateDescriptionPreview();
-            setCoverImage(game.coverImagePath);
-        };
-
-        let trendingGames = null;
-
-        const getTrendingGames = async () => {
-            if (trendingGames || !trendingUrl) {
-                return trendingGames ?? [];
-            }
-            const response = await fetch(trendingUrl, { credentials: 'same-origin' });
-            if (!response.ok) {
-                throw new Error('Trending request failed');
-            }
-            const payload = await response.json();
-            trendingGames = Array.isArray(payload) ? payload : [];
-            return trendingGames;
-        };
-
-        const fetchGameBySlug = async (slug) => {
-            if (!lookupUrl || !slug) {
+        const getOptionData = (option) => {
+            if (!(option instanceof HTMLOptionElement)) {
                 return null;
             }
-            const response = await fetch(`${lookupUrl}${encodeURIComponent(slug)}`, { credentials: 'same-origin' });
-            if (!response.ok) {
-                throw new Error('Lookup failed');
-            }
-            const payload = await response.json();
             return {
-                id: payload.id,
-                title: payload.title,
-                slug: payload.slug,
-                description: payload.description,
-                coverImagePath: payload.coverImagePath
+                id: option.value,
+                title: option.getAttribute('data-title') || option.textContent || '',
+                slug: option.getAttribute('data-slug') || '',
+                description: option.getAttribute('data-description') || '',
+                coverImagePath: option.getAttribute('data-cover') || ''
             };
         };
 
-        randomButton?.addEventListener('click', async () => {
-            try {
-                randomButton.disabled = true;
-                const games = await getTrendingGames();
-                if (!games.length) {
-                    throw new Error('no-games');
-                }
-                const index = Math.floor(Math.random() * games.length);
-                applyFeaturedGame(games[index]);
-            } catch (error) {
+        const applyOption = (option) => {
+            const data = getOptionData(option);
+            if (!data) {
+                return;
+            }
+            if (selectInput && option?.value) {
+                selectInput.value = option.value;
+            }
+            if (slugInput) {
+                slugInput.value = data.slug || '';
+            }
+            if (titleOutput) {
+                titleOutput.textContent = data.title || '';
+            }
+            if (slugOutput) {
+                slugOutput.textContent = data.slug || '';
+            }
+
+            if (descriptionInput && !descriptionInput.value) {
+                descriptionInput.value = data.description || '';
+            }
+            updateDescriptionPreview();
+            setCoverImage(data.coverImagePath);
+        };
+
+        selectInput?.addEventListener('change', () => {
+            const option = selectInput.selectedOptions[0];
+            applyOption(option);
+        });
+
+        randomButton?.addEventListener('click', () => {
+            if (!selectInput) {
+                return;
+            }
+            const options = Array.from(selectInput.options).filter((option) => option.value);
+            if (!options.length) {
                 if (randomError) {
                     window.alert(randomError);
                 }
-                console.error(error);
-            } finally {
-                randomButton.disabled = false;
-            }
-        });
-        replaceButton?.addEventListener('click', async () => {
-            const slug = window.prompt(slugPrompt)?.trim();
-            if (!slug) {
                 return;
             }
-            try {
-                replaceButton.disabled = true;
-                const game = await fetchGameBySlug(slug);
-                if (!game) {
-                    throw new Error('not-found');
-                }
-                applyFeaturedGame(game);
-            } catch (error) {
+            const index = Math.floor(Math.random() * options.length);
+            applyOption(options[index]);
+        });
+
+        replaceButton?.addEventListener('click', () => {
+            if (!selectInput) {
+                return;
+            }
+            const slugValue = window.prompt(slugPrompt)?.trim().toLowerCase();
+            if (!slugValue) {
+                return;
+            }
+            const match = Array.from(selectInput.options).find((option) => {
+                const optionSlug = option.getAttribute('data-slug') || '';
+                return optionSlug.toLowerCase() === slugValue;
+            });
+            if (!match) {
                 if (featuredError) {
                     window.alert(featuredError);
                 }
-                console.error(error);
-            } finally {
-                replaceButton.disabled = false;
+                return;
             }
+            applyOption(match);
         });
+
+        if (selectInput) {
+            const selected = selectInput.selectedOptions[0];
+            if (selected) {
+                applyOption(selected);
+            }
+        }
     }
     
 

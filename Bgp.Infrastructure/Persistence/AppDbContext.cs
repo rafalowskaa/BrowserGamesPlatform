@@ -81,6 +81,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .Property(u => u.EnableFriendInvites)
             .HasDefaultValue(true);
 
+        b.Entity<ApplicationUser>()
+            .Property(u => u.BonusExperience)
+            .HasDefaultValue(0);
+
         b.Entity<Game>()
             .Property(x => x.Categories)
             .HasConversion<int>()
@@ -204,6 +208,20 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         b.Entity<HomeEvent>()
         .Property(x => x.EndsAtUtc)
         .HasColumnType("datetime2");
+
+        b.Entity<HomeEvent>()
+        .Property(x => x.StartsAtUtc)
+        .HasColumnType("datetime2");
+
+        b.Entity<HomeEvent>()
+        .Property(x => x.ImagePath)
+        .HasMaxLength(512);
+
+        b.Entity<HomeEvent>()
+        .HasOne(x => x.Game)
+        .WithMany()
+        .HasForeignKey(x => x.GameId)
+        .OnDelete(DeleteBehavior.SetNull);
 
         b.Entity<HomeFeaturedGame>()
             .Property(x => x.CustomDescription)

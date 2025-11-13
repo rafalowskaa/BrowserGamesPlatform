@@ -1482,6 +1482,20 @@
     color: #cbd5e1;
 }
 
+.admin-event-media {
+    margin-top: 0.75rem;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    max-height: 12rem;
+}
+
+    .admin-event-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
 .admin-card-buttons {
     display: flex;
     gap: 0.5rem;

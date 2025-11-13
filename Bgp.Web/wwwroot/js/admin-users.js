@@ -227,6 +227,55 @@
                 });
             });
         }
+        const xpModal = document.getElementById('userXpModal');
+        const xpForm = document.getElementById('userXpForm');
+        const xpButtons = document.querySelectorAll('[data-user-xp]');
+
+        if (xpModal && xpForm && xpButtons.length > 0) {
+            const idInput = xpForm.querySelector('[data-modal-input="id"]');
+            const amountInput = xpForm.querySelector('[data-modal-input="amount"]');
+            const reasonInput = xpForm.querySelector('[data-modal-input="reason"]');
+            const messageElement = xpModal.querySelector('[data-xp-message]');
+            const messageTemplate = messageElement ? messageElement.getAttribute('data-template') || '' : '';
+
+            const resetXpForm = () => {
+                if (idInput) {
+                    idInput.value = '';
+                }
+                if (amountInput) {
+                    amountInput.value = '';
+                }
+                if (reasonInput) {
+                    reasonInput.value = '';
+                }
+                if (messageElement) {
+                    messageElement.textContent = messageTemplate.replace('{{name}}', '');
+                }
+            };
+
+            setupModalClose(xpModal, resetXpForm);
+
+            xpButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const userId = button.getAttribute('data-user-id') || '';
+                    const displayName = button.getAttribute('data-user-display-name') || '';
+                    if (idInput) {
+                        idInput.value = userId;
+                    }
+                    if (amountInput) {
+                        amountInput.value = '50';
+                        amountInput.focus();
+                    }
+                    if (reasonInput) {
+                        reasonInput.value = '';
+                    }
+                    if (messageElement) {
+                        messageElement.textContent = messageTemplate.replace('{{name}}', displayName);
+                    }
+                    openModal(xpModal);
+                });
+            });
+        }
     };
 
     if (document.readyState === 'loading') {

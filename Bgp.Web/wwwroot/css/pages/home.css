@@ -278,15 +278,49 @@
     gap: var(--space-2);
 }
 
+    .event-card h3,
+    .event-card h4 {
+        margin: 0;
+    }
+
     .event-card p {
         margin: 0;
         color: var(--color-text-subtle);
     }
 
     .event-card time {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         color: var(--color-link);
     }
+
+.event-card__media {
+    width: 100%;
+    max-height: 12rem;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+}
+
+    .event-card__media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+.event-card__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.event-card__cta {
+    margin-top: auto;
+}
+
+.event-card__time {
+    color: var(--color-text-subtle);
+    font-size: 0.9rem;
+}
 
 .home-guest__event-cta {
     display: flex;
@@ -761,7 +795,8 @@
 }
 
     .xp-panel__trophy img {
-        width: 4.75rem;
+        width: 14rem;
+        max-width: 60%;
         filter: drop-shadow(0 0 1.5rem var(--xp-glow-color, rgba(56,189,248,0.35)));
     }
 
@@ -773,24 +808,12 @@
     padding-bottom: 0.5rem;
 }
 
-.event-card {
-    min-width: 15rem;
-    padding: var(--space-3);
-    border-radius: var(--radius);
-    border: 1px solid var(--border-soft);
-    background: rgba(18, 25, 43, 0.75);
-    scroll-snap-align: start;
-    box-shadow: var(--shadow-soft);
-}
-
-    .event-card h4 {
-        margin: 0 0 0.25rem;
+    .events-carousel .event-card {
+        min-width: 15rem;
+        scroll-snap-align: start;
+        box-shadow: var(--shadow-soft);
     }
 
-    .event-card time {
-        font-size: 0.85rem;
-        color: var(--color-text-subtle);
-    }
 
 .activity-feed {
     list-style: none;
@@ -877,6 +900,37 @@
         margin: 0 auto;
         color: rgba(226, 232, 240, 0.92);
     }
+
+.community-panel__metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: var(--space-3);
+    width: 100%;
+    margin: var(--space-3) 0;
+}
+
+.community-metric {
+    background: rgba(15, 23, 42, 0.2);
+    border-radius: var(--radius);
+    padding: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.community-metric__value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.community-metric__label {
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgba(226, 232, 240, 0.85);
+}
 
 .home-guest__tags:empty + .home-guest__grid {
     margin-top: 0;

@@ -357,6 +357,20 @@ public class FriendsController : ControllerBase
                 GamePerformances = new List<GamePerformanceStat>()
             });
 
+        var bonusExperience = await _db.Users
+            .AsNoTracking()
+            .Where(u => ids.Contains(u.Id))
+            .Select(u => new { u.Id, u.BonusExperience })
+            .ToListAsync();
+
+        foreach (var entry in bonusExperience)
+        {
+            if (statsByUser.TryGetValue(entry.Id, out var stats))
+            {
+                stats.BonusExperience = entry.BonusExperience;
+            }
+        }
+
         var uploadedCounts = await _db.Games
             .AsNoTracking()
             .Where(g => ids.Contains(g.CreatedByUserId))

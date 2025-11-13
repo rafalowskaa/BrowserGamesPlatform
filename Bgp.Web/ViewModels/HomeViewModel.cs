@@ -87,11 +87,17 @@ public class CommunityMetricsViewModel
 {
     public int GamesCount { get; set; }
     public int PlayersCount { get; set; }
+    public int OnlinePlayersCount { get; set; }
 }
 
 public class EventHighlightViewModel
 {
     public string Title { get; set; } = string.Empty;
     public string Reward { get; set; } = string.Empty;
+    public DateTime StartsAt { get; set; }
     public DateTime EndsAt { get; set; }
+    public string? GameSlug { get; set; }
+    public string? GameTitle { get; set; }
+    public string? ImagePath { get; set; }
+    public bool IsJoinable { get; set; }
 }

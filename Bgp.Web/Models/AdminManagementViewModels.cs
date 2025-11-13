@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Bgp.Domain.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace Bgp.Web.Models;
 
@@ -58,6 +59,18 @@ public class AdminBlockUserInputModel
     public string Reason { get; set; } = string.Empty;
 
     public DateTime? BlockedUntil { get; set; }
+}
+
+public class AdminGrantExperienceInputModel
+{
+    [Required]
+    public string Id { get; set; } = string.Empty;
+
+    [Range(1, 100000)]
+    public int Amount { get; set; }
+
+    [MaxLength(200)]
+    public string? Reason { get; set; }
 }
 
 public class AdminGamesViewModel
@@ -124,13 +137,27 @@ public class AdminHomeContentViewModel
     public IReadOnlyList<AdminHomeFactViewModel> Facts { get; init; } = Array.Empty<AdminHomeFactViewModel>();
     public IReadOnlyList<AdminHomeEventViewModel> Events { get; init; } = Array.Empty<AdminHomeEventViewModel>();
     public AdminHomeFeaturedGameViewModel? FeaturedGame { get; init; }
+    public IReadOnlyList<AdminFeaturedGameOptionViewModel> GameOptions { get; init; } = Array.Empty<AdminFeaturedGameOptionViewModel>();
     public string? SuccessKey { get; init; }
     public string? ErrorKey { get; init; }
 }
 
 public record AdminHomeFactViewModel(int Id, string Content, bool IsActive, int SortOrder, DateTime CreatedAtUtc, DateTime? UpdatedAtUtc);
 
-public record AdminHomeEventViewModel(int Id, string Title, string Reward, DateTime EndsAtUtc, bool IsActive, int SortOrder, DateTime CreatedAtUtc, DateTime? UpdatedAtUtc);
+public record AdminHomeEventViewModel(
+    int Id,
+    string Title,
+    string Reward,
+    DateTime StartsAtUtc,
+    DateTime EndsAtUtc,
+    bool IsActive,
+    int SortOrder,
+    Guid? GameId,
+    string? GameTitle,
+    string? GameSlug,
+    string? ImagePath,
+    DateTime CreatedAtUtc,
+    DateTime? UpdatedAtUtc);
 
 public record AdminHomeFeaturedGameViewModel(
     int Id,
@@ -144,6 +171,14 @@ public record AdminHomeFeaturedGameViewModel(
     bool IsActive,
     DateTime CreatedAtUtc,
     DateTime? UpdatedAtUtc);
+
+public record AdminFeaturedGameOptionViewModel(
+    Guid Id,
+    string Title,
+    string Slug,
+    string? CoverImagePath,
+    string? Description);
+
 
 public class AdminUpsertHomeFactInputModel
 {
@@ -174,11 +209,20 @@ public class AdminUpsertHomeEventInputModel
     public string Reward { get; set; } = string.Empty;
 
     [Required]
+    public DateTime StartsAt { get; set; } = DateTime.UtcNow;
+
+    [Required]
     public DateTime EndsAt { get; set; } = DateTime.UtcNow;
 
     public bool IsActive { get; set; } = true;
 
     public int SortOrder { get; set; }
+
+    public Guid? GameId { get; set; }
+
+    public IFormFile? Image { get; set; }
+
+    public bool RemoveImage { get; set; }
 }
 
 public class AdminUpsertHomeFeaturedGameInputModel

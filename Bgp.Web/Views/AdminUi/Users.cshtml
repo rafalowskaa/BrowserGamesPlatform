@@ -219,6 +219,15 @@
                                                     data-user-access-allowed="@allowedAccessAttribute">
                                                 @L["Admin_Users_Edit"].Value
                                             </button>
+                                            @if (isCurrentAdmin)
+                                            {
+                                                <button class="btn-secondary btn-small" type="button"
+                                                        data-user-xp
+                                                        data-user-id="@user.Id"
+                                                        data-user-display-name="@user.DisplayName">
+                                                    @L["Admin_Users_Xp_Button"].Value
+                                                </button>
+                                            }
                                         }
 
                                         if (canBlockUser)
@@ -335,6 +344,31 @@
                 <div class="modal-dialog__actions">
                     <button type="button" class="btn-outline" data-modal-close>@L["Admin_Users_Block_Cancel"].Value</button>
                     <button type="submit" class="btn-danger">@L["Admin_Users_Block_Confirm"].Value</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="userXpModal" hidden>
+        <div class="modal-backdrop__overlay" data-modal-close></div>
+        <div class="modal-dialog">
+            <form asp-action="GrantExperience" method="post" class="modal-dialog__content" id="userXpForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="search" value="@Model.Search" />
+                <h3>@L["Admin_Users_Xp_Title"].Value</h3>
+                <input type="hidden" name="Id" data-modal-input="id" />
+                <p class="modal-dialog__message" data-xp-message data-template="@L["Admin_Users_Xp_Message"].Value"></p>
+                <div class="modal-dialog__control">
+                    <label class="modal-dialog__label" for="modalXpAmount">@L["Admin_Users_Xp_Label"].Value</label>
+                    <input class="modal-dialog__input" id="modalXpAmount" name="Amount" type="number" min="1" max="100000" data-modal-input="amount" required />
+                </div>
+                <div class="modal-dialog__control">
+                    <label class="modal-dialog__label" for="modalXpReason">@L["Admin_Users_Xp_Reason_Label"].Value</label>
+                    <textarea class="modal-dialog__input" id="modalXpReason" name="Reason" maxlength="200" data-modal-input="reason"></textarea>
+                    <span class="muted">@L["Admin_Users_Xp_Reason_Help"].Value</span>
+                </div>
+                <div class="modal-dialog__actions">
+                    <button type="button" class="btn-outline" data-modal-close>@L["Admin_Users_Edit_Cancel"].Value</button>
+                    <button type="submit" class="btn-primary">@L["Admin_Users_Xp_Submit"].Value</button>
                 </div>
             </form>
         </div>

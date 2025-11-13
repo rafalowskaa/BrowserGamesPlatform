@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Bgp.Web.Helpers;
 using Bgp.Domain.Entities;
+using System.IO;
+using Bgp.Application.Interfaces;
 using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Identity;
 using Bgp.Infrastructure.Persistence;
@@ -27,13 +29,15 @@ public class AdminUiController : Controller
     private readonly UserManager<ApplicationUser> _users;
     private readonly ILogger<AdminUiController> _logger;
     private readonly IGameContentResolver _contentResolver;
+    private readonly IFileStorage _fileStorage;
 
-    public AdminUiController(AppDbContext db, UserManager<ApplicationUser> users, ILogger<AdminUiController> logger, IGameContentResolver contentResolver)
+    public AdminUiController(AppDbContext db, UserManager<ApplicationUser> users, ILogger<AdminUiController> logger, IGameContentResolver contentResolver, IFileStorage fileStorage)
     {
         _db = db;
         _users = users;
         _logger = logger;
         _contentResolver = contentResolver;
+        _fileStorage = fileStorage;
     }
 
     private IActionResult RedirectToUsers(string? search, string? fallbackSearch = null)
@@ -49,6 +53,17 @@ public class AdminUiController : Controller
         }
 
         return RedirectToAction(nameof(Users));
+    }
+
+    private IActionResult RedirectToContentSection(string? section = null)
+    {
+        var target = Url.Action(nameof(Content)) ?? "/AdminUi/Content";
+        if (string.IsNullOrWhiteSpace(section))
+        {
+            return Redirect(target);
+        }
+
+        return Redirect($"{target}#{section}");
     }
 
     public async Task<IActionResult> Users(string? search = null)
@@ -519,6 +534,36 @@ public class AdminUiController : Controller
         }
 
         TempData["AdminUsersSuccess"] = "Admin_Users_Unblock_Success";
+        return RedirectToUsers(search);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> GrantExperience(AdminGrantExperienceInputModel input, string? search)
+    {
+        if (!ModelState.IsValid || input.Amount <= 0)
+        {
+            TempData["AdminUsersError"] = "Admin_Users_Xp_Error";
+            return RedirectToUsers(search);
+        }
+
+        var user = await _users.FindByIdAsync(input.Id);
+        if (user is null)
+        {
+            TempData["AdminUsersError"] = "Admin_Users_NotFound";
+            return RedirectToUsers(search);
+        }
+
+        user.BonusExperience += input.Amount;
+        var result = await _users.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            TempData["AdminUsersError"] = result.Errors.FirstOrDefault()?.Description ?? "Admin_Users_Update_Error";
+            return RedirectToUsers(search);
+        }
+
+        _logger.LogInformation("Granted {Amount} XP to user {UserId}. Reason: {Reason}", input.Amount, user.Id, input.Reason);
+        TempData["AdminUsersSuccess"] = "Admin_Users_Xp_Success";
         return RedirectToUsers(search);
     }
 
@@ -1005,15 +1050,21 @@ public class AdminUiController : Controller
 
         var events = await _db.HomeEvents
             .AsNoTracking()
+            .Include(e => e.Game)
             .OrderBy(e => e.SortOrder)
             .ThenBy(e => e.Id)
             .Select(e => new AdminHomeEventViewModel(
                 e.Id,
                 e.Title,
                 e.Reward,
+                e.StartsAtUtc,
                 e.EndsAtUtc,
                 e.IsActive,
                 e.SortOrder,
+                e.GameId,
+                e.Game != null ? e.Game.Title : null,
+                e.Game != null ? e.Game.Slug : null,
+                e.ImagePath,
                 e.CreatedAtUtc,
                 e.UpdatedAtUtc))
             .ToListAsync();
@@ -1037,11 +1088,24 @@ public class AdminUiController : Controller
                 f.UpdatedAtUtc))
             .FirstOrDefaultAsync();
 
+        var gameOptions = await _db.Games
+            .AsNoTracking()
+            .Where(g => g.ApprovalStatus == GameApprovalStatus.Approved)
+            .OrderBy(g => g.Title)
+            .Select(g => new AdminFeaturedGameOptionViewModel(
+                g.Id,
+                g.Title,
+                g.Slug,
+                g.CoverImagePath,
+                g.Description))
+            .ToListAsync();
+
         var vm = new AdminHomeContentViewModel
         {
             Facts = facts,
             Events = events,
             FeaturedGame = featured,
+            GameOptions = gameOptions,
             SuccessKey = TempData["AdminContentSuccess"] as string,
             ErrorKey = TempData["AdminContentError"] as string
         };
@@ -1077,14 +1141,14 @@ public class AdminUiController : Controller
         if (!ModelState.IsValid)
         {
             TempData["AdminContentError"] = "Admin_Content_Error_Validation";
-            return RedirectToAction(nameof(Content));
+            return RedirectToContentSection("facts");
         }
 
         var content = (input.Content ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(content))
         {
             TempData["AdminContentError"] = "Admin_Content_Error_Validation";
-            return RedirectToAction(nameof(Content));
+            return RedirectToContentSection("facts");
         }
 
         HomeFact fact;
@@ -1095,7 +1159,7 @@ public class AdminUiController : Controller
             if (fact is null)
             {
                 TempData["AdminContentError"] = "Admin_Content_Error_NotFound";
-                return RedirectToAction(nameof(Content));
+                return RedirectToContentSection("facts");
             }
         }
         else
@@ -1115,7 +1179,7 @@ public class AdminUiController : Controller
         await _db.SaveChangesAsync();
 
         TempData["AdminContentSuccess"] = input.Id.HasValue ? "Admin_Content_Saved" : "Admin_Content_Added";
-        return RedirectToAction(nameof(Content));
+        return RedirectToContentSection("facts");
     }
 
     [HttpPost]
@@ -1125,21 +1189,21 @@ public class AdminUiController : Controller
         if (!ModelState.IsValid)
         {
             TempData["AdminContentError"] = "Admin_Content_Error_Validation";
-            return RedirectToAction(nameof(Content));
+            return RedirectToContentSection("facts");
         }
 
         var fact = await _db.HomeFacts.FindAsync(input.Id);
         if (fact is null)
         {
             TempData["AdminContentError"] = "Admin_Content_Error_NotFound";
-            return RedirectToAction(nameof(Content));
+            return RedirectToContentSection("facts");
         }
 
         _db.HomeFacts.Remove(fact);
         await _db.SaveChangesAsync();
 
         TempData["AdminContentSuccess"] = "Admin_Content_Deleted";
-        return RedirectToAction(nameof(Content));
+        return RedirectToContentSection("facts");
     }
 
     [HttpPost]
@@ -1149,7 +1213,7 @@ public class AdminUiController : Controller
         if (!ModelState.IsValid)
         {
             TempData["AdminContentError"] = "Admin_Content_Error_Validation";
-            return RedirectToAction(nameof(Content));
+            return RedirectToContentSection("events");
         }
 
         var title = (input.Title ?? string.Empty).Trim();
@@ -1157,8 +1221,15 @@ public class AdminUiController : Controller
         if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(reward))
         {
             TempData["AdminContentError"] = "Admin_Content_Error_Validation";
-            return RedirectToAction(nameof(Content));
+            return RedirectToContentSection("events");
         }
+
+        var startsAtUtc = input.StartsAt.Kind switch
+        {
+            DateTimeKind.Utc => input.StartsAt,
+            DateTimeKind.Local => input.StartsAt.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(input.StartsAt, DateTimeKind.Local).ToUniversalTime()
+        };
 
         var endsAtUtc = input.EndsAt.Kind switch
         {
@@ -1166,6 +1237,37 @@ public class AdminUiController : Controller
             DateTimeKind.Local => input.EndsAt.ToUniversalTime(),
             _ => DateTime.SpecifyKind(input.EndsAt, DateTimeKind.Local).ToUniversalTime()
         };
+
+        if (endsAtUtc <= startsAtUtc)
+        {
+            TempData["AdminContentError"] = "Admin_Content_Event_Error_Dates";
+            return RedirectToContentSection("events");
+        }
+
+        if (input.GameId.HasValue)
+        {
+            var gameExists = await _db.Games.AnyAsync(g => g.Id == input.GameId.Value && g.ApprovalStatus == GameApprovalStatus.Approved);
+            if (!gameExists)
+            {
+                TempData["AdminContentError"] = "Admin_Content_Event_Error_Game";
+                return RedirectToContentSection("events");
+            }
+        }
+
+        string? uploadedImagePath = null;
+        if (input.Image is { Length: > 0 })
+        {
+            if (string.IsNullOrWhiteSpace(input.Image.ContentType) || !input.Image.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["AdminContentError"] = "Admin_Content_Event_Error_Image";
+                return RedirectToContentSection("events");
+            }
+
+            var extension = Path.GetExtension(input.Image.FileName);
+            var fileName = $"event-{Guid.NewGuid():N}{extension}";
+            await using var stream = input.Image.OpenReadStream();
+            uploadedImagePath = await _fileStorage.SaveAsync(stream, fileName, "events");
+        }
 
         HomeEvent homeEvent;
 
@@ -1175,7 +1277,7 @@ public class AdminUiController : Controller
             if (homeEvent is null)
             {
                 TempData["AdminContentError"] = "Admin_Content_Error_NotFound";
-                return RedirectToAction(nameof(Content));
+                return RedirectToContentSection("events");
             }
         }
         else
@@ -1189,15 +1291,25 @@ public class AdminUiController : Controller
 
         homeEvent.Title = title;
         homeEvent.Reward = reward;
+        homeEvent.StartsAtUtc = startsAtUtc;
         homeEvent.EndsAtUtc = endsAtUtc;
         homeEvent.IsActive = input.IsActive;
         homeEvent.SortOrder = input.SortOrder;
+        homeEvent.GameId = input.GameId;
+        if (!string.IsNullOrEmpty(uploadedImagePath))
+        {
+            homeEvent.ImagePath = uploadedImagePath;
+        }
+        else if (input.RemoveImage)
+        {
+            homeEvent.ImagePath = null;
+        }
         homeEvent.UpdatedAtUtc = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
 
         TempData["AdminContentSuccess"] = input.Id.HasValue ? "Admin_Content_Saved" : "Admin_Content_Added";
-        return RedirectToAction(nameof(Content));
+        return RedirectToContentSection("events");
     }
 
     [HttpPost]
@@ -1207,21 +1319,21 @@ public class AdminUiController : Controller
         if (!ModelState.IsValid)
         {
             TempData["AdminContentError"] = "Admin_Content_Error_Validation";
-            return RedirectToAction(nameof(Content));
+            return RedirectToContentSection("events");
         }
 
         var homeEvent = await _db.HomeEvents.FindAsync(input.Id);
         if (homeEvent is null)
         {
             TempData["AdminContentError"] = "Admin_Content_Error_NotFound";
-            return RedirectToAction(nameof(Content));
+            return RedirectToContentSection("events");
         }
 
         _db.HomeEvents.Remove(homeEvent);
         await _db.SaveChangesAsync();
 
         TempData["AdminContentSuccess"] = "Admin_Content_Deleted";
-        return RedirectToAction(nameof(Content));
+        return RedirectToContentSection("events");
     }
 
     [HttpPost]
@@ -1231,7 +1343,7 @@ public class AdminUiController : Controller
         if (!ModelState.IsValid)
         {
             TempData["AdminContentError"] = "Admin_Content_Error_Validation";
-            return RedirectToAction(nameof(Content));
+            return RedirectToContentSection("feature");
         }
 
         var game = await _db.Games
@@ -1241,7 +1353,7 @@ public class AdminUiController : Controller
         if (game is null)
         {
             TempData["AdminContentError"] = "Admin_Content_Feature_Error_Game";
-            return RedirectToAction(nameof(Content));
+            return RedirectToContentSection("feature");
         }
 
         var startsAtUtc = input.StartsAt.Kind switch
@@ -1261,7 +1373,7 @@ public class AdminUiController : Controller
         if (endsAtUtc <= startsAtUtc)
         {
             TempData["AdminContentError"] = "Admin_Content_Feature_Error_Dates";
-            return RedirectToAction(nameof(Content));
+            return RedirectToContentSection("feature");
         }
 
         HomeFeaturedGame feature;
@@ -1272,7 +1384,7 @@ public class AdminUiController : Controller
             if (feature is null)
             {
                 TempData["AdminContentError"] = "Admin_Content_Error_NotFound";
-                return RedirectToAction(nameof(Content));
+                return RedirectToContentSection("feature");
             }
         }
         else
@@ -1294,7 +1406,7 @@ public class AdminUiController : Controller
         await _db.SaveChangesAsync();
 
         TempData["AdminContentSuccess"] = "Admin_Content_Saved";
-        return RedirectToAction(nameof(Content));
+        return RedirectToContentSection("feature");
     }
 
     [HttpPost]
@@ -1304,21 +1416,21 @@ public class AdminUiController : Controller
         if (!ModelState.IsValid)
         {
             TempData["AdminContentError"] = "Admin_Content_Error_Validation";
-            return RedirectToAction(nameof(Content));
+            return RedirectToContentSection("feature");
         }
 
         var feature = await _db.HomeFeaturedGames.FindAsync(input.Id);
         if (feature is null)
         {
             TempData["AdminContentError"] = "Admin_Content_Error_NotFound";
-            return RedirectToAction(nameof(Content));
+            return RedirectToContentSection("feature");
         }
 
         _db.HomeFeaturedGames.Remove(feature);
         await _db.SaveChangesAsync();
 
         TempData["AdminContentSuccess"] = "Admin_Content_Deleted";
-        return RedirectToAction(nameof(Content));
+        return RedirectToContentSection("feature");
     }
 
     [HttpPost]

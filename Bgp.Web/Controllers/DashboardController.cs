@@ -826,7 +826,8 @@ public class DashboardController : Controller
             UploadedGames = await _db.Games.CountAsync(g => g.CreatedByUserId == user.Id),
             TotalScores = await _db.Scores.CountAsync(s => s.UserId == user.Id),
             TotalReviews = await _db.GameReviews.CountAsync(r => r.UserId == user.Id),
-            FriendsCount = friendVms.Count
+            FriendsCount = friendVms.Count,
+            BonusExperience = user.BonusExperience
         };
 
         var userScoreGroups = await _db.Scores

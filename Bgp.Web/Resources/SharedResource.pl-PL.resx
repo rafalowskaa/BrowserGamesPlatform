@@ -2800,6 +2800,66 @@
     <value>Następna ranga: {0}</value>
   </data>
 	<data name="Home_Dashboard_XpPanel_TrophyAlt" xml:space="preserve">
-    <value>Puchar rangi {0}</value>
+<value>Puchar rangi {0}</value>
+  </data>
+	<data name="Admin_Content_Feature_SelectPlaceholder" xml:space="preserve">
+<value>Wybierz grę</value>
+  </data>
+	<data name="Admin_Content_Event_StartLabel" xml:space="preserve">
+<value>Data rozpoczęcia</value>
+  </data>
+	<data name="Admin_Content_Event_GameLabel" xml:space="preserve">
+<value>Powiązana gra</value>
+  </data>
+	<data name="Admin_Content_Event_GamePlaceholder" xml:space="preserve">
+<value>Wybierz grę (opcjonalnie)</value>
+  </data>
+	<data name="Admin_Content_Event_ImageLabel" xml:space="preserve">
+<value>Obraz wydarzenia</value>
+  </data>
+	<data name="Admin_Content_Event_ImageHelp" xml:space="preserve">
+<value>Prześlij obraz JPG lub PNG w formacie panoramicznym (maks. 2 MB).</value>
+  </data>
+	<data name="Admin_Content_Event_RemoveImage_Label" xml:space="preserve">
+<value>Usuń bieżący obraz</value>
+  </data>
+	<data name="Admin_Content_Event_RemoveImage_Help" xml:space="preserve">
+<value>Usuń przesłany obraz podczas zapisywania.</value>
+  </data>
+	<data name="Home_Events_Start" xml:space="preserve">
+<value>Start {0}</value>
+  </data>
+	<data name="Home_Events_JoinNow" xml:space="preserve">
+<value>Dołącz teraz</value>
+  </data>
+	<data name="Home_Community_Stat_Players" xml:space="preserve">
+<value>Zarejestrowani gracze</value>
+  </data>
+	<data name="Home_Community_Stat_Online" xml:space="preserve">
+<value>Gracze online</value>
+  </data>
+	<data name="Home_Community_Stat_Games" xml:space="preserve">
+<value>Dostępne gry</value>
+  </data>
+	<data name="Admin_Users_Xp_Button" xml:space="preserve">
+<value>Dodaj PD</value>
+  </data>
+	<data name="Admin_Users_Xp_Title" xml:space="preserve">
+<value>Przydziel punkty doświadczenia</value>
+  </data>
+	<data name="Admin_Users_Xp_Message" xml:space="preserve">
+<value>Ile PD chcesz przyznać użytkownikowi {{name}}?</value>
+  </data>
+	<data name="Admin_Users_Xp_Label" xml:space="preserve">
+<value>Liczba PD</value>
+  </data>
+	<data name="Admin_Users_Xp_Reason_Label" xml:space="preserve">
+<value>Powód (opcjonalnie)</value>
+  </data>
+	<data name="Admin_Users_Xp_Reason_Help" xml:space="preserve">
+<value>Widoczne w logach audytu na przyszłość.</value>
+  </data>
+	<data name="Admin_Users_Xp_Submit" xml:space="preserve">
+<value>Przyznaj PD</value>
   </data>
 </root>

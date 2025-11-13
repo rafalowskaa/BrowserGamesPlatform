@@ -27,13 +27,65 @@ public class HomeContentService
 
     public async Task<IReadOnlyList<GameSummaryViewModel>> GetFeaturedAsync(int limit, CancellationToken cancellationToken = default)
     {
-        var items = await CreateGameProjection()
-            .OrderByDescending(g => g.CreatedAtUtc)
-            .ThenByDescending(g => g.AvgRating)
+        var now = DateTime.UtcNow;
+        var scheduled = await _db.HomeFeaturedGames
+            .AsNoTracking()
+            .Where(f => f.IsActive && f.StartsAtUtc <= now && f.EndsAtUtc >= now)
+            .OrderBy(f => f.StartsAtUtc)
+            .ThenBy(f => f.Id)
             .Take(limit)
+            .Select(f => new
+            {
+                f.GameId,
+                f.CustomDescription
+            })
             .ToListAsync(cancellationToken);
 
-        return items.Select(MapToSummary).ToList();
+        if (!scheduled.Any())
+        {
+            return await GetPopularAsync(limit, cancellationToken: cancellationToken);
+        }
+
+        var ids = scheduled.Select(f => f.GameId).Distinct().ToList();
+        var projections = await CreateGameProjection()
+            .Where(g => ids.Contains(g.Id))
+            .ToListAsync(cancellationToken);
+
+        var summaries = new List<GameSummaryViewModel>(limit);
+        foreach (var entry in scheduled)
+        {
+            var projection = projections.FirstOrDefault(p => p.Id == entry.GameId);
+            if (projection is null)
+            {
+                continue;
+            }
+
+            var summary = MapToSummary(projection);
+            if (!string.IsNullOrWhiteSpace(entry.CustomDescription))
+            {
+                summary.Excerpt = entry.CustomDescription!;
+            }
+            summaries.Add(summary);
+        }
+
+        if (summaries.Count < limit)
+        {
+            var fallback = await GetPopularAsync(limit, cancellationToken: cancellationToken);
+            foreach (var game in fallback)
+            {
+                if (summaries.Count >= limit)
+                {
+                    break;
+                }
+
+                if (summaries.All(existing => existing.Id != game.Id))
+                {
+                    summaries.Add(game);
+                }
+            }
+        }
+
+        return summaries;
     }
 
     public async Task<IReadOnlyList<GameSummaryViewModel>> GetPopularAsync(int limit, string? tag = null, CancellationToken cancellationToken = default)

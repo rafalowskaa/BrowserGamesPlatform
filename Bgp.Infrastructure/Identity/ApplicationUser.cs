@@ -83,4 +83,6 @@ public class ApplicationUser : IdentityUser
 
     [MaxLength(512)]
     public string? SecurityQuestion3AnswerHash { get; set; }
+
+    public int BonusExperience { get; set; }
 }

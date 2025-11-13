@@ -103,7 +103,7 @@ public static class RankCalculator
             totalXp -= 120d;
         }
 
-        totalXp = Math.Max(0d, totalXp);
+        totalXp += Math.Max(0, stats.BonusExperience);
 
         return (int)Math.Round(totalXp);
     }
