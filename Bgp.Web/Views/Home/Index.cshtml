@@ -230,11 +230,21 @@
                         }
                     </div>
                 </div>
-                <div class="home-panel">
+                <div class="home-panel home-panel--xp">
                     <h3>@L["Home_Dashboard_XpPanel_Title"].Value</h3>
-                    <div class="xp-panel" role="status" aria-live="polite">
-                        <p class="xp-panel__rank">@string.Format(L["Home_Dashboard_XpPanel_Rank"].Value, Model.ExperiencePanel.RankName)</p>
-                        <div class="xp-panel__bar" aria-label="@L["Home_Dashboard_XpPanel_Progress_Aria"].Value">
+                    <div class="xp-panel" role="status" aria-live="polite" style="--xp-accent-color:@Model.ExperiencePanel.AccentColor; --xp-glow-color:@Model.ExperiencePanel.AccentGlowColor;">
+                        <div class="xp-panel__header">
+                            <div>
+                                <p class="xp-panel__rank">@string.Format(L["Home_Dashboard_XpPanel_Rank"].Value, Model.ExperiencePanel.RankName)</p>
+                                @if (!string.IsNullOrWhiteSpace(Model.ExperiencePanel.NextRankName))
+                                {
+                                    <p class="xp-panel__next">@string.Format(L["Home_Dashboard_XpPanel_NextRank"].Value, Model.ExperiencePanel.NextRankName)</p>
+                                }
+                            </div>
+                            <div class="xp-panel__totals">
+                                <span>@Model.ExperiencePanel.CurrentXp XP</span>
+                            </div>
+                        </div>
                             <div class="xp-panel__progress" style="width:@Model.ExperiencePanel.ProgressPercent%"></div>
                         </div>
                         <p class="xp-panel__meta">@string.Format(L["Home_Dashboard_XpPanel_Meta"].Value, Model.ExperiencePanel.CurrentXp, Model.ExperiencePanel.XpToNext)</p>
@@ -257,7 +267,35 @@
                                 <li>@L["Home_Dashboard_DailyChallenges_Empty"].Value</li>
                             }
                         </ul>
+                    <div class="xp-panel__trophy">
+                            <img src="@Url.Content(Model.ExperiencePanel.TrophyImage ?? "~/img/trophies/silver.png")" alt="@string.Format(L["Home_Dashboard_XpPanel_TrophyAlt"].Value, Model.ExperiencePanel.RankName)" />
+                        </div>
                     </div>
+                </div>
+                <div class="home-panel home-panel--events">
+                    <div class="home-panel__header">
+                        <div>
+                            <h3>@L["Home_Dashboard_Events_Title"].Value</h3>
+                            <p>@L["Home_Dashboard_Events_Subtitle"].Value</p>
+                        </div>
+                    </div>
+                    @if (Model.WeeklyEvents.Any())
+                    {
+                        <div class="events-carousel" role="list">
+                            @foreach (var evt in Model.WeeklyEvents)
+                            {
+                                <article class="event-card" role="listitem">
+                                    <h4>@evt.Title</h4>
+                                    <p>@string.Format(L["Home_Events_Reward"].Value, evt.Reward)</p>
+                                    <time datetime="@evt.EndsAt.ToString("o")">@string.Format(L["Home_Events_End"].Value, evt.EndsAt.ToLocalTime().ToString("dd.MM HH:mm"))</time>
+                                </article>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="home-panel__empty">@L["Home_Dashboard_Events_Empty"].Value</p>
+                    }
                 </div>
             </div>
         </section>
@@ -312,6 +350,25 @@
                 }
             </ul>
         </section>
+
+        @if (Model.FunFacts.Any())
+        {
+            <section class="home-section home-facts-section">
+                <div class="home-section__header">
+                    <h2>@L["Home_Dashboard_Facts_Title"].Value</h2>
+                    <p>@L["Home_Dashboard_Facts_Subtitle"].Value</p>
+                </div>
+                <div class="home-facts" role="list">
+                    @foreach (var fact in Model.FunFacts)
+                    {
+                        <article class="fact-card" role="listitem">
+                            <p>@fact</p>
+                        </article>
+                    }
+                </div>
+            </section>
+        }
+
 
         <section class="home-section home-creators">
             @{

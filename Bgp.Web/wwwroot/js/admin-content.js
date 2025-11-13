@@ -4,45 +4,37 @@
         return;
     }
 
-    const scrollButtons = root.querySelectorAll('[data-admin-scroll]');
-    const sections = root.querySelectorAll('.admin-editor-section');
-    const navMap = new Map();
+    const sectionButtons = root.querySelectorAll('[data-admin-section-button]');
+    const sections = root.querySelectorAll('[data-admin-section]');
 
-    scrollButtons.forEach((button) => {
-        const targetSelector = button.getAttribute('data-admin-scroll');
-        if (!targetSelector) {
-            return;
-        }
+    const activateSection = (targetSelector) => {
+        sections.forEach((section) => {
+            const matches = `#${section.id}` === targetSelector;
+            section.hidden = !matches;
+            section.classList.toggle('is-active', matches);
+        });
+    };
 
-        navMap.set(targetSelector, button);
+    sectionButtons.forEach((button, index) => {
 
         button.addEventListener('click', () => {
-            const target = root.querySelector(targetSelector);
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-
-            scrollButtons.forEach((btn) => btn.classList.remove('is-active'));
+            sectionButtons.forEach((btn) => btn.classList.remove('is-active'));
             button.classList.add('is-active');
+            const targetSelector = button.getAttribute('data-admin-section-button');
+            if (targetSelector) {
+                activateSection(targetSelector);
+            }
+           
         });
+   
+
+        if (index === 0) {
+            const initialTarget = button.getAttribute('data-admin-section-button');
+            if (initialTarget) {
+                activateSection(initialTarget);
+            }
+        }
     });
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (!entry.isIntersecting) {
-                return;
-            }
-            const id = `#${entry.target.id}`;
-            const navButton = navMap.get(id);
-            if (!navButton) {
-                return;
-            }
-            scrollButtons.forEach((btn) => btn.classList.remove('is-active'));
-            navButton.classList.add('is-active');
-        });
-    }, { rootMargin: '-40% 0px -55% 0px' });
-
-    sections.forEach((section) => observer.observe(section));
 
     const inlineInputs = root.querySelectorAll('[data-inline-input]');
     inlineInputs.forEach((input) => {
@@ -168,16 +160,146 @@
         updateSortOrder(list);
     });
 
-    const previewFrame = root.querySelector('[data-preview-frame]');
-    const previewButtons = root.querySelectorAll('[data-preview-mode]');
-    previewButtons.forEach((button) => {
-        button.addEventListener('click', () => {
-            previewButtons.forEach((btn) => btn.classList.remove('is-active'));
-            button.classList.add('is-active');
-            const mode = button.getAttribute('data-preview-mode') || 'mobile';
-            previewFrame?.setAttribute('data-device', mode === 'desktop' ? 'desktop' : 'mobile');
+    const trendingUrl = root.getAttribute('data-trending-url');
+    const lookupUrl = root.getAttribute('data-game-lookup-url');
+    const slugPrompt = root.getAttribute('data-featured-slug-prompt') || '';
+    const featuredError = root.getAttribute('data-featured-error') || '';
+    const randomError = root.getAttribute('data-featured-random-error') || '';
+    const placeholderImage = root.getAttribute('data-featured-placeholder') || '';
+
+    const featuredSection = root.querySelector('[data-featured-section]');
+    if (featuredSection) {
+        const cover = featuredSection.querySelector('[data-featured-cover]');
+        const slugOutput = featuredSection.querySelector('[data-featured-slug]');
+        const titleOutput = featuredSection.querySelector('[data-featured-title-display]');
+        const descriptionPreview = featuredSection.querySelector('[data-featured-preview-description]');
+        const descriptionInput = featuredSection.querySelector('textarea[name="Description"]');
+        const titleInput = featuredSection.querySelector('[data-featured-title-input]');
+        const slugInput = featuredSection.querySelector('[data-featured-slug-input]');
+        const gameIdInput = featuredSection.querySelector('[data-featured-game-id]');
+        const randomButton = featuredSection.querySelector('[data-featured-random]');
+        const replaceButton = featuredSection.querySelector('[data-featured-replace]');
+
+        const updateDescriptionPreview = () => {
+            if (!descriptionPreview) {
+                return;
+            }
+            const value = descriptionInput?.value?.trim();
+            descriptionPreview.textContent = value || descriptionInput?.getAttribute('placeholder') || '';
+        };
+
+        descriptionInput?.addEventListener('input', updateDescriptionPreview);
+        updateDescriptionPreview();
+
+        const setCoverImage = (imagePath) => {
+            const url = imagePath || placeholderImage;
+            if (cover && url) {
+                cover.style.backgroundImage = `url('${url}')`;
+            }
+        };
+
+        const applyFeaturedGame = (game) => {
+            if (!game) {
+                return;
+            }
+            if (gameIdInput) {
+                gameIdInput.value = game.id ?? '';
+            }
+            if (titleInput) {
+                titleInput.value = game.title ?? '';
+            }
+            if (slugInput) {
+                slugInput.value = game.slug ?? '';
+            }
+            if (titleOutput) {
+                titleOutput.textContent = game.title ?? '';
+            }
+            if (slugOutput) {
+                slugOutput.textContent = game.slug ?? '';
+            }
+
+            const newDescription = game.description || game.excerpt || '';
+            if (descriptionInput && !descriptionInput.value) {
+                descriptionInput.value = newDescription;
+            }
+            updateDescriptionPreview();
+            setCoverImage(game.coverImagePath);
+        };
+
+        let trendingGames = null;
+
+        const getTrendingGames = async () => {
+            if (trendingGames || !trendingUrl) {
+                return trendingGames ?? [];
+            }
+            const response = await fetch(trendingUrl, { credentials: 'same-origin' });
+            if (!response.ok) {
+                throw new Error('Trending request failed');
+            }
+            const payload = await response.json();
+            trendingGames = Array.isArray(payload) ? payload : [];
+            return trendingGames;
+        };
+
+        const fetchGameBySlug = async (slug) => {
+            if (!lookupUrl || !slug) {
+                return null;
+            }
+            const response = await fetch(`${lookupUrl}${encodeURIComponent(slug)}`, { credentials: 'same-origin' });
+            if (!response.ok) {
+                throw new Error('Lookup failed');
+            }
+            const payload = await response.json();
+            return {
+                id: payload.id,
+                title: payload.title,
+                slug: payload.slug,
+                description: payload.description,
+                coverImagePath: payload.coverImagePath
+            };
+        };
+
+        randomButton?.addEventListener('click', async () => {
+            try {
+                randomButton.disabled = true;
+                const games = await getTrendingGames();
+                if (!games.length) {
+                    throw new Error('no-games');
+                }
+                const index = Math.floor(Math.random() * games.length);
+                applyFeaturedGame(games[index]);
+            } catch (error) {
+                if (randomError) {
+                    window.alert(randomError);
+                }
+                console.error(error);
+            } finally {
+                randomButton.disabled = false;
+            }
         });
-    });
+        replaceButton?.addEventListener('click', async () => {
+            const slug = window.prompt(slugPrompt)?.trim();
+            if (!slug) {
+                return;
+            }
+            try {
+                replaceButton.disabled = true;
+                const game = await fetchGameBySlug(slug);
+                if (!game) {
+                    throw new Error('not-found');
+                }
+                applyFeaturedGame(game);
+            } catch (error) {
+                if (featuredError) {
+                    window.alert(featuredError);
+                }
+                console.error(error);
+            } finally {
+                replaceButton.disabled = false;
+            }
+        });
+    }
+    
 
     root.querySelectorAll('[data-admin-toast]').forEach((toast) => {
         setTimeout(() => toast.remove(), 5000);

@@ -29,7 +29,14 @@
         return string.Format(L["Admin_Content_Event_Expiry_Days"].Value, days);
     }
 }
-<section class="admin-section admin-content-page" data-admin-content-root>
+<section class="admin-section admin-content-page"
+         data-admin-content-root
+         data-trending-url="/api/home/trending?limit=24"
+         data-game-lookup-url="/api/games/"
+         data-featured-slug-prompt="@L["Admin_Content_Feature_Prompt_Slug"].Value"
+         data-featured-error="@L["Admin_Content_Feature_Error_Game"].Value"
+         data-featured-random-error="@L["Admin_Content_Feature_Error_Random"].Value"
+         data-featured-placeholder="@Url.Content("~/img/placeholders/game-cover.svg")">
     <nav class="admin-nav">
         <a class="admin-nav__item" asp-action="Users">@L["Admin_Nav_Users"].Value</a>
         <a class="admin-nav__item" asp-action="Games">@L["Admin_Nav_Games"].Value</a>
@@ -60,10 +67,10 @@
             <div class="admin-home-nav" role="navigation" aria-label="@L["Admin_Content_HomeNav_AriaLabel"].Value">
                 <div class="admin-home-nav__title">@L["Admin_Content_HomeNav_Title"].Value</div>
                 <ul>
-                    <li><button type="button" class="admin-home-nav__item is-active" data-admin-scroll="#feature">@L["Admin_Content_HomeNav_Feature"].Value</button></li>
-                    <li><button type="button" class="admin-home-nav__item" data-admin-scroll="#facts">@L["Admin_Content_HomeNav_Facts"].Value</button></li>
-                    <li><button type="button" class="admin-home-nav__item" data-admin-scroll="#events">@L["Admin_Content_HomeNav_Events"].Value</button></li>
-                    <li><button type="button" class="admin-home-nav__item" data-admin-scroll="#layout">@L["Admin_Content_HomeNav_Layout"].Value</button></li>
+                    <li><button type="button" class="admin-home-nav__item is-active" data-admin-section-button="#feature">@L["Admin_Content_HomeNav_Feature"].Value</button></li>
+                    <li><button type="button" class="admin-home-nav__item" data-admin-section-button="#facts">@L["Admin_Content_HomeNav_Facts"].Value</button></li>
+                    <li><button type="button" class="admin-home-nav__item" data-admin-section-button="#events">@L["Admin_Content_HomeNav_Events"].Value</button></li>
+                    <li><button type="button" class="admin-home-nav__item" data-admin-section-button="#layout">@L["Admin_Content_HomeNav_Layout"].Value</button></li>
                 </ul>
             </div>
             <div class="admin-home-history">
@@ -96,7 +103,7 @@
                 </div>
             </div>
 
-            <section id="feature" class="admin-editor-section">
+            <section id="feature" class="admin-editor-section" data-admin-section>
                 <header>
                     <div>
                         <p class="admin-editor-section__eyebrow">@L["Admin_Content_Feature_Eyebrow"].Value</p>
@@ -108,38 +115,79 @@
                         <button type="button" class="btn-outline btn-small">@L["Admin_Content_Feature_Action_Replace"].Value</button>
                     </div>
                 </header>
-                <article class="admin-editor-card admin-editor-card--feature">
-                    <div class="admin-editor-card__body">
-                        <div class="admin-field">
-                            <label>
-                                <span>@L["Admin_Content_Feature_GameLabel"].Value</span>
-                                <input type="text" placeholder="@L["Admin_Content_Feature_GamePlaceholder"].Value" disabled value="@L["Admin_Content_Feature_GameValue"].Value" />
-                            </label>
+                @{
+                    var featuredPlaceholder = Url.Content("~/img/placeholders/game-cover.svg");
+                    var featuredCover = string.IsNullOrWhiteSpace(Model.FeaturedGame?.CoverImagePath)
+                    ? featuredPlaceholder
+                    : Url.Content(Model.FeaturedGame.CoverImagePath);
+                    var featuredStart = Model.FeaturedGame?.StartsAtUtc.ToLocalTime().ToString("yyyy-MM-ddTHH:mm");
+                    var featuredEnd = Model.FeaturedGame?.EndsAtUtc.ToLocalTime().ToString("yyyy-MM-ddTHH:mm");
+                }
+                <article class="admin-editor-card admin-editor-card--feature" data-featured-section>
+                    <div class="admin-featured-card">
+                        <div class="admin-featured-card__preview">
+                            <div class="admin-featured-card__cover" data-featured-cover style="background-image:url('@featuredCover');"></div>
+                            <div class="admin-featured-card__details">
+                                <p class="admin-featured-card__slug" data-featured-slug>@(Model.FeaturedGame?.GameSlug ?? L["Admin_Content_Feature_GamePlaceholder"].Value)</p>
+                                <h3 data-featured-title-display>@(Model.FeaturedGame?.GameTitle ?? L["Admin_Content_Feature_GameValue"].Value)</h3>
+                                <p class="muted" data-featured-preview-description>@(Model.FeaturedGame?.Description ?? L["Admin_Content_Feature_DescriptionPlaceholder"].Value)</p>
+                            </div>
                         </div>
-                        <div class="admin-field">
-                            <label>
-                                <span>@L["Admin_Content_Feature_DescriptionLabel"].Value</span>
-                                <textarea rows="3" placeholder="@L["Admin_Content_Feature_DescriptionPlaceholder"].Value" disabled></textarea>
-                            </label>
-                        </div>
-                        <div class="admin-field admin-field--inline">
-                            <label>
-                                <span>@L["Admin_Content_Feature_StartLabel"].Value</span>
-                                <input type="date" disabled />
-                            </label>
-                            <label>
-                                <span>@L["Admin_Content_Feature_EndLabel"].Value</span>
-                                <input type="date" disabled />
-                            </label>
-                            <label>
-                                <span>@L["Admin_Content_Status_Label"].Value</span>
-                                <select disabled>
-                                    <option>@L["Admin_Content_Status_Draft"].Value</option>
-                                    <option>@L["Admin_Content_Status_Active"].Value</option>
-                                    <option>@L["Admin_Content_Status_Scheduled"].Value</option>
-                                </select>
-                            </label>
-                        </div>
+                        <form asp-action="SaveFeaturedGame" method="post" class="admin-card-form" data-featured-form>
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="Id" value="@Model.FeaturedGame?.Id" data-featured-id />
+                            <input type="hidden" name="GameId" value="@Model.FeaturedGame?.GameId" data-featured-game-id />
+                            <div class="admin-field admin-field--inline">
+                                <label>
+                                    <span>@L["Admin_Content_Feature_GameLabel"].Value</span>
+                                    <input type="text" value="@Model.FeaturedGame?.GameTitle" readonly data-featured-title-input placeholder="@L["Admin_Content_Feature_GamePlaceholder"].Value" />
+                                </label>
+                                <label>
+                                    <span>@L["Admin_Content_Feature_SlugLabel"].Value</span>
+                                    <input type="text" value="@Model.FeaturedGame?.GameSlug" readonly data-featured-slug-input placeholder="@L["Admin_Content_Feature_SlugPlaceholder"].Value" />
+                                </label>
+                            </div>
+                            <div class="admin-field">
+                                <label>
+                                    <span>@L["Admin_Content_Feature_DescriptionLabel"].Value</span>
+                                    <textarea name="Description" rows="3" placeholder="@L["Admin_Content_Feature_DescriptionPlaceholder"].Value" data-inline-input>@Model.FeaturedGame?.Description</textarea>
+                                </label>
+                            </div>
+                            <div class="admin-field admin-field--inline admin-featured-card__schedule">
+                                <label>
+                                    <span>@L["Admin_Content_Feature_StartLabel"].Value</span>
+                                    <input type="datetime-local" name="StartsAt" value="@featuredStart" data-featured-start />
+                                </label>
+                                <label>
+                                    <span>@L["Admin_Content_Feature_EndLabel"].Value</span>
+                                    <input type="datetime-local" name="EndsAt" value="@featuredEnd" data-featured-end />
+                                </label>
+                                <label>
+                                    <span>@L["Admin_Content_Status_Label"].Value</span>
+                                    <select name="IsActive" data-featured-status>
+                                        <option value="false" selected="@((Model.FeaturedGame?.IsActive ?? false) ? null : "selected")">@L["Admin_Content_Status_Draft"].Value</option>
+                                        <option value="true" selected="@((Model.FeaturedGame?.IsActive ?? false) ? "selected" : null)">@L["Admin_Content_Status_Active"].Value</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="admin-card-form__footer admin-featured-card__footer">
+                                <div class="admin-featured-card__actions">
+                                    <button type="button" class="btn-ghost btn-small" data-featured-random>@L["Admin_Content_Feature_Action_Randomize"].Value</button>
+                                    <button type="button" class="btn-outline btn-small" data-featured-replace>@L["Admin_Content_Feature_Action_Replace"].Value</button>
+                                </div>
+                                <div class="admin-card-buttons">
+                                    <button class="btn-primary btn-small" type="submit">@L["Admin_Content_Save"].Value</button>
+                                </div>
+                            </div>
+                        </form>
+                        @if (Model.FeaturedGame is not null)
+                        {
+                            <form asp-action="DeleteFeaturedGame" method="post" class="inline-form admin-card-delete">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="Id" value="@Model.FeaturedGame.Id" />
+                                <button class="btn-ghost btn-small" type="submit" onclick="return confirm('@L["Admin_Content_DeleteConfirm"].Value');">@L["Admin_Content_Delete"].Value</button>
+                            </form>
+                        }
                     </div>
                     <footer>
                         <small class="muted">@L["Admin_Content_Feature_Footer"].Value</small>
@@ -147,7 +195,7 @@
                 </article>
             </section>
 
-            <section id="facts" class="admin-editor-section">
+            <section id="facts" class="admin-editor-section" data-admin-section hidden>
                 <header>
                     <div>
                         <p class="admin-editor-section__eyebrow">@L["Admin_Content_Facts_Eyebrow"].Value</p>
@@ -239,7 +287,7 @@
                 </article>
             </section>
 
-            <section id="events" class="admin-editor-section">
+            <section id="events" class="admin-editor-section" data-admin-section hidden>
                 <header>
                     <div>
                         <p class="admin-editor-section__eyebrow">@L["Admin_Content_Events_Eyebrow"].Value</p>
@@ -354,7 +402,7 @@
                 </article>
             </section>
 
-        <section id="layout" class="admin-editor-section">
+            <section id="layout" class="admin-editor-section" data-admin-section hidden>
                 <header>
                     <div>
                         <p class="admin-editor-section__eyebrow">@L["Admin_Content_Layout_Eyebrow"].Value</p>
@@ -398,12 +446,9 @@
             <div class="admin-preview">
                 <header class="admin-preview__header">
                     <h3>@L["Admin_Content_Preview_Title"].Value</h3>
-                    <div class="admin-preview__modes">
-                        <button type="button" class="btn-ghost btn-small is-active" data-preview-mode="mobile">@L["Admin_Content_Preview_ModeMobile"].Value</button>
-                        <button type="button" class="btn-ghost btn-small" data-preview-mode="desktop">@L["Admin_Content_Preview_ModeDesktop"].Value</button>
-                    </div>
+                    
                 </header>
-                <div class="admin-preview__frame" data-preview-frame data-device="mobile">
+                <div class="admin-preview__frame" data-preview-frame>
                     <iframe src="@previewUrl" title="@L["Admin_Content_Preview_IframeTitle"].Value" data-admin-preview></iframe>
                 </div>
                 <footer>

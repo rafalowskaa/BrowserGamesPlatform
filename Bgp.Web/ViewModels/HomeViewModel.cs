@@ -62,9 +62,17 @@ public class ActivityFeedItemViewModel
 public class ExperiencePanelViewModel
 {
     public string RankName { get; set; } = string.Empty;
+    public string? NextRankName { get; set; }
     public int CurrentXp { get; set; }
+    public int CurrentThreshold { get; set; }
+    public int NextThreshold { get; set; }
+    public int XpIntoCurrent { get; set; }
     public int ProgressPercent { get; set; }
     public int XpToNext { get; set; }
+    public string? TrophyImage { get; set; }
+    public string AccentColor { get; set; } = "#38bdf8";
+    public string AccentHighlightColor { get; set; } = "#a855f7";
+    public string AccentGlowColor { get; set; } = "rgba(56,189,248,0.35)";
 }
 
 public class DailyChallengeViewModel

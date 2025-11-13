@@ -121,6 +121,30 @@ public class HomeContentService
             }
         }
 
+        var now = DateTime.UtcNow;
+        var scheduledFeature = await _db.HomeFeaturedGames
+            .AsNoTracking()
+            .Where(f => f.IsActive && f.StartsAtUtc <= now && f.EndsAtUtc >= now)
+            .OrderBy(f => f.EndsAtUtc)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (scheduledFeature is not null)
+        {
+            var projection = await CreateGameProjection()
+                .FirstOrDefaultAsync(g => g.Id == scheduledFeature.GameId, cancellationToken);
+
+            if (projection is not null)
+            {
+                var summary = MapToSummary(projection);
+                if (!string.IsNullOrWhiteSpace(scheduledFeature.CustomDescription))
+                {
+                    summary.Excerpt = scheduledFeature.CustomDescription!;
+                }
+
+                return summary;
+            }
+        }
+
         var trending = await GetTrendingAsync(1, cancellationToken: cancellationToken);
         if (trending.Any())
         {

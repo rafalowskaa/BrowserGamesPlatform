@@ -123,6 +123,7 @@ public class AdminHomeContentViewModel
 {
     public IReadOnlyList<AdminHomeFactViewModel> Facts { get; init; } = Array.Empty<AdminHomeFactViewModel>();
     public IReadOnlyList<AdminHomeEventViewModel> Events { get; init; } = Array.Empty<AdminHomeEventViewModel>();
+    public AdminHomeFeaturedGameViewModel? FeaturedGame { get; init; }
     public string? SuccessKey { get; init; }
     public string? ErrorKey { get; init; }
 }
@@ -130,6 +131,19 @@ public class AdminHomeContentViewModel
 public record AdminHomeFactViewModel(int Id, string Content, bool IsActive, int SortOrder, DateTime CreatedAtUtc, DateTime? UpdatedAtUtc);
 
 public record AdminHomeEventViewModel(int Id, string Title, string Reward, DateTime EndsAtUtc, bool IsActive, int SortOrder, DateTime CreatedAtUtc, DateTime? UpdatedAtUtc);
+
+public record AdminHomeFeaturedGameViewModel(
+    int Id,
+    Guid GameId,
+    string GameTitle,
+    string GameSlug,
+    string? CoverImagePath,
+    string? Description,
+    DateTime StartsAtUtc,
+    DateTime EndsAtUtc,
+    bool IsActive,
+    DateTime CreatedAtUtc,
+    DateTime? UpdatedAtUtc);
 
 public class AdminUpsertHomeFactInputModel
 {
@@ -165,6 +179,37 @@ public class AdminUpsertHomeEventInputModel
     public bool IsActive { get; set; } = true;
 
     public int SortOrder { get; set; }
+}
+
+public class AdminUpsertHomeFeaturedGameInputModel
+{
+    public int? Id { get; set; }
+
+    [Required]
+    public Guid GameId { get; set; }
+
+    [MaxLength(600)]
+    public string? Description { get; set; }
+
+    [Required]
+    public DateTime StartsAt { get; set; } = DateTime.UtcNow;
+
+    [Required]
+    public DateTime EndsAt { get; set; } = DateTime.UtcNow.AddDays(3);
+
+    public bool IsActive { get; set; } = true;
+}
+
+public class AdminDeleteHomeFeaturedGameInputModel
+{
+    [Required]
+    public int Id { get; set; }
+}
+
+public class AdminDeleteGameInputModel
+{
+    [Required]
+    public Guid Id { get; set; }
 }
 
 public class AdminDeleteHomeEventInputModel

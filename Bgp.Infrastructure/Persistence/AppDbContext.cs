@@ -21,7 +21,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<GameTag> GameTags => Set<GameTag>();
     public DbSet<HomeFact> HomeFacts => Set<HomeFact>();
     public DbSet<HomeEvent> HomeEvents => Set<HomeEvent>();
-
+    public DbSet<HomeFeaturedGame> HomeFeaturedGames => Set<HomeFeaturedGame>();
     public DbSet<Friendship> Friendships => Set<Friendship>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<Report> Reports => Set<Report>();
@@ -205,5 +205,33 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         .Property(x => x.EndsAtUtc)
         .HasColumnType("datetime2");
 
+        b.Entity<HomeFeaturedGame>()
+            .Property(x => x.CustomDescription)
+            .HasMaxLength(600);
+
+        b.Entity<HomeFeaturedGame>()
+            .Property(x => x.StartsAtUtc)
+            .HasColumnType("datetime2");
+
+        b.Entity<HomeFeaturedGame>()
+            .Property(x => x.EndsAtUtc)
+            .HasColumnType("datetime2");
+
+        b.Entity<HomeFeaturedGame>()
+            .Property(x => x.CreatedAtUtc)
+            .HasDefaultValueSql("GETUTCDATE()");
+
+        b.Entity<HomeFeaturedGame>()
+            .Property(x => x.IsActive)
+            .HasDefaultValue(true);
+
+        b.Entity<HomeFeaturedGame>()
+            .HasIndex(x => new { x.IsActive, x.StartsAtUtc, x.EndsAtUtc });
+
+        b.Entity<HomeFeaturedGame>()
+            .HasOne<Game>()
+            .WithMany()
+            .HasForeignKey(x => x.GameId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

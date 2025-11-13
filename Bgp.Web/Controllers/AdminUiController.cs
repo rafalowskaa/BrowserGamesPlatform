@@ -1018,10 +1018,30 @@ public class AdminUiController : Controller
                 e.UpdatedAtUtc))
             .ToListAsync();
 
+        var featured = await _db.HomeFeaturedGames
+            .AsNoTracking()
+            .Include(f => f.Game)
+            .OrderByDescending(f => f.IsActive)
+            .ThenByDescending(f => f.StartsAtUtc)
+            .Select(f => new AdminHomeFeaturedGameViewModel(
+                f.Id,
+                f.GameId,
+                f.Game!.Title,
+                f.Game.Slug,
+                f.Game.CoverImagePath,
+                f.CustomDescription,
+                f.StartsAtUtc,
+                f.EndsAtUtc,
+                f.IsActive,
+                f.CreatedAtUtc,
+                f.UpdatedAtUtc))
+            .FirstOrDefaultAsync();
+
         var vm = new AdminHomeContentViewModel
         {
             Facts = facts,
             Events = events,
+            FeaturedGame = featured,
             SuccessKey = TempData["AdminContentSuccess"] as string,
             ErrorKey = TempData["AdminContentError"] as string
         };
@@ -1202,5 +1222,131 @@ public class AdminUiController : Controller
 
         TempData["AdminContentSuccess"] = "Admin_Content_Deleted";
         return RedirectToAction(nameof(Content));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveFeaturedGame(AdminUpsertHomeFeaturedGameInputModel input)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["AdminContentError"] = "Admin_Content_Error_Validation";
+            return RedirectToAction(nameof(Content));
+        }
+
+        var game = await _db.Games
+            .AsNoTracking()
+            .FirstOrDefaultAsync(g => g.Id == input.GameId && g.ApprovalStatus == GameApprovalStatus.Approved);
+
+        if (game is null)
+        {
+            TempData["AdminContentError"] = "Admin_Content_Feature_Error_Game";
+            return RedirectToAction(nameof(Content));
+        }
+
+        var startsAtUtc = input.StartsAt.Kind switch
+        {
+            DateTimeKind.Utc => input.StartsAt,
+            DateTimeKind.Local => input.StartsAt.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(input.StartsAt, DateTimeKind.Local).ToUniversalTime()
+        };
+
+        var endsAtUtc = input.EndsAt.Kind switch
+        {
+            DateTimeKind.Utc => input.EndsAt,
+            DateTimeKind.Local => input.EndsAt.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(input.EndsAt, DateTimeKind.Local).ToUniversalTime()
+        };
+
+        if (endsAtUtc <= startsAtUtc)
+        {
+            TempData["AdminContentError"] = "Admin_Content_Feature_Error_Dates";
+            return RedirectToAction(nameof(Content));
+        }
+
+        HomeFeaturedGame feature;
+
+        if (input.Id.HasValue)
+        {
+            feature = await _db.HomeFeaturedGames.FindAsync(input.Id.Value);
+            if (feature is null)
+            {
+                TempData["AdminContentError"] = "Admin_Content_Error_NotFound";
+                return RedirectToAction(nameof(Content));
+            }
+        }
+        else
+        {
+            feature = new HomeFeaturedGame
+            {
+                CreatedAtUtc = DateTime.UtcNow
+            };
+            await _db.HomeFeaturedGames.AddAsync(feature);
+        }
+
+        feature.GameId = input.GameId;
+        feature.CustomDescription = string.IsNullOrWhiteSpace(input.Description) ? null : input.Description.Trim();
+        feature.StartsAtUtc = startsAtUtc;
+        feature.EndsAtUtc = endsAtUtc;
+        feature.IsActive = input.IsActive;
+        feature.UpdatedAtUtc = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        TempData["AdminContentSuccess"] = "Admin_Content_Saved";
+        return RedirectToAction(nameof(Content));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteFeaturedGame(AdminDeleteHomeFeaturedGameInputModel input)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["AdminContentError"] = "Admin_Content_Error_Validation";
+            return RedirectToAction(nameof(Content));
+        }
+
+        var feature = await _db.HomeFeaturedGames.FindAsync(input.Id);
+        if (feature is null)
+        {
+            TempData["AdminContentError"] = "Admin_Content_Error_NotFound";
+            return RedirectToAction(nameof(Content));
+        }
+
+        _db.HomeFeaturedGames.Remove(feature);
+        await _db.SaveChangesAsync();
+
+        TempData["AdminContentSuccess"] = "Admin_Content_Deleted";
+        return RedirectToAction(nameof(Content));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteGame(AdminDeleteGameInputModel input)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["AdminGamesError"] = "Admin_Games_Delete_Error";
+            return RedirectToAction(nameof(Games));
+        }
+
+        var game = await _db.Games
+            .Include(g => g.Tags)
+            .Include(g => g.Versions)
+            .Include(g => g.Reviews)
+            .FirstOrDefaultAsync(g => g.Id == input.Id);
+
+        if (game is null)
+        {
+            TempData["AdminGamesError"] = "Admin_Games_NotFound";
+            return RedirectToAction(nameof(Games));
+        }
+
+        _db.Games.Remove(game);
+        await _db.SaveChangesAsync();
+
+        TempData["AdminGamesSuccess"] = "Admin_Games_Delete_Success";
+        return RedirectToAction(nameof(Games));
     }
 }

@@ -2751,4 +2751,55 @@
 	<data name="Home_Hero_Fact_4" xml:space="preserve">
   <value>Jeden z największych turniejów online, prowadzony całkowicie w przeglądarce, zgromadził ponad 100 tysięcy jednoczesnych graczy – bez instalatorów.</value>
 </data>
+	<data name="Admin_Content_Feature_SlugLabel" xml:space="preserve">
+    <value>Slug gry</value>
+  </data>
+	<data name="Admin_Content_Feature_SlugPlaceholder" xml:space="preserve">
+    <value>Wybierz grę, aby uzupełnić slug</value>
+  </data>
+	<data name="Admin_Content_Feature_Prompt_Slug" xml:space="preserve">
+    <value>Podaj slug gry, którą chcesz wyróżnić</value>
+  </data>
+	<data name="Admin_Content_Feature_Error_Game" xml:space="preserve">
+    <value>Nie udało się odnaleźć wskazanej gry. Wybierz inną pozycję.</value>
+  </data>
+	<data name="Admin_Content_Feature_Error_Dates" xml:space="preserve">
+    <value>Data zakończenia musi być późniejsza od daty rozpoczęcia.</value>
+  </data>
+	<data name="Admin_Content_Feature_Error_Random" xml:space="preserve">
+    <value>Nie udało się wczytać listy trendów.</value>
+  </data>
+	<data name="Admin_Games_Delete" xml:space="preserve">
+    <value>Usuń</value>
+  </data>
+	<data name="Admin_Games_Delete_Confirm" xml:space="preserve">
+    <value>Czy na pewno chcesz trwale usunąć tę grę?</value>
+  </data>
+	<data name="Admin_Games_Delete_Success" xml:space="preserve">
+    <value>Gra została usunięta.</value>
+  </data>
+	<data name="Admin_Games_Delete_Error" xml:space="preserve">
+    <value>Nie udało się usunąć wskazanej gry.</value>
+  </data>
+	<data name="Home_Dashboard_Events_Title" xml:space="preserve">
+    <value>Wydarzenia sezonowe</value>
+  </data>
+	<data name="Home_Dashboard_Events_Subtitle" xml:space="preserve">
+    <value>Limitowane aktywności wybrane przez zespół</value>
+  </data>
+	<data name="Home_Dashboard_Events_Empty" xml:space="preserve">
+    <value>Brak zaplanowanych wydarzeń.</value>
+  </data>
+	<data name="Home_Dashboard_Facts_Title" xml:space="preserve">
+    <value>Ciekawostki</value>
+  </data>
+	<data name="Home_Dashboard_Facts_Subtitle" xml:space="preserve">
+    <value>Ręcznie wybrane informacje od administratora</value>
+  </data>
+	<data name="Home_Dashboard_XpPanel_NextRank" xml:space="preserve">
+    <value>Następna ranga: {0}</value>
+  </data>
+	<data name="Home_Dashboard_XpPanel_TrophyAlt" xml:space="preserve">
+    <value>Puchar rangi {0}</value>
+  </data>
 </root>

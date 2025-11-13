@@ -106,28 +106,7 @@ public class HomeController : Controller
             .Where(content => !string.IsNullOrWhiteSpace(content))
             .ToListAsync();
 
-        if (facts.Count > 0)
-        {
-            return facts;
-        }
-
-        return GetLocalizedHeroFacts();
-    }
-
-    private IReadOnlyList<string> GetLocalizedHeroFacts()
-    {
-        var keys = new[]
-        {
-            "Home_Hero_Fact_1",
-            "Home_Hero_Fact_2",
-            "Home_Hero_Fact_3",
-            "Home_Hero_Fact_4"
-        };
-
-        return keys
-            .Select(key => _localizer[key].Value)
-            .Where(value => !string.IsNullOrWhiteSpace(value))
-            .ToList();
+        return facts;
     }
 
     private string SelectDailyHeroFact(IReadOnlyList<string> facts)
@@ -157,12 +136,7 @@ public class HomeController : Controller
             })
             .ToListAsync();
 
-        if (events.Count > 0)
-        {
-            return events;
-        }
-
-        return GenerateWeeklyEventsFallback();
+        return events;
     }
 
     private IQueryable<GameProjection> CreateGameProjection()
@@ -292,32 +266,24 @@ public class HomeController : Controller
         return feed;
     }
 
-    private ExperiencePanelViewModel BuildExperiencePanel(int xp)
+    private ExperiencePanelViewModel BuildExperiencePanel(ProfileRankViewModel rank)
     {
-        var rankName = xp switch
-        {
-            >= 500 => _localizer["Home_Rank_Grandmaster"].Value,
-            >= 200 => _localizer["Home_Rank_Veteran"].Value,
-            >= 50 => _localizer["Home_Rank_Adept"].Value,
-            _ => _localizer["Home_Rank_Novice"].Value
-        };
-
-        var nextThreshold = xp switch
-        {
-            < 50 => 50,
-            < 200 => 200,
-            < 500 => 500,
-            _ => xp + 100
-        };
-
-        var progressPercent = nextThreshold == 0 ? 100 : Math.Clamp((int)Math.Round(xp / (double)nextThreshold * 100), 0, 100);
+        
 
         return new ExperiencePanelViewModel
         {
-            RankName = rankName,
-            CurrentXp = xp,
-            ProgressPercent = progressPercent,
-            XpToNext = Math.Max(0, nextThreshold - xp)
+            RankName = rank.DisplayName,
+            NextRankName = rank.NextDisplayName,
+            CurrentXp = rank.ExperiencePoints,
+            CurrentThreshold = rank.CurrentThreshold,
+            NextThreshold = rank.NextThreshold,
+            XpIntoCurrent = rank.XpIntoCurrent,
+            ProgressPercent = rank.ProgressPercent,
+            XpToNext = rank.XpRequiredForNext,
+            TrophyImage = rank.TrophyImage,
+            AccentColor = rank.AccentColor,
+            AccentHighlightColor = rank.AccentHighlightColor,
+            AccentGlowColor = rank.AccentGlowColor
         };
     }
 
@@ -330,8 +296,8 @@ public class HomeController : Controller
         }
 
         var stats = await BuildUserStatsSnapshotAsync(user);
-        var xp = RankCalculator.CalculateExperiencePoints(stats);
-        return BuildExperiencePanel(xp);
+        var rank = RankCalculator.CalculateRank(stats);
+        return BuildExperiencePanel(rank);
     }
 
     private async Task<DashboardStatsViewModel> BuildUserStatsSnapshotAsync(ApplicationUser user)
@@ -431,17 +397,6 @@ public class HomeController : Controller
            new() { Key = "challenge-play", Title = _localizer["Home_Challenge_Play"].Value, RewardXp = 10, IsCompleted = false },
             new() { Key = "challenge-rate", Title = _localizer["Home_Challenge_Rate"].Value, RewardXp = 10, IsCompleted = false },
             new() { Key = "challenge-share", Title = _localizer["Home_Challenge_Share"].Value, RewardXp = 10, IsCompleted = false }
-        };
-    }
-
-    private IReadOnlyList<EventHighlightViewModel> GenerateWeeklyEventsFallback()
-    {
-        var now = DateTime.UtcNow;
-        return new List<EventHighlightViewModel>
-        {
-            new() { Title = _localizer["Home_Event_TournamentSprint_Title"].Value, Reward = _localizer["Home_Event_TournamentSprint_Reward"].Value, EndsAt = now.AddDays(3) },
-            new() { Title = _localizer["Home_Event_CreatorBattle_Title"].Value, Reward = _localizer["Home_Event_CreatorBattle_Reward"].Value, EndsAt = now.AddDays(5) },
-            new() { Title = _localizer["Home_Event_RankedMarathon_Title"].Value, Reward = _localizer["Home_Event_RankedMarathon_Reward"].Value, EndsAt = now.AddDays(7) }
         };
     }
 

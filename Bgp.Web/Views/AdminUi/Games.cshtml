@@ -201,6 +201,11 @@
                             <a class="btn-outline btn-compact" asp-action="PlayGame" asp-route-id="@game.Id" target="_blank" data-test-button data-shortcut="T">@L["Admin_Games_Test"].Value</a>
                             <button type="button" class="btn-outline btn-compact" data-preview-button>@L["Admin_Games_Preview"].Value</button>
                             <button type="button" class="btn-primary btn-compact" data-edit-button>@L["Admin_Games_Metadata_Edit"].Value</button>
+                            <form asp-action="DeleteGame" method="post" class="inline-form" onsubmit="return confirm('@L["Admin_Games_Delete_Confirm"].Value');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="Id" value="@game.Id" />
+                                <button type="submit" class="btn-danger btn-compact">@L["Admin_Games_Delete"].Value</button>
+                            </form>
                         </div>
                     </div>
                    
