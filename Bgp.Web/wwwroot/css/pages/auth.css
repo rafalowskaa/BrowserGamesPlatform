@@ -362,31 +362,41 @@
     display: block;
 }
 
+.security-question__summary-main {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.35rem 0.5rem 0.35rem 0.35rem;
+    border-radius: 999px;
+    background: #16a34a;
+}
+
 .security-question__summary-button {
     display: flex;
     align-items: center;
     width: auto;
     flex: 1;
-    padding: 0.625rem 0.875rem;
+    padding: 0.55rem 0.875rem;
     border: 0;
-    border-radius: var(--radius);
-    background: rgba(34, 197, 94, 0.16);
-    color: rgba(15, 23, 42, 0.92);
+    border-radius: 999px;
+    background: transparent;
+    color: #f0fdf4;
     font: inherit;
     text-align: left;
     cursor: pointer;
-    transition: background 160ms ease, box-shadow 160ms ease;
+    transition: background 160ms ease, box-shadow 160ms ease, color 160ms ease;
 }
 
     .security-question__summary-button:hover,
     .security-question__summary-button:focus-visible {
-        background: rgba(34, 197, 94, 0.24);
-        color: rgba(15, 23, 42, 0.92);
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
     }
 
     .security-question__summary-button:focus-visible {
         outline: none;
-        box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.45);
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
     }
 
 .security-question__summary-question {
@@ -398,24 +408,30 @@
     font-weight: 600;
 }
 
-.security-question__summary-main {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
 
 .security-question__summary-meta {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     font-size: 0.82rem;
-    color: rgba(148, 163, 184, 0.85);
+    color: rgba(240, 253, 244, 0.85);
 }
 
 .security-question__summary-answer {
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.08em;
 }
+
+.security-question__summary-meta .btn-summary {
+    color: rgba(240, 253, 244, 0.9);
+}
+
+    .security-question__summary-meta .btn-summary:hover,
+    .security-question__summary-meta .btn-summary:focus-visible {
+        background: rgba(255, 255, 255, 0.18);
+        color: #fff;
+    }
+
 
 .btn-summary {
     border: 0;

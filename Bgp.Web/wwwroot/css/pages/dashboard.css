@@ -38,6 +38,84 @@
     padding: 1.5rem;
 }
 
+    .dashboard-panel > .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.5rem;
+    }
+
+        .dashboard-panel > .grid .card {
+            position: relative;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: #050c1f;
+            overflow: hidden;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: 0.35rem;
+        }
+
+            .dashboard-panel > .grid .card::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(180deg, rgba(2, 8, 23, 0.05) 0%, rgba(2, 8, 23, 0.7) 65%, rgba(2, 8, 23, 0.95) 100%);
+                z-index: 0;
+            }
+
+            .dashboard-panel > .grid .card img {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                opacity: 0.9;
+                transition: transform 0.35s ease;
+            }
+
+            .dashboard-panel > .grid .card:hover img {
+                transform: scale(1.05);
+            }
+
+            .dashboard-panel > .grid .card h3,
+            .dashboard-panel > .grid .card p {
+                position: relative;
+                z-index: 1;
+                margin: 0;
+                color: #f8fafc;
+            }
+
+                .dashboard-panel > .grid .card h3 a {
+                    color: inherit;
+                    text-decoration: none;
+                }
+
+                    .dashboard-panel > .grid .card h3 a:hover,
+                    .dashboard-panel > .grid .card h3 a:focus-visible {
+                        text-decoration: underline;
+                    }
+
+            .dashboard-panel > .grid .card p {
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: rgba(248, 250, 252, 0.9);
+            }
+
+@media (max-width: 75rem) {
+    .dashboard-panel > .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 48rem) {
+    .dashboard-panel > .grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 .dashboard-header {
     display: flex;
     justify-content: space-between;

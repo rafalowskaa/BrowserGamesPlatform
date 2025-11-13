@@ -2472,6 +2472,12 @@
 	<data name="Home_Benefits_Ranks_Description" xml:space="preserve">
   <value>Earn experience points and unlock unique ranks.</value>
 </data>
+	<data name="Home_Facts_Title" xml:space="preserve">
+  <value>Community facts</value>
+</data>
+	<data name="Home_Facts_Subtitle" xml:space="preserve">
+  <value>A quick dose of trivia about browser games.</value>
+</data>
 	<data name="Home_Events_Title" xml:space="preserve">
   <value>Events of the week</value>
 </data>

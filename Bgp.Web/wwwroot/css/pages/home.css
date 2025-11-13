@@ -585,19 +585,24 @@
     background-size: 200% 200%;
     animation: communityShimmer 12s ease infinite;
     border-radius: var(--radius-lg);
-    padding: clamp(0.85rem, 2.75vw, 1.35rem) clamp(1.25rem, 4vw, 2rem);
+    padding: clamp(0.45rem, 1.2vw, 0.8rem) clamp(0.85rem, 2.6vw, 1.25rem);
     text-align: center;
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: 0.5rem;
     align-items: center;
-    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
+    min-height: auto;
 }
 
+    .community-panel h2 {
+        margin: 0;
+    }
+
     .community-panel p {
-        font-size: 1.1rem;
-        max-width: 48rem;
+        font-size: 1.05rem;
+        max-width: 42rem;
         margin: 0 auto;
         color: rgba(226, 232, 240, 0.92);
     }
