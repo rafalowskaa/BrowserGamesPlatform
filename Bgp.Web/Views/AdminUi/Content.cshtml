@@ -1,5 +1,6 @@
 ﻿@using System
 @using System.Linq
+@using System.Text.Encodings.Web
 @model AdminHomeContentViewModel
 @section Styles {
     <link rel="stylesheet" href="~/css/pages/admin.css" asp-append-version="true" />
@@ -151,18 +152,18 @@
                                                     data-title="@option.Title"
                                                     data-slug="@option.Slug"
                                                     data-cover="@coverPath"
-                                                    data-description="@Html.AttributeEncode(option.Description ?? string.Empty)"
+                                                    data-description="@HtmlEncoder.Default.Encode(option.Description ?? string.Empty)"
                                                     selected="@(isSelected ? "selected" : null)">@option.Title</option>
                                         }
-                                        if (Model.FeaturedGame is not null && !gameOptions.Any(o => o.Id == Model.FeaturedGame.GameId))
+                                        @if (Model.FeaturedGame is not null && !gameOptions.Any(o => o.Id == Model.FeaturedGame.GameId))
                                         {
-                                        var fallbackCover = Url.Content(Model.FeaturedGame.CoverImagePath ?? featuredPlaceholder);
-                                        <option value="@Model.FeaturedGame.GameId"
-                                                data-title="@Model.FeaturedGame.GameTitle"
-                                                data-slug="@Model.FeaturedGame.GameSlug"
-                                                data-cover="@fallbackCover"
-                                                data-description="@Html.AttributeEncode(Model.FeaturedGame.Description ?? string.Empty)"
-                                                selected>@Model.FeaturedGame.GameTitle</option>
+                                            var fallbackCover = Url.Content(Model.FeaturedGame.CoverImagePath ?? featuredPlaceholder);
+                                            <option value="@Model.FeaturedGame.GameId"
+                                                    data-title="@Model.FeaturedGame.GameTitle"
+                                                    data-slug="@Model.FeaturedGame.GameSlug"
+                                                    data-cover="@fallbackCover"
+                                                    data-description="@HtmlEncoder.Default.Encode(Model.FeaturedGame.Description ?? string.Empty)"
+                                                    selected>@Model.FeaturedGame.GameTitle</option>
                                         }
                                     </select>
                                 </label>

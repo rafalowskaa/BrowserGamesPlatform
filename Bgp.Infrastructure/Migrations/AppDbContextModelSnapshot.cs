@@ -279,6 +279,13 @@ namespace Bgp.Infrastructure.Migrations
                     b.Property<DateTime>("EndsAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("GameId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ImagePath")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -294,6 +301,9 @@ namespace Bgp.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
+                    b.Property<DateTime>("StartsAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(160)
@@ -303,6 +313,8 @@ namespace Bgp.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GameId");
 
                     b.ToTable("HomeEvents");
                 });
@@ -558,6 +570,11 @@ namespace Bgp.Infrastructure.Migrations
 
                     b.Property<DateTime?>("BlockedUntilUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("BonusExperience")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -879,6 +896,16 @@ namespace Bgp.Infrastructure.Migrations
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Game");
+                });
+
+            modelBuilder.Entity("Bgp.Domain.Entities.HomeEvent", b =>
+                {
+                    b.HasOne("Bgp.Domain.Entities.Game", "Game")
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Game");
                 });
