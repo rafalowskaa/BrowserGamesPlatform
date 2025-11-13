@@ -1845,9 +1845,7 @@ public class DashboardController : Controller
         }
 
 
-    private sealed record BasicProfile(string? DisplayName, string? AvatarUrl, string? Email, string? UserName);
-
-    var friendly = Regex.Replace(key, "([a-z])([A-Z])", "$1 $2");
+        var friendly = Regex.Replace(key, "([a-z])([A-Z])", "$1 $2");
         friendly = friendly.Replace('_', ' ');
         friendly = Regex.Replace(friendly, "\\s+", " ").Trim();
 
@@ -1858,6 +1856,8 @@ public class DashboardController : Controller
 
         return CultureInfo.CurrentUICulture.TextInfo.ToTitleCase(friendly.ToLower(CultureInfo.CurrentUICulture));
     }
+
+    private sealed record BasicProfile(string? DisplayName, string? AvatarUrl, string? Email, string? UserName);
 
     private sealed record RelationshipInfo(bool IsFriend, bool IsPending, bool BlockedByViewer, bool BlockedByTarget, DateTime? FriendshipSince);
 
@@ -1872,11 +1872,10 @@ public class DashboardController : Controller
             }
         }
 
-            if (ProfileTips.Length == 0)
-            {
-                return 0;
-            }
-
-            return Math.Abs(seed) % ProfileTips.Length;
+        if (ProfileTips.Length == 0)
+        {
+            return 0;
         }
+
+        return Math.Abs(seed) % ProfileTips.Length;
     }

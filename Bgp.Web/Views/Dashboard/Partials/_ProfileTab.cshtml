@@ -389,8 +389,8 @@
           data-toast-success="@L["Dashboard_Success_Profile"].Value"
           data-display-name-agreement-error="@L["Dashboard_Profile_DisplayName_ConfirmAgreementError"].Value"
           data-display-name-password-error="@L["Dashboard_Profile_DisplayName_ConfirmPasswordError"].Value"
-          data-initial-language="@(!string.IsNullOrWhiteSpace(preferences.PreferredLanguage) ? preferences.PreferredLanguage : 'system')"
-          data-initial-theme="@(!string.IsNullOrWhiteSpace(preferences.PreferredTheme) ? preferences.PreferredTheme : 'system')">
+          data-initial-language="@(!string.IsNullOrWhiteSpace(preferences.PreferredLanguage) ? preferences.PreferredLanguage : "system")"
+          data-initial-theme="@(!string.IsNullOrWhiteSpace(preferences.PreferredTheme) ? preferences.PreferredTheme : "system")">
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true, null, new { @class = "val-summary" })
 
