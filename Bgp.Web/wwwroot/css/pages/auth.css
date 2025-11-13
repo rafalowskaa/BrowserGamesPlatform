@@ -358,13 +358,20 @@
     padding: 0;
     width: 100%;
     border-radius: 999px;
-    background: #15803d;
+    background: #064e3b;
     overflow: hidden;
-    box-shadow: 0 12px 30px rgba(21, 128, 61, 0.35);
+    box-shadow: 0 12px 30px rgba(6, 78, 59, 0.4);
+    transition: background 160ms ease, box-shadow 160ms ease;
 }
 
 .security-question.is-collapsed .security-question__summary {
     display: block;
+}
+
+.security-question__summary:hover,
+.security-question__summary:focus-within {
+    background: #047857;
+    box-shadow: 0 18px 40px rgba(4, 120, 87, 0.45);
 }
 
 .security-question__summary-main {
@@ -389,18 +396,15 @@
     font: inherit;
     text-align: left;
     cursor: pointer;
-    transition: background 160ms ease, box-shadow 160ms ease, color 160ms ease;
+    transition: color 160ms ease;
 }
-
-    .security-question__summary-button:hover,
-    .security-question__summary-button:focus-visible {
-        background: rgba(255, 255, 255, 0.15);
+    .security-question__summary-button:hover, .security-question__summary-button:focus-visible {
+        background: transparent;
         color: #fff;
     }
 
     .security-question__summary-button:focus-visible {
         outline: none;
-        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
     }
 
 .security-question__summary-question {
