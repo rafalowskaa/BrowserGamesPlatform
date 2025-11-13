@@ -446,6 +446,7 @@
 
 .home-creators {
     gap: var(--space-4);
+    margin-bottom: clamp(2.5rem, 4vw, 5rem);
 }
 
 .home-creators__header {
@@ -502,14 +503,20 @@
     }
 
 .home-creators__copy {
-    text-align: left;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: clamp(1rem, 3vw, 2.5rem) 0;
+    min-height: 8rem;
 }
 
 .home-creators__tagline {
-    font-size: 1rem;
-    color: rgba(226, 232, 240, 0.9);
+    font-size: clamp(1.25rem, 2vw, 1.65rem);
+    color: rgba(226, 232, 240, 0.95);
     margin: 0;
-    max-width: 38rem;
+    max-width: 40rem;
+    line-height: 1.6;
 }
 
 .home-creators__cta {
