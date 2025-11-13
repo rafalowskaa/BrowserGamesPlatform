@@ -147,6 +147,12 @@
 	<data name="Chat_Close" xml:space="preserve">
         <value>Close</value>
     </data>
+	<data name="Chat_CollapsePanel" xml:space="preserve">
+        <value>Collapse chat list</value>
+    </data>
+	<data name="Chat_ExpandPanel" xml:space="preserve">
+        <value>Expand chat list</value>
+    </data>
 	<data name="Chat_SearchPlaceholder" xml:space="preserve">
         <value>Search player...</value>
         <data name="Chat_SearchHint" xml:space="preserve">

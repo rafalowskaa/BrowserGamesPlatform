@@ -58,7 +58,9 @@
         searchThreadPlaceholder = L["Chat_SearchThreadPlaceholder"].Value,
         searchThreadPrev = L["Chat_SearchThreadPrev"].Value,
         searchThreadNext = L["Chat_SearchThreadNext"].Value,
-        searchThreadNone = L["Chat_SearchThreadNone"].Value
+        earchThreadNone = L["Chat_SearchThreadNone"].Value,
+        collapsePanel = L["Chat_CollapsePanel"].Value,
+        expandPanel = L["Chat_ExpandPanel"].Value
     };
 }
 
@@ -104,14 +106,26 @@
             </div>
         </div>
         <div id="chatPanel" class="chat-panel" aria-hidden="true">
-            <header class="chat-panel__header">
-                <strong>@L["Chat_Title"].Value</strong>
-                <button type="button"
-                        class="btn-icon"
-                        data-chat-close
-                        aria-label="@L["Chat_Close"].Value">
-                    ✕
-                </button>
+            <header class="chat-panel__header" data-chat-panel-header>
+                <div class="chat-panel__title">
+                    <strong>@L["Chat_Title"].Value</strong>
+                    <small>@L["Chat_Conversations"].Value</small>
+                </div>
+                <div class="chat-panel__controls">
+                    <button type="button"
+                            class="chat-panel__button chat-panel__button--collapse"
+                            data-chat-panel-toggle
+                            aria-expanded="true"
+                            aria-label="@L["Chat_CollapsePanel"].Value">
+                        ▾
+                    </button>
+                    <button type="button"
+                            class="chat-panel__button"
+                            data-chat-close
+                            aria-label="@L["Chat_Close"].Value">
+                        ✕
+                    </button>
+                </div>
             </header>
             <div class="chat-panel__search">
                 <input id="chatSearch"

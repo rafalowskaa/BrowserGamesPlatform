@@ -39,6 +39,7 @@
     const statusPresenceDisplay = panel ? panel.querySelector('[data-chat-status-presence]') : null;
     const selfStatusDot = panel ? panel.querySelector('[data-chat-self-dot]') : null;
     const panelHeader = panel ? panel.querySelector('.chat-panel__header') : null;
+    const panelCollapseToggle = panel ? panel.querySelector('[data-chat-panel-toggle]') : null;
     const currentUserId = dock.dataset.chatUser || null;
 
     const PRESENCE_AVAILABLE = 0;
@@ -67,6 +68,7 @@
     const STORAGE_LAST_SEEN_KEY = 'bgp.chat.lastSeen';
     const lastSeenMessages = loadLastSeenMessages();
     const STORAGE_ARCHIVED_KEY = 'bgp.chat.archived';
+    const STORAGE_PANEL_STATE_KEY = 'bgp.chat.panelState';
     const archivedThreads = loadArchivedThreads();
     let pollTimer = null;
     let pollInFlight = false;
@@ -79,6 +81,7 @@
     let popoutConversationId = null;
     let overflowMenuOpen = false;
     const emojiPalette = ['😀', '😁', '😂', '😎', '😍', '🤔', '👍', '🎉', '🔥', '❤️', '✅', '❗', '🙌', '🥳', '🤖', '🕹️', '🏆', '⚡'];
+    let panelCollapsedState = loadPanelCollapsedState();
 
     const strings = {
         readReceipt: 'Read at {0}',
@@ -127,7 +130,9 @@
         searchThreadPlaceholder: 'Search messages…',
         searchThreadPrev: 'Prev',
         searchThreadNext: 'Next',
-        searchThreadNone: 'No results'
+        searchThreadNone: 'No results',
+        collapsePanel: 'Collapse chat list',
+        expandPanel: 'Expand chat list'
     };
 
     try {
@@ -138,6 +143,8 @@
     } catch (err) {
         console.warn('Unable to parse chat strings.', err);
     }
+
+    syncPanelCollapsedUi(panelCollapsedState);
 
     function loadLastSeenMessages() {
         if (typeof window === 'undefined' || !window.localStorage) {
@@ -185,6 +192,60 @@
         } catch (err) {
             console.warn('Unable to persist chat last seen state.', err);
         }
+    }
+
+    function loadPanelCollapsedState() {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return false;
+        }
+        try {
+            return window.localStorage.getItem(STORAGE_PANEL_STATE_KEY) === 'collapsed';
+        } catch (err) {
+            console.warn('Unable to load chat panel state.', err);
+            return false;
+        }
+    }
+
+    function persistPanelCollapsedState(collapsed) {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return;
+        }
+        try {
+            window.localStorage.setItem(STORAGE_PANEL_STATE_KEY, collapsed ? 'collapsed' : 'expanded');
+        } catch (err) {
+            console.warn('Unable to persist chat panel state.', err);
+        }
+    }
+
+    function syncPanelCollapsedUi(collapsed) {
+        if (panel) {
+            panel.classList.toggle('chat-panel--collapsed', !!collapsed);
+        }
+        if (panelCollapseToggle) {
+            const isCollapsed = !!collapsed;
+            panelCollapseToggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+            const label = isCollapsed
+                ? (strings.expandPanel || strings.restore || strings.minimize)
+                : (strings.collapsePanel || strings.minimize);
+            panelCollapseToggle.setAttribute('aria-label', label);
+            panelCollapseToggle.classList.toggle('is-collapsed', isCollapsed);
+        }
+    }
+
+    function setPanelCollapsed(collapsed) {
+        const isCollapsed = !!collapsed;
+        if (panelCollapsedState === isCollapsed) {
+            syncPanelCollapsedUi(isCollapsed);
+            return;
+        }
+        panelCollapsedState = isCollapsed;
+        syncPanelCollapsedUi(isCollapsed);
+        persistPanelCollapsedState(isCollapsed);
+    }
+
+    function togglePanelCollapsed(force) {
+        const shouldCollapse = typeof force === 'boolean' ? force : !panelCollapsedState;
+        setPanelCollapsed(shouldCollapse);
     }
 
     function getLastSeenEntry(friendId) {
@@ -478,6 +539,28 @@
 
     if (closeBtn) {
         closeBtn.addEventListener('click', () => togglePanel(false));
+    }
+
+    if (panelCollapseToggle) {
+        panelCollapseToggle.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            togglePanelCollapsed();
+        });
+    }
+
+    if (panelHeader) {
+        panelHeader.addEventListener('click', (event) => {
+            const closeTarget = event.target.closest('[data-chat-close]');
+            if (closeTarget) {
+                return;
+            }
+            if (event.target.closest('[data-chat-panel-toggle]')) {
+                return;
+            }
+            event.preventDefault();
+            togglePanelCollapsed();
+        });
     }
 
     function focusChatSearch(options = {}) {

@@ -153,6 +153,12 @@
 	<data name="Chat_Close" xml:space="preserve">
         <value>Zamknij</value>
     </data>
+	<data name="Chat_CollapsePanel" xml:space="preserve">
+        <value>Zwiń panel rozmów</value>
+    </data>
+	<data name="Chat_ExpandPanel" xml:space="preserve">
+        <value>Rozwiń panel rozmów</value>
+    </data>
 	<data name="Chat_SearchPlaceholder" xml:space="preserve">
         <value>Szukaj gracza...</value>
         </data>
