@@ -787,6 +787,9 @@
 	<data name="Admin_Content_Facts_Title" xml:space="preserve">
     <value>Ciekawostki</value>
   </data>
+	<data name="Admin_Content_Facts_Eyebrow" xml:space="preserve">
+    <value>Ciekawostki</value>
+  </data>
 	<data name="Admin_Content_Facts_Description" xml:space="preserve">
     <value>Zarządzaj karuzelą ciekawostek wyświetlaną niezalogowanym użytkownikom.</value>
   </data>
@@ -864,6 +867,198 @@
   </data>
 	<data name="Admin_Content_Deleted" xml:space="preserve">
     <value>Wpis został usunięty.</value>
+		</data>
+	<data name="Admin_Content_Action_Cancel" xml:space="preserve">
+    <value>Anuluj zmiany</value>
+  </data>
+	<data name="Admin_Content_Action_Publish" xml:space="preserve">
+    <value>Opublikuj</value>
+  </data>
+	<data name="Admin_Content_Action_SaveDraft" xml:space="preserve">
+    <value>Zapisz szkic</value>
+  </data>
+	<data name="Admin_Content_Aria_DragCard" xml:space="preserve">
+    <value>Przeciągnij kartę</value>
+  </data>
+	<data name="Admin_Content_Aria_DragSection" xml:space="preserve">
+    <value>Przeciągnij sekcję</value>
+  </data>
+	<data name="Admin_Content_Event_Expiry_Days" xml:space="preserve">
+    <value>Wygasa za {0} dni</value>
+  </data>
+	<data name="Admin_Content_Event_Expiry_Expired" xml:space="preserve">
+    <value>Wygasło</value>
+  </data>
+	<data name="Admin_Content_Event_Expiry_Hours" xml:space="preserve">
+    <value>Wygasa za {0} godz.</value>
+  </data>
+	<data name="Admin_Content_Event_RewardPlaceholder" xml:space="preserve">
+    <value>Nagroda</value>
+  </data>
+	<data name="Admin_Content_Event_TitlePlaceholder" xml:space="preserve">
+    <value>Tytuł wydarzenia</value>
+  </data>
+	<data name="Admin_Content_Events_Eyebrow" xml:space="preserve">
+    <value>Wydarzenia tygodnia</value>
+  </data>
+	<data name="Admin_Content_Events_Limit" xml:space="preserve">
+    <value>Maks. {0} aktywne</value>
+  </data>
+	<data name="Admin_Content_Facts_Limit" xml:space="preserve">
+    <value>Limit {0} aktywnych</value>
+  </data>
+	<data name="Admin_Content_Facts_Placeholder" xml:space="preserve">
+    <value>Dodaj nową ciekawostkę</value>
+  </data>
+	<data name="Admin_Content_Feature_Action_Randomize" xml:space="preserve">
+    <value>Losuj z trendów</value>
+  </data>
+	<data name="Admin_Content_Feature_Action_Replace" xml:space="preserve">
+    <value>Podmień grę</value>
+  </data>
+	<data name="Admin_Content_Feature_Description" xml:space="preserve">
+    <value>Wybierz tytuł i ramy czasowe, zaplanuj status i podglądaj w XL karcie.</value>
+  </data>
+	<data name="Admin_Content_Feature_DescriptionLabel" xml:space="preserve">
+    <value>Opis wyróżnienia</value>
+  </data>
+	<data name="Admin_Content_Feature_DescriptionPlaceholder" xml:space="preserve">
+    <value>Opowiedz o tym, dlaczego gra jest wyjątkowa.</value>
+  </data>
+	<data name="Admin_Content_Feature_EndLabel" xml:space="preserve">
+    <value>Do</value>
+  </data>
+	<data name="Admin_Content_Feature_Eyebrow" xml:space="preserve">
+    <value>Gra dnia</value>
+  </data>
+	<data name="Admin_Content_Feature_Footer" xml:space="preserve">
+    <value>Wkrótce edycja inline i harmonogram.</value>
+  </data>
+	<data name="Admin_Content_Feature_GameLabel" xml:space="preserve">
+    <value>Gra</value>
+  </data>
+	<data name="Admin_Content_Feature_GamePlaceholder" xml:space="preserve">
+    <value>Wpisz tytuł gry</value>
+  </data>
+	<data name="Admin_Content_Feature_GameValue" xml:space="preserve">
+    <value>Automatycznie synchronizowane</value>
+  </data>
+	<data name="Admin_Content_Feature_StartLabel" xml:space="preserve">
+    <value>Od</value>
+  </data>
+	<data name="Admin_Content_Feature_Title" xml:space="preserve">
+    <value>Wyróżniona gra</value>
+  </data>
+	<data name="Admin_Content_History_Button" xml:space="preserve">
+    <value>Przeglądaj historię</value>
+  </data>
+	<data name="Admin_Content_History_Description" xml:space="preserve">
+    <value>Podgląd wersji i cofanie konfiguracji wkrótce.</value>
+  </data>
+	<data name="Admin_Content_History_Title" xml:space="preserve">
+    <value>Historia publikacji</value>
+  </data>
+	<data name="Admin_Content_HomeNav_AriaLabel" xml:space="preserve">
+    <value>Sekcje strony głównej</value>
+  </data>
+	<data name="Admin_Content_HomeNav_Events" xml:space="preserve">
+    <value>Wydarzenia</value>
+  </data>
+	<data name="Admin_Content_HomeNav_Facts" xml:space="preserve">
+    <value>Ciekawostki</value>
+  </data>
+	<data name="Admin_Content_HomeNav_Feature" xml:space="preserve">
+    <value>Gra dnia</value>
+  </data>
+	<data name="Admin_Content_HomeNav_Layout" xml:space="preserve">
+    <value>Kolejność sekcji</value>
+  </data>
+	<data name="Admin_Content_HomeNav_Title" xml:space="preserve">
+    <value>Strona główna</value>
+  </data>
+	<data name="Admin_Content_Layout_Description" xml:space="preserve">
+    <value>Przeciągaj, by zmienić kolejność sekcji. Włączaj/wyłączaj widoczność.</value>
+  </data>
+	<data name="Admin_Content_Layout_Eyebrow" xml:space="preserve">
+    <value>Kolejność sekcji</value>
+  </data>
+	<data name="Admin_Content_Layout_Position" xml:space="preserve">
+    <value>Pozycja {0}</value>
+  </data>
+	<data name="Admin_Content_Layout_Section_Events" xml:space="preserve">
+    <value>Wydarzenia</value>
+  </data>
+	<data name="Admin_Content_Layout_Section_Facts" xml:space="preserve">
+    <value>Ciekawostki</value>
+  </data>
+	<data name="Admin_Content_Layout_Section_Feature" xml:space="preserve">
+    <value>Gra dnia</value>
+  </data>
+	<data name="Admin_Content_Layout_Section_Hero" xml:space="preserve">
+    <value>Hero</value>
+  </data>
+	<data name="Admin_Content_Layout_Section_Join" xml:space="preserve">
+    <value>Dołącz</value>
+  </data>
+	<data name="Admin_Content_Layout_Section_Recommended" xml:space="preserve">
+    <value>Polecane</value>
+  </data>
+	<data name="Admin_Content_Layout_Section_Trending" xml:space="preserve">
+    <value>Popularne teraz</value>
+  </data>
+	<data name="Admin_Content_Layout_SwitchLabel" xml:space="preserve">
+    <value>Pokaż</value>
+  </data>
+	<data name="Admin_Content_Layout_Title" xml:space="preserve">
+    <value>Układ strony głównej</value>
+  </data>
+	<data name="Admin_Content_OrderIndicator" xml:space="preserve">
+    <value>Kolejność {0}</value>
+  </data>
+	<data name="Admin_Content_Preview_Description" xml:space="preserve">
+    <value>Podgląd odświeża się automatycznie. Publikacja nadal wymaga kliknięcia poniżej.</value>
+  </data>
+	<data name="Admin_Content_Preview_IframeTitle" xml:space="preserve">
+    <value>Podgląd strony głównej</value>
+  </data>
+	<data name="Admin_Content_Preview_ModeDesktop" xml:space="preserve">
+    <value>Desktop</value>
+  </data>
+	<data name="Admin_Content_Preview_ModeMobile" xml:space="preserve">
+    <value>Mobilny</value>
+  </data>
+	<data name="Admin_Content_Preview_Refresh" xml:space="preserve">
+    <value>Odśwież podgląd</value>
+  </data>
+	<data name="Admin_Content_Preview_Title" xml:space="preserve">
+    <value>Podgląd</value>
+  </data>
+	<data name="Admin_Content_Status_Active" xml:space="preserve">
+    <value>Aktywne</value>
+  </data>
+	<data name="Admin_Content_Status_Draft" xml:space="preserve">
+    <value>Szkic</value>
+  </data>
+	<data name="Admin_Content_Status_Label" xml:space="preserve">
+    <value>Status</value>
+  </data>
+	<data name="Admin_Content_Status_Scheduled" xml:space="preserve">
+    <value>Zaplanowane</value>
+  </data>
+	<data name="Admin_Content_Toolbar_Add" xml:space="preserve">
+    <value>Dodaj</value>
+  </data>
+	<data name="Admin_Content_Toolbar_Filter_All" xml:space="preserve">
+    <value>Wszystkie</value>
+  </data>
+	<data name="Admin_Content_Toolbar_PublishAll" xml:space="preserve">
+    <value>Publikuj wszystko</value>
+  </data>
+	<data name="Admin_Content_Toolbar_SearchLabel" xml:space="preserve">
+    <value>Wyszukaj</value>
+  </data>
+	<data name="Admin_Content_Toolbar_SearchPlaceholder" xml:space="preserve">
+    <value>np. karuzela</value>
   </data>
 	<data name="Admin_Users_Title" xml:space="preserve">
     <value>Zarządzanie użytkownikami</value>

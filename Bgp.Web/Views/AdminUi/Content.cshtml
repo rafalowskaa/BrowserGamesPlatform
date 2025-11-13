@@ -10,24 +10,23 @@
     var nextEventSort = Model.Events.Any() ? Model.Events.Max(e => e.SortOrder) + 1 : 1;
     var previewUrlBase = Url.Action("Index", "Home") ?? "/";
     var previewUrl = $"{previewUrlBase}?preview=draft&token=demo";
-}
-@functions {
-    public static string BuildExpiryBadge(DateTime endsAtUtc)
+
+    string BuildExpiryBadge(DateTime endsAtUtc)
     {
         var span = endsAtUtc.ToLocalTime() - DateTime.Now;
         if (span.TotalSeconds <= 0)
         {
-            return "Wygasło";
+            return L["Admin_Content_Event_Expiry_Expired"].Value;
         }
 
         if (span.TotalHours < 24)
         {
             var hours = Math.Max(1, (int)Math.Ceiling(span.TotalHours));
-            return $"Wygasa za {hours} godz.";
+            return string.Format(L["Admin_Content_Event_Expiry_Hours"].Value, hours);
         }
 
         var days = Math.Max(1, (int)Math.Ceiling(span.TotalDays));
-        return $"Wygasa za {days} dni";
+        return string.Format(L["Admin_Content_Event_Expiry_Days"].Value, days);
     }
 }
 <section class="admin-section admin-content-page" data-admin-content-root>
@@ -58,40 +57,40 @@
 
     <div class="admin-home-grid">
         <aside class="admin-home-grid__column admin-home-grid__column--nav">
-            <div class="admin-home-nav" role="navigation" aria-label="Sekcje strony głównej">
-                <div class="admin-home-nav__title">Strona główna</div>
+            <div class="admin-home-nav" role="navigation" aria-label="@L["Admin_Content_HomeNav_AriaLabel"].Value">
+                <div class="admin-home-nav__title">@L["Admin_Content_HomeNav_Title"].Value</div>
                 <ul>
-                    <li><button type="button" class="admin-home-nav__item is-active" data-admin-scroll="#feature">Gra dnia</button></li>
-                    <li><button type="button" class="admin-home-nav__item" data-admin-scroll="#facts">Ciekawostki</button></li>
-                    <li><button type="button" class="admin-home-nav__item" data-admin-scroll="#events">Wydarzenia</button></li>
-                    <li><button type="button" class="admin-home-nav__item" data-admin-scroll="#layout">Kolejność sekcji</button></li>
+                    <li><button type="button" class="admin-home-nav__item is-active" data-admin-scroll="#feature">@L["Admin_Content_HomeNav_Feature"].Value</button></li>
+                    <li><button type="button" class="admin-home-nav__item" data-admin-scroll="#facts">@L["Admin_Content_HomeNav_Facts"].Value</button></li>
+                    <li><button type="button" class="admin-home-nav__item" data-admin-scroll="#events">@L["Admin_Content_HomeNav_Events"].Value</button></li>
+                    <li><button type="button" class="admin-home-nav__item" data-admin-scroll="#layout">@L["Admin_Content_HomeNav_Layout"].Value</button></li>
                 </ul>
             </div>
             <div class="admin-home-history">
-                <h3>Historia publikacji</h3>
-                <p>Podgląd wersji i cofanie konfiguracji wkrótce.</p>
-                <button type="button" class="btn-secondary btn-small" disabled>Przeglądaj historię</button>
+                <h3>@L["Admin_Content_History_Title"].Value</h3>
+                <p>@L["Admin_Content_History_Description"].Value</p>
+                <button type="button" class="btn-secondary btn-small" disabled>@L["Admin_Content_History_Button"].Value</button>
             </div>
         </aside>
 
         <div class="admin-home-grid__column admin-home-grid__column--editor">
             <div class="admin-editor-toolbar">
                 <div class="admin-editor-toolbar__primary">
-                    <button type="button" class="btn-primary btn-small">Dodaj</button>
-                    <button type="button" class="btn-secondary btn-small">Publikuj wszystko</button>
+                    <button type="button" class="btn-primary btn-small">@L["Admin_Content_Toolbar_Add"].Value</button>
+                    <button type="button" class="btn-secondary btn-small">@L["Admin_Content_Toolbar_PublishAll"].Value</button>
                 </div>
                 <div class="admin-editor-toolbar__filters">
                     <label>
-                        <span>Wyszukaj</span>
-                        <input type="search" placeholder="np. karuzela" />
+                        <span>@L["Admin_Content_Toolbar_SearchLabel"].Value</span>
+                        <input type="search" placeholder="@L["Admin_Content_Toolbar_SearchPlaceholder"].Value" />
                     </label>
                     <label>
-                        <span>Status</span>
+                        <span>@L["Admin_Content_Status_Label"].Value</span>
                         <select>
-                            <option>Wszystkie</option>
-                            <option>Szkic</option>
-                            <option>Aktywne</option>
-                            <option>Zaplanowane</option>
+                            <option>@L["Admin_Content_Toolbar_Filter_All"].Value</option>
+                            <option>@L["Admin_Content_Status_Draft"].Value</option>
+                            <option>@L["Admin_Content_Status_Active"].Value</option>
+                            <option>@L["Admin_Content_Status_Scheduled"].Value</option>
                         </select>
                     </label>
                 </div>
@@ -100,50 +99,50 @@
             <section id="feature" class="admin-editor-section">
                 <header>
                     <div>
-                        <p class="admin-editor-section__eyebrow">Gra dnia</p>
-                        <h2>Wyróżniona gra</h2>
-                        <p class="muted">Wybierz tytuł i ramy czasowe, zaplanuj status i podglądaj w XL karcie.</p>
+                        <p class="admin-editor-section__eyebrow">@L["Admin_Content_Feature_Eyebrow"].Value</p>
+                        <h2>@L["Admin_Content_Feature_Title"].Value</h2>
+                        <p class="muted">@L["Admin_Content_Feature_Description"].Value</p>
                     </div>
                     <div class="admin-editor-section__actions">
-                        <button type="button" class="btn-ghost btn-small">Losuj z trendów</button>
-                        <button type="button" class="btn-outline btn-small">Podmieniaj grę</button>
+                        <button type="button" class="btn-ghost btn-small">@L["Admin_Content_Feature_Action_Randomize"].Value</button>
+                        <button type="button" class="btn-outline btn-small">@L["Admin_Content_Feature_Action_Replace"].Value</button>
                     </div>
                 </header>
                 <article class="admin-editor-card admin-editor-card--feature">
                     <div class="admin-editor-card__body">
                         <div class="admin-field">
                             <label>
-                                <span>Gra</span>
-                                <input type="text" placeholder="Wpisz tytuł gry" disabled value="Automatycznie synchronizowane" />
+                                <span>@L["Admin_Content_Feature_GameLabel"].Value</span>
+                                <input type="text" placeholder="@L["Admin_Content_Feature_GamePlaceholder"].Value" disabled value="@L["Admin_Content_Feature_GameValue"].Value" />
                             </label>
                         </div>
                         <div class="admin-field">
                             <label>
-                                <span>Opis wyróżnienia</span>
-                                <textarea rows="3" placeholder="Opowiedz o tym, dlaczego gra jest wyjątkowa." disabled></textarea>
+                                <span>@L["Admin_Content_Feature_DescriptionLabel"].Value</span>
+                                <textarea rows="3" placeholder="@L["Admin_Content_Feature_DescriptionPlaceholder"].Value" disabled></textarea>
                             </label>
                         </div>
                         <div class="admin-field admin-field--inline">
                             <label>
-                                <span>Od</span>
+                                <span>@L["Admin_Content_Feature_StartLabel"].Value</span>
                                 <input type="date" disabled />
                             </label>
                             <label>
-                                <span>Do</span>
+                                <span>@L["Admin_Content_Feature_EndLabel"].Value</span>
                                 <input type="date" disabled />
                             </label>
                             <label>
-                                <span>Status</span>
+                                <span>@L["Admin_Content_Status_Label"].Value</span>
                                 <select disabled>
-                                    <option>Szkic</option>
-                                    <option>Aktywne</option>
-                                    <option>Zaplanowane</option>
+                                    <option>@L["Admin_Content_Status_Draft"].Value</option>
+                                    <option>@L["Admin_Content_Status_Active"].Value</option>
+                                    <option>@L["Admin_Content_Status_Scheduled"].Value</option>
                                 </select>
                             </label>
                         </div>
                     </div>
                     <footer>
-                        <small class="muted">Wkrótce edycja inline i harmonogram.</small>
+                        <small class="muted">@L["Admin_Content_Feature_Footer"].Value</small>
                     </footer>
                 </article>
             </section>
@@ -151,11 +150,11 @@
             <section id="facts" class="admin-editor-section">
                 <header>
                     <div>
-                        <p class="admin-editor-section__eyebrow">Ciekawostki</p>
+                        <p class="admin-editor-section__eyebrow">@L["Admin_Content_Facts_Eyebrow"].Value</p>
                         <h2>@L["Admin_Content_Facts_Title"].Value</h2>
                         <p class="muted">@L["Admin_Content_Facts_Description"].Value</p>
                     </div>
-                    <span class="admin-badge admin-badge--limit">Limit 6 aktywnych</span>
+                    <span class="admin-badge admin-badge--limit">@string.Format(L["Admin_Content_Facts_Limit"].Value, 6)</span>
                 </header>
                 <div class="admin-editor-list" data-dnd-list>
                     @if (Model.Facts.Any())
@@ -163,9 +162,9 @@
                         foreach (var fact in Model.Facts)
                         {
                             var updated = fact.UpdatedAtUtc?.ToLocalTime().ToString("g");
-                            var status = fact.IsActive ? "Aktywne" : "Szkic";
+                            var status = fact.IsActive ? L["Admin_Content_Status_Active"].Value : L["Admin_Content_Status_Draft"].Value;
                             <article class="admin-editor-card" data-dnd-item>
-                                <button type="button" class="admin-editor-card__handle" data-dnd-handle aria-label="Przeciągnij kartę">⋮⋮</button>
+                                <button type="button" class="admin-editor-card__handle" data-dnd-handle aria-label="@L["Admin_Content_Aria_DragCard"].Value">⋮⋮</button>
                                 <div class="admin-editor-card__meta">
                                     <span>@string.Format(L["Admin_Content_Metadata_Created"].Value, fact.CreatedAtUtc.ToLocalTime().ToString("g"))</span>
                                     @if (!string.IsNullOrEmpty(updated))
@@ -185,14 +184,14 @@
                                     </label>
                                     <div class="admin-card-form__footer">
                                         <label>
-                                            <span>Status</span>
+                                            <span>@L["Admin_Content_Status_Label"].Value</span>
                                             <select class="admin-status-select" data-status-toggle>
-                                                <option value="draft" @(fact.IsActive ? string.Empty : "selected")>Szkic</option>
-                                                <option value="active" @(fact.IsActive ? "selected" : string.Empty)>Aktywne</option>
-                                                <option value="scheduled" disabled>Zaplanowane</option>
+                                                <option value="draft" selected="@(fact.IsActive ? null : "selected")">@L["Admin_Content_Status_Draft"].Value</option>
+                                                <option value="active" selected="@(fact.IsActive ? "selected" : null)">@L["Admin_Content_Status_Active"].Value</option>
+                                                <option value="scheduled" disabled>@L["Admin_Content_Status_Scheduled"].Value</option>
                                             </select>
                                         </label>
-                                        <span class="admin-order-indicator">Kolejność @fact.SortOrder</span>
+                                        <span class="admin-order-indicator">@string.Format(L["Admin_Content_OrderIndicator"].Value, fact.SortOrder)</span>
                                         <div class="admin-card-buttons">
                                             <button class="btn-primary btn-small" type="submit">@L["Admin_Content_Save"].Value</button>
                                         </div>
@@ -219,18 +218,18 @@
                         <input type="hidden" name="SortOrder" value="@nextFactSort" />
                         <label>
                             <span>@L["Admin_Content_Facts_ContentLabel"].Value</span>
-                            <textarea name="Content" rows="3" placeholder="Dodaj nową ciekawostkę" data-inline-input></textarea>
+                            <textarea name="Content" rows="3" placeholder="@L["Admin_Content_Facts_Placeholder"].Value" data-inline-input></textarea>
                         </label>
                         <div class="admin-card-form__footer">
                             <label>
-                                <span>Status</span>
+                                <span>@L["Admin_Content_Status_Label"].Value</span>
                                 <select class="admin-status-select" data-status-toggle>
-                                    <option value="draft">Szkic</option>
-                                    <option value="active" selected>Aktywne</option>
-                                    <option value="scheduled" disabled>Zaplanowane</option>
+                                    <option value="draft">@L["Admin_Content_Status_Draft"].Value</option>
+                                    <option value="active" selected>@L["Admin_Content_Status_Active"].Value</option>
+                                    <option value="scheduled" disabled>@L["Admin_Content_Status_Scheduled"].Value</option>
                                 </select>
                             </label>
-                            <span class="admin-order-indicator">Kolejność @nextFactSort</span>
+                            <span class="admin-order-indicator">@string.Format(L["Admin_Content_OrderIndicator"].Value, nextFactSort)</span>
                             <div class="admin-card-buttons">
                                 <button class="btn-primary btn-small" type="submit">@L["Admin_Content_Add"].Value</button>
                             </div>
@@ -243,11 +242,11 @@
             <section id="events" class="admin-editor-section">
                 <header>
                     <div>
-                        <p class="admin-editor-section__eyebrow">Wydarzenia tygodnia</p>
+                        <p class="admin-editor-section__eyebrow">@L["Admin_Content_Events_Eyebrow"].Value</p>
                         <h2>@L["Admin_Content_Events_Title"].Value</h2>
                         <p class="muted">@L["Admin_Content_Events_Description"].Value</p>
                     </div>
-                    <span class="admin-badge admin-badge--limit">Maks. 3 aktywne</span>
+                    <span class="admin-badge admin-badge--limit">@string.Format(L["Admin_Content_Events_Limit"].Value, 3)</span>
                 </header>
                 <div class="admin-editor-list" data-dnd-list>
                     @if (Model.Events.Any())
@@ -255,9 +254,10 @@
                         foreach (var evt in Model.Events)
                         {
                             var updated = evt.UpdatedAtUtc?.ToLocalTime().ToString("g");
-                            var status = evt.IsActive ? "Aktywne" : "Szkic";
+                            var status = evt.IsActive ? L["Admin_Content_Status_Active"].Value : L["Admin_Content_Status_Draft"].Value;
+                            var expiryBadge = BuildExpiryBadge(evt.EndsAtUtc);
                             <article class="admin-editor-card" data-dnd-item>
-                                <button type="button" class="admin-editor-card__handle" data-dnd-handle aria-label="Przeciągnij kartę">⋮⋮</button>
+                                <button type="button" class="admin-editor-card__handle" data-dnd-handle aria-label="@L["Admin_Content_Aria_DragCard"].Value">⋮⋮</button>
                                 <div class="admin-editor-card__meta">
                                     <span>@string.Format(L["Admin_Content_Metadata_Created"].Value, evt.CreatedAtUtc.ToLocalTime().ToString("g"))</span>
                                     @if (!string.IsNullOrEmpty(updated))
@@ -265,7 +265,7 @@
                                         <span class="muted">@string.Format(L["Admin_Content_Metadata_Updated"].Value, updated)</span>
                                     }
                                     <span class="admin-badge @(evt.IsActive ? "admin-badge--success" : "admin-badge--muted")">@status</span>
-                                    <span class="admin-badge admin-badge--warning">@BuildExpiryBadge(evt.EndsAtUtc)</span>
+                                    <span class="admin-badge admin-badge--warning">@expiryBadge</span>
                                 </div>
                                 <form asp-action="SaveEvent" method="post" class="admin-card-form">
                                     @Html.AntiForgeryToken()
@@ -288,14 +288,14 @@
                                             <input type="datetime-local" name="EndsAt" value="@evt.EndsAtUtc.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")" data-inline-input readonly />
                                         </label>
                                         <label>
-                                            <span>Status</span>
+                                            <span>@L["Admin_Content_Status_Label"].Value</span>
                                             <select class="admin-status-select" data-status-toggle>
-                                                <option value="draft" @(evt.IsActive ? string.Empty : "selected")>Szkic</option>
-                                                <option value="active" @(evt.IsActive ? "selected" : string.Empty)>Aktywne</option>
-                                                <option value="scheduled" disabled>Zaplanowane</option>
+                                                <option value="draft" selected="@(evt.IsActive ? null : "selected")">@L["Admin_Content_Status_Draft"].Value</option>
+                                                <option value="active" selected="@(evt.IsActive ? "selected" : null)">@L["Admin_Content_Status_Active"].Value</option>
+                                                <option value="scheduled" disabled>@L["Admin_Content_Status_Scheduled"].Value</option>
                                             </select>
                                         </label>
-                                        <span class="admin-order-indicator">Kolejność @evt.SortOrder</span>
+                                        <span class="admin-order-indicator">@string.Format(L["Admin_Content_OrderIndicator"].Value, evt.SortOrder)</span>
                                     </div>
                                     <div class="admin-card-buttons">
                                         <button class="btn-primary btn-small" type="submit">@L["Admin_Content_Save"].Value</button>
@@ -324,11 +324,11 @@
                         <div class="admin-field admin-field--inline">
                             <label>
                                 <span>@L["Admin_Content_Event_TitleLabel"].Value</span>
-                                <input type="text" name="Title" maxlength="160" placeholder="Tytuł wydarzenia" data-inline-input />
+                                <input type="text" name="Title" maxlength="160" placeholder="@L["Admin_Content_Event_TitlePlaceholder"].Value" data-inline-input />
                             </label>
                             <label>
                                 <span>@L["Admin_Content_Event_RewardLabel"].Value</span>
-                                <input type="text" name="Reward" maxlength="160" placeholder="Nagroda" data-inline-input />
+                                <input type="text" name="Reward" maxlength="160" placeholder="@L["Admin_Content_Event_RewardPlaceholder"].Value" data-inline-input />
                             </label>
                         </div>
                         <div class="admin-field admin-field--inline">
@@ -337,14 +337,14 @@
                                 <input type="datetime-local" name="EndsAt" value="@DateTime.UtcNow.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")" />
                             </label>
                             <label>
-                                <span>Status</span>
+                                <span>@L["Admin_Content_Status_Label"].Value</span>
                                 <select class="admin-status-select" data-status-toggle>
-                                    <option value="draft">Szkic</option>
-                                    <option value="active" selected>Aktywne</option>
-                                    <option value="scheduled" disabled>Zaplanowane</option>
+                                    <option value="draft">@L["Admin_Content_Status_Draft"].Value</option>
+                                    <option value="active" selected>@L["Admin_Content_Status_Active"].Value</option>
+                                    <option value="scheduled" disabled>@L["Admin_Content_Status_Scheduled"].Value</option>
                                 </select>
                             </label>
-                            <span class="admin-order-indicator">Kolejność @nextEventSort</span>
+                            <span class="admin-order-indicator">@string.Format(L["Admin_Content_OrderIndicator"].Value, nextEventSort)</span>
                         </div>
                         <div class="admin-card-buttons">
                             <button class="btn-primary btn-small" type="submit">@L["Admin_Content_Add"].Value</button>
@@ -357,25 +357,36 @@
         <section id="layout" class="admin-editor-section">
                 <header>
                     <div>
-                        <p class="admin-editor-section__eyebrow">Kolejność sekcji</p>
-                        <h2>Układ strony głównej</h2>
-                        <p class="muted">Przeciągaj, by zmienić kolejność sekcji. Włączaj/wyłączaj widoczność.</p>
+                        <p class="admin-editor-section__eyebrow">@L["Admin_Content_Layout_Eyebrow"].Value</p>
+                        <h2>@L["Admin_Content_Layout_Title"].Value</h2>
+                        <p class="muted">@L["Admin_Content_Layout_Description"].Value</p>
                     </div>
                 </header>
                 <div class="admin-layout-list" data-dnd-list>
-                    @{ var sections = new[] { "Hero", "Gra dnia", "Polecane", "Popularne teraz", "Ciekawostki", "Wydarzenia", "Dołącz" }; }
+                    @{
+                        var sections = new[]
+                        {
+                                        L["Admin_Content_Layout_Section_Hero"].Value,
+                                        L["Admin_Content_Layout_Section_Feature"].Value,
+                                        L["Admin_Content_Layout_Section_Recommended"].Value,
+                                        L["Admin_Content_Layout_Section_Trending"].Value,
+                                        L["Admin_Content_Layout_Section_Facts"].Value,
+                                        L["Admin_Content_Layout_Section_Events"].Value,
+                                        L["Admin_Content_Layout_Section_Join"].Value
+                                        };
+                    }
                     @foreach (var section in sections.Select((name, index) => new { name, index }))
                     {
                         <article class="admin-layout-item" data-dnd-item>
-                            <button type="button" class="admin-editor-card__handle" data-dnd-handle aria-label="Przeciągnij sekcję">⋮⋮</button>
+                            <button type="button" class="admin-editor-card__handle" data-dnd-handle aria-label="@L["Admin_Content_Aria_DragSection"].Value">⋮⋮</button>
                             <div class="admin-layout-item__body">
                                 <strong>@section.name</strong>
-                                <span class="muted">Pozycja @(section.index + 1)</span>
+                                <span class="muted">@string.Format(L["Admin_Content_Layout_Position"].Value, section.index + 1)</span>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" checked />
                                 <span></span>
-                                <span class="switch__label">Pokaż</span>
+                                <span class="switch__label">@L["Admin_Content_Layout_SwitchLabel"].Value</span>
                             </label>
                         </article>
                     }
@@ -386,28 +397,28 @@
         <aside class="admin-home-grid__column admin-home-grid__column--preview">
             <div class="admin-preview">
                 <header class="admin-preview__header">
-                    <h3>Podgląd</h3>
+                    <h3>@L["Admin_Content_Preview_Title"].Value</h3>
                     <div class="admin-preview__modes">
-                        <button type="button" class="btn-ghost btn-small is-active" data-preview-mode="mobile">Mobile</button>
-                        <button type="button" class="btn-ghost btn-small" data-preview-mode="desktop">Desktop</button>
+                        <button type="button" class="btn-ghost btn-small is-active" data-preview-mode="mobile">@L["Admin_Content_Preview_ModeMobile"].Value</button>
+                        <button type="button" class="btn-ghost btn-small" data-preview-mode="desktop">@L["Admin_Content_Preview_ModeDesktop"].Value</button>
                     </div>
                 </header>
                 <div class="admin-preview__frame" data-preview-frame data-device="mobile">
-                    <iframe src="@previewUrl" title="Podgląd strony głównej" data-admin-preview></iframe>
+                    <iframe src="@previewUrl" title="@L["Admin_Content_Preview_IframeTitle"].Value" data-admin-preview></iframe>
                 </div>
                 <footer>
-                    <p class="muted">Podgląd odświeża się automatycznie. Publikacja wymagany klik poniżej.</p>
-                    <button type="button" class="btn-secondary btn-small">Odśwież podgląd</button>
+                    <p class="muted">@L["Admin_Content_Preview_Description"].Value</p>
+                    <button type="button" class="btn-secondary btn-small">@L["Admin_Content_Preview_Refresh"].Value</button>
                 </footer>
             </div>
         </aside>
     </div>
 
     <div class="admin-sticky-actions">
-        <button type="button" class="btn-ghost">Anuluj zmiany</button>
+        <button type="button" class="btn-ghost">@L["Admin_Content_Action_Cancel"].Value</button>
         <div class="admin-sticky-actions__spacer"></div>
-        <button type="button" class="btn-secondary">Zapisz szkic</button>
-        <button type="button" class="btn-primary">Opublikuj</button>
+        <button type="button" class="btn-secondary">@L["Admin_Content_Action_SaveDraft"].Value</button>
+        <button type="button" class="btn-primary">@L["Admin_Content_Action_Publish"].Value</button>
     </div>
 </section>
 

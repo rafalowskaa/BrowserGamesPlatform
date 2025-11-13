@@ -1835,6 +1835,10 @@
         <value>Fun facts</value>
     </data>
 
+	<data name="Admin_Content_Facts_Eyebrow" xml:space="preserve">
+        <value>Fun facts</value>
+    </data>
+
 	<data name="Admin_Content_Facts_Description" xml:space="preserve">
         <value>Manage the rotating fun facts displayed to unauthenticated visitors.</value>
     </data>
@@ -1937,6 +1941,261 @@
 
 	<data name="Admin_Content_Deleted" xml:space="preserve">
         <value>Entry deleted.</value>
+    </data>
+	<data name="Admin_Content_Action_Cancel" xml:space="preserve">
+        <value>Cancel changes</value>
+    </data>
+
+	<data name="Admin_Content_Action_Publish" xml:space="preserve">
+        <value>Publish</value>
+    </data>
+
+	<data name="Admin_Content_Action_SaveDraft" xml:space="preserve">
+        <value>Save draft</value>
+    </data>
+
+	<data name="Admin_Content_Aria_DragCard" xml:space="preserve">
+        <value>Drag card</value>
+    </data>
+
+	<data name="Admin_Content_Aria_DragSection" xml:space="preserve">
+        <value>Drag section</value>
+    </data>
+
+	<data name="Admin_Content_Event_Expiry_Days" xml:space="preserve">
+        <value>Expires in {0} day(s)</value>
+    </data>
+
+	<data name="Admin_Content_Event_Expiry_Expired" xml:space="preserve">
+        <value>Expired</value>
+    </data>
+
+	<data name="Admin_Content_Event_Expiry_Hours" xml:space="preserve">
+        <value>Expires in {0} hr</value>
+    </data>
+
+	<data name="Admin_Content_Event_RewardPlaceholder" xml:space="preserve">
+        <value>Reward</value>
+    </data>
+
+	<data name="Admin_Content_Event_TitlePlaceholder" xml:space="preserve">
+        <value>Event title</value>
+    </data>
+
+	<data name="Admin_Content_Events_Eyebrow" xml:space="preserve">
+        <value>Weekly events</value>
+    </data>
+
+	<data name="Admin_Content_Events_Limit" xml:space="preserve">
+        <value>Max {0} active</value>
+    </data>
+
+	<data name="Admin_Content_Facts_Limit" xml:space="preserve">
+        <value>Limit {0} active</value>
+    </data>
+
+	<data name="Admin_Content_Facts_Placeholder" xml:space="preserve">
+        <value>Add a new fun fact</value>
+    </data>
+
+	<data name="Admin_Content_Feature_Action_Randomize" xml:space="preserve">
+        <value>Pick from trends</value>
+    </data>
+
+	<data name="Admin_Content_Feature_Action_Replace" xml:space="preserve">
+        <value>Swap game</value>
+    </data>
+
+	<data name="Admin_Content_Feature_Description" xml:space="preserve">
+        <value>Choose the title and timeframe, plan the status, and preview in the XL card.</value>
+    </data>
+
+	<data name="Admin_Content_Feature_DescriptionLabel" xml:space="preserve">
+        <value>Highlight description</value>
+    </data>
+
+	<data name="Admin_Content_Feature_DescriptionPlaceholder" xml:space="preserve">
+        <value>Explain why the game is special.</value>
+    </data>
+
+	<data name="Admin_Content_Feature_EndLabel" xml:space="preserve">
+        <value>To</value>
+    </data>
+
+	<data name="Admin_Content_Feature_Eyebrow" xml:space="preserve">
+        <value>Game of the Day</value>
+    </data>
+
+	<data name="Admin_Content_Feature_Footer" xml:space="preserve">
+        <value>Inline editing and scheduling coming soon.</value>
+    </data>
+
+	<data name="Admin_Content_Feature_GameLabel" xml:space="preserve">
+        <value>Game</value>
+    </data>
+
+	<data name="Admin_Content_Feature_GamePlaceholder" xml:space="preserve">
+        <value>Type the game title</value>
+    </data>
+
+	<data name="Admin_Content_Feature_GameValue" xml:space="preserve">
+        <value>Automatically synced</value>
+    </data>
+
+	<data name="Admin_Content_Feature_StartLabel" xml:space="preserve">
+        <value>From</value>
+    </data>
+
+	<data name="Admin_Content_Feature_Title" xml:space="preserve">
+        <value>Featured game</value>
+    </data>
+
+	<data name="Admin_Content_History_Button" xml:space="preserve">
+        <value>Browse history</value>
+    </data>
+
+	<data name="Admin_Content_History_Description" xml:space="preserve">
+        <value>Version preview and configuration restore coming soon.</value>
+    </data>
+
+	<data name="Admin_Content_History_Title" xml:space="preserve">
+        <value>Publish history</value>
+    </data>
+
+	<data name="Admin_Content_HomeNav_AriaLabel" xml:space="preserve">
+        <value>Homepage sections</value>
+    </data>
+
+	<data name="Admin_Content_HomeNav_Events" xml:space="preserve">
+        <value>Events</value>
+    </data>
+
+	<data name="Admin_Content_HomeNav_Facts" xml:space="preserve">
+        <value>Fun facts</value>
+    </data>
+
+	<data name="Admin_Content_HomeNav_Feature" xml:space="preserve">
+        <value>Game of the Day</value>
+    </data>
+
+	<data name="Admin_Content_HomeNav_Layout" xml:space="preserve">
+        <value>Section order</value>
+    </data>
+
+	<data name="Admin_Content_HomeNav_Title" xml:space="preserve">
+        <value>Homepage</value>
+    </data>
+
+	<data name="Admin_Content_Layout_Description" xml:space="preserve">
+        <value>Drag to reorder and toggle visibility.</value>
+    </data>
+
+	<data name="Admin_Content_Layout_Eyebrow" xml:space="preserve">
+        <value>Section order</value>
+    </data>
+
+	<data name="Admin_Content_Layout_Position" xml:space="preserve">
+        <value>Position {0}</value>
+    </data>
+
+	<data name="Admin_Content_Layout_Section_Events" xml:space="preserve">
+        <value>Events</value>
+    </data>
+
+	<data name="Admin_Content_Layout_Section_Facts" xml:space="preserve">
+        <value>Fun facts</value>
+    </data>
+
+	<data name="Admin_Content_Layout_Section_Feature" xml:space="preserve">
+        <value>Game of the Day</value>
+    </data>
+
+	<data name="Admin_Content_Layout_Section_Hero" xml:space="preserve">
+        <value>Hero</value>
+    </data>
+
+	<data name="Admin_Content_Layout_Section_Join" xml:space="preserve">
+        <value>Join</value>
+    </data>
+
+	<data name="Admin_Content_Layout_Section_Recommended" xml:space="preserve">
+        <value>Recommended</value>
+    </data>
+
+	<data name="Admin_Content_Layout_Section_Trending" xml:space="preserve">
+        <value>Trending now</value>
+    </data>
+
+	<data name="Admin_Content_Layout_SwitchLabel" xml:space="preserve">
+        <value>Show</value>
+    </data>
+
+	<data name="Admin_Content_Layout_Title" xml:space="preserve">
+        <value>Homepage layout</value>
+    </data>
+
+	<data name="Admin_Content_OrderIndicator" xml:space="preserve">
+        <value>Order {0}</value>
+    </data>
+
+	<data name="Admin_Content_Preview_Description" xml:space="preserve">
+        <value>The preview refreshes automatically. Publishing still requires a click below.</value>
+    </data>
+
+	<data name="Admin_Content_Preview_IframeTitle" xml:space="preserve">
+        <value>Homepage preview</value>
+    </data>
+
+	<data name="Admin_Content_Preview_ModeDesktop" xml:space="preserve">
+        <value>Desktop</value>
+    </data>
+
+	<data name="Admin_Content_Preview_ModeMobile" xml:space="preserve">
+        <value>Mobile</value>
+    </data>
+
+	<data name="Admin_Content_Preview_Refresh" xml:space="preserve">
+        <value>Refresh preview</value>
+    </data>
+
+	<data name="Admin_Content_Preview_Title" xml:space="preserve">
+        <value>Preview</value>
+    </data>
+
+	<data name="Admin_Content_Status_Active" xml:space="preserve">
+        <value>Active</value>
+    </data>
+
+	<data name="Admin_Content_Status_Draft" xml:space="preserve">
+        <value>Draft</value>
+    </data>
+
+	<data name="Admin_Content_Status_Label" xml:space="preserve">
+        <value>Status</value>
+    </data>
+
+	<data name="Admin_Content_Status_Scheduled" xml:space="preserve">
+        <value>Scheduled</value>
+    </data>
+
+	<data name="Admin_Content_Toolbar_Add" xml:space="preserve">
+        <value>Add</value>
+    </data>
+
+	<data name="Admin_Content_Toolbar_Filter_All" xml:space="preserve">
+        <value>All</value>
+    </data>
+
+	<data name="Admin_Content_Toolbar_PublishAll" xml:space="preserve">
+        <value>Publish all</value>
+    </data>
+
+	<data name="Admin_Content_Toolbar_SearchLabel" xml:space="preserve">
+        <value>Search</value>
+    </data>
+
+	<data name="Admin_Content_Toolbar_SearchPlaceholder" xml:space="preserve">
+        <value>e.g. carousel</value>
     </data>
 
 	<data name="Admin_Users_Title" xml:space="preserve">
