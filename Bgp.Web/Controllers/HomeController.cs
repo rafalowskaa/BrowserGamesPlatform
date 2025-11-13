@@ -273,8 +273,14 @@ public class HomeController : Controller
             .OrderByDescending(s => s.SubmittedAtUtc)
             .Take(limit)
             .Join(_db.Users.AsNoTracking(), s => s.UserId, u => u.Id, (s, u) => new { s, u })
-            .Join(_db.Games.AsNoTracking(), su => su.s.GameId, g => g.Id, (su, g) => new ActivityFeedItemViewModel
-            {
+            .Join(
+                _db.Games
+                    .AsNoTracking()
+                    .Where(g => g.ApprovalStatus == GameApprovalStatus.Approved),
+                su => su.s.GameId,
+                g => g.Id,
+                (su, g) => new ActivityFeedItemViewModel
+                {
                 ActorName = DisplayNameFormatter.Format(su.u.DisplayName, su.u.Email, su.u.UserName, su.u.Id),
                 Action = _localizer["Home_FriendActivity_Action"].Value,
                 TargetName = g.Title,

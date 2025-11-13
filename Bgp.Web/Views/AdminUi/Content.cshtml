@@ -375,13 +375,13 @@
                                         L["Admin_Content_Layout_Section_Join"].Value
                                         };
                     }
-                    @foreach (var section in sections.Select((name, index) => new { name, index }))
+                    @foreach (var layoutSection in sections.Select((name, index) => new { name, index }))
                     {
                         <article class="admin-layout-item" data-dnd-item>
                             <button type="button" class="admin-editor-card__handle" data-dnd-handle aria-label="@L["Admin_Content_Aria_DragSection"].Value">⋮⋮</button>
                             <div class="admin-layout-item__body">
-                                <strong>@section.name</strong>
-                                <span class="muted">@string.Format(L["Admin_Content_Layout_Position"].Value, section.index + 1)</span>
+                                <strong>@layoutSection.name</strong>
+                                <span class="muted">@string.Format(L["Admin_Content_Layout_Position"].Value, layoutSection.index + 1)</span>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" checked />
