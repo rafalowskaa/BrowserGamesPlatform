@@ -99,6 +99,10 @@
                     first = false;
                 }
                 }
+            else
+            {
+                <p class="home-guest__empty">@L["Home_Popular_Empty"].Value</p>
+            }
         </div>
         <div class="home-guest__grid home-guest__grid--popular" data-home-popular role="list">
             @if (Model.TopGames.Any())
@@ -142,21 +146,22 @@
 
         @if (Model.FunFacts.Any())
     {
-        <section class="home-guest__section home-guest__section--facts" aria-labelledby="facts-heading">
-            <header class="home-guest__section-header">
-                <div>
-                    <h2 id="facts-heading">@L["Home_Facts_Title"].Value</h2>
-                    <p>@L["Home_Facts_Subtitle"].Value</p>
+            <section class="home-guest__section home-guest__section--facts" aria-labelledby="facts-heading">
+                <header class="home-guest__section-header">
+                    <div>
+                        <h2 id="facts-heading">@L["Home_Facts_Title"].Value</h2>
+                        <p>@L["Home_Facts_Subtitle"].Value</p>
+                    </div>
+                </header>
+                <div class="home-facts" role="list">
+                    @foreach (var fact in Model.FunFacts)
+                    {
+                        <article class="fact-card" role="listitem">
+                            <p>@fact</p>
+                        </article>
+                    }
                 </div>
-            </header>
-            <div class="home-facts" role="list">
-                @foreach (var fact in Model.FunFacts)
-                {
-                    <article class="fact-card" role="listitem">
-                        <p>@fact</p>
-                    </article>
-                }
-            </div>
+            
             
         </section>
     
