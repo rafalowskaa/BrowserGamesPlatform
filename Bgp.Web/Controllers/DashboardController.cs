@@ -801,9 +801,9 @@ public class DashboardController : Controller
             .ToListAsync();
 
         var profileLookup = new Dictionary<string, BasicProfile>(rawFriendProfiles.Count + 1, StringComparer.Ordinal);
-        foreach (var profile in rawFriendProfiles)
+        foreach (var friendProfile in rawFriendProfiles)
         {
-            profileLookup[profile.Id] = new BasicProfile(profile.DisplayName, profile.AvatarUrl, profile.Email, profile.UserName);
+            profileLookup[friendProfile.Id] = new BasicProfile(friendProfile.DisplayName, friendProfile.AvatarUrl, friendProfile.Email, friendProfile.UserName);
         }
         profileLookup[user.Id] = new BasicProfile(user.DisplayName, user.AvatarUrl, user.Email, user.UserName);
 
