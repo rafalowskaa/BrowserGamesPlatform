@@ -52,7 +52,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         b.Entity<ApplicationUser>()
             .Property(u => u.StatusMessage)
-            .HasMaxLength(160);
+            .HasMaxLength(80);
 
         b.Entity<ApplicationUser>()
             .Property(u => u.PresenceStatus)

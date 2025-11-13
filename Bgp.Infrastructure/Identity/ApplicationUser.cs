@@ -40,7 +40,7 @@ public class ApplicationUser : IdentityUser
 
     public ProfileVisibility EmailVisibility { get; set; } = ProfileVisibility.OwnerOnly;
 
-    [MaxLength(160)]
+    [MaxLength(80)]
     public string? StatusMessage { get; set; }
 
     public UserPresenceStatus PresenceStatus { get; set; } = UserPresenceStatus.Offline;

@@ -1678,6 +1678,7 @@ public class DashboardController : Controller
             {
                 UserPresenceStatus.Available => Localize("Chat_Status_Available"),
                 UserPresenceStatus.Away => Localize("Chat_Status_Away"),
+                UserPresenceStatus.DoNotDisturb => Localize("Chat_Status_Dnd"),
                 _ => Localize("Chat_Status_Offline")
             };
 

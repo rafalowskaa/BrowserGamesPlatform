@@ -18,6 +18,7 @@
         statusAway = L["Chat_Status_Away"].Value,
         statusInvisible = L["Chat_Status_Invisible"].Value,
         statusOffline = L["Chat_Status_Offline"].Value,
+        statusDnd = L["Chat_Status_Dnd"].Value,
         statusUnknown = L["Chat_Status_Offline"].Value,
         statusSaved = L["Chat_Status_Saved"].Value,
         statusError = L["Chat_Status_Error"].Value,
@@ -105,13 +106,14 @@
                         <label for="chatStatusMessage">@L["Chat_Status_MessageLabel"].Value</label>
                         <input id="chatStatusMessage"
                                data-chat-status-message
-                               maxlength="160"
+                               maxlength="80"
                                placeholder="@L["Chat_Status_MessagePlaceholder"].Value"
                                autocomplete="off" />
                         <label for="chatPresence">@L["Chat_Status_PresenceLabel"].Value</label>
                         <select id="chatPresence" data-chat-presence>
                             <option value="available">@L["Chat_Status_Available"].Value</option>
                             <option value="away">@L["Chat_Status_Away"].Value</option>
+                            <option value="dnd">@L["Chat_Status_Dnd"].Value</option>
                             <option value="invisible">@L["Chat_Status_Invisible"].Value</option>
                         </select>
                         <div class="chat-status-popover__actions">

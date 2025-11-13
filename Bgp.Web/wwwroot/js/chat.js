@@ -35,6 +35,7 @@
     const PRESENCE_AVAILABLE = 0;
     const PRESENCE_AWAY = 1;
     const PRESENCE_OFFLINE = 2;
+    const PRESENCE_DND = 3;
 
     const friends = new Map();
     const conversations = new Map();
@@ -60,6 +61,7 @@
     let pollInFlight = false;
     const POLL_INTERVAL_MS = 7000;
     let pollErrorLogged = false;
+    let lastUnreadTotal = 0;
 
     const strings = {
         readReceipt: 'Read at {0}',
@@ -68,6 +70,7 @@
         statusAway: 'Be right back',
         statusInvisible: 'Invisible',
         statusOffline: 'Offline',
+        statusDnd: 'Do not disturb',
         statusUnknown: 'Offline',
         statusSaved: 'Status updated',
         statusError: 'Unable to update status',
@@ -265,6 +268,9 @@
         if (presence === PRESENCE_AWAY) {
             return strings.statusAway;
         }
+        if (presence === PRESENCE_DND) {
+            return strings.statusDnd;
+        }
         return strings.statusOffline;
     }
 
@@ -275,6 +281,9 @@
         if (presence === PRESENCE_AWAY) {
             return 'away';
         }
+        if (presence === PRESENCE_DND) {
+            return 'dnd';
+        }
         return 'available';
     }
 
@@ -284,6 +293,9 @@
         }
         if (value === 'away') {
             return { presence: PRESENCE_AWAY, isInvisible: false };
+        }
+        if (value === 'dnd') {
+            return { presence: PRESENCE_DND, isInvisible: false };
         }
         return { presence: PRESENCE_AVAILABLE, isInvisible: false };
     }
@@ -534,10 +546,13 @@
         if (!friend.isInvisible && friend.presence === PRESENCE_AWAY) {
             return 1;
         }
-        if (friend.isInvisible) {
+        if (!friend.isInvisible && friend.presence === PRESENCE_DND) {
             return 2;
         }
-        return 3;
+        if (friend.isInvisible) {
+            return 3;
+        }
+        return 4;
     }
 
     function getStatusLine(friend) {
@@ -551,13 +566,15 @@
         if (!dotEl) {
             return;
         }
-        dotEl.classList.remove('is-online', 'is-away', 'is-offline', 'is-invisible');
+        dotEl.classList.remove('is-online', 'is-away', 'is-offline', 'is-invisible', 'is-dnd');
         if (friend.isInvisible) {
             dotEl.classList.add('is-invisible');
         } else if (friend.presence === PRESENCE_AVAILABLE) {
             dotEl.classList.add('is-online');
         } else if (friend.presence === PRESENCE_AWAY) {
             dotEl.classList.add('is-away');
+        } else if (friend.presence === PRESENCE_DND) {
+            dotEl.classList.add('is-dnd');
         } else {
             dotEl.classList.add('is-offline');
         }
@@ -615,6 +632,21 @@
         const total = Array.from(friends.values()).reduce((sum, friend) => sum + (friend.unreadCount || 0), 0);
         unreadBadge.textContent = String(total);
         unreadBadge.hidden = total === 0;
+        if (total === 0) {
+            unreadBadge.classList.remove('is-pulsing');
+        } else if (total > lastUnreadTotal) {
+            pulseUnreadBadge();
+        }
+        lastUnreadTotal = total;
+    }
+
+    function pulseUnreadBadge() {
+        if (!unreadBadge) {
+            return;
+        }
+        unreadBadge.classList.remove('is-pulsing');
+        void unreadBadge.offsetWidth;
+        unreadBadge.classList.add('is-pulsing');
     }
 
     function queuePendingMessage(friendId, message) {

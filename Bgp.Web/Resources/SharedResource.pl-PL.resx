@@ -204,6 +204,9 @@
 	<data name="Chat_Status_Away" xml:space="preserve">
                 <value>Zaraz wracam</value>
         </data>
+	<data name="Chat_Status_Dnd" xml:space="preserve">
+                <value>Nie przeszkadzać</value>
+        </data>
 	<data name="Chat_Status_Offline" xml:space="preserve">
                 <value>Niedostępny</value>
         </data>

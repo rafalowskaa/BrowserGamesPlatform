@@ -49,9 +49,9 @@ public class StatusController : ControllerBase
             ? null
             : request.StatusMessage.Trim();
 
-        if (normalizedMessage is not null && normalizedMessage.Length > 160)
+        if (normalizedMessage is not null && normalizedMessage.Length > 80)
         {
-            return BadRequest(new { error = "Status message too long." });
+            return BadRequest(new { error = "Status message too long (80 characters max)." });
         }
 
         if (!Enum.IsDefined(typeof(UserPresenceStatus), request.Presence) || request.Presence == UserPresenceStatus.Offline)

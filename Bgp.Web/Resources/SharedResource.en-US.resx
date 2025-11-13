@@ -235,6 +235,9 @@
 	<data name="Chat_Status_Away" xml:space="preserve">
           <value>Be right back</value>
       </data>
+	<data name="Chat_Status_Dnd" xml:space="preserve">
+          <value>Do not disturb</value>
+      </data>
 	<data name="Chat_Status_Offline" xml:space="preserve">
           <value>Offline</value>
       </data>
@@ -257,7 +260,7 @@
           <value>Status message</value>
       </data>
 	<data name="Chat_Status_MessagePlaceholder" xml:space="preserve">
-          <value>What are you up to?</value>
+          <value>How's it going?</value>
       </data>
 	<data name="Chat_Status_PresenceLabel" xml:space="preserve">
           <value>Availability</value>
