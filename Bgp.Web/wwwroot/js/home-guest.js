@@ -100,9 +100,12 @@
             card.className = 'game-card-guest';
             const cover = game.coverImagePath || placeholder;
             const detailsUrl = buildGameLink(game.slug);
-            const ratingHtml = game.reviewsCount > 0
-                ? `<span class="game-card-guest__rating" aria-label="${formatRating(game.rating, game.reviewsCount)}">★ ${game.rating.toFixed(1)}</span>`
-                : `<span class="game-card-guest__badge">${escapeHtml(newLabel)}</span>`;
+            let statusHtml = '';
+            if (game.reviewsCount > 0) {
+                statusHtml = `<span class="game-card-guest__rating" aria-label="${formatRating(game.rating, game.reviewsCount)}">★ ${game.rating.toFixed(1)}</span>`;
+            } else if (game.isNewRelease) {
+                statusHtml = `<span class="game-card-guest__badge game-card-guest__badge--new">${escapeHtml(newLabel)}</span>`;
+            }
 
             card.innerHTML = `
                 <div class="game-card-guest__media">
@@ -118,7 +121,7 @@
                     <h3 class="game-card-guest__title"><a href="${detailsUrl}">${escapeHtml(game.title)}</a></h3>
                     <p class="game-card-guest__excerpt">${escapeHtml(game.excerpt || '')}</p>
                     <div class="game-card-guest__meta">
-                        ${ratingHtml}
+                        ${statusHtml}
                         <a class="game-card-guest__details" href="${detailsUrl}">${escapeHtml(detailsLabel)}</a>
                     </div>
                 </div>
@@ -237,8 +240,9 @@
             }
         }
 
-        refreshItems();
-        const referenceIndex = Math.min(Math.max(firstRealIndex, 0), items.length - 1);
+        function measure() {
+            refreshItems();
+            const referenceIndex = Math.min(Math.max(firstRealIndex, 0), items.length - 1);
             const reference = items[referenceIndex];
             if (!reference) {
                 itemWidth = 0;

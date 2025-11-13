@@ -40,9 +40,9 @@
             {
                 <span class="game-card-guest__rating" aria-label="@string.Format(L["Home_Game_Rating"].Value, Model.Rating.ToString("F1"), Model.ReviewsCount)">★ @Model.Rating.ToString("F1")</span>
             }
-            else
+            else if (Model.IsNewRelease)
             {
-                <span class="game-card-guest__badge">@L["Home_Game_New"].Value</span>
+                <span class="game-card-guest__badge game-card-guest__badge--new">@L["Home_Game_New"].Value</span>
             }
             
         </div>

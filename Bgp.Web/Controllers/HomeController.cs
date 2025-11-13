@@ -441,6 +441,8 @@ public class HomeController : Controller
 
     private static GameSummaryViewModel MapToSummary(GameProjection game)
     {
+        var isNewRelease = game.CreatedAtUtc >= DateTime.UtcNow.AddDays(-1);
+
         return new GameSummaryViewModel
         {
             Id = game.Id,
@@ -450,7 +452,8 @@ public class HomeController : Controller
             Excerpt = BuildExcerpt(game.Description),
             Rating = Math.Round(game.AvgRating, 1),
             ReviewsCount = game.ReviewsCount,
-            HighlightTag = game.HighlightTag
+            HighlightTag = game.HighlightTag,
+            IsNewRelease = isNewRelease
         };
     }
 

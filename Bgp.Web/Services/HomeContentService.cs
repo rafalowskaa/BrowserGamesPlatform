@@ -173,6 +173,7 @@ public class HomeContentService
 
     private GameSummaryViewModel MapToSummary(GameProjection game)
     {
+        var newThreshold = DateTime.UtcNow.AddDays(-1);
         return new GameSummaryViewModel
         {
             Id = game.Id,
@@ -182,7 +183,8 @@ public class HomeContentService
             Excerpt = BuildExcerpt(game.Description),
             Rating = Math.Round(game.AvgRating, 1),
             ReviewsCount = game.ReviewsCount,
-            HighlightTag = game.HighlightTag
+            HighlightTag = game.HighlightTag,
+            IsNewRelease = game.CreatedAtUtc >= newThreshold
         };
     }
 

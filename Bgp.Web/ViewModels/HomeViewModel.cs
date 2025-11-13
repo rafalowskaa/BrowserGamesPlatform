@@ -41,6 +41,7 @@ public class GameSummaryViewModel
     public double Rating { get; set; }
     public int ReviewsCount { get; set; }
     public string? HighlightTag { get; set; }
+    public bool IsNewRelease { get; set; }
 }
 
 public class TagFilterViewModel

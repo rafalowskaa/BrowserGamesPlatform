@@ -311,6 +311,7 @@
     overflow: hidden;
     flex: 1;
     padding: 0;
+    width: 100%;
 }
 
     .featured-carousel__viewport::before,
@@ -321,13 +322,19 @@
 .featured-carousel__track {
     display: flex;
     gap: var(--space-3);
+    align-items: stretch;
     will-change: transform;
     transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .featured-carousel__item {
-    flex: 0 0 19rem;
+    flex: 0 0 clamp(16rem, 18vw, 20rem);
+    display: flex;
 }
+
+    .featured-carousel__item > * {
+        width: 100%;
+    }
 
 .featured-carousel__control {
     display: inline-flex;
