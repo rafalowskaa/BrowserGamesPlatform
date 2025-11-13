@@ -26,6 +26,8 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 0.75rem;
+    pointer-events: none;
+    --chat-panel-width: min(24rem, 92vw);
 }
 
 .chat-workspace {
@@ -34,6 +36,7 @@
     gap: 1rem;
     flex-wrap: wrap;
     justify-content: flex-end;
+    pointer-events: auto;
 }
 
     .chat-workspace .chat-panel {
@@ -58,6 +61,7 @@
     cursor: pointer;
     position: relative;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    pointer-events: auto;
 }
 
     .chat-toggle:hover {
@@ -89,27 +93,29 @@
 }
 
 .chat-panel {
-    width: 20rem;
-    min-height: 26.25rem;
-    height: min(72vh, 47.5rem);
-    max-height: calc(100vh - 5rem);
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: var(--chat-panel-width, min(24rem, 92vw));
+    height: 100vh;
     background: rgba(15, 23, 42, 0.96);
-    border-radius: 1.125rem;
-    box-shadow: var(--shadow);
+    border-radius: 1.125rem 0 0 1.125rem;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.65);
     border: 1px solid rgba(148, 163, 184, 0.2);
     overflow: hidden;
-    transform: translateY(12px);
+    transform: translateX(calc(100% + 1.5rem));
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    resize: vertical;
+    transition: transform 0.28s ease, opacity 0.28s ease;
     display: flex;
     flex-direction: column;
+    backdrop-filter: blur(8px);
 }
 
 .chat-dock.is-open .chat-panel {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
     pointer-events: auto;
 }
 
@@ -577,6 +583,12 @@
     flex-wrap: wrap;
     justify-content: flex-end;
     max-width: calc(100vw - 4rem);
+    margin-right: 0;
+    transition: margin 0.28s ease;
+}
+
+.chat-dock.is-open .chat-windows {
+    margin-right: calc(var(--chat-panel-width, 24rem) + 1rem);
 }
 
 .chat-window {
@@ -828,9 +840,14 @@
     .chat-dock {
         right: 1rem;
         bottom: 1rem;
+        --chat-panel-width: 100vw;
     }
 
-    .chat-panel,
+    .chat-panel {
+        width: 100vw;
+        border-radius: 0;
+    }
+
     .chat-window {
         width: min(92vw, 22.5rem);
     }

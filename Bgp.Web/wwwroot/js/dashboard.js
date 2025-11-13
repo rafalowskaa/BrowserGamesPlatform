@@ -175,7 +175,7 @@
             buildFriendItem(incomingList, f, {
                 showRank: false,
                 actions: [
-                    { label: labels.viewProfile, handler: () => openProfile(f.userId), className: 'btn-ghost btn-small', icon: '👤' }
+                    { label: labels.viewProfile, handler: () => openProfile(f.userId), className: 'btn-ghost btn-small', icon: '👤' },
                     { label: labels.accept, handler: () => acceptFriend(f.userId), className: 'btn-primary btn-small' },
                     { label: labels.decline, handler: () => removeFriend(f.userId), className: 'btn-ghost btn-small' },
                     { label: labels.report, handler: () => reportUser(f.userId, f.displayName), className: 'btn-ghost btn-small' },
@@ -188,7 +188,7 @@
             buildFriendItem(outgoingList, f, {
                 showRank: false,
                 actions: [
-                    { label: labels.viewProfile, handler: () => openProfile(f.userId), className: 'btn-ghost btn-small', icon: '👤' }
+                    { label: labels.viewProfile, handler: () => openProfile(f.userId), className: 'btn-ghost btn-small', icon: '👤' },
                     { label: labels.cancel, handler: () => removeFriend(f.userId), className: 'btn-ghost btn-small' },
                     { label: labels.report, handler: () => reportUser(f.userId, f.displayName), className: 'btn-ghost btn-small' },
                     { label: labels.block, handler: () => blockUser(f.userId, f.displayName), className: 'btn-danger btn-small' }
@@ -245,7 +245,7 @@
                 buildFriendItem(searchResults, profile, {
                     showRank: false,
                     actions: [
-                        { label: labels.viewProfile, handler: () => openProfile(r.id), className: 'btn-ghost btn-small', icon: '👤' }
+                        { label: labels.viewProfile, handler: () => openProfile(r.id), className: 'btn-ghost btn-small', icon: '👤' },
                         { label: labels.add, handler: () => sendInvite(r.id), className: 'btn-primary btn-small' },
                         { label: labels.chat, handler: () => openChat(r.id, r.name), className: 'btn-primary btn-small btn-chat', icon: '💬' },
                         { label: labels.report, handler: () => reportUser(r.id, r.name), className: 'btn-ghost btn-small' },

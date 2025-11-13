@@ -356,6 +356,11 @@
     display: none;
     margin: 0;
     padding: 0;
+    width: 100%;
+    border-radius: 999px;
+    background: #16a34a;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.25);
 }
 
 .security-question.is-collapsed .security-question__summary {
@@ -368,8 +373,7 @@
     gap: 0.75rem;
     width: 100%;
     padding: 0.35rem 0.5rem 0.35rem 0.35rem;
-    border-radius: 999px;
-    background: #16a34a;
+    background: transparent;
 }
 
 .security-question__summary-button {

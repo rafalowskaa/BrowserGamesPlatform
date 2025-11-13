@@ -339,7 +339,7 @@
             if (toggle) {
                 toggle.setAttribute('aria-expanded', 'true');
             }
-            panel.hidden = false;
+            panel.setAttribute('aria-hidden', 'false');
             if (searchInput) {
                 searchInput.focus();
             }
@@ -348,7 +348,7 @@
             if (toggle) {
                 toggle.setAttribute('aria-expanded', 'false');
             }
-            panel.hidden = true;
+            panel.setAttribute('aria-hidden', 'true');
             setStatusMenu(false);
         }
     }

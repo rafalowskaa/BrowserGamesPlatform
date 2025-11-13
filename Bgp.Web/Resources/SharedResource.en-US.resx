@@ -2403,6 +2403,9 @@
 	<data name="Home_Dashboard_DailyChallenges_Empty" xml:space="preserve">
   <value>No daily challenges available.</value>
 </data>
+	<data name="Home_Dashboard_GameOfTheDay_Empty" xml:space="preserve">
+  <value>The game of the day is resting right now—check back soon for fresh inspiration.</value>
+</data>
 	<data name="Home_Dashboard_DailyChallenges_Reward" xml:space="preserve">
   <value>+{0} XP</value>
 </data>
@@ -2450,6 +2453,9 @@
 </data>
 	<data name="Home_Creator_Cta" xml:space="preserve">
   <value>Submit a game</value>
+</data>
+	<data name="Home_Creator_Tagline" xml:space="preserve">
+  <value>Share the story behind your creativity — walk players through prototypes, dev logs and bold experiments before the next update ships.</value>
 </data>
 	<data name="Home_Benefits_Title" xml:space="preserve">
   <value>Why PlayGrid?</value>
