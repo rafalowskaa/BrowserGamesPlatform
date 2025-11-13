@@ -343,6 +343,54 @@ namespace Bgp.Infrastructure.Migrations
                     b.ToTable("HomeFacts");
                 });
 
+            modelBuilder.Entity("Bgp.Domain.Entities.HomeFeaturedGame", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("CustomDescription")
+                        .HasMaxLength(600)
+                        .HasColumnType("nvarchar(600)");
+
+                    b.Property<DateTime>("EndsAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("GameId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("GameId1")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime>("StartsAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GameId");
+
+                    b.HasIndex("GameId1");
+
+                    b.HasIndex("IsActive", "StartsAtUtc", "EndsAtUtc");
+
+                    b.ToTable("HomeFeaturedGames");
+                });
+
             modelBuilder.Entity("Bgp.Domain.Entities.MatchSession", b =>
                 {
                     b.Property<Guid>("Id")
@@ -831,6 +879,21 @@ namespace Bgp.Infrastructure.Migrations
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Game");
+                });
+
+            modelBuilder.Entity("Bgp.Domain.Entities.HomeFeaturedGame", b =>
+                {
+                    b.HasOne("Bgp.Domain.Entities.Game", null)
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Bgp.Domain.Entities.Game", "Game")
+                        .WithMany()
+                        .HasForeignKey("GameId1");
 
                     b.Navigation("Game");
                 });

@@ -98,7 +98,7 @@
                     <button type="button" class="tag-chip@(isActive ? " is-active" : string.Empty)" data-home-tag data-tag="@tag.Tag" aria-pressed="@(isActive.ToString().ToLowerInvariant())">#@tag.Tag</button>
                     first = false;
                 }
-                }
+            }
             else
             {
                 <p class="home-guest__empty">@L["Home_Popular_Empty"].Value</p>
@@ -145,27 +145,25 @@
     </section>
 
         @if (Model.FunFacts.Any())
-    {
-            <section class="home-guest__section home-guest__section--facts" aria-labelledby="facts-heading">
-                <header class="home-guest__section-header">
-                    <div>
-                        <h2 id="facts-heading">@L["Home_Facts_Title"].Value</h2>
-                        <p>@L["Home_Facts_Subtitle"].Value</p>
-                    </div>
-                </header>
-                <div class="home-facts" role="list">
-                    @foreach (var fact in Model.FunFacts)
-                    {
-                        <article class="fact-card" role="listitem">
-                            <p>@fact</p>
-                        </article>
-                    }
+        {
+        <section class="home-guest__section home-guest__section--facts" aria-labelledby="facts-heading">
+            <header class="home-guest__section-header">
+                <div>
+                    <h2 id="facts-heading">@L["Home_Facts_Title"].Value</h2>
+                    <p>@L["Home_Facts_Subtitle"].Value</p>
                 </div>
-            
+            </header>
+            <div class="home-facts" role="list">
+                @foreach (var fact in Model.FunFacts)
+                {
+                    <article class="fact-card" role="listitem">
+                        <p>@fact</p>
+                    </article>
+                }
+            </div>
             
         </section>
-    
-    }
+        }
 
 
     <section class="home-guest__section home-guest__section--events" aria-labelledby="events-heading">
@@ -199,8 +197,8 @@
                 </button>
             </div>
         
-    }
-            else
+        }
+        else
         {
             <p class="home-guest__empty">@L["Home_Events_Empty"].Value</p>
         }
@@ -214,7 +212,7 @@
 </div>
 }
 
-   else
+else
 {
         <section class="home-section home-dashboard">
             <div class="home-dashboard__welcome">
@@ -229,7 +227,7 @@
                         {
                             @await Html.PartialAsync("_GameCardGuest", Model.GameOfTheDay)
                         }
-                    else
+                        else
                         {
                             <p class="home-panel__empty">@L["Home_Dashboard_GameOfTheDay_Empty"].Value</p>
                         }
@@ -255,22 +253,22 @@
                         <p class="xp-panel__meta">@string.Format(L["Home_Dashboard_XpPanel_Meta"].Value, Model.ExperiencePanel.CurrentXp, Model.ExperiencePanel.XpToNext)</p>
                         <ul class="xp-challenges">
                             @if (Model.DailyChallenges.Any())
+                        {
+                            foreach (var challenge in Model.DailyChallenges)
                             {
-                                foreach (var challenge in Model.DailyChallenges)
-                                {
-                                    <li>
-                                        <label>
-                                            <input type="checkbox" disabled @(challenge.IsCompleted ? "checked" : string.Empty)/>
-                                            <span>@challenge.Title</span>
-                                            <span class="xp-reward">@string.Format(L["Home_Dashboard_DailyChallenges_Reward"].Value, challenge.RewardXp)</span>
-                                        </label>
-                                    </li>
-                                }
+                                <li>
+                                    <label>
+                                        <input type="checkbox" disabled @(challenge.IsCompleted ? "checked" : string.Empty)/>
+                                        <span>@challenge.Title</span>
+                                        <span class="xp-reward">@string.Format(L["Home_Dashboard_DailyChallenges_Reward"].Value, challenge.RewardXp)</span>
+                                    </label>
+                                </li>
                             }
-                            else
-                            {
-                                <li>@L["Home_Dashboard_DailyChallenges_Empty"].Value</li>
                             }
+                        else
+                        {
+                            <li>@L["Home_Dashboard_DailyChallenges_Empty"].Value</li>
+                        }
                         </ul>
                     <div class="xp-panel__trophy">
                             <img src="@Url.Content(Model.ExperiencePanel.TrophyImage ?? "~/img/trophies/silver.png")" alt="@string.Format(L["Home_Dashboard_XpPanel_TrophyAlt"].Value, Model.ExperiencePanel.RankName)" />
@@ -302,7 +300,7 @@
                         <p class="home-panel__empty">@L["Home_Dashboard_Events_Empty"].Value</p>
                     }
                 </div>
-            </div>
+            
         </section>
 
         <section class="home-section">
@@ -337,7 +335,7 @@
                 <p>@L["Home_FriendActivity_Subtitle"].Value</p>
             </div>
             <ul class="activity-feed">
-                @if (Model.FriendActivity.Any())
+            @if (Model.FriendActivity.Any())
             {
                 foreach (var entry in Model.FriendActivity)
                 {
@@ -350,9 +348,9 @@
                 }
             }
             else
-                {
-                    <li>@L["Home_FriendActivity_Empty"].Value</li>
-                }
+            {
+                <li>@L["Home_FriendActivity_Empty"].Value</li>
+            }
             </ul>
         </section>
 
