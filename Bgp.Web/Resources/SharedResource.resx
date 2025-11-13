@@ -4058,4 +4058,52 @@
 	<data name="Dashboard_FriendsLeaderboards_NoResults" xml:space="preserve">
     <value>No games match your filters.</value>
   </data>
+	<data name="Chat_FabLabel" xml:space="preserve">
+        <value>Messages</value>
+    </data>
+	<data name="Chat_ActiveHeading" xml:space="preserve">
+        <value>Active</value>
+    </data>
+	<data name="Chat_ArchivedHeading" xml:space="preserve">
+        <value>Archive</value>
+    </data>
+	<data name="Chat_ArchivedEmpty" xml:space="preserve">
+        <value>No archived threads yet</value>
+    </data>
+	<data name="Chat_Archive" xml:space="preserve">
+        <value>Archive</value>
+    </data>
+	<data name="Chat_Unarchive" xml:space="preserve">
+        <value>Restore</value>
+    </data>
+	<data name="Chat_KeepArchived" xml:space="preserve">
+        <value>Keep in archive</value>
+    </data>
+	<data name="Chat_ReleaseArchived" xml:space="preserve">
+        <value>Return when new messages arrive</value>
+    </data>
+	<data name="Chat_Popout" xml:space="preserve">
+        <value>Expand chat</value>
+    </data>
+	<data name="Chat_Overflow" xml:space="preserve">
+        <value>More conversations</value>
+    </data>
+	<data name="Chat_Invite" xml:space="preserve">
+        <value>Invite to game</value>
+    </data>
+	<data name="Chat_SearchThread" xml:space="preserve">
+        <value>Search thread</value>
+    </data>
+	<data name="Chat_SearchThreadPlaceholder" xml:space="preserve">
+        <value>Search messages...</value>
+    </data>
+	<data name="Chat_SearchThreadPrev" xml:space="preserve">
+        <value>Previous</value>
+    </data>
+	<data name="Chat_SearchThreadNext" xml:space="preserve">
+        <value>Next</value>
+    </data>
+	<data name="Chat_SearchThreadNone" xml:space="preserve">
+        <value>No matches</value>
+    </data>
 </root>

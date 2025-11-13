@@ -2907,4 +2907,52 @@
 	<data name="Dashboard_FriendsLeaderboards_NoResults" xml:space="preserve">
     <value>Brak gier spełniających kryteria.</value>
   </data>
+	<data name="Chat_FabLabel" xml:space="preserve">
+        <value>Wiadomości</value>
+    </data>
+        <data name="Chat_ActiveHeading" xml:space="preserve">
+        <value>Aktywne</value>
+    </data>
+        <data name="Chat_ArchivedHeading" xml:space="preserve">
+        <value>Archiwum</value>
+    </data>
+        <data name="Chat_ArchivedEmpty" xml:space="preserve">
+        <value>Brak zarchiwizowanych wątków</value>
+    </data>
+        <data name="Chat_Archive" xml:space="preserve">
+        <value>Archiwizuj</value>
+    </data>
+        <data name="Chat_Unarchive" xml:space="preserve">
+        <value>Przywróć</value>
+    </data>
+        <data name="Chat_KeepArchived" xml:space="preserve">
+        <value>Pozostaw w archiwum</value>
+    </data>
+        <data name="Chat_ReleaseArchived" xml:space="preserve">
+        <value>Przywracaj przy nowych wiadomościach</value>
+    </data>
+        <data name="Chat_Popout" xml:space="preserve">
+        <value>Pełny panel</value>
+    </data>
+        <data name="Chat_Overflow" xml:space="preserve">
+        <value>Więcej rozmów</value>
+    </data>
+        <data name="Chat_Invite" xml:space="preserve">
+        <value>Zaproś do gry</value>
+    </data>
+        <data name="Chat_SearchThread" xml:space="preserve">
+        <value>Szukaj w wątku</value>
+    </data>
+        <data name="Chat_SearchThreadPlaceholder" xml:space="preserve">
+        <value>Szukaj wiadomości...</value>
+    </data>
+        <data name="Chat_SearchThreadPrev" xml:space="preserve">
+        <value>Poprzedni</value>
+    </data>
+        <data name="Chat_SearchThreadNext" xml:space="preserve">
+        <value>Następny</value>
+    </data>
+        <data name="Chat_SearchThreadNone" xml:space="preserve">
+        <value>Brak wyników</value>
+    </data>
 </root>

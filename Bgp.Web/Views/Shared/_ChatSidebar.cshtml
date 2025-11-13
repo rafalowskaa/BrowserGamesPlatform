@@ -14,6 +14,7 @@
     {
         readReceipt = L["Chat_ReadReceipt"].Value,
         readReceiptLabel = L["Chat_ReadReceipt_Label"].Value,
+        fabLabel = L["Chat_FabLabel"].Value,
         statusAvailable = L["Chat_Status_Available"].Value,
         statusAway = L["Chat_Status_Away"].Value,
         statusInvisible = L["Chat_Status_Invisible"].Value,
@@ -35,6 +36,13 @@
         noStrangers = L["Chat_NoStrangers"].Value,
         searchHint = L["Chat_SearchHint"].Value,
         strangersPrompt = L["Chat_Strangers_Prompt"].Value,
+        activeHeading = L["Chat_ActiveHeading"].Value,
+        archivedHeading = L["Chat_ArchivedHeading"].Value,
+        archivedEmpty = L["Chat_ArchivedEmpty"].Value,
+        archive = L["Chat_Archive"].Value,
+        unarchive = L["Chat_Unarchive"].Value,
+        keepArchived = L["Chat_KeepArchived"].Value,
+        releaseArchived = L["Chat_ReleaseArchived"].Value,
         minimize = L["Chat_Minimize"].Value,
         restore = L["Chat_Restore"].Value,
         close = L["Chat_CloseWindow"].Value,
@@ -42,7 +50,15 @@
         send = L["Chat_Send"].Value,
         deliveredReceiptLabel = L["Chat_Receipt_Delivered"].Value,
         sending = L["Chat_Sending"].Value,
-        sendError = L["Chat_SendFailed"].Value
+        sendError = L["Chat_SendFailed"].Value,
+        popout = L["Chat_Popout"].Value,
+        overflow = L["Chat_Overflow"].Value,
+        invite = L["Chat_Invite"].Value,
+        searchThread = L["Chat_SearchThread"].Value,
+        searchThreadPlaceholder = L["Chat_SearchThreadPlaceholder"].Value,
+        searchThreadPrev = L["Chat_SearchThreadPrev"].Value,
+        searchThreadNext = L["Chat_SearchThreadNext"].Value,
+        searchThreadNone = L["Chat_SearchThreadNone"].Value
     };
 }
 
@@ -55,11 +71,38 @@
             title="@L["Chat_Open"].Value">
         <span class="chat-toggle__icon" aria-hidden="true">💬</span>
         <span class="chat-toggle__badge" data-chat-unread hidden>0</span>
+        <span class="chat-toggle__label">@L["Chat_FabLabel"].Value</span>
         <span class="sr-only">@L["Chat_Open"].Value</span>
     </button>
     <span class="sr-only" role="status" aria-live="polite" aria-atomic="true" data-chat-live></span>
 
     <div class="chat-workspace">
+        <div class="chat-dock__windows">
+            <div class="chat-windows" data-chat-windows></div>
+            <div class="chat-overflow">
+                <button type="button"
+                        class="chat-overflow__toggle"
+                        data-chat-overflow
+                        aria-expanded="false"
+                        aria-label="@L["Chat_Overflow"].Value"
+                        hidden>
+                    <span aria-hidden="true">•••</span>
+                    <span class="chat-overflow__count" data-chat-overflow-count>0</span>
+                </button>
+                <div class="chat-overflow__menu" data-chat-overflow-menu hidden>
+                    <div class="chat-overflow__header">
+                        <strong>@L["Chat_Overflow"].Value</strong>
+                        <button type="button"
+                                class="btn-icon"
+                                data-chat-overflow-close
+                                aria-label="@L["Chat_Close"].Value">
+                            ✕
+                        </button>
+                    </div>
+                    <ul class="chat-overflow__list" data-chat-overflow-list></ul>
+                </div>
+            </div>
+        </div>
         <div id="chatPanel" class="chat-panel" aria-hidden="true">
             <header class="chat-panel__header">
                 <strong>@L["Chat_Title"].Value</strong>
@@ -124,28 +167,47 @@
                     </form>
                 </div>
                 <section class="chat-panel__section">
-                    <h4>@L["Chat_Friends"].Value</h4>
-                    <ul class="chat-contacts" data-chat-friends></ul>
-                    <p class="chat-empty" data-chat-friends-empty>@L["Chat_NoFriends"].Value</p>
+                    <div class="chat-panel__section-header">
+                        <h4>@L["Chat_ActiveHeading"].Value</h4>
+                    </div>
+                    <ul class="chat-contacts" data-chat-active></ul>
+                    <p class="chat-empty" data-chat-active-empty>@L["Chat_NoFriends"].Value</p>
                 </section>
                 <section class="chat-panel__section">
-                    <h4>@L["Chat_Strangers"].Value</h4>
-                    <ul class="chat-contacts chat-contacts--strangers" data-chat-strangers></ul>
-                    <p class="chat-empty" data-chat-strangers-empty>@L["Chat_SearchHint"].Value</p>
+                    <div class="chat-panel__section-header">
+                        <h4>@L["Chat_ArchivedHeading"].Value</h4>
+                    </div>
+                    <ul class="chat-contacts" data-chat-archived></ul>
+                    <p class="chat-empty" data-chat-archived-empty>@L["Chat_ArchivedEmpty"].Value</p>
                 </section>
                 <section class="chat-panel__section">
-                    <h4>@L["Chat_Invites"].Value</h4>
+                    <div class="chat-panel__section-header">
+                        <h4>@L["Chat_Invites"].Value</h4>
+                    </div>
                     <ul class="chat-requests" data-chat-requests></ul>
                     <p class="chat-empty" data-chat-requests-empty>@L["Chat_NoInvites"].Value</p>
                 </section>
-                <section class="chat-panel__section chat-panel__section--conversations">
-                    <h4>@L["Chat_Conversations"].Value</h4>
-                    <div class="chat-panel__conversations" data-chat-windows></div>
+                <section class="chat-panel__section">
+                    <div class="chat-panel__section-header">
+                        <h4>@L["Chat_Strangers"].Value</h4>
+                    </div>
+                    <ul class="chat-contacts chat-contacts--strangers" data-chat-strangers></ul>
+                    <p class="chat-empty" data-chat-strangers-empty>@L["Chat_SearchHint"].Value</p>
                 </section>
             </div>
 
         </div>
 
+    </div>
+    <div class="chat-popout" data-chat-popout hidden>
+        <div class="chat-popout__scrim" data-chat-popout-dismiss aria-label="@L["Chat_Close"].Value"></div>
+        <div class="chat-popout__dialog" role="dialog" aria-modal="true" aria-label="@L["Chat_Popout"].Value">
+            <div class="chat-popout__header">
+                <strong>@L["Chat_Popout"].Value</strong>
+                <button type="button" class="btn-icon" data-chat-popout-dismiss aria-label="@L["Chat_Close"].Value">✕</button>
+            </div>
+            <div class="chat-popout__body" data-chat-popout-body></div>
+        </div>
     </div>
 </div>
 

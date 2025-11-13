@@ -27,7 +27,6 @@
     const stringsElement = document.getElementById('chatStrings');
     const popoutLayer = dock.querySelector('[data-chat-popout]');
     const popoutBody = popoutLayer ? popoutLayer.querySelector('[data-chat-popout-body]') : null;
-    const popoutDismiss = popoutLayer ? popoutLayer.querySelector('[data-chat-popout-dismiss]') : null;
     const statusForm = panel ? panel.querySelector('[data-chat-status-form]') : null;
     const statusMessageInput = statusForm ? statusForm.querySelector('[data-chat-status-message]') : null;
     const statusSelect = statusForm ? statusForm.querySelector('[data-chat-presence]') : null;
@@ -628,6 +627,16 @@
 
     if (overflowClose) {
         overflowClose.addEventListener('click', () => closeOverflowMenu());
+    }
+
+    if (popoutLayer) {
+        popoutLayer.addEventListener('click', (evt) => {
+            const target = evt.target;
+            if (target instanceof Element && target.closest('[data-chat-popout-dismiss]')) {
+                evt.preventDefault();
+                closePopout();
+            }
+        });
     }
 
     function showStatusFeedback(message, isError) {
