@@ -232,7 +232,7 @@ public class DashboardController : Controller
 
         if (input.Avatar is not null && input.Avatar.Length > 0)
         {
-            
+
 
             var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "avatars");
             Directory.CreateDirectory(uploadsDir);
@@ -812,9 +812,9 @@ public class DashboardController : Controller
         var friendVms = friendships
             .Select(f =>
             {
-                profileLookup.TryGetValue(f.FriendId, out var profile);
-                var displayName = profile is not null
-                    ? DisplayNameFormatter.Format(profile.DisplayName, profile.Email, profile.UserName)
+                profileLookup.TryGetValue(f.FriendId, out var friendProfile);
+                var displayName = friendProfile is not null
+                    ? DisplayNameFormatter.Format(friendProfile.DisplayName, friendProfile.Email, friendProfile.UserName)
                     : string.Empty;
 
                 if (string.IsNullOrWhiteSpace(displayName))
@@ -824,7 +824,7 @@ public class DashboardController : Controller
                 return new FriendViewModel
                 {
                     DisplayName = displayName,
-                    AvatarUrl = profile?.AvatarUrl,
+                    AvatarUrl = friendProfile?.AvatarUrl,
                     Since = f.CreatedAtUtc
                 };
             })
@@ -1227,7 +1227,7 @@ public class DashboardController : Controller
         return string.IsNullOrWhiteSpace(slug) ? Guid.NewGuid().ToString("n") : slug;
     }
 
-    
+
     private static DateTime? CalculateNextDisplayNameChangeAt(ApplicationUser user)
     {
         var reference = user.DisplayNameLastApprovedAtUtc ?? user.CreatedAtUtc;
@@ -1879,3 +1879,4 @@ public class DashboardController : Controller
 
         return Math.Abs(seed) % ProfileTips.Length;
     }
+}
