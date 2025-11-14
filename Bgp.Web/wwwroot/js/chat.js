@@ -90,7 +90,8 @@
     let pollErrorLogged = false;
     let lastUnreadTotal = 0;
     const windowOrder = [];
-    const MAX_VISIBLE_WINDOWS = 1;
+    const MAX_VISIBLE_WINDOWS_DESKTOP = 4;
+    const MAX_VISIBLE_WINDOWS_MOBILE = 1;
     let activeConversationId = null;
     let popoutConversationId = null;
     let overflowMenuOpen = false;
@@ -204,10 +205,12 @@
     if (mobileSheetQuery && typeof mobileSheetQuery.addEventListener === 'function') {
         mobileSheetQuery.addEventListener('change', () => {
             syncThreadViewState(!mobileSheetQuery.matches);
+            layoutDockWindows();
         });
     } else if (mobileSheetQuery && typeof mobileSheetQuery.addListener === 'function') {
         mobileSheetQuery.addListener(() => {
             syncThreadViewState(!mobileSheetQuery.matches);
+            layoutDockWindows();
         });
     }
 
@@ -321,6 +324,10 @@
 
     function isMobileSheet() {
         return !!(mobileSheetQuery && mobileSheetQuery.matches);
+    }
+
+    function getMaxVisibleWindows() {
+        return isMobileSheet() ? MAX_VISIBLE_WINDOWS_MOBILE : MAX_VISIBLE_WINDOWS_DESKTOP;
     }
 
     function syncThreadViewState(forceList) {
@@ -1013,7 +1020,10 @@
         }
     });
 
-    window.addEventListener('resize', () => closeContextMenu());
+    window.addEventListener('resize', () => {
+        closeContextMenu();
+        layoutDockWindows();
+    });
 
     dock.addEventListener('contextmenu', (evt) => {
         const contactTarget = evt.target.closest('[data-chat-friend]');
@@ -2280,12 +2290,12 @@
     function createConversation(friend, options = {}) {
         const element = document.createElement('section');
         element.className = 'chat-window';
-        element.classList.add('chat-window--collapsed');
         element.dataset.friendId = friend.userId;
 
         const header = document.createElement('div');
         header.className = 'chat-window__header';
         header.dataset.chatWindowHeader = friend.userId;
+        header.setAttribute('aria-expanded', 'false');
 
         const backBtn = document.createElement('button');
         backBtn.type = 'button';
@@ -2355,6 +2365,11 @@
         profileBtn.textContent = '👤';
         profileBtn.addEventListener('click', () => openProfile(friend.userId));
         controls.appendChild(profileBtn);
+
+        const collapseBtn = document.createElement('button');
+        collapseBtn.type = 'button';
+        collapseBtn.className = 'btn-icon';
+        controls.appendChild(collapseBtn);
 
         const popoutBtn = document.createElement('button');
         popoutBtn.type = 'button';
@@ -2469,6 +2484,7 @@
             element,
             body,
             input,
+            header,
             messages: new Map(),
             loaded: false,
             nameEl: name,
@@ -2488,6 +2504,8 @@
             latestMessageId: null,
             lastAttentionMessageId: null,
             archiveBtn,
+            collapseBtn,
+            isCollapsed: true,
             timeline: {
                 lastGroup: null,
                 lastMessageMs: null,
@@ -2496,12 +2514,28 @@
         };
 
         closeBtn.addEventListener('click', (evt) => {
+            evt.preventDefault();
             evt.stopPropagation();
             destroyConversation(conversation);
         });
 
+        collapseBtn.addEventListener('click', (evt) => {
+            evt.preventDefault();
+            evt.stopPropagation();
+            const willCollapse = !conversation.isCollapsed;
+            setConversationCollapsed(conversation, willCollapse);
+            if (!willCollapse) {
+                setActiveConversation(conversation);
+                markThreadRead(friend.userId);
+                if (conversation.input) {
+                    conversation.input.focus();
+                }
+            }
+        });
+
         popoutBtn.addEventListener('click', (evt) => {
             evt.preventDefault();
+            evt.stopPropagation();
             if (popoutConversationId && normalizeId(popoutConversationId) === normalizeId(friend.userId)) {
                 closePopout();
             } else {
@@ -2513,14 +2547,25 @@
             if (evt.target.closest('button')) {
                 return;
             }
-            if (conversation.input) {
-                conversation.input.focus();
+            evt.preventDefault();
+            if (conversation.isCollapsed) {
+                setActiveConversation(conversation);
+                markThreadRead(friend.userId);
+                if (conversation.input) {
+                    conversation.input.focus();
+                }
+            } else {
+                setConversationCollapsed(conversation, true);
             }
-            setActiveConversation(conversation);
-            markThreadRead(friend.userId);
+
         });
 
-        element.addEventListener('mousedown', () => setActiveConversation(conversation));
+        element.addEventListener('mousedown', (evt) => {
+            if (evt.target.closest('.chat-window__header')) {
+                return;
+            }
+            setActiveConversation(conversation);
+        });
 
         const send = async () => {
             const value = input.value;
@@ -2587,6 +2632,9 @@
         });
 
         autoGrowInput(input);
+
+        setConversationCollapsed(conversation, true, { force: true });
+
 
         
         updateConversationHeader(conversation);
@@ -2676,11 +2724,36 @@
         }
     }
 
-    function setConversationCollapsed(conversation, collapsed) {
+    function setConversationCollapsed(conversation, collapsed, options = {}) {
         if (!conversation || !conversation.element) {
             return;
         }
-        conversation.element.classList.toggle('chat-window--collapsed', !!collapsed);
+        const shouldCollapse = !!collapsed;
+        if (conversation.isCollapsed === shouldCollapse && !options.force) {
+            return;
+        }
+        conversation.isCollapsed = shouldCollapse;
+        conversation.element.classList.toggle('chat-window--collapsed', shouldCollapse);
+        if (conversation.header) {
+            conversation.header.setAttribute('aria-expanded', shouldCollapse ? 'false' : 'true');
+        }
+        if (conversation.collapseBtn) {
+            const collapseLabel = shouldCollapse
+                ? (strings.restore || 'Restore chat window')
+                : (strings.minimize || 'Minimize chat window');
+            conversation.collapseBtn.setAttribute('aria-label', collapseLabel);
+            conversation.collapseBtn.title = collapseLabel;
+            conversation.collapseBtn.textContent = shouldCollapse ? '▢' : '–';
+        }
+        if (shouldCollapse && normalizeId(activeConversationId) === normalizeId(conversation.friendId)) {
+            activeConversationId = null;
+            const fallback = findFallbackConversation();
+            if (fallback && fallback !== conversation) {
+                setActiveConversation(fallback);
+                return;
+            }
+        }
+        syncConversationVisibility();
     }
 
     function syncConversationVisibility() {
@@ -2689,18 +2762,33 @@
             if (!conversation || !conversation.element) {
                 return;
             }
-            const inPopout = popoutConversationId && normalizeId(popoutConversationId) === key;
-            const shouldCollapse = !inPopout && (!activeKey || key !== activeKey);
-            setConversationCollapsed(conversation, shouldCollapse);
+            const isActive = !!activeKey && key === activeKey && !conversation.isCollapsed;
+            conversation.element.classList.toggle('chat-window--active', isActive);
+            if (isActive) {
+                conversation.element.style.zIndex = '5';
+            } else if (conversation.element.style.zIndex) {
+                conversation.element.style.zIndex = '';
+            }
         });
     }
 
     function findFallbackConversation() {
         for (let i = windowOrder.length - 1; i >= 0; i -= 1) {
             const id = windowOrder[i];
-            if (id && conversations.has(id)) {
-                return conversations.get(id);
+            if (!id || !conversations.has(id)) {
+                continue;
             }
+            const conversation = conversations.get(id);
+            if (!conversation || conversation.isCollapsed) {
+                continue;
+            }
+            if (conversation.element && conversation.element.classList.contains('chat-window--stacked')) {
+                continue;
+            }
+            if (popoutConversationId && normalizeId(popoutConversationId) === id) {
+                continue;
+            }
+            return conversation;
         }
         return null;
     }
@@ -2711,6 +2799,7 @@
         }
         activeConversationId = conversation.friendId;
         pushWindowToOrder(conversation.friendId);
+        setConversationCollapsed(conversation, false);
         layoutDockWindows();
         syncConversationVisibility();
     }
@@ -2719,7 +2808,11 @@
         if (!activeConversationId) {
             return null;
         }
-        return getConversation(activeConversationId);
+        const conversation = getConversation(activeConversationId);
+        if (conversation && conversation.isCollapsed) {
+            return null;
+        }
+        return conversation;
     }
 
     function registerConversation(conversation) {
@@ -2739,8 +2832,9 @@
         const availableIds = windowOrder.filter((id) => id && conversations.has(id)
             && (!popoutConversationId || normalizeId(popoutConversationId) !== id));
         const total = availableIds.length;
-        const visible = availableIds.slice(Math.max(0, total - MAX_VISIBLE_WINDOWS));
-        const hidden = availableIds.slice(0, Math.max(0, total - MAX_VISIBLE_WINDOWS));
+        const maxVisible = getMaxVisibleWindows();
+        const visible = availableIds.slice(Math.max(0, total - maxVisible));
+        const hidden = availableIds.slice(0, Math.max(0, total - maxVisible));
         visible.forEach((id) => {
             const conversation = conversations.get(id);
             if (conversation && conversation.element) {
@@ -2909,11 +3003,13 @@
         if (!popoutLayer || !popoutBody || !conversation || !conversation.element) {
             return;
         }
+        setConversationCollapsed(conversation, false, { force: true });
         popoutLayer.hidden = false;
         popoutBody.innerHTML = '';
         popoutBody.appendChild(conversation.element);
         conversation.element.classList.add('chat-window--popout');
         popoutConversationId = normalizeId(conversation.friendId);
+        layoutDockWindows();
         syncConversationVisibility();
     }
 
@@ -2970,7 +3066,13 @@
         if (!conversation || !conversation.element) {
             return false;
         }
-        if (conversation.element.classList.contains('chat-window--collapsed')) {
+        if (conversation.element.classList.contains('chat-window--popout')) {
+            return true;
+        }
+        if (conversation.isCollapsed) {
+            return false;
+        }
+        if (conversation.element.classList.contains('chat-window--stacked')) {
             return false;
         }
         if (document.visibilityState === 'hidden') {
