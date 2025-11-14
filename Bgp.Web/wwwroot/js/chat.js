@@ -152,6 +152,10 @@
         searchThreadNext: 'Next',
         searchThreadNone: 'No results',
         collapsePanel: 'Collapse chat list',
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
         expandPanel: 'Expand chat list',
         contextProfile: 'View profile',
         contextAddFriend: 'Add friend',
@@ -170,6 +174,12 @@
         reactionLabel: 'React',
         emojiLabel: 'Emoji',
         attachmentLabel: 'Attachment'
+<<<<<<< HEAD
+=======
+        expandPanel: 'Expand chat list'
+>>>>>>> parent of 5bb4744 (.)
+=======
+>>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
     };
 
     try {
@@ -299,6 +309,10 @@
         setPanelCollapsed(shouldCollapse);
     }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
     function isMobileSheet() {
         return !!(mobileSheetQuery && mobileSheetQuery.matches);
     }
@@ -474,6 +488,11 @@
         contextMenuState = { friendId };
     }
 
+<<<<<<< HEAD
+=======
+>>>>>>> parent of 5bb4744 (.)
+=======
+>>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
     function getLastSeenEntry(friendId) {
         if (!friendId) {
             return null;
@@ -2888,6 +2907,10 @@
         deleteConversation(friendId);
         removeWindowFromOrder(friendId);
         layoutDockWindows();
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
         if (wasActive) {
             activeConversationId = null;
             const fallback = findFallbackConversation();
@@ -2902,6 +2925,11 @@
         if (isMobileSheet() && conversations.size === 0) {
             exitThreadView(true);
         }
+<<<<<<< HEAD
+=======
+>>>>>>> parent of 5bb4744 (.)
+=======
+>>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
     }
 
     function isConversationActive(conversation) {
@@ -3258,6 +3286,8 @@
                 
                 updateFriendVisual(friend);
                 updateUnreadBadge();
+<<<<<<< HEAD
+<<<<<<< HEAD
                 const becameUnread = !wasUnread;
                 if (becameUnread) {
                     announceNewMessage(friend);
@@ -3269,6 +3299,27 @@
                     if (friend.element) {
                         friend.element.classList.add('is-attention');
                     }
+=======
+                if (!wasUnread) {
+                    announceNewMessage(friend);
+                }
+                triggerConversationAttention(conversation, message);
+                if (friend.element) {
+                    friend.element.classList.add('is-attention');
+>>>>>>> parent of 5bb4744 (.)
+=======
+                const becameUnread = !wasUnread;
+                if (becameUnread) {
+                    announceNewMessage(friend);
+                }
+                const shouldSignalAttention = becameUnread && !isConversationActive(conversation);
+                if (shouldSignalAttention) {
+                    friend.lastNotifiedMessageId = message.id || null;
+                    triggerConversationAttention(conversation, message);
+                    if (friend.element) {
+                        friend.element.classList.add('is-attention');
+                    }
+>>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
                 }
                 conversation.unreadBadge = (conversation.unreadBadge || 0) + 1;
                 if (conversation.badgeEl) {

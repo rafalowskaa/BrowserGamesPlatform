@@ -108,12 +108,17 @@
         animation: chatPulse 0.3s ease-out 1;
     }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
 @media (max-width: 1023px) {
     .chat-dock {
         inset: 0;
         align-items: stretch;
         max-width: none;
     }
+<<<<<<< HEAD
 
     .chat-workspace {
         top: auto;
@@ -150,6 +155,61 @@
     .chat-window__back {
         display: inline-flex;
     }
+=======
+.chat-toggle__label {
+    position: absolute;
+    right: 4.25rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.9);
+    color: #f8fafc;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.55);
+    white-space: nowrap;
+}
+=======
+>>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
+
+    .chat-workspace {
+        top: auto;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        transform: translateY(100%);
+    }
+
+    .chat-dock.is-open .chat-workspace {
+        transform: translateY(0);
+    }
+
+    .chat-panel,
+    .chat-dock__windows {
+        width: 100%;
+        min-width: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+
+    .chat-dock:not(.is-thread-view) .chat-dock__windows {
+        display: none;
+    }
+<<<<<<< HEAD
+>>>>>>> parent of 5bb4744 (.)
+=======
+
+    .chat-dock.is-thread-view .chat-panel {
+        display: none;
+    }
+
+    .chat-window__back {
+        display: inline-flex;
+    }
+>>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
 }
 
 .chat-dock__windows {
@@ -1068,6 +1128,10 @@
         resize: none;
     }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
         .chat-window__composer textarea:focus {
             outline: none;
             border-color: rgba(96, 165, 250, 0.55);
@@ -1186,6 +1250,11 @@
     text-align: right;
 }
 
+<<<<<<< HEAD
+=======
+>>>>>>> parent of 5bb4744 (.)
+=======
+>>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
 .chat-message {
     display: inline-flex;
     flex-direction: column;
