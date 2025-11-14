@@ -101,6 +101,9 @@
         : { matches: false, addEventListener: () => { /* noop */ } };
     let threadViewForced = false;
     let contextMenuState = null;
+    let chatInitialized = false;
+    let chatBootstrapPromise = null;
+    let chatBootstrapScheduled = false;
 
     const strings = {
         readReceipt: 'Read at {0}',
@@ -337,6 +340,44 @@
         }
         threadViewForced = true;
         dock.classList.add('is-thread-view');
+    }
+
+    function ensureChatInitialized() {
+        if (chatInitialized) {
+            return Promise.resolve();
+        }
+        if (!chatBootstrapPromise) {
+            chatBootstrapPromise = (async () => {
+                try {
+                    await loadFriends();
+                    await loadSelfStatus();
+                    chatInitialized = true;
+                } catch (err) {
+                    console.warn('Unable to initialize chat immediately.', err);
+                    chatInitialized = false;
+                    throw err;
+                } finally {
+                    ensureConnectionStarted();
+                }
+            })().finally(() => {
+                chatBootstrapPromise = null;
+            });
+        }
+        return chatBootstrapPromise;
+    }
+
+    function scheduleChatInitialization() {
+        if (chatInitialized || chatBootstrapPromise || chatBootstrapScheduled) {
+            return;
+        }
+        chatBootstrapScheduled = true;
+        const schedule = typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function'
+            ? (cb) => window.requestIdleCallback(cb, { timeout: 5000 })
+            : (cb) => window.setTimeout(cb, 2000);
+        schedule(() => {
+            chatBootstrapScheduled = false;
+            ensureChatInitialized().catch(() => { /* handled earlier */ });
+        });
     }
 
     function exitThreadView(forceList) {
@@ -760,6 +801,7 @@
         if (!panel) return;
         const shouldOpen = typeof force === 'boolean' ? force : !dock.classList.contains('is-open');
         if (shouldOpen) {
+            ensureChatInitialized().catch(() => { /* initialization is best-effort */ });
             dock.classList.add('is-open');
             if (toggle) {
                 toggle.setAttribute('aria-expanded', 'true');
@@ -3646,10 +3688,8 @@
         }
     });
 
-    loadSelfStatus();
     if (strangersEmpty) {
         showStrangerMessage(strings.searchHint);
     }
-    loadFriends();
-    ensureConnectionStarted();
+    scheduleChatInitialization();
 })();
