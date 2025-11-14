@@ -58,6 +58,7 @@
         searchThreadPlaceholder = L["Chat_SearchThreadPlaceholder"].Value,
         searchThreadPrev = L["Chat_SearchThreadPrev"].Value,
         searchThreadNext = L["Chat_SearchThreadNext"].Value,
+
         searchThreadNone = L["Chat_SearchThreadNone"].Value,
         collapsePanel = L["Chat_CollapsePanel"].Value,
         expandPanel = L["Chat_ExpandPanel"].Value,
@@ -78,6 +79,7 @@
         readShort = L["Chat_ReadShort"].Value,
         emojiLabel = L["Chat_EmojiLabel"].Value,
         attachmentLabel = L["Chat_AttachmentLabel"].Value
+
     };
 }
 
@@ -122,6 +124,7 @@
             </div>
         </div>
         <div id="chatPanel" class="chat-panel" aria-hidden="true">
+<<<<<<< HEAD
             <header class="chat-panel__header" data-chat-panel-header>
                 <div class="chat-panel__title"
                      data-chat-panel-title
@@ -147,6 +150,16 @@
                         ✕
                     </button>
                 </div>
+=======
+            <header class="chat-panel__header">
+                <strong>@L["Chat_Title"].Value</strong>
+                <button type="button"
+                        class="btn-icon"
+                        data-chat-close
+                        aria-label="@L["Chat_Close"].Value">
+                    ✕
+                </button>
+>>>>>>> parent of 37b62ee (,)
             </header>
             <div class="chat-panel__search">
                 <input id="chatSearch"

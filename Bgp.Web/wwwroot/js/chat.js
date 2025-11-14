@@ -39,8 +39,10 @@
     const statusPresenceDisplay = panel ? panel.querySelector('[data-chat-status-presence]') : null;
     const selfStatusDot = panel ? panel.querySelector('[data-chat-self-dot]') : null;
     const panelHeader = panel ? panel.querySelector('.chat-panel__header') : null;
+
     const panelCollapseToggle = panel ? panel.querySelector('[data-chat-panel-toggle]') : null;
     const panelTitleToggle = panel ? panel.querySelector('[data-chat-panel-title]') : null;
+
     const currentUserId = dock.dataset.chatUser || null;
     const contextMenu = document.createElement('div');
     contextMenu.className = 'chat-context-menu';
@@ -81,7 +83,6 @@
     const STORAGE_LAST_SEEN_KEY = 'bgp.chat.lastSeen';
     const lastSeenMessages = loadLastSeenMessages();
     const STORAGE_ARCHIVED_KEY = 'bgp.chat.archived';
-    const STORAGE_PANEL_STATE_KEY = 'bgp.chat.panelState';
     const archivedThreads = loadArchivedThreads();
     let pollTimer = null;
     let pollInFlight = false;
@@ -94,6 +95,7 @@
     let popoutConversationId = null;
     let overflowMenuOpen = false;
     const emojiPalette = ['😀', '😁', '😂', '😎', '😍', '🤔', '👍', '🎉', '🔥', '❤️', '✅', '❗', '🙌', '🥳', '🤖', '🕹️', '🏆', '⚡'];
+
     const reactionPalette = ['👍', '❤️', '🔥', '😂', '🎉'];
     let panelCollapsedState = loadPanelCollapsedState();
     const mobileSheetQuery = typeof window !== 'undefined'
@@ -104,6 +106,7 @@
     let chatInitialized = false;
     let chatBootstrapPromise = null;
     let chatBootstrapScheduled = false;
+
 
     const strings = {
         readReceipt: 'Read at {0}',
@@ -153,12 +156,11 @@
         searchThreadPlaceholder: 'Search messages…',
         searchThreadPrev: 'Prev',
         searchThreadNext: 'Next',
+
         searchThreadNone: 'No results',
         collapsePanel: 'Collapse chat list',
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
+
+
         expandPanel: 'Expand chat list',
         contextProfile: 'View profile',
         contextAddFriend: 'Add friend',
@@ -177,12 +179,13 @@
         reactionLabel: 'React',
         emojiLabel: 'Emoji',
         attachmentLabel: 'Attachment'
-<<<<<<< HEAD
-=======
+
+
         expandPanel: 'Expand chat list'
->>>>>>> parent of 5bb4744 (.)
-=======
->>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
+
+
+        searchThreadNone: 'No results'
+
     };
 
     try {
@@ -193,6 +196,7 @@
     } catch (err) {
         console.warn('Unable to parse chat strings.', err);
     }
+
 
     syncPanelCollapsedUi(panelCollapsedState);
     syncThreadViewState(false);
@@ -206,6 +210,7 @@
             syncThreadViewState(!mobileSheetQuery.matches);
         });
     }
+
 
     function loadLastSeenMessages() {
         if (typeof window === 'undefined' || !window.localStorage) {
@@ -254,6 +259,7 @@
             console.warn('Unable to persist chat last seen state.', err);
         }
     }
+
 
     function loadPanelCollapsedState() {
         if (typeof window === 'undefined' || !window.localStorage) {
@@ -312,10 +318,7 @@
         setPanelCollapsed(shouldCollapse);
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
+
     function isMobileSheet() {
         return !!(mobileSheetQuery && mobileSheetQuery.matches);
     }
@@ -529,11 +532,6 @@
         contextMenuState = { friendId };
     }
 
-<<<<<<< HEAD
-=======
->>>>>>> parent of 5bb4744 (.)
-=======
->>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
     function getLastSeenEntry(friendId) {
         if (!friendId) {
             return null;
@@ -866,6 +864,7 @@
             togglePanelCollapsed();
         });
     }
+
 
     function focusChatSearch(options = {}) {
         togglePanel(true);
@@ -2949,10 +2948,7 @@
         deleteConversation(friendId);
         removeWindowFromOrder(friendId);
         layoutDockWindows();
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
+
         if (wasActive) {
             activeConversationId = null;
             const fallback = findFallbackConversation();
@@ -2967,11 +2963,7 @@
         if (isMobileSheet() && conversations.size === 0) {
             exitThreadView(true);
         }
-<<<<<<< HEAD
-=======
->>>>>>> parent of 5bb4744 (.)
-=======
->>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
+
     }
 
     function isConversationActive(conversation) {
@@ -3328,8 +3320,7 @@
                 
                 updateFriendVisual(friend);
                 updateUnreadBadge();
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                 const becameUnread = !wasUnread;
                 if (becameUnread) {
                     announceNewMessage(friend);
@@ -3341,16 +3332,14 @@
                     if (friend.element) {
                         friend.element.classList.add('is-attention');
                     }
-=======
+
                 if (!wasUnread) {
                     announceNewMessage(friend);
                 }
                 triggerConversationAttention(conversation, message);
                 if (friend.element) {
                     friend.element.classList.add('is-attention');
->>>>>>> parent of 5bb4744 (.)
-=======
-                const becameUnread = !wasUnread;
+         const becameUnread = !wasUnread;
                 if (becameUnread) {
                     announceNewMessage(friend);
                 }
@@ -3361,7 +3350,7 @@
                     if (friend.element) {
                         friend.element.classList.add('is-attention');
                     }
->>>>>>> b814feacfcefb476099ccfa48c3db60ab54725e4
+
                 }
                 conversation.unreadBadge = (conversation.unreadBadge || 0) + 1;
                 if (conversation.badgeEl) {
