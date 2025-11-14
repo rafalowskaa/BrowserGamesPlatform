@@ -4112,4 +4112,55 @@
 	<data name="Chat_SearchThreadNone" xml:space="preserve">
         <value>No matches</value>
     </data>
+	<data name="Chat_ArchiveBadge" xml:space="preserve">
+        <value>ARCHIVE</value>
+    </data>
+	<data name="Chat_Context_Profile" xml:space="preserve">
+        <value>View profile</value>
+    </data>
+	<data name="Chat_Context_AddFriend" xml:space="preserve">
+        <value>Add friend</value>
+    </data>
+	<data name="Chat_Context_RemoveFriend" xml:space="preserve">
+        <value>Remove friend</value>
+    </data>
+	<data name="Chat_Context_Invite" xml:space="preserve">
+        <value>Invite to game</value>
+    </data>
+	<data name="Chat_Context_Archive" xml:space="preserve">
+        <value>Archive chat</value>
+    </data>
+	<data name="Chat_Context_Restore" xml:space="preserve">
+        <value>Restore chat</value>
+    </data>
+	<data name="Chat_Context_Keep" xml:space="preserve">
+        <value>Keep archived</value>
+    </data>
+	<data name="Chat_Context_Release" xml:space="preserve">
+        <value>Return to active</value>
+    </data>
+	<data name="Chat_Day_Today" xml:space="preserve">
+        <value>Today</value>
+    </data>
+	<data name="Chat_Day_Yesterday" xml:space="preserve">
+        <value>Yesterday</value>
+    </data>
+	<data name="Chat_DeliveredShort" xml:space="preserve">
+        <value>Delivered</value>
+    </data>
+	<data name="Chat_ReadShort" xml:space="preserve">
+        <value>Read</value>
+    </data>
+	<data name="Chat_ThreadBack" xml:space="preserve">
+        <value>Back to chats</value>
+    </data>
+	<data name="Chat_ReactionLabel" xml:space="preserve">
+        <value>React</value>
+    </data>
+	<data name="Chat_EmojiLabel" xml:space="preserve">
+        <value>Emoji</value>
+    </data>
+	<data name="Chat_AttachmentLabel" xml:space="preserve">
+        <value>Attachment</value>
+    </data>
 </root>

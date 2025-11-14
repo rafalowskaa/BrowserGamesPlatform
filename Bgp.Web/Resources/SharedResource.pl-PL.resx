@@ -2960,5 +2960,56 @@
     </data>
         <data name="Chat_SearchThreadNone" xml:space="preserve">
         <value>Brak wyników</value>
+			</data>
+		<data name="Chat_ArchiveBadge" xml:space="preserve">
+        <value>ARCHIWUM</value>
+    </data>
+		<data name="Chat_Context_Profile" xml:space="preserve">
+        <value>Zobacz profil</value>
+    </data>
+		<data name="Chat_Context_AddFriend" xml:space="preserve">
+        <value>Dodaj znajomego</value>
+    </data>
+		<data name="Chat_Context_RemoveFriend" xml:space="preserve">
+        <value>Usuń ze znajomych</value>
+    </data>
+		<data name="Chat_Context_Invite" xml:space="preserve">
+        <value>Zaproś do gry</value>
+    </data>
+		<data name="Chat_Context_Archive" xml:space="preserve">
+        <value>Archiwizuj czat</value>
+    </data>
+		<data name="Chat_Context_Restore" xml:space="preserve">
+        <value>Przywróć czat</value>
+    </data>
+		<data name="Chat_Context_Keep" xml:space="preserve">
+        <value>Pozostaw w archiwum</value>
+    </data>
+		<data name="Chat_Context_Release" xml:space="preserve">
+        <value>Przywróć do aktywnych</value>
+    </data>
+		<data name="Chat_Day_Today" xml:space="preserve">
+        <value>Dzisiaj</value>
+    </data>
+		<data name="Chat_Day_Yesterday" xml:space="preserve">
+        <value>Wczoraj</value>
+    </data>
+		<data name="Chat_DeliveredShort" xml:space="preserve">
+        <value>Dostarczono</value>
+    </data>
+		<data name="Chat_ReadShort" xml:space="preserve">
+        <value>Przeczytano</value>
+    </data>
+		<data name="Chat_ThreadBack" xml:space="preserve">
+        <value>Wróć do listy</value>
+    </data>
+		<data name="Chat_ReactionLabel" xml:space="preserve">
+        <value>Zareaguj</value>
+    </data>
+		<data name="Chat_EmojiLabel" xml:space="preserve">
+        <value>Emoji</value>
+    </data>
+		<data name="Chat_AttachmentLabel" xml:space="preserve">
+        <value>Załącznik</value>
     </data>
 </root>

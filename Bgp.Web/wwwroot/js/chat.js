@@ -157,10 +157,6 @@
         contextAddFriend: 'Add friend',
         contextRemoveFriend: 'Remove friend',
         contextInvite: 'Invite to game',
-        contextReport: 'Report',
-        contextBlock: 'Block',
-        contextUnblock: 'Unblock',
-        contextGroup: 'Start group chat',
         contextArchive: 'Archive',
         contextRestore: 'Restore',
         contextKeep: 'Keep archived',
@@ -171,7 +167,9 @@
         deliveredShort: 'Delivered',
         readShort: 'Read',
         threadBack: 'Back to list',
-        reactionLabel: 'React'
+        reactionLabel: 'React',
+        emojiLabel: 'Emoji',
+        attachmentLabel: 'Attachment'
     };
 
     try {
@@ -351,6 +349,44 @@
         contextMenuState = null;
     }
 
+    async function sendFriendRequest(userId) {
+        if (!userId) {
+            return;
+        }
+        try {
+            const res = await fetch('/api/friends/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ targetUserId: userId })
+            });
+            if (!res.ok && res.status !== 409) {
+                throw new Error('Request failed');
+            }
+        } catch (err) {
+            console.error('Unable to send friend request.', err);
+        }
+        await loadFriends();
+    }
+
+    async function removeFriendship(userId) {
+        if (!userId) {
+            return;
+        }
+        try {
+            const res = await fetch(`/api/friends/${encodeURIComponent(userId)}`, {
+                method: 'DELETE',
+                credentials: 'same-origin'
+            });
+            if (!res.ok && res.status !== 404) {
+                throw new Error('Request failed');
+            }
+        } catch (err) {
+            console.error('Unable to remove friend.', err);
+        }
+        await loadFriends();
+    }
+
     function buildContextMenuItems(friend) {
         if (!friend) {
             return [];
@@ -358,7 +394,6 @@
         const isFriend = friend.isFriend === true;
         const isArchived = friend.isArchived === true;
         const keepArchived = !!friend.keepArchived;
-        const isBlocked = friend.isBlocked === true;
         const items = [];
         items.push({
             key: 'profile',
@@ -370,44 +405,31 @@
             label: isFriend
                 ? (strings.contextRemoveFriend || 'Remove friend')
                 : (strings.contextAddFriend || 'Add friend'),
-            action: () => dispatchChatEvent(isFriend ? 'removeFriend' : 'addFriend', { friendId: friend.userId })
+            action: () => (isFriend ? removeFriendship(friend.userId) : sendFriendRequest(friend.userId))
         });
         items.push({
             key: 'invite',
             label: strings.contextInvite || strings.invite,
             action: () => dispatchInvite(friend.userId, friend.displayName)
         });
-        items.push({
-            key: 'report',
-            label: strings.contextReport || 'Report',
-            action: () => dispatchChatEvent('report', { friendId: friend.userId })
-        });
-        items.push({
-            key: 'block',
-            label: isBlocked ? (strings.contextUnblock || 'Unblock') : (strings.contextBlock || 'Block'),
-            action: () => dispatchChatEvent(isBlocked ? 'unblock' : 'block', { friendId: friend.userId })
-        });
-        items.push({
-            key: 'group',
-            label: strings.contextGroup || 'Start group chat',
-            action: () => dispatchChatEvent('group', { friendId: friend.userId })
-        });
-        const archiveLabel = isArchived
-            ? (strings.contextRestore || strings.unarchive)
-            : (strings.contextArchive || strings.archive);
-        items.push({
-            key: 'archive',
-            label: archiveLabel,
-            action: () => toggleFriendArchive(friend.userId)
-        });
-        if (isArchived) {
+        if (isFriend) {
+            const archiveLabel = isArchived
+                ? (strings.contextRestore || strings.unarchive)
+                : (strings.contextArchive || strings.archive);
             items.push({
-                key: 'keep',
-                label: keepArchived
-                    ? (strings.contextRelease || strings.releaseArchived)
-                    : (strings.contextKeep || strings.keepArchived),
-                action: () => toggleFriendKeepArchived(friend.userId)
+                key: 'archive',
+                label: archiveLabel,
+                action: () => toggleFriendArchive(friend.userId)
             });
+            if (isArchived) {
+                items.push({
+                    key: 'keep',
+                    label: keepArchived
+                        ? (strings.contextRelease || strings.releaseArchived)
+                        : (strings.contextKeep || strings.keepArchived),
+                    action: () => toggleFriendKeepArchived(friend.userId)
+                });
+            }
         }
         return items;
     }
@@ -2189,6 +2211,8 @@
             if (conversation.input) {
                 conversation.input.focus();
             }
+        } else {
+            syncConversationVisibility();
         }
         return conversation;
     }
@@ -2196,6 +2220,7 @@
     function createConversation(friend, options = {}) {
         const element = document.createElement('section');
         element.className = 'chat-window';
+        element.classList.add('chat-window--collapsed');
         element.dataset.friendId = friend.userId;
 
         const header = document.createElement('div');
@@ -2321,32 +2346,38 @@
         const inputWrap = document.createElement('div');
         inputWrap.className = 'chat-window__input';
 
+        const composer = document.createElement('div');
+        composer.className = 'chat-window__composer';
+
         const input = document.createElement('textarea');
         input.rows = 1;
         input.autocomplete = 'off';
         input.maxLength = 2000;
         input.placeholder = strings.writePlaceholder;
+        composer.appendChild(input);
+
+        const sendBtn = document.createElement('button');
+        sendBtn.type = 'button';
+        sendBtn.className = 'chat-window__send';
+        sendBtn.setAttribute('aria-label', strings.send);
+        sendBtn.title = strings.send;
+        sendBtn.innerHTML = '➤';
+        composer.appendChild(sendBtn);
 
         const actions = document.createElement('div');
         actions.className = 'chat-window__actions';
 
         const emojiBtn = document.createElement('button');
         emojiBtn.type = 'button';
-        emojiBtn.title = 'Emoji';
+        emojiBtn.title = strings.emojiLabel || 'Emoji';
         emojiBtn.textContent = '🙂';
         actions.appendChild(emojiBtn);
 
         const attachBtn = document.createElement('button');
         attachBtn.type = 'button';
-        attachBtn.title = 'Attachment';
+        attachBtn.title = strings.attachmentLabel || 'Attachment';
         attachBtn.textContent = '📎';
         actions.appendChild(attachBtn);
-
-        const sendBtn = document.createElement('button');
-        sendBtn.type = 'button';
-        sendBtn.className = 'btn-primary btn-compact';
-        sendBtn.textContent = strings.send;
-        actions.appendChild(sendBtn);
 
         const emojiPicker = document.createElement('div');
         emojiPicker.className = 'chat-emoji-picker';
@@ -2364,7 +2395,7 @@
             emojiPicker.appendChild(option);
         });
 
-        inputWrap.appendChild(input);
+        inputWrap.appendChild(composer);
         inputWrap.appendChild(actions);
         inputWrap.appendChild(emojiPicker);
 
@@ -2585,6 +2616,35 @@
         }
     }
 
+    function setConversationCollapsed(conversation, collapsed) {
+        if (!conversation || !conversation.element) {
+            return;
+        }
+        conversation.element.classList.toggle('chat-window--collapsed', !!collapsed);
+    }
+
+    function syncConversationVisibility() {
+        const activeKey = normalizeId(activeConversationId);
+        conversations.forEach((conversation, key) => {
+            if (!conversation || !conversation.element) {
+                return;
+            }
+            const inPopout = popoutConversationId && normalizeId(popoutConversationId) === key;
+            const shouldCollapse = !inPopout && (!activeKey || key !== activeKey);
+            setConversationCollapsed(conversation, shouldCollapse);
+        });
+    }
+
+    function findFallbackConversation() {
+        for (let i = windowOrder.length - 1; i >= 0; i -= 1) {
+            const id = windowOrder[i];
+            if (id && conversations.has(id)) {
+                return conversations.get(id);
+            }
+        }
+        return null;
+    }
+
     function setActiveConversation(conversation) {
         if (!conversation) {
             return;
@@ -2592,6 +2652,7 @@
         activeConversationId = conversation.friendId;
         pushWindowToOrder(conversation.friendId);
         layoutDockWindows();
+        syncConversationVisibility();
     }
 
     function getActiveConversation() {
@@ -2608,6 +2669,7 @@
         windowsContainer.appendChild(conversation.element);
         pushWindowToOrder(conversation.friendId);
         layoutDockWindows();
+        syncConversationVisibility();
     }
 
     function layoutDockWindows() {
@@ -2645,6 +2707,7 @@
             overflowToggle.setAttribute('aria-expanded', overflowMenuOpen ? 'true' : 'false');
         }
         updateOverflowMenu(hidden);
+        syncConversationVisibility();
     }
 
     function updateOverflowMenu(hiddenIds) {
@@ -2791,6 +2854,7 @@
         popoutBody.appendChild(conversation.element);
         conversation.element.classList.add('chat-window--popout');
         popoutConversationId = normalizeId(conversation.friendId);
+        syncConversationVisibility();
     }
 
     function closePopout() {
@@ -2805,6 +2869,7 @@
         popoutLayer.hidden = true;
         popoutConversationId = null;
         layoutDockWindows();
+        syncConversationVisibility();
     }
 
     function destroyConversation(conversation) {
@@ -2812,7 +2877,9 @@
             return;
         }
         const friendId = conversation.friendId;
-        if (popoutConversationId && normalizeId(popoutConversationId) === normalizeId(friendId)) {
+        const normalizedFriendId = normalizeId(friendId);
+        const wasActive = normalizedFriendId && normalizeId(activeConversationId) === normalizedFriendId;
+        if (popoutConversationId && normalizeId(popoutConversationId) === normalizedFriendId) {
             closePopout();
         }
         if (conversation.element) {
@@ -2821,6 +2888,17 @@
         deleteConversation(friendId);
         removeWindowFromOrder(friendId);
         layoutDockWindows();
+        if (wasActive) {
+            activeConversationId = null;
+            const fallback = findFallbackConversation();
+            if (fallback) {
+                setActiveConversation(fallback);
+            } else {
+                syncConversationVisibility();
+            }
+        } else {
+            syncConversationVisibility();
+        }
         if (isMobileSheet() && conversations.size === 0) {
             exitThreadView(true);
         }
@@ -3180,12 +3258,13 @@
                 
                 updateFriendVisual(friend);
                 updateUnreadBadge();
-                const alreadyNotified = friend.lastNotifiedMessageId === message.id;
-                if (!wasUnread) {
+                const becameUnread = !wasUnread;
+                if (becameUnread) {
                     announceNewMessage(friend);
                 }
-                if (!alreadyNotified && !isConversationActive(conversation)) {
-                    friend.lastNotifiedMessageId = message.id || friend.lastNotifiedMessageId || null;
+                const shouldSignalAttention = becameUnread && !isConversationActive(conversation);
+                if (shouldSignalAttention) {
+                    friend.lastNotifiedMessageId = message.id || null;
                     triggerConversationAttention(conversation, message);
                     if (friend.element) {
                         friend.element.classList.add('is-attention');
