@@ -145,6 +145,9 @@ namespace Bgp.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(1);
 
+                    b.Property<DateTime?>("RejectedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(140)
@@ -711,8 +714,8 @@ namespace Bgp.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StatusMessage")
-                        .HasMaxLength(160)
-                        .HasColumnType("nvarchar(160)");
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");

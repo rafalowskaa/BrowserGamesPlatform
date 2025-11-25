@@ -87,6 +87,7 @@ public record AdminGameRowViewModel(
     string Slug,
     string Owner,
     DateTime CreatedAtUtc,
+    DateTime? RejectedAtUtc,
     GameApprovalStatus Status,
     string? ModerationNotes,
     GameCategory ProposedCategories,

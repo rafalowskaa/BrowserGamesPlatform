@@ -761,6 +761,7 @@ public class DashboardController : Controller
                 g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0.0,
                 g.ApprovalStatus,
                 g.CreatedAtUtc,
+                g.RejectedAtUtc,
                 g.ModerationNotes))
             .ToListAsync();
 
@@ -776,6 +777,7 @@ public class DashboardController : Controller
                 g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0.0,
                 g.ApprovalStatus,
                 g.CreatedAtUtc,
+                g.RejectedAtUtc,
                 g.ModerationNotes))
             .ToListAsync();
 

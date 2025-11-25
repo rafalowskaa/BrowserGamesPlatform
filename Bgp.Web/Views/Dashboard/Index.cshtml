@@ -1,6 +1,7 @@
 ﻿﻿@using System.Globalization
 @using System.Linq
 @using System.Text.Json
+@using Bgp.Domain.Constants
 @using Bgp.Domain.Enums
 @using Bgp.Web.Helpers
 @using Bgp.Web.Models
@@ -44,6 +45,29 @@
         GameApprovalStatus.Rejected => L["Dashboard_Games_Status_Rejected"].Value,
         _ => L["Dashboard_Games_Status_Pending"].Value
     };
+    var rejectionTemplate = L["Games_Rejected_RemovalCountdown"].Value;
+
+    string? BuildRejectionTooltip(GameApprovalStatus status, DateTime? rejectedAtUtc)
+    {
+        var deadline = GetRejectionDeadline(status, rejectedAtUtc);
+        if (deadline is null)
+        {
+            return null;
+        }
+
+        var daysRemaining = Math.Max(0, (int)Math.Ceiling((deadline.Value - DateTime.UtcNow).TotalDays));
+        return string.Format(L["Games_Rejected_RemovalCountdown"].Value, daysRemaining);
+    }
+
+    DateTime? GetRejectionDeadline(GameApprovalStatus status, DateTime? rejectedAtUtc)
+    {
+        if (status != GameApprovalStatus.Rejected || rejectedAtUtc is null)
+        {
+            return null;
+        }
+
+        return rejectedAtUtc.Value.Add(GameModerationSettings.RejectedRetentionPeriod);
+    }
 }
 <section class="dashboard">
     <header class="dashboard-header">
@@ -248,6 +272,9 @@
                             <tbody>
                                 @foreach (var game in Model.MyGames)
                                 {
+                                    var rejectionDeadline = GetRejectionDeadline(game.ApprovalStatus, game.RejectedAtUtc);
+                                    var rejectionDeadlineValue = rejectionDeadline?.ToString("O");
+                                    var rejectionTooltip = BuildRejectionTooltip(game.ApprovalStatus, game.RejectedAtUtc);
                                     <tr>
                                         <td>
                                             <strong>@game.Title</strong>
@@ -257,7 +284,10 @@
                                                 <div class="game-note">@game.ModerationNotes</div>
                                             }
                                         </td>
-                                        <td><span class="status-pill @StatusClass(game.ApprovalStatus)">@StatusLabel(game.ApprovalStatus)</span></td>
+                                        <td><span class="status-pill @StatusClass(game.ApprovalStatus)"
+                                                  data-rejection-template="@rejectionTemplate"
+                                                  data-rejection-deadline="@rejectionDeadlineValue"
+                                                  title="@(rejectionTooltip ?? string.Empty)">@StatusLabel(game.ApprovalStatus)</span></td>
                                         <td>@game.CreatedAtUtc.ToLocalTime().ToString("g")</td>
                                         <td>@string.Format("{0:0.0}", game.AverageRating)</td>
                                     </tr>

@@ -493,6 +493,8 @@
                 moderationRejectSuccess: this.root.dataset.moderationRejectSuccess || 'Game rejected.',
                 moderationError: this.root.dataset.moderationError || 'Failed to update game status.'
             };
+            this.rejectionTemplate = this.root.dataset.rejectionTemplate || '';
+            this.rejectionRetentionDays = Number(this.root.dataset.rejectionRetentionDays) || 14;
             this.successMessage = this.root.dataset.successMessage;
             this.errorMessage = this.root.dataset.errorMessage;
             this.emptyLabel = this.root.dataset.emptyLabel || '';
@@ -559,12 +561,16 @@
             this.setupChips();
             this.bind();
             this.showInitialToasts();
+            if (window.Bgp?.initRejectionCountdowns) {
+                window.Bgp.initRejectionCountdowns(this.root);
+            }
         }
         initializeGames(games) {
             games.forEach(game => {
                 const normalized = {
                     ...game,
                     createdAtUtc: game.createdAtUtc ? new Date(game.createdAtUtc) : null,
+                    rejectedAtUtc: game.rejectedAtUtc ? new Date(game.rejectedAtUtc) : null,
                     categories: (game.categories || []).map(Number),
                     proposedCategories: (game.proposedCategories || []).map(Number),
                     rejectedCategories: [],
@@ -1198,6 +1204,19 @@
             if (statusCell) {
                 statusCell.textContent = this.statusLabels[game.status] || game.status;
                 statusCell.className = `status-pill status-${String(game.status).toLowerCase()}`;
+                if (game.status === 'Rejected' && game.rejectedAtUtc) {
+                    const deadline = new Date(game.rejectedAtUtc);
+                    deadline.setDate(deadline.getDate() + this.rejectionRetentionDays);
+                    statusCell.dataset.rejectionDeadline = deadline.toISOString();
+                    statusCell.dataset.rejectionTemplate = this.rejectionTemplate;
+                    if (window.Bgp?.updateRejectionCountdown) {
+                        window.Bgp.updateRejectionCountdown(statusCell);
+                    }
+                } else {
+                    delete statusCell.dataset.rejectionDeadline;
+                    delete statusCell.dataset.rejectionTemplate;
+                    statusCell.title = '';
+                }
             }
 
             
@@ -1243,6 +1262,7 @@
                 const game = this.games.get(String(targetId));
                 if (game) {
                     game.status = action === 'approve' ? 'Approved' : 'Rejected';
+                    game.rejectedAtUtc = action === 'reject' ? new Date() : null;
                     if (action === 'reject' && this.rejectNotes) {
                         game.moderationNotes = this.rejectNotes.value || null;
                     } else if (action === 'approve') {

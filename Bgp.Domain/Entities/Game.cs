@@ -36,6 +36,8 @@ public class Game : IAggregateRoot
     [MaxLength(500)]
     public string? ModerationNotes { get; set; }
 
+    public DateTime? RejectedAtUtc { get; set; }
+
     public DateTime? ApprovedAtUtc { get; set; }
 
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;

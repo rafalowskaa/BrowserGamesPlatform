@@ -622,6 +622,9 @@
 	<data name="Dashboard_Games_Status_Rejected" xml:space="preserve">
     <value>Rejected</value>
   </data>
+	<data name="Games_Rejected_RemovalCountdown" xml:space="preserve">
+    <value>The game will be permanently deleted in {0} days</value>
+  </data>
 	<data name="Dashboard_Profile_RankProgress" xml:space="preserve">
     <value>{0} XP to the next rank</value>
   </data>
@@ -2884,16 +2887,16 @@
     <value>Unable to load trending games right now.</value>
   </data>
 	<data name="Admin_Games_Delete" xml:space="preserve">
-    <value>Delete</value>
+    <value>Reject</value>
   </data>
 	<data name="Admin_Games_Delete_Confirm" xml:space="preserve">
-    <value>Are you sure you want to permanently delete this game?</value>
+    <value>Reject this game? It will be removed after the 14-day retention period.</value>
   </data>
 	<data name="Admin_Games_Delete_Success" xml:space="preserve">
-    <value>The game has been deleted.</value>
+    <value>The game was rejected and will be removed after the retention window.</value>
   </data>
 	<data name="Admin_Games_Delete_Error" xml:space="preserve">
-    <value>Unable to delete the selected game.</value>
+    <value>Unable to reject the selected game.</value>
   </data>
 	<data name="Home_Dashboard_Events_Title" xml:space="preserve">
     <value>Season events</value>

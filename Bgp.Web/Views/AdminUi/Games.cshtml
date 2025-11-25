@@ -1,5 +1,6 @@
 ﻿@using System.Text.Json
 @using System.Text.Json.Serialization
+@using Bgp.Domain.Constants
 @using Bgp.Domain.Enums
 @using Bgp.Web.Helpers
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
@@ -44,6 +45,28 @@
     
     string FormatDate(DateTime date) => date.ToLocalTime().ToString("g");
 
+    string? BuildRejectionTooltip(GameApprovalStatus status, DateTime? rejectedAtUtc)
+    {
+        var deadline = GetRejectionDeadline(status, rejectedAtUtc);
+        if (deadline is null)
+        {
+            return null;
+        }
+
+        var daysRemaining = Math.Max(0, (int)Math.Ceiling((deadline.Value - DateTime.UtcNow).TotalDays));
+        return string.Format(L["Games_Rejected_RemovalCountdown"].Value, daysRemaining);
+    }
+
+    DateTime? GetRejectionDeadline(GameApprovalStatus status, DateTime? rejectedAtUtc)
+    {
+        if (status != GameApprovalStatus.Rejected || rejectedAtUtc is null)
+        {
+            return null;
+        }
+
+        return rejectedAtUtc.Value.Add(GameModerationSettings.RejectedRetentionPeriod);
+    }
+
     var serializerOptions = new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -57,6 +80,7 @@
         slug = game.Slug,
         owner = game.Owner,
         createdAtUtc = game.CreatedAtUtc,
+        rejectedAtUtc = game.RejectedAtUtc,
         status = game.Status,
         moderationNotes = game.ModerationNotes,
         proposedCategories = ExtractCategoryValues(game.ProposedCategories),
@@ -78,6 +102,8 @@
 
     var statusLabels = statuses
         .ToDictionary(status => status.ToString(), status => L[$"Dashboard_Games_Status_{status}"].Value);
+    
+    var rejectionTemplate = L["Games_Rejected_RemovalCountdown"].Value;
 
     var antiforgeryTokens = Antiforgery.GetAndStoreTokens(Context);
     var antiForgeryFieldName = antiforgeryTokens.FormFieldName;
@@ -119,6 +145,8 @@
          data-category-options='@Html.Raw(JsonSerializer.Serialize(categoryOptions, serializerOptions))'
          data-mode-options='@Html.Raw(JsonSerializer.Serialize(modeOptions, serializerOptions))'
          data-status-labels='@Html.Raw(JsonSerializer.Serialize(statusLabels, serializerOptions))'
+         data-rejection-template="@rejectionTemplate"
+         data-rejection-retention-days="@GameModerationSettings.RejectedRetentionPeriod.TotalDays"
          data-success-message="@successMessage"
          data-error-message="@errorMessage"
          data-anti-forgery-field="@antiForgeryFieldName"
@@ -179,6 +207,9 @@
             {
                 foreach (var game in Model.Games)
                 {
+                    var rejectionDeadline = GetRejectionDeadline(game.Status, game.RejectedAtUtc);
+                    var rejectionTooltip = BuildRejectionTooltip(game.Status, game.RejectedAtUtc);
+                    var rejectionDeadlineValue = rejectionDeadline?.ToString("O");
                     <div class="admin-games__row" role="row" data-game-row data-game-id="@game.Id" tabindex="0">
                         <div class="cell cell--checkbox" role="gridcell">
                             <label class="admin-checkbox">
@@ -194,7 +225,10 @@
                         <div class="cell cell--owner" role="gridcell">@game.Owner</div>
                         <div class="cell cell--submitted" role="gridcell">@FormatDate(game.CreatedAtUtc)</div>
                         <div class="cell cell--status" role="gridcell">
-                            <span class="status-pill @($"status-{game.Status.ToString().ToLowerInvariant()}")">@FormatStatus(game.Status)</span>
+                             <span class="status-pill @($"status-{game.Status.ToString().ToLowerInvariant()}")"
+                                  data-rejection-template="@rejectionTemplate"
+                                  data-rejection-deadline="@rejectionDeadlineValue"
+                                  title="@(rejectionTooltip ?? string.Empty)">@FormatStatus(game.Status)</span>
                         </div>
                         
                         <div class="cell cell--actions" role="gridcell">

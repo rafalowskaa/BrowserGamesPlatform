@@ -38,6 +38,53 @@
             }
         });
     });
+
+    function updateRejectionCountdown(element) {
+        if (!element) {
+            return;
+        }
+        var template = element.getAttribute('data-rejection-template') || '';
+        var deadlineValue = element.getAttribute('data-rejection-deadline');
+        if (!template || !deadlineValue) {
+            element.removeAttribute('title');
+            return;
+        }
+        var deadline = new Date(deadlineValue);
+        if (isNaN(deadline.getTime())) {
+            element.removeAttribute('title');
+            return;
+        }
+        var now = new Date();
+        var remainingMs = deadline.getTime() - now.getTime();
+        var daysRemaining = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24)));
+        element.title = template.replace('{0}', daysRemaining);
+    }
+
+    function initRejectionCountdowns(root) {
+        var scope = root || document;
+        var marker = '__bgpRejectionTimer';
+        if (scope[marker]) {
+            return;
+        }
+        var items = scope.querySelectorAll('[data-rejection-deadline]');
+        if (!items.length) {
+            return;
+        }
+        var tick = function () { items.forEach(updateRejectionCountdown); };
+        tick();
+        var interval = setInterval(tick, 60 * 60 * 1000);
+        scope[marker] = interval;
+        window.addEventListener('beforeunload', function () {
+            clearInterval(interval);
+        }, { once: true });
+    }
+
+    window.Bgp.updateRejectionCountdown = updateRejectionCountdown;
+    window.Bgp.initRejectionCountdowns = initRejectionCountdowns;
+
+    initRejectionCountdowns();
+
+
     function initSecurityQuestions(container) {
         if (!container) {
             return;

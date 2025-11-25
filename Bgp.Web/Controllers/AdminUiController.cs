@@ -718,6 +718,7 @@ public class AdminUiController : Controller
                 g.CreatedByUserId,
                 g.Description,
                 g.CoverImagePath,
+                g.RejectedAtUtc,
                 g.ProposedCategories,
                 g.Categories,
                 g.ProposedModes,
@@ -741,6 +742,7 @@ public class AdminUiController : Controller
                 g.Slug,
                 ownerMap.GetValueOrDefault(g.CreatedByUserId, g.CreatedByUserId.ToUpperInvariant()),
                 g.CreatedAtUtc,
+                g.RejectedAtUtc,
                 g.ApprovalStatus,
                 g.ModerationNotes,
                 g.ProposedCategories,
@@ -772,6 +774,7 @@ public class AdminUiController : Controller
 
         game.ApprovalStatus = GameApprovalStatus.Approved;
         game.ApprovedAtUtc = DateTime.UtcNow;
+        game.RejectedAtUtc = null;
         game.ModerationNotes = null;
         await _db.SaveChangesAsync();
 
@@ -977,6 +980,8 @@ public class AdminUiController : Controller
         game.ApprovalStatus = GameApprovalStatus.Rejected;
         game.ModerationNotes = string.IsNullOrWhiteSpace(input.Notes) ? null : input.Notes.Trim();
         game.ApprovedAtUtc = null;
+        game.RejectedAtUtc = DateTime.UtcNow;
+        game.UpdatedAtUtc = DateTime.UtcNow;
         await _db.SaveChangesAsync();
 
         TempData["AdminGamesSuccess"] = "Admin_Games_Reject_Success";
@@ -1488,7 +1493,10 @@ public class AdminUiController : Controller
             return RedirectToAction(nameof(Games));
         }
 
-        _db.Games.Remove(game);
+        game.ApprovalStatus = GameApprovalStatus.Rejected;
+        game.ApprovedAtUtc = null;
+        game.RejectedAtUtc = game.RejectedAtUtc ?? DateTime.UtcNow;
+        game.UpdatedAtUtc = DateTime.UtcNow;
         await _db.SaveChangesAsync();
 
         TempData["AdminGamesSuccess"] = "Admin_Games_Delete_Success";

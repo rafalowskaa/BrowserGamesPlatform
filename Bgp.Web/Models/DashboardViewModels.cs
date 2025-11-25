@@ -24,7 +24,7 @@ public class DashboardViewModel
     public FriendLeaderboardCollectionViewModel FriendLeaderboards { get; init; } = new();
 }
 
-public record GameSummaryViewModel(Guid Id, string Title, string Slug, string? CoverImagePath, double AverageRating, GameApprovalStatus ApprovalStatus, DateTime CreatedAtUtc, string? ModerationNotes);
+public record GameSummaryViewModel(Guid Id, string Title, string Slug, string? CoverImagePath, double AverageRating, GameApprovalStatus ApprovalStatus, DateTime CreatedAtUtc, DateTime? RejectedAtUtc, string? ModerationNotes);
 
 public class ProfileSectionViewModel
 {

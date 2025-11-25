@@ -42,6 +42,7 @@ builder.Services.AddScoped<IChatMessageService, ChatMessageService>();
 builder.Services.AddScoped<IGameContentResolver, GameContentResolver>();
 builder.Services.AddScoped<HomeContentService>();
 builder.Services.AddSingleton<IMatchmakingService, InMemoryMatchmakingService>();
+builder.Services.AddHostedService<RejectedGamesCleanupService>();
 builder.Services.Configure<BrandingOptions>(builder.Configuration.GetSection("Branding"));
 builder.Services.Configure<HomeContentOptions>(builder.Configuration.GetSection("HomeContent"));
 builder.Services.PostConfigure<BrandingOptions>(options =>
