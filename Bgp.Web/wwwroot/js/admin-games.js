@@ -607,11 +607,11 @@
 
         bind() {
             this.list?.addEventListener('click', (event) => {
-                const previewButton = event.target.closest('[data-preview-button]');
-                if (previewButton) {
-                    const row = previewButton.closest('[data-game-row]');
+                const approveButton = event.target.closest('[data-approve-button]');
+                if (approveButton) {
+                    const row = approveButton.closest('[data-game-row]');
                     if (row) {
-                        this.openPreview(row.dataset.gameId);
+                        this.processModeration('approve', row.dataset.gameId);
                     }
                     return;
                 }
