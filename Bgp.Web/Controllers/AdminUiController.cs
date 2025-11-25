@@ -541,7 +541,10 @@ public class AdminUiController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> GrantExperience(AdminGrantExperienceInputModel input, string? search)
     {
-        if (!ModelState.IsValid || input.Amount <= 0)
+        var normalizedAmount = Math.Max(0, input.Amount);
+
+        if (!ModelState.IsValid ||
+            (input.Operation != GrantExperienceOperation.Set && normalizedAmount <= 0))
         {
             TempData["AdminUsersError"] = "Admin_Users_Xp_Error";
             return RedirectToUsers(search);
@@ -554,7 +557,22 @@ public class AdminUiController : Controller
             return RedirectToUsers(search);
         }
 
-        user.BonusExperience += input.Amount;
+        var original = user.BonusExperience;
+        switch (input.Operation)
+        {
+            case GrantExperienceOperation.Add:
+                user.BonusExperience += normalizedAmount;
+                break;
+            case GrantExperienceOperation.Remove:
+                user.BonusExperience = Math.Max(0, user.BonusExperience - normalizedAmount);
+                break;
+            case GrantExperienceOperation.Set:
+                user.BonusExperience = normalizedAmount;
+                break;
+            default:
+                TempData["AdminUsersError"] = "Admin_Users_Xp_Error";
+                return RedirectToUsers(search);
+        }
         var result = await _users.UpdateAsync(user);
         if (!result.Succeeded)
         {
@@ -562,7 +580,13 @@ public class AdminUiController : Controller
             return RedirectToUsers(search);
         }
 
-        _logger.LogInformation("Granted {Amount} XP to user {UserId}. Reason: {Reason}", input.Amount, user.Id, input.Reason);
+        _logger.LogInformation("Updated XP for user {UserId} via {Operation} (delta: {Amount}, original: {Original}, new: {NewValue}). Reason: {Reason}",
+             user.Id,
+             input.Operation,
+             normalizedAmount,
+             original,
+             user.BonusExperience,
+             input.Reason);
         TempData["AdminUsersSuccess"] = "Admin_Users_Xp_Success";
         return RedirectToUsers(search);
     }
@@ -716,6 +740,7 @@ public class AdminUiController : Controller
                 g.ApprovalStatus,
                 g.ModerationNotes,
                 g.CreatedByUserId,
+                g.Rules,
                 g.Description,
                 g.CoverImagePath,
                 g.RejectedAtUtc,
@@ -750,6 +775,7 @@ public class AdminUiController : Controller
                 g.ProposedModes,
                 g.Modes,
                 g.Description,
+                g.Rules,
                 g.CoverImagePath,
                 g.Tags.Select(t => new AdminGameTagViewModel(t.Id, t.Value, t.IsApproved, t.ReviewedAtUtc is null)).ToList())).ToList(),
             Filter = filter,
@@ -893,6 +919,7 @@ public class AdminUiController : Controller
         game.Title = title;
         game.Slug = normalizedSlug;
         game.Description = string.IsNullOrWhiteSpace(input.Description) ? null : input.Description.Trim();
+        game.Rules = string.IsNullOrWhiteSpace(input.Rules) ? null : input.Rules.Trim();
         var manualCoverPath = string.IsNullOrWhiteSpace(input.CoverImagePath) ? null : input.CoverImagePath.Trim();
         game.CoverImagePath = uploadedCoverPath ?? manualCoverPath;
         game.Categories = categories == GameCategory.None ? GameCategory.Indie : categories;

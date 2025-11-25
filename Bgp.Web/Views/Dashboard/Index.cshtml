@@ -173,6 +173,14 @@
                                 <textarea id="GameDescription" name="Description" maxlength="2000">@(Model.NewGame.Description ?? string.Empty)</textarea>
                                 @Html.ValidationMessage("Description", null, new { @class = "val" })
                             </div>
+
+                            <div class="wizard-field">
+                                <label for="GameRules">@L["Dashboard_Games_Rules_Label"].Value</label>
+                                <textarea id="GameRules" name="Rules">@(Model.NewGame.Rules ?? string.Empty)</textarea>
+                                <div class="form-hint">@L["Dashboard_Games_Rules_Hint"].Value</div>
+                                @Html.ValidationMessage("Rules", null, new { @class = "val" })
+                            </div>
+
                             <div class="wizard-field">
                                 <label for="GameCover">@L["Dashboard_Games_Cover"].Value</label>
                                 <div class="file-upload">

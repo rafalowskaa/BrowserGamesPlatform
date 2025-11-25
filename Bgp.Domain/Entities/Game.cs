@@ -17,6 +17,8 @@ public class Game : IAggregateRoot
     [MaxLength(2000)]
     public string? Description { get; set; }
 
+    public string? Rules { get; set; }
+
     public GameMode Modes { get; set; } = GameMode.None;
 
     public GameMode ProposedModes { get; set; } = GameMode.Singleplayer;

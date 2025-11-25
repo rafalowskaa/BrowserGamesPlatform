@@ -181,6 +181,8 @@ public class CreateGameFormViewModel
     [MaxLength(2000)]
     public string? Description { get; set; }
 
+    public string? Rules { get; set; }
+
     public IFormFile? CoverImage { get; set; }
 
     [Required, MaxLength(32)]

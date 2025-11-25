@@ -2854,13 +2854,13 @@
 <value>Dostępne gry</value>
   </data>
 	<data name="Admin_Users_Xp_Button" xml:space="preserve">
-<value>Dodaj PD</value>
+<value>Zarządzaj PD</value>
   </data>
 	<data name="Admin_Users_Xp_Title" xml:space="preserve">
-<value>Przydziel punkty doświadczenia</value>
+<value>Zmień bonusowe PD</value>
   </data>
 	<data name="Admin_Users_Xp_Message" xml:space="preserve">
-<value>Ile PD chcesz przyznać użytkownikowi {{name}}?</value>
+<value>Wybierz jak chcesz zmienić PD dla użytkownika {{name}}.</value>
   </data>
 	<data name="Admin_Users_Xp_Label" xml:space="preserve">
 <value>Liczba PD</value>
@@ -2872,7 +2872,25 @@
 <value>Widoczne w logach audytu na przyszłość.</value>
   </data>
 	<data name="Admin_Users_Xp_Submit" xml:space="preserve">
-<value>Przyznaj PD</value>
+<value>Zastosuj zmianę</value>
+  </data>
+	<data name="Admin_Users_Xp_Operation_Label" xml:space="preserve">
+    <value>Operacja</value>
+  </data>
+	<data name="Admin_Users_Xp_Operation_Add" xml:space="preserve">
+    <value>Dodaj</value>
+  </data>
+	<data name="Admin_Users_Xp_Operation_Remove" xml:space="preserve">
+    <value>Odejmij</value>
+  </data>
+	<data name="Admin_Users_Xp_Operation_Set" xml:space="preserve">
+    <value>Ustaw wartość</value>
+  </data>
+	<data name="Admin_Users_Xp_Error" xml:space="preserve">
+    <value>Nie udało się zaktualizować PD.</value>
+  </data>
+	<data name="Admin_Users_Xp_Success" xml:space="preserve">
+    <value>PD zostały zaktualizowane.</value>
   </data>
 	<data name="Dashboard_FriendsLeaderboards_Title" xml:space="preserve">
     <value>Rankingi znajomych</value>
@@ -3009,4 +3027,25 @@
 		<data name="Chat_AttachmentLabel" xml:space="preserve">
         <value>Załącznik</value>
     </data>
+	<data name="Admin_Games_Accordion_Rules" xml:space="preserve">
+        <value>Zasady gry</value>
+    </data>
+	<data name="Admin_Games_Metadata_Rules" xml:space="preserve">
+        <value>Zasady</value>
+    </data>
+	<data name="Admin_Games_Metadata_Rules_Help" xml:space="preserve">
+        <value>Opisz zasady, warunki zwycięstwa i ograniczenia. Tekst może być dowolnie długi.</value>
+    </data>
+	<data name="Admin_Games_Preview_NoRules" xml:space="preserve">
+        <value>Brak zasad.</value>
+    </data>
+	<data name="Dashboard_Games_Rules_Label" xml:space="preserve">
+    <value>Zasady gry</value>
+  </data>
+	<data name="Dashboard_Games_Rules_Hint" xml:space="preserve">
+    <value>Opisz, jak grać, jak wygrać i czego unikać. Tekst może być dowolnie długi.</value>
+  </data>
+	<data name="Games_Details_Rules_Heading" xml:space="preserve">
+    <value>Zasady gry</value>
+  </data>
 </root>

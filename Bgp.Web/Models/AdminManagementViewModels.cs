@@ -66,11 +66,21 @@ public class AdminGrantExperienceInputModel
     [Required]
     public string Id { get; set; } = string.Empty;
 
-    [Range(1, 100000)]
+    [Range(0, 100000)]
     public int Amount { get; set; }
 
     [MaxLength(200)]
     public string? Reason { get; set; }
+
+    [Required]
+    public GrantExperienceOperation Operation { get; set; } = GrantExperienceOperation.Add;
+}
+
+public enum GrantExperienceOperation
+{
+    Add,
+    Remove,
+    Set
 }
 
 public class AdminGamesViewModel
@@ -95,6 +105,7 @@ public record AdminGameRowViewModel(
     GameMode ProposedModes,
     GameMode Modes,
     string? Description,
+    string? Rules,
     string? CoverImagePath,
     IReadOnlyList<AdminGameTagViewModel> Tags);
 
@@ -134,6 +145,8 @@ public class AdminUpdateGameMetadataInputModel
     public List<int> Modes { get; set; } = new();
 
     public List<Guid> ApprovedTags { get; set; } = new();
+
+    public string? Rules { get; set; }
 }
 public class AdminHomeContentViewModel
 {

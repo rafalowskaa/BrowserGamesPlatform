@@ -234,6 +234,7 @@
         if (xpModal && xpForm && xpButtons.length > 0) {
             const idInput = xpForm.querySelector('[data-modal-input="id"]');
             const amountInput = xpForm.querySelector('[data-modal-input="amount"]');
+            const operationInput = xpForm.querySelector('[data-modal-input="operation"]');
             const reasonInput = xpForm.querySelector('[data-modal-input="reason"]');
             const messageElement = xpModal.querySelector('[data-xp-message]');
             const messageTemplate = messageElement ? messageElement.getAttribute('data-template') || '' : '';
@@ -244,6 +245,9 @@
                 }
                 if (amountInput) {
                     amountInput.value = '';
+                }
+                if (operationInput) {
+                    operationInput.value = 'Add';
                 }
                 if (reasonInput) {
                     reasonInput.value = '';
@@ -266,6 +270,10 @@
                         amountInput.value = '50';
                         amountInput.focus();
                     }
+                    if (operationInput) {
+                        operationInput.value = 'Add';
+                    }
+
                     if (reasonInput) {
                         reasonInput.value = '';
                     }

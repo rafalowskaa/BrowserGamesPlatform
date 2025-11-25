@@ -88,6 +88,7 @@
         proposedModes = ExtractModeValues(game.ProposedModes),
         modes = ExtractModeValues(game.Modes),
         description = game.Description,
+        rules = game.Rules,
         coverImagePath = game.CoverImagePath,
         tags = game.Tags.Select(t => new { t.Id, t.Value, t.IsApproved, t.IsPending }).ToList()
     }).ToList();
@@ -171,6 +172,7 @@
          data-preview-slug-template="@L["Admin_Games_Preview_Slug"].Value"
          data-preview-owner-template="@L["Admin_Games_Preview_Owner"].Value"
          data-preview-description-empty="@L["Admin_Games_Preview_NoDescription"].Value"
+         data-preview-rules-empty="@L["Admin_Games_Preview_NoRules"].Value"
          data-tags-empty="@L["Admin_Games_Tags_Empty"].Value"
          data-save-success="@L["Admin_Games_Save_Success"].Value"
          data-save-error="@L["Admin_Games_Save_Error"].Value"
@@ -274,6 +276,7 @@
                                 <p class="preview-meta" data-preview-status></p>
                                 <div class="preview-tags" data-preview-tags></div>
                                 <p class="preview-description" data-preview-description></p>
+                                <p class="preview-description"><strong>@L["Admin_Games_Metadata_Rules"].Value:</strong> <span data-preview-rules></span></p>
                             </div>
                         </div>
                         <div class="preview-actions">
@@ -450,6 +453,21 @@
                                                 <strong>@L["Admin_Games_Metadata_Tags"].Value</strong>
                                                 <div class="tag-list" data-tags-list></div>
                                             </div>
+                                        </div>
+                                    </article>
+
+                                    <article class="accordion-item" data-accordion-item="rules">
+                                        <header class="accordion-header">
+                                            <button type="button" class="accordion-trigger" aria-expanded="false" data-accordion-trigger>
+                                                <span>@L["Admin_Games_Accordion_Rules"].Value</span>
+                                            </button>
+                                        </header>
+                                        <div class="accordion-panel" data-accordion-panel hidden>
+                                            <label class="form-field">
+                                                <span>@L["Admin_Games_Metadata_Rules"].Value</span>
+                                                <textarea name="Rules" data-field-rules></textarea>
+                                                <small>@L["Admin_Games_Metadata_Rules_Help"].Value</small>
+                                            </label>
                                         </div>
                                     </article>
 

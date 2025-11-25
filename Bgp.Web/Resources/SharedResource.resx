@@ -2579,6 +2579,10 @@
         <value>No description provided.</value>
     </data>
 
+	<data name="Admin_Games_Preview_NoRules" xml:space="preserve">
+        <value>No rules provided.</value>
+    </data>
+
 	<data name="Admin_Games_Tags_Empty" xml:space="preserve">
         <value>No tags.</value>
     </data>
@@ -2679,6 +2683,18 @@
 
 	<data name="Admin_Games_Metadata_Description_Help" xml:space="preserve">
         <value>Briefly describe the key information about the game.</value>
+    </data>
+
+	<data name="Admin_Games_Accordion_Rules" xml:space="preserve">
+        <value>Game rules</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Rules" xml:space="preserve">
+        <value>Rules</value>
+    </data>
+
+	<data name="Admin_Games_Metadata_Rules_Help" xml:space="preserve">
+        <value>Explain the rules, win conditions and important limitations. This text can be as long as needed.</value>
     </data>
 
 	<data name="Admin_Games_Accordion_Moderation" xml:space="preserve">
@@ -4006,13 +4022,13 @@
 <value>Published games</value>
   </data>
 	<data name="Admin_Users_Xp_Button" xml:space="preserve">
-<value>Add XP</value>
+<value>Adjust XP</value>
   </data>
 	<data name="Admin_Users_Xp_Title" xml:space="preserve">
-<value>Grant bonus experience</value>
+<value>Adjust bonus experience</value>
   </data>
 	<data name="Admin_Users_Xp_Message" xml:space="preserve">
-<value>How many XP would you like to grant to {{name}}?</value>
+<value>Choose how you want to change XP for {{name}}.</value>
   </data>
 	<data name="Admin_Users_Xp_Label" xml:space="preserve">
 <value>XP amount</value>
@@ -4024,7 +4040,25 @@
 <value>Visible in audit logs for future reference.</value>
   </data>
 	<data name="Admin_Users_Xp_Submit" xml:space="preserve">
-<value>Grant XP</value>
+<value>Apply change</value>
+  </data>
+	<data name="Admin_Users_Xp_Operation_Label" xml:space="preserve">
+    <value>Operation</value>
+  </data>
+	<data name="Admin_Users_Xp_Operation_Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+	<data name="Admin_Users_Xp_Operation_Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+	<data name="Admin_Users_Xp_Operation_Set" xml:space="preserve">
+    <value>Set exact value</value>
+  </data>
+	<data name="Admin_Users_Xp_Error" xml:space="preserve">
+    <value>Could not update XP.</value>
+  </data>
+	<data name="Admin_Users_Xp_Success" xml:space="preserve">
+    <value>Experience updated.</value>
   </data>
 	<data name="Dashboard_FriendsLeaderboards_Title" xml:space="preserve">
     <value>Friends leaderboards</value>
@@ -4161,4 +4195,13 @@
 	<data name="Chat_AttachmentLabel" xml:space="preserve">
         <value>Attachment</value>
     </data>
+	<data name="Dashboard_Games_Rules_Label" xml:space="preserve">
+    <value>Game rules</value>
+  </data>
+	<data name="Dashboard_Games_Rules_Hint" xml:space="preserve">
+    <value>Explain how to play, win and what to avoid. This text can be as long as you need.</value>
+  </data>
+	<data name="Games_Details_Rules_Heading" xml:space="preserve">
+    <value>Game rules</value>
+  </data>
 </root>

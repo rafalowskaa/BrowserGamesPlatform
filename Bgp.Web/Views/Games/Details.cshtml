@@ -198,6 +198,14 @@
             </div>
         </div>
 
+        @if (!string.IsNullOrWhiteSpace(game.Rules))
+        {
+            <div class="game-play__rules">
+                <h4>@L["Games_Details_Rules_Heading"].Value</h4>
+                <pre class="game-play__rules-text">@game.Rules</pre>
+            </div>
+        }
+
         @if (webOption is not null)
         {
             <div class="game-play__launch">

@@ -148,6 +148,9 @@ namespace Bgp.Infrastructure.Migrations
                     b.Property<DateTime?>("RejectedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Rules")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(140)

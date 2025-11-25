@@ -392,8 +392,7 @@
                         return false;
                     }
                     return !term || option.label.toLowerCase().includes(term);
-                })
-                .slice(0, 6);
+                });
 
             this.suggestions.innerHTML = '';
             if (!options.length) {
@@ -486,6 +485,7 @@
                 previewSlug: this.root.dataset.previewSlugTemplate || 'Slug: {0}',
                 previewOwner: this.root.dataset.previewOwnerTemplate || 'Owner: {0}',
                 previewDescriptionEmpty: this.root.dataset.previewDescriptionEmpty || 'No description provided.',
+                previewRulesEmpty: this.root.dataset.previewRulesEmpty || 'No rules provided.',
                 tagsEmpty: this.root.dataset.tagsEmpty || 'No tags.',
                 saveSuccess: this.root.dataset.saveSuccess || 'Metadata saved.',
                 saveError: this.root.dataset.saveError || 'Could not save changes.',
@@ -517,6 +517,7 @@
             this.previewOwner = this.drawer?.querySelector('[data-preview-owner]');
             this.previewStatus = this.drawer?.querySelector('[data-preview-status]');
             this.previewDescription = this.drawer?.querySelector('[data-preview-description]');
+            this.previewRules = this.drawer?.querySelector('[data-preview-rules]');
             this.previewTags = this.drawer?.querySelector('[data-preview-tags]');
             this.previewCover = this.drawer?.querySelector('[data-preview-cover]');
             this.summaryCover = this.drawer?.querySelector('[data-summary-cover]');
@@ -542,6 +543,7 @@
             this.coverUploadLabel = this.drawer?.querySelector('[data-cover-upload-label]');
             this.coverUploadLabelDefault = this.coverUploadLabel?.dataset.defaultLabel || this.coverUploadLabel?.textContent || '';
             this.fieldDescription = this.drawer?.querySelector('[data-field-description]');
+            this.fieldRules = this.drawer?.querySelector('[data-field-rules]');
             this.fieldStatus = this.drawer?.querySelector('[data-field-status]');
             this.fieldNotes = this.drawer?.querySelector('[data-field-notes]');
             this.rejectNotes = this.drawer?.querySelector('[data-reject-notes]');
@@ -840,6 +842,9 @@
             this.previewOwner.textContent = formatTemplate(this.messages.previewOwner, game.owner);
             this.previewStatus.textContent = this.statusLabels[game.status] || game.status;
             this.previewDescription.textContent = game.description || this.messages.previewDescriptionEmpty;
+            if (this.previewRules) {
+                this.previewRules.textContent = game.rules || this.messages.previewRulesEmpty;
+            }
             this.previewTags.innerHTML = '';
             game.tags.forEach(tag => {
                 const span = document.createElement('span');
@@ -907,6 +912,11 @@
             if (this.fieldDescription) {
                 this.fieldDescription.value = game.description || '';
             }
+
+            if (this.fieldRules) {
+                this.fieldRules.value = game.rules || '';
+            }
+
             if (this.fieldStatus) {
                 this.fieldStatus.value = game.status;
             }
@@ -1153,6 +1163,7 @@
                 game.coverImagePath = coverFieldValue || null;
             }
             game.description = this.fieldDescription?.value || null;
+            game.rules = this.fieldRules?.value || null;
             if (this.categoriesField) {
                 game.categories = this.categoriesField.getPublishedValues();
                 game.proposedCategories = this.categoriesField.getProposedValues();

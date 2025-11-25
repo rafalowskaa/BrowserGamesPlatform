@@ -710,6 +710,7 @@ public class DashboardController : Controller
             Title = input.Title.Trim(),
             Slug = slug,
             Description = input.Description?.Trim(),
+            Rules = input.Rules?.Trim(),
             CoverImagePath = coverPath,
             CreatedByUserId = user.Id,
             ApprovalStatus = GameApprovalStatus.Pending,
@@ -1148,6 +1149,11 @@ public class DashboardController : Controller
         if (ModelState.TryGetValue(nameof(CreateGameFormViewModel.Description), out var descriptionState))
         {
             vm.NewGame.Description = descriptionState.AttemptedValue;
+        }
+
+        if (ModelState.TryGetValue(nameof(CreateGameFormViewModel.Rules), out var rulesState))
+        {
+            vm.NewGame.Rules = rulesState.AttemptedValue;
         }
 
         if (ModelState.TryGetValue(nameof(CreateGameFormViewModel.Version), out var versionState) &&

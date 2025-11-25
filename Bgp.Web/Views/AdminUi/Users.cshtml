@@ -361,9 +361,19 @@
                 <h3>@L["Admin_Users_Xp_Title"].Value</h3>
                 <input type="hidden" name="Id" data-modal-input="id" />
                 <p class="modal-dialog__message" data-xp-message data-template="@L["Admin_Users_Xp_Message"].Value"></p>
+
+                <div class="modal-dialog__control">
+                    <label class="modal-dialog__label" for="modalXpOperation">@L["Admin_Users_Xp_Operation_Label"].Value</label>
+                    <select class="modal-dialog__input" id="modalXpOperation" name="Operation" data-modal-input="operation">
+                        <option value="Add">@L["Admin_Users_Xp_Operation_Add"].Value</option>
+                        <option value="Remove">@L["Admin_Users_Xp_Operation_Remove"].Value</option>
+                        <option value="Set">@L["Admin_Users_Xp_Operation_Set"].Value</option>
+                    </select>
+                </div>
+
                 <div class="modal-dialog__control">
                     <label class="modal-dialog__label" for="modalXpAmount">@L["Admin_Users_Xp_Label"].Value</label>
-                    <input class="modal-dialog__input" id="modalXpAmount" name="Amount" type="number" min="1" max="100000" data-modal-input="amount" required />
+                    <input class="modal-dialog__input" id="modalXpAmount" name="Amount" type="number" min="0" max="100000" data-modal-input="amount" required />
                 </div>
                 <div class="modal-dialog__control">
                     <label class="modal-dialog__label" for="modalXpReason">@L["Admin_Users_Xp_Reason_Label"].Value</label>
