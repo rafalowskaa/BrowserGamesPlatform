@@ -105,7 +105,7 @@
     const reactionPalette = ['👍', '❤️', '🔥', '😂', '🎉'];
     let panelCollapsedState = loadPanelCollapsedState();
     const mobileSheetQuery = typeof window !== 'undefined'
-        ? window.matchMedia('(max-width: 1023px)')
+        ? window.matchMedia('(max-width: 64rem)')
         : { matches: false, addEventListener: () => { /* noop */ } };
     let threadViewForced = false;
     let contextMenuState = null;
@@ -1793,13 +1793,23 @@
         }
         let contact = getStrangerContact(friend.userId);
         if (!contact) {
-            const element = createFriendElement(friend, { ghost: true });
-            contact = { element };
-            setStrangerContact(friend.userId, contact);
+            contact = { ...friend };
+        } else {
+            contact.userId = contact.userId || friend.userId;
+            contact.displayName = contact.displayName || friend.displayName;
+            contact.avatarUrl = contact.avatarUrl || friend.avatarUrl;
+            contact.statusMessage = contact.statusMessage || friend.statusMessage;
+            contact.presence = typeof contact.presence === 'number' ? contact.presence : friend.presence;
+            contact.isInvisible = typeof contact.isInvisible === 'boolean' ? contact.isInvisible : !!friend.isInvisible;
+            contact.unreadCount = typeof contact.unreadCount === 'number' ? contact.unreadCount : (friend.unreadCount || 0);
         }
-        friend.element = contact.element;
-        friend.isFriend = false;
-        updateFriendVisual(friend);
+        if (!contact.element) {
+            contact.element = createFriendElement(contact, { ghost: true });
+        }
+        contact.isFriend = false;
+        setStrangerContact(contact.userId, contact);
+        setFriend(contact);
+        updateFriendVisual(contact);
         renderStrangerContacts();
         applyFriendFilter();
         updateUnreadBadge();
@@ -2620,6 +2630,9 @@
         element.appendChild(body);
         element.appendChild(inputWrap);
 
+        const restoredEntry = getWindowEntry(friend.userId);
+        const initialCollapse = restoredEntry && restoredEntry.state === 'minimized';
+
         const conversation = {
             friendId: friend.userId,
             element,
@@ -2646,7 +2659,7 @@
             lastAttentionMessageId: null,
             archiveBtn,
             collapseBtn,
-            isCollapsed: true,
+            isCollapsed: initialCollapse,
             timeline: {
                 lastGroup: null,
                 lastMessageMs: null,
@@ -2654,7 +2667,6 @@
             }
         };
 
-        const restoredEntry = getWindowEntry(friend.userId);
         const initialBadge = restoredEntry && typeof restoredEntry.badge === 'number'
             ? restoredEntry.badge
             : (friend.unreadCount || 0);
@@ -2781,7 +2793,7 @@
 
         autoGrowInput(input);
 
-        setConversationCollapsed(conversation, true, { force: true });
+        setConversationCollapsed(conversation, initialCollapse, { force: true });
 
 
         
@@ -3029,6 +3041,9 @@
     function setActiveConversation(conversation) {
         if (!conversation) {
             return;
+        }
+        if (isMobileSheet()) {
+            enterThreadView();
         }
         activeConversationId = conversation.friendId;
         setWindowEntry(conversation.friendId, (entry) => ({
@@ -3913,17 +3928,28 @@
                 renderFriends(accepted);
                 renderRequests(incoming, outgoing);
                 Array.from(strangerContacts.values()).forEach((stranger) => {
-                    if (stranger && hasFriend(stranger.userId)) {
-                        removeStrangerContact(stranger.userId);
+                    const strangerId = stranger ? normalizeId(stranger.userId) : '';
+                    if (!strangerId) {
+                        if (stranger) {
+                            removeStrangerContact(stranger.userId);
+                        }
                         return;
                     }
-                    stranger.unreadCount = Math.max(
+                    const existingFriend = getFriend(strangerId);
+                    if (existingFriend && existingFriend.isFriend) {
+                        removeStrangerContact(strangerId);
+                        return;
+                    }
+                    const existing = existingFriend || stranger;
+                    existing.userId = existing.userId || strangerId;
+                    existing.unreadCount = Math.max(
+                        existing.unreadCount || 0,
                         stranger.unreadCount || 0,
-                        previousUnread.get(normalizeId(stranger.userId)) || 0
+                        previousUnread.get(strangerId) || 0
                     );
-                    setFriend(stranger);
-                    ensureStrangerContact(stranger);
-                    flushPendingMessages(stranger.userId);
+                    setFriend(existing);
+                    ensureStrangerContact(existing);
+                    flushPendingMessages(existing.userId);
                 });
                 applyPendingPresence();
                 conversations.forEach((conversation, id) => {
