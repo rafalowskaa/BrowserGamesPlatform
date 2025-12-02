@@ -729,7 +729,10 @@
     }
 
     function normalizeId(id) {
-        return typeof id === 'string' ? id.trim().toLowerCase() : '';
+        if (id === null || id === undefined) {
+            return '';
+        }
+        return String(id).trim().toLowerCase();
     }
 
     function isThreadArchived(friendId) {
@@ -3919,7 +3922,6 @@
                             previousUnread.get(key) || 0,
                             existing && existing.unreadCount ? existing.unreadCount : 0
                         );
-                        let friend;
                         if (existing) {
                             existing.displayName = row.displayName;
                             existing.avatarUrl = row.avatarUrl;
@@ -3930,9 +3932,9 @@
                             existing.isFriend = true;
                             existing.isArchived = isThreadArchived(row.userId);
                             existing.keepArchived = shouldKeepArchived(row.userId);
-                            friend = existing;
+                            accepted.push(existing);
                         } else {
-                            friend = {
+                            const friend = {
                                 userId: row.userId,
                                 displayName: row.displayName,
                                 avatarUrl: row.avatarUrl,
@@ -3945,9 +3947,9 @@
                                 keepArchived: shouldKeepArchived(row.userId),
                                 lastNotifiedMessageId: null
                             };
+                            setFriend(friend);
+                            accepted.push(friend);
                         }
-                        setFriend(friend);
-                        accepted.push(friend);
                         seenFriendIds.add(key);
                     } else if (row.status === 0 && row.outgoingRequest) {
                         outgoing.push(row);
