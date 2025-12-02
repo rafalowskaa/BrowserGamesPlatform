@@ -81,6 +81,7 @@
     let strangerMessageForced = false;
     const pendingPresence = new Map();
     const STORAGE_LAST_SEEN_KEY = 'bgp.chat.lastSeen';
+    const STORAGE_PANEL_STATE_KEY = 'bgp.chat.panelState';
     const lastSeenMessages = loadLastSeenMessages();
     const STORAGE_ARCHIVED_KEY = 'bgp.chat.archived';
     const archivedThreads = loadArchivedThreads();
@@ -176,8 +177,8 @@
         threadBack: 'Back to list',
         reactionLabel: 'React',
         emojiLabel: 'Emoji',
-        attachmentLabel: 'Attachment'
-        expandPanel: 'Expand chat list'
+        attachmentLabel: 'Attachment',
+        expandPanel: 'Expand chat list',
         searchThreadNone: 'No results'
 
     };
