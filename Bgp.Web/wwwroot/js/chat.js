@@ -157,11 +157,8 @@
         searchThreadPlaceholder: 'Search messages…',
         searchThreadPrev: 'Prev',
         searchThreadNext: 'Next',
-
         searchThreadNone: 'No results',
         collapsePanel: 'Collapse chat list',
-
-
         expandPanel: 'Expand chat list',
         contextProfile: 'View profile',
         contextAddFriend: 'Add friend',
@@ -180,11 +177,7 @@
         reactionLabel: 'React',
         emojiLabel: 'Emoji',
         attachmentLabel: 'Attachment'
-
-
         expandPanel: 'Expand chat list'
-
-
         searchThreadNone: 'No results'
 
     };
@@ -3435,23 +3428,7 @@
                         friend.element.classList.add('is-attention');
                     }
 
-                if (!wasUnread) {
-                    announceNewMessage(friend);
-                }
-                triggerConversationAttention(conversation, message);
-                if (friend.element) {
-                    friend.element.classList.add('is-attention');
-         const becameUnread = !wasUnread;
-                if (becameUnread) {
-                    announceNewMessage(friend);
-                }
-                const shouldSignalAttention = becameUnread && !isConversationActive(conversation);
-                if (shouldSignalAttention) {
-                    friend.lastNotifiedMessageId = message.id || null;
-                    triggerConversationAttention(conversation, message);
-                    if (friend.element) {
-                        friend.element.classList.add('is-attention');
-                    }
+                
 
                 }
                 conversation.unreadBadge = (conversation.unreadBadge || 0) + 1;
