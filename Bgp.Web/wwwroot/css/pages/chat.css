@@ -163,6 +163,7 @@
 .chat-panel--collapsed {
     height: auto;
     max-height: 4.5rem;
+    overflow: hidden;
     transition: max-height 0.25s ease;
 }
 

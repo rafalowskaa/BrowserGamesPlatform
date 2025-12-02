@@ -186,7 +186,7 @@
         reactionLabel: 'React',
         emojiLabel: 'Emoji',
         attachmentLabel: 'Attachment',
-        searchThreadNone: 'No results'
+        openConversationError: 'Unable to open conversation'
 
     };
 
@@ -1378,22 +1378,30 @@
         });
     }
 
-    function announceNewMessage(friend) {
-        if (!liveRegion || !strings.newMessage) {
+    function announceMessage(message) {
+        if (!liveRegion || !message) {
             return;
         }
-        const label = friend && friend.displayName
-            ? `${strings.newMessage}: ${friend.displayName}`
-            : strings.newMessage;
+       
         liveRegion.textContent = '';
         const writer = () => {
-            liveRegion.textContent = label;
+            liveRegion.textContent = message;
         };
         if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
             window.requestAnimationFrame(writer);
         } else {
             writer();
         }
+    }
+
+    function announceNewMessage(friend) {
+        if (!strings.newMessage) {
+            return;
+        }
+        const label = friend && friend.displayName
+            ? `${strings.newMessage}: ${friend.displayName}`
+            : strings.newMessage;
+        announceMessage(label);
     }
 
     function updateUnreadBadge() {
@@ -2135,7 +2143,15 @@
         togglePanel(true);
         ensureConnectionStarted();
         const conversation = ensureConversation(friendId, { focus: true, autoRead: true });
-        if (conversation && isMobileSheet()) {
+        if (!conversation) {
+            const errorMessage = strings.openConversationError || 'Unable to open conversation';
+            if (typeof console !== 'undefined' && console.error) {
+                console.error('Failed to open conversation for friend.', friendId);
+            }
+            announceMessage(errorMessage);
+            return;
+        }
+        if (isMobileSheet()) {
             enterThreadView();
         }
     }
@@ -2389,8 +2405,28 @@
 
     function ensureConversation(friendId, options = {}) {
         let conversation = getConversation(friendId);
-        const friend = getFriend(friendId);
+        let friend = getFriend(friendId);
         if (!friend) {
+            const fallbackId = normalizeId(friendId);
+            if (fallbackId) {
+                friend = {
+                    userId: friendId,
+                    displayName: friendId,
+                    avatarUrl: '',
+                    statusMessage: '',
+                    presence: 'offline',
+                    isInvisible: false,
+                    unreadCount: 0,
+                    isFriend: false,
+                    isArchived: false,
+                    keepArchived: false,
+                    lastNotifiedMessageId: null
+                };
+                setFriend(friend);
+            }
+        }
+        if (!friend) {
+            console.error('Unable to ensure conversation: friend not found', friendId);
             return null;
         }
 
@@ -3883,29 +3919,33 @@
                             previousUnread.get(key) || 0,
                             existing && existing.unreadCount ? existing.unreadCount : 0
                         );
-                        const friend = existing || {
-                            userId: row.userId,
-                            displayName: row.displayName,
-                            avatarUrl: row.avatarUrl,
-                            statusMessage: row.statusMessage,
-                            presence: normalizePresence(row.presence),
-                            isInvisible: !!row.isInvisible,
-                            unreadCount,
-                            isFriend: true,
-                            isArchived: isThreadArchived(row.userId),
-                            keepArchived: shouldKeepArchived(row.userId),
-                            lastNotifiedMessageId: existing ? existing.lastNotifiedMessageId || null : null
-                        };
-
-                        friend.displayName = row.displayName;
-                        friend.avatarUrl = row.avatarUrl;
-                        friend.statusMessage = row.statusMessage;
-                        friend.presence = normalizePresence(row.presence);
-                        friend.isInvisible = !!row.isInvisible;
-                        friend.unreadCount = unreadCount;
-                        friend.isFriend = true;
-                        friend.isArchived = isThreadArchived(row.userId);
-                        friend.keepArchived = shouldKeepArchived(row.userId);
+                        let friend;
+                        if (existing) {
+                            existing.displayName = row.displayName;
+                            existing.avatarUrl = row.avatarUrl;
+                            existing.statusMessage = row.statusMessage;
+                            existing.presence = normalizePresence(row.presence);
+                            existing.isInvisible = !!row.isInvisible;
+                            existing.unreadCount = unreadCount;
+                            existing.isFriend = true;
+                            existing.isArchived = isThreadArchived(row.userId);
+                            existing.keepArchived = shouldKeepArchived(row.userId);
+                            friend = existing;
+                        } else {
+                            friend = {
+                                userId: row.userId,
+                                displayName: row.displayName,
+                                avatarUrl: row.avatarUrl,
+                                statusMessage: row.statusMessage,
+                                presence: normalizePresence(row.presence),
+                                isInvisible: !!row.isInvisible,
+                                unreadCount,
+                                isFriend: true,
+                                isArchived: isThreadArchived(row.userId),
+                                keepArchived: shouldKeepArchived(row.userId),
+                                lastNotifiedMessageId: null
+                            };
+                        }
                         setFriend(friend);
                         accepted.push(friend);
                         seenFriendIds.add(key);
