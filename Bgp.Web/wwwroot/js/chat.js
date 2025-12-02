@@ -90,7 +90,7 @@
     let pollInFlight = false;
     const POLL_INTERVAL_MS = 7000;
     let pollErrorLogged = false;
-    let lastUnreadTotal = 0;
+    let lastUnreadTotal = null;
     const windowOrder = [];
     const windowsDock = new Map();
     const MAX_VISIBLE_WINDOWS_DESKTOP = 4;
@@ -186,7 +186,11 @@
         reactionLabel: 'React',
         emojiLabel: 'Emoji',
         attachmentLabel: 'Attachment',
-        openConversationError: 'Unable to open conversation'
+        openConversationError: 'Unable to open conversation',
+        deleteMessage: 'Delete message',
+        deleteMessageConfirm: 'Delete this message?',
+        messageDeleted: 'Message removed',
+        deleteMessageError: 'Unable to delete message'
 
     };
 
@@ -1449,7 +1453,7 @@
         unreadBadge.hidden = total === 0;
         if (total === 0) {
             unreadBadge.classList.remove('is-pulsing');
-        } else if (total > lastUnreadTotal) {
+        } else if (lastUnreadTotal !== null && total > lastUnreadTotal) {
             pulseUnreadBadge();
         }
         lastUnreadTotal = total;
@@ -1542,12 +1546,20 @@
             return false;
         }
         conversation.messages.delete(pendingId);
-        entry.data = Object.assign({}, message, { isPending: false, sendError: false });
+        const updatedData = Object.assign({}, message, { isPending: false, sendError: false, isDeleted: message.isDeleted === true });
+        entry.data = updatedData;
         entry.element.dataset.messageId = message.id;
         entry.element.classList.remove('chat-message--pending', 'chat-message--error');
         const bubble = entry.element.querySelector('.chat-message__bubble');
         if (bubble) {
-            bubble.textContent = message.content;
+            bubble.textContent = updatedData.isDeleted ? (strings.messageDeleted || 'Message removed') : message.content;
+        }
+        if (updatedData.isDeleted) {
+            entry.element.classList.add('chat-message--deleted');
+            const reactions = entry.element.querySelector('.chat-message__reactions');
+            if (reactions) {
+                reactions.remove();
+            }
         }
         if (entry.group) {
             entry.group.lastMessage = entry.data;
@@ -1580,11 +1592,13 @@
             receiverId: raw.receiverId || (raw.fromSelf ? friendId : currentUserId),
             senderName: raw.senderName || '',
             receiverName: raw.receiverName || '',
-            content: raw.content,
+            content: raw.isDeleted ? '' : raw.content,
             sentAtUtc: raw.sentAtUtc,
             fromSelf: raw.fromSelf === true || (raw.senderId ? raw.senderId !== friendId : true),
             isRead: raw.isRead,
-            readAtUtc: raw.readAtUtc
+            readAtUtc: raw.readAtUtc,
+            isDeleted: raw.isDeleted === true,
+            deletedAtUtc: raw.deletedAtUtc || null
         };
 
         if (!hasFriend(friendId)) {
@@ -1607,14 +1621,21 @@
             if (entry && entry.data) {
                 const updated = Object.assign({}, entry.data, {
                     isRead: normalized.isRead,
-                    readAtUtc: normalized.readAtUtc
+                    readAtUtc: normalized.readAtUtc,
+                    isDeleted: normalized.isDeleted,
+                    deletedAtUtc: normalized.deletedAtUtc
                 });
                 entry.data = updated;
-                if (entry.group && (!entry.group.lastMessage || entry.group.lastMessage.id === entry.data.id)) {
-                    entry.group.lastMessage = entry.data;
+                if (updated.isDeleted) {
+                    applyMessageDeletion(conversation, updated.id, updated.deletedAtUtc, updated.senderId);
+                } else {
+                    if (entry.group && (!entry.group.lastMessage || entry.group.lastMessage.id === entry.data.id)) {
+                        entry.group.lastMessage = entry.data;
+                    }
+                    updateGroupMeta(entry.group);
+                    updateConversationLatest(conversation, updated);
                 }
-                updateGroupMeta(entry.group);
-                updateConversationLatest(conversation, updated);
+            
             }
             return;
         }
@@ -1701,6 +1722,32 @@
         const payload = await res.json();
         payload.fromSelf = true;
         deliverMessageFromServer(payload, friendId);
+    }
+
+    async function deleteMessage(conversation, message) {
+        if (!conversation || !message || !message.id) {
+            return;
+        }
+
+        const prompt = strings.deleteMessageConfirm || 'Delete this message?';
+        if (typeof window !== 'undefined' && !window.confirm(prompt)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/chat/messages/${encodeURIComponent(message.id)}`, {
+                method: 'DELETE',
+                credentials: 'same-origin'
+            });
+            if (!res.ok) {
+                throw new Error(await extractErrorMessage(res));
+            }
+            const payload = await res.json();
+            handleMessageDeleted(payload);
+        } catch (err) {
+            console.error('Failed to delete message.', err);
+            announceMessage(strings.deleteMessageError || strings.statusError || 'Unable to delete message');
+        }
     }
 
     async function extractErrorMessage(res) {
@@ -3719,7 +3766,7 @@
         return group;
     }
 
-    function createReactionBar(conversation, message) {
+    function createReactionBar(conversation, message, options = {}) {
         const bar = document.createElement('div');
         bar.className = 'chat-message__reactions';
         reactionPalette.forEach((emoji) => {
@@ -3737,6 +3784,20 @@
             });
             bar.appendChild(btn);
         });
+
+
+        if (options.allowDelete) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'chat-message__delete';
+            deleteBtn.textContent = '🗑️';
+            deleteBtn.setAttribute('aria-label', strings.deleteMessage || 'Delete message');
+            deleteBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                deleteMessage(conversation, message);
+            });
+            bar.appendChild(deleteBtn);
+        }
         return bar;
     }
 
@@ -3746,9 +3807,56 @@
         }
         group.metaEl.textContent = getMessageMeta(group.lastMessage, group.fromSelf);
     }
+    function applyMessageDeletion(conversation, messageId, deletedAtUtc, deletedById) {
+        if (!conversation || !conversation.messages) {
+            return;
+        }
+
+        const entry = conversation.messages.get(messageId);
+        if (!entry || !entry.element) {
+            return;
+        }
+
+        const deletedAt = deletedAtUtc || entry?.data?.deletedAtUtc || null;
+        const updated = Object.assign({}, entry.data || {}, {
+            isDeleted: true,
+            deletedAtUtc: deletedAt,
+            deletedById
+        });
+
+        entry.data = updated;
+        entry.element.classList.add('chat-message--deleted');
+
+        const bubble = entry.element.querySelector('.chat-message__bubble');
+        if (bubble) {
+            bubble.textContent = strings.messageDeleted || 'Message removed';
+            bubble.title = formatDateTime(deletedAt) || bubble.title;
+        }
+
+        const reactions = entry.element.querySelector('.chat-message__reactions');
+        if (reactions) {
+            reactions.remove();
+        }
+
+        const friend = getFriend(conversation.friendId);
+        if (friend && !updated.fromSelf && friend.unreadCount > 0) {
+            friend.unreadCount = Math.max(0, (friend.unreadCount || 0) - 1);
+            updateFriendUnreadState(friend, friend.unreadCount > 0);
+            updateFriendVisual(friend);
+            updateUnreadBadge();
+        }
+
+        if (entry.group && (!entry.group.lastMessage || entry.group.lastMessage.id === updated.id)) {
+            entry.group.lastMessage = updated;
+            updateGroupMeta(entry.group);
+        }
+
+        updateConversationLatest(conversation, updated);
+    }
 
     function renderMessage(conversation, message, options = {}) {
         const fromSelf = message.fromSelf === true || message.senderId === undefined || message.senderId !== conversation.friendId;
+        const isDeleted = message.isDeleted === true;
         const timestamp = getMessageTimestamp(message) || Date.now();
         const autoScroll = shouldAutoScroll(conversation);
         insertTemporalMarkers(conversation, timestamp);
@@ -3761,18 +3869,27 @@
         if (message.sendError) {
             classNames.push('chat-message--error');
         }
+        if (isDeleted) {
+            classNames.push('chat-message--deleted');
+        }
         wrapper.className = classNames.join(' ');
         wrapper.dataset.messageId = message.id;
 
         const bubble = document.createElement('div');
         bubble.className = 'chat-message__bubble';
-        bubble.textContent = message.content;
-        bubble.title = formatDateTime(message.sentAtUtc) || formatTimeLabel(timestamp);
+        bubble.textContent = isDeleted ? (strings.messageDeleted || 'Message removed') : message.content;
+        bubble.title = formatDateTime(isDeleted ? (message.deletedAtUtc || message.sentAtUtc) : message.sentAtUtc)
+            || formatTimeLabel(timestamp);
         wrapper.appendChild(bubble);
 
-        wrapper.appendChild(createReactionBar(conversation, message));
+        if (!isDeleted) {
+            const reactions = createReactionBar(conversation, message, { fromSelf, allowDelete: fromSelf });
+            if (reactions) {
+                wrapper.appendChild(reactions);
+            }
+        }
 
-        const shouldHighlight = !fromSelf && options.highlight !== false;
+        const shouldHighlight = !fromSelf && !isDeleted && options.highlight !== false;
         if (shouldHighlight) {
             wrapper.classList.add('chat-message--highlight');
             setTimeout(() => wrapper.classList.remove('chat-message--highlight'), 2400);
@@ -3780,9 +3897,10 @@
 
         group.bubblesEl.appendChild(wrapper);
         group.lastTimestamp = timestamp;
-        group.lastMessage = message;
+        const data = Object.assign({}, message, { isDeleted });
+        group.lastMessage = data;
         updateGroupMeta(group);
-        conversation.messages.set(message.id, { element: wrapper, meta: group.metaEl, data: message, group });
+        conversation.messages.set(message.id, { element: wrapper, meta: group.metaEl, data, group });
         if (autoScroll || fromSelf) {
             conversation.body.scrollTop = conversation.body.scrollHeight;
         }
@@ -3818,11 +3936,12 @@
         if (!conversation) {
             return;
         }
+        const isDeleted = message.isDeleted === true;
         if (message.fromSelf && resolvePendingMessage(conversation, message)) {
             return;
         }
         const alreadySeen = isMessageAlreadySeen(friend.userId, message);
-        const shouldHighlightBubble = !message.fromSelf && !alreadySeen;
+        const shouldHighlightBubble = !message.fromSelf && !alreadySeen && !isDeleted;
         renderMessage(conversation, message, { highlight: shouldHighlightBubble });
         const senderMatchesFriend = typeof message.senderId === 'string'
             ? normalizeId(message.senderId) === normalizeId(friend.userId)
@@ -3830,7 +3949,7 @@
         const receiverMatchesSelf = typeof message.receiverId === 'string'
             ? !currentUserKey || normalizeId(message.receiverId) === currentUserKey
             : true;
-        const shouldFlagUnread = !message.fromSelf && senderMatchesFriend && receiverMatchesSelf && !alreadySeen;
+        const shouldFlagUnread = !message.fromSelf && senderMatchesFriend && receiverMatchesSelf && !alreadySeen && !isDeleted;
 
         if (shouldFlagUnread) {
             if (friend.isArchived && !friend.keepArchived) {
@@ -3891,6 +4010,28 @@
                 updateGroupMeta(entry.group);
             }
         });
+    }
+
+    function handleMessageDeleted(payload) {
+        if (!payload || !payload.messageId) {
+            return;
+        }
+        const friendId = payload.peerId || null;
+        if (!friendId) {
+            return;
+        }
+        const friend = getFriend(friendId);
+        if (friend && payload.deletedById && payload.deletedById !== currentUserId && friend.unreadCount > 0) {
+            friend.unreadCount = Math.max(0, (friend.unreadCount || 0) - 1);
+            updateFriendUnreadState(friend, friend.unreadCount > 0);
+            updateFriendVisual(friend);
+            updateUnreadBadge();
+        }
+        const conversation = getConversation(friendId);
+        if (!conversation) {
+            return;
+        }
+        applyMessageDeletion(conversation, payload.messageId, payload.deletedAtUtc, payload.deletedById);
     }
 
     function markThreadRead(friendId) {
@@ -4117,6 +4258,8 @@
         connection.on('ReceiveMessage', (msg) => {
             deliverMessageFromServer(msg);
         });
+        connection.on('MessageDeleted', (payload) => handleMessageDeleted(payload));
+
 
         connection.on('MessagesRead', handleMessagesRead);
 

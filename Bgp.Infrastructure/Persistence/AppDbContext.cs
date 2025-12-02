@@ -164,6 +164,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         b.Entity<ChatMessage>()
             .HasIndex(x => new { x.SenderId, x.ReceiverId, x.SentAtUtc });
 
+        b.Entity<ChatMessage>()
+           .Property(x => x.DeletedById)
+           .HasMaxLength(450);
+
         b.Entity<Report>()
             .HasIndex(x => x.CreatedAtUtc);
         b.Entity<HomeFact>()

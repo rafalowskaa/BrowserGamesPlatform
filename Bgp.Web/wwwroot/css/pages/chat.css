@@ -49,6 +49,7 @@
     pointer-events: none;
     transform: translateY(0.75rem);
     transition: opacity 0.25s ease, transform 0.25s ease;
+    overflow: hidden;
 }
 
 .chat-dock.is-open .chat-workspace {
@@ -187,6 +188,7 @@
     border: 0;
     box-shadow: none;
     padding: 0;
+    overflow: hidden;
 }
 
 .chat-overflow {
@@ -1334,6 +1336,22 @@
     font-size: 0.85rem;
     cursor: pointer;
     padding: 0.1rem 0.2rem;
+}
+
+.chat-message--deleted .chat-message__bubble {
+    background: rgba(148, 163, 184, 0.12);
+    color: rgba(148, 163, 184, 0.85);
+    border-style: dashed;
+    font-style: italic;
+    box-shadow: none;
+}
+
+.chat-message--deleted .chat-message__reactions {
+    display: none !important;
+}
+
+.chat-message--deleted .chat-message__meta {
+    color: rgba(148, 163, 184, 0.7);
 }
 
 .chat-message--peer {

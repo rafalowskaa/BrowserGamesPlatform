@@ -3048,4 +3048,16 @@
 	<data name="Games_Details_Rules_Heading" xml:space="preserve">
     <value>Zasady gry</value>
   </data>
+	<data name="Chat_DeleteMessage" xml:space="preserve">
+    <value>Usuń wiadomość</value>
+  </data>
+	<data name="Chat_DeleteMessageConfirm" xml:space="preserve">
+    <value>Czy na pewno chcesz usunąć tę wiadomość?</value>
+  </data>
+	<data name="Chat_MessageDeleted" xml:space="preserve">
+    <value>Wiadomość usunięta</value>
+  </data>
+	<data name="Chat_DeleteMessageError" xml:space="preserve">
+    <value>Nie udało się usunąć wiadomości</value>
+  </data>
 </root>

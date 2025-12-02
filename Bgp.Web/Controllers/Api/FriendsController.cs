@@ -88,7 +88,7 @@ public class FriendsController : ControllerBase
         var unreadLookup = friendIds.Count == 0
             ? new Dictionary<string, int>()
             : await _db.ChatMessages
-                .Where(m => m.ReceiverId == uid && friendIds.Contains(m.SenderId) && !m.IsRead)
+                .Where(m => m.ReceiverId == uid && friendIds.Contains(m.SenderId) && !m.IsRead && !m.IsDeleted)
                 .GroupBy(m => m.SenderId)
                 .Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionaryAsync(g => g.Key, g => g.Count);

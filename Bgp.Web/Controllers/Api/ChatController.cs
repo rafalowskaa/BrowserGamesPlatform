@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using Bgp.Application.Dtos;
 using Bgp.Infrastructure.Persistence;
@@ -50,8 +51,8 @@ public class ChatController : ControllerBase
             .ToListAsync();
 
         var nameLookup = users.ToDictionary(
-            u => u.Id,
-            u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id));
+                u => u.Id,
+                u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id));
 
         var dto = msgs.Select(m => new ChatMessageDto(
             m.Id,
@@ -59,11 +60,13 @@ public class ChatController : ControllerBase
             m.ReceiverId,
             nameLookup.GetValueOrDefault(m.SenderId, m.SenderId.ToUpperInvariant()),
             nameLookup.GetValueOrDefault(m.ReceiverId, m.ReceiverId.ToUpperInvariant()),
-            m.Content,
+            m.IsDeleted ? string.Empty : m.Content,
             m.SentAtUtc,
             m.SenderId == uid,
             m.IsRead,
-            m.ReadAtUtc));
+            m.ReadAtUtc,
+            m.IsDeleted,
+            m.DeletedAtUtc));
 
         return Ok(dto);
     }
@@ -99,7 +102,9 @@ public class ChatController : ControllerBase
                 payload.SentAtUtc,
                 true,
                 payload.IsRead,
-                payload.ReadAtUtc);
+                payload.ReadAtUtc,
+                payload.IsDeleted,
+                payload.DeletedAtUtc);
 
             return Ok(dto);
         }
@@ -107,5 +112,55 @@ public class ChatController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    [HttpDelete("messages/{id:guid}")]
+    public async Task<ActionResult> DeleteMessage(Guid id)
+    {
+        var uid = UserId;
+        if (string.IsNullOrEmpty(uid))
+        {
+            return Unauthorized();
+        }
+
+        var message = await _db.ChatMessages.FirstOrDefaultAsync(m => m.Id == id);
+        if (message is null)
+        {
+            return NotFound();
+        }
+
+        if (message.SenderId != uid && message.ReceiverId != uid)
+        {
+            return Forbid();
+        }
+
+        if (!message.IsDeleted)
+        {
+            message.IsDeleted = true;
+            message.DeletedAtUtc = DateTime.UtcNow;
+            message.DeletedById = uid;
+            message.Content = string.Empty;
+            if (!message.IsRead)
+            {
+                message.IsRead = true;
+                message.ReadAtUtc ??= message.DeletedAtUtc;
+            }
+
+            await _db.SaveChangesAsync();
+        }
+
+        var peerId = message.SenderId == uid ? message.ReceiverId : message.SenderId;
+        var payload = new
+        {
+            messageId = message.Id,
+            peerId,
+            deletedById = message.DeletedById ?? uid,
+            deletedAtUtc = message.DeletedAtUtc
+        };
+
+        await _hub.Clients.Group($"user-{uid}").SendAsync("MessageDeleted", payload);
+        await _hub.Clients.Group($"user-{peerId}").SendAsync("MessageDeleted", payload);
+
+        return Ok(payload);
     }
 }

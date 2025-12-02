@@ -15,4 +15,9 @@ public class ChatMessage
     public DateTime SentAtUtc { get; set; } = DateTime.UtcNow;
     public bool IsRead { get; set; }
     public DateTime? ReadAtUtc { get; set; }
+
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAtUtc { get; set; }
+    [MaxLength(450)]
+    public string? DeletedById { get; set; }
 }

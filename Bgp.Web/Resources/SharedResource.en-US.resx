@@ -3153,4 +3153,16 @@
 	<data name="Games_Details_Rules_Heading" xml:space="preserve">
     <value>Game rules</value>
   </data>
+	<data name="Chat_DeleteMessage" xml:space="preserve">
+    <value>Delete message</value>
+  </data>
+	<data name="Chat_DeleteMessageConfirm" xml:space="preserve">
+    <value>Are you sure you want to delete this message?</value>
+  </data>
+	<data name="Chat_MessageDeleted" xml:space="preserve">
+    <value>Message deleted</value>
+  </data>
+	<data name="Chat_DeleteMessageError" xml:space="preserve">
+    <value>Unable to delete message</value>
+  </data>
 </root>

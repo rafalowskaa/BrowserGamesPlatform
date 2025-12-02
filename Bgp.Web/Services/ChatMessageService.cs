@@ -20,7 +20,9 @@ public record ChatMessagePayload(
     string Content,
     DateTime SentAtUtc,
     bool IsRead,
-    DateTime? ReadAtUtc);
+    DateTime? ReadAtUtc,
+    bool IsDeleted,
+    DateTime? DeletedAtUtc);
 
 public class ChatMessageService : IChatMessageService
 {
@@ -100,6 +102,8 @@ public class ChatMessageService : IChatMessageService
             message.Content,
             message.SentAtUtc,
             message.IsRead,
-            message.ReadAtUtc);
+            message.ReadAtUtc,
+            message.IsDeleted,
+            message.DeletedAtUtc);
     }
 }

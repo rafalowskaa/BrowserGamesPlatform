@@ -10,7 +10,9 @@ public record ChatMessageDto(
     DateTime SentAtUtc,
     bool FromSelf,
     bool IsRead,
-    DateTime? ReadAtUtc);
+    DateTime? ReadAtUtc,
+    bool IsDeleted,
+    DateTime? DeletedAtUtc);
 
 public class SendMessageRequest
 {

@@ -86,7 +86,7 @@ public class ChatHub : Hub
         }
 
         var unread = await _db.ChatMessages
-            .Where(m => m.SenderId == otherUserId && m.ReceiverId == UserId && !m.IsRead)
+            .Where(m => m.SenderId == otherUserId && m.ReceiverId == UserId && !m.IsRead && !m.IsDeleted)
             .ToListAsync();
 
         if (unread.Count == 0)
