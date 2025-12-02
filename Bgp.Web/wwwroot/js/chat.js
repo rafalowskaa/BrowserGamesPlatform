@@ -186,7 +186,6 @@
         reactionLabel: 'React',
         emojiLabel: 'Emoji',
         attachmentLabel: 'Attachment',
-        expandPanel: 'Expand chat list',
         searchThreadNone: 'No results'
 
     };
@@ -1069,16 +1068,6 @@
             }
         }
     });
-
-    if (panelHeader) {
-        panelHeader.addEventListener('click', (evt) => {
-            const buttonTarget = evt.target.closest('button');
-            if (buttonTarget && (buttonTarget.hasAttribute('data-chat-close') || buttonTarget.hasAttribute('data-chat-panel-toggle'))) {
-                return;
-            }
-            togglePanelCollapsed();
-        });
-    }
 
     if (statusToggle) {
         statusToggle.addEventListener('click', (evt) => {
@@ -2275,12 +2264,6 @@
     }
 
     function renderFriends(accepted) {
-        if (friendsList) {
-            friendsList.innerHTML = '';
-        }
-        if (archivedList) {
-            archivedList.innerHTML = '';
-        }
         const ordered = accepted.slice().sort((a, b) => {
             const unreadDiff = (b.unreadCount || 0) - (a.unreadCount || 0);
             if (unreadDiff !== 0) {
@@ -2299,6 +2282,7 @@
             if (!friend.element) {
                 createFriendElement(friend);
             }
+            updateFriendVisual(friend);
             updateFriendPlacement(friend);
         });
         applyFriendFilter();
@@ -2932,6 +2916,7 @@
         if (!conversation || !conversation.element) {
             return;
         }
+        const wasCollapsed = !!conversation.isCollapsed;
         const shouldCollapse = !!collapsed;
         if (conversation.isCollapsed === shouldCollapse && !options.force) {
             return;
@@ -2953,12 +2938,20 @@
             conversation.collapseBtn.title = collapseLabel;
             conversation.collapseBtn.textContent = shouldCollapse ? '▢' : '–';
         }
+        if (!shouldCollapse && wasCollapsed) {
+            conversation.element.classList.remove('chat-window--attention');
+        }
         updateConversationAttention(conversation, shouldCollapse && (conversation.unreadBadge || 0) > 0);
         if (shouldCollapse && normalizeId(activeConversationId) === normalizeId(conversation.friendId)) {
             activeConversationId = null;
             const fallback = findFallbackConversation();
             if (fallback && fallback !== conversation) {
                 setActiveConversation(fallback);
+                return;
+            }
+            if (!fallback) {
+                syncConversationVisibility();
+                persistWindowsState();
                 return;
             }
         }
@@ -2983,15 +2976,18 @@
             return;
         }
         const shouldPulse = !!active;
+        if (!shouldPulse) {
+            conversation.hasAttention = false;
+            conversation.element.classList.remove('chat-window--attention');
+            return;
+        }
         if (conversation.hasAttention === shouldPulse) {
             return;
         }
         conversation.hasAttention = shouldPulse;
         conversation.element.classList.remove('chat-window--attention');
-        if (shouldPulse) {
-            void conversation.element.offsetWidth;
-            conversation.element.classList.add('chat-window--attention');
-        }
+        void conversation.element.offsetWidth;
+        conversation.element.classList.add('chat-window--attention');
     }
 
     function updateConversationBadge(conversation, count) {
@@ -3083,7 +3079,7 @@
             const savedState = state.states && state.states[id] ? state.states[id] : null;
             const shouldCollapse = savedState
                 ? savedState.state === 'minimized'
-                : true;
+                : false;
 
             setWindowEntry(id, {
                 state: shouldCollapse ? 'minimized' : 'open',
@@ -3133,10 +3129,19 @@
         }
         const availableIds = windowOrder.filter((id) => id && conversations.has(id)
             && (!popoutConversationId || normalizeId(popoutConversationId) !== id));
-        const total = availableIds.length;
+        const orderedIds = availableIds.slice();
+        const activeId = normalizeId(activeConversationId);
+        if (activeId) {
+            const activeIndex = orderedIds.indexOf(activeId);
+            if (activeIndex !== -1) {
+                orderedIds.splice(activeIndex, 1);
+                orderedIds.push(activeId);
+            }
+        }
+        const total = orderedIds.length;
         const maxVisible = getMaxVisibleWindows();
-        const visible = availableIds.slice(Math.max(0, total - maxVisible));
-        const hidden = availableIds.slice(0, Math.max(0, total - maxVisible));
+        const visible = orderedIds.slice(Math.max(0, total - maxVisible));
+        const hidden = orderedIds.slice(0, Math.max(0, total - maxVisible));
         visible.forEach((id) => {
             const conversation = conversations.get(id);
             if (conversation && conversation.element) {
@@ -3507,13 +3512,14 @@
             return;
         }
         const messageId = message && message.id ? message.id : null;
+        if (conversation.hasAttention) {
+            return;
+        }
         if (messageId && conversation.lastAttentionMessageId === messageId) {
             return;
         }
         conversation.lastAttentionMessageId = messageId;
-        conversation.element.classList.remove('chat-window--attention');
-        void conversation.element.offsetWidth;
-        conversation.element.classList.add('chat-window--attention');
+        updateConversationAttention(conversation, true);
     }
 
     function getTimeline(conversation) {
@@ -3748,7 +3754,7 @@
                 if (shouldSignalAttention) {
                     friend.lastNotifiedMessageId = message.id || null;
                     triggerConversationAttention(conversation, message);
-                    updateConversationAttention(conversation, true);
+                   
                 }
                 const entry = setWindowEntry(friendId, (prev) => ({
                     ...prev,
@@ -3812,12 +3818,20 @@
         });
     }
 
+    function isConversationScrolledToBottom(conversation) {
+        if (!conversation || !conversation.body) {
+            return false;
+        }
+        const distance = conversation.body.scrollHeight - conversation.body.scrollTop - conversation.body.clientHeight;
+        return distance < 32;
+    }
+
+
     function handleConversationScroll(conversation) {
         if (!conversation || !conversation.body) {
             return;
         }
-        const distance = conversation.body.scrollHeight - conversation.body.scrollTop - conversation.body.clientHeight;
-        if (distance < 32) {
+        if (isConversationScrolledToBottom(conversation)) {
             setActiveConversation(conversation);
             markThreadRead(conversation.friendId);
         }
@@ -3829,23 +3843,11 @@
         }
 
         loadFriendsPromise = (async () => {
-            if (friendsList) {
-                friendsList.innerHTML = '';
-            }
-            if (requestsList) {
-                requestsList.innerHTML = '';
-            }
-
             const previousUnread = new Map();
-            const preservedStrangers = [];
-            friends.forEach((friend) => {
-                previousUnread.set(normalizeId(friend.userId), friend.unreadCount || 0);
-                if (friend && friend.isFriend === false) {
-                    preservedStrangers.push(friend);
-                }
+            friends.forEach((friend, key) => {
+                previousUnread.set(key, friend.unreadCount || 0);
             });
 
-            friends.clear();
 
             try {
                 const res = await fetch('/api/friends', { credentials: 'same-origin' });
@@ -3856,23 +3858,42 @@
                 const accepted = [];
                 const incoming = [];
                 const outgoing = [];
+                const seenFriendIds = new Set();
                 data.forEach((row) => {
                     if (row.status === 1) {
-                        const friend = {
+                        const key = normalizeId(row.userId);
+                        const existing = getFriend(row.userId);
+                        const unreadCount = Math.max(
+                            row.unreadCount || 0,
+                            previousUnread.get(key) || 0,
+                            existing && existing.unreadCount ? existing.unreadCount : 0
+                        );
+                        const friend = existing || {
                             userId: row.userId,
                             displayName: row.displayName,
                             avatarUrl: row.avatarUrl,
                             statusMessage: row.statusMessage,
                             presence: normalizePresence(row.presence),
                             isInvisible: !!row.isInvisible,
-                            unreadCount: previousUnread.get(normalizeId(row.userId)) || row.unreadCount || 0,
+                            unreadCount,
                             isFriend: true,
                             isArchived: isThreadArchived(row.userId),
                             keepArchived: shouldKeepArchived(row.userId),
-                            lastNotifiedMessageId: null
+                            lastNotifiedMessageId: existing ? existing.lastNotifiedMessageId || null : null
                         };
+
+                        friend.displayName = row.displayName;
+                        friend.avatarUrl = row.avatarUrl;
+                        friend.statusMessage = row.statusMessage;
+                        friend.presence = normalizePresence(row.presence);
+                        friend.isInvisible = !!row.isInvisible;
+                        friend.unreadCount = unreadCount;
+                        friend.isFriend = true;
+                        friend.isArchived = isThreadArchived(row.userId);
+                        friend.keepArchived = shouldKeepArchived(row.userId);
                         setFriend(friend);
                         accepted.push(friend);
+                        seenFriendIds.add(key);
                     } else if (row.status === 0 && row.outgoingRequest) {
                         outgoing.push(row);
                     } else if (row.status === 0) {
@@ -3880,15 +3901,26 @@
                     }
                 });
 
+                friends.forEach((friend, key) => {
+                    if (friend && friend.isFriend && !seenFriendIds.has(key)) {
+                        if (friend.element) {
+                            friend.element.remove();
+                        }
+                        friends.delete(key);
+                    }
+                });
+
                 renderFriends(accepted);
                 renderRequests(incoming, outgoing);
-                preservedStrangers.forEach((stranger) => {
-                    if (hasFriend(stranger.userId)) {
+                Array.from(strangerContacts.values()).forEach((stranger) => {
+                    if (stranger && hasFriend(stranger.userId)) {
                         removeStrangerContact(stranger.userId);
                         return;
                     }
-                    stranger.unreadCount = previousUnread.get(normalizeId(stranger.userId)) || stranger.unreadCount || 0;
-                    stranger.isFriend = false;
+                    stranger.unreadCount = Math.max(
+                        stranger.unreadCount || 0,
+                        previousUnread.get(normalizeId(stranger.userId)) || 0
+                    );
                     setFriend(stranger);
                     ensureStrangerContact(stranger);
                     flushPendingMessages(stranger.userId);
@@ -4075,8 +4107,12 @@
     };
 
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-            conversations.forEach((_, friendId) => markThreadRead(friendId));
+        if (document.visibilityState !== 'visible') {
+            return;
+        }
+        const active = getActiveConversation();
+        if (active && isConversationScrolledToBottom(active)) {
+            markThreadRead(active.friendId);
         }
     });
 

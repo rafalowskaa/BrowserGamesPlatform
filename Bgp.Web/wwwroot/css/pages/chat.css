@@ -120,7 +120,7 @@
     white-space: nowrap;
 }
 
-
+@media (max-width: 64rem) {
     .chat-workspace {
         top: auto;
         right: 0;
@@ -157,8 +157,19 @@
     .chat-window__back {
         display: inline-flex;
     }
-
 }
+
+
+.chat-panel--collapsed {
+    height: auto;
+    max-height: 4.5rem;
+    transition: max-height 0.25s ease;
+}
+
+    .chat-panel--collapsed .chat-panel__search,
+    .chat-panel--collapsed .chat-panel__body {
+        display: none;
+    }
 
 .chat-dock__windows {
     display: flex;
@@ -309,20 +320,15 @@
         }
 
 .chat-panel {
-
     flex: 0 0 var(--chat-panel-width, min(24rem, 40vw));
     width: var(--chat-panel-width, min(24rem, 40vw));
     min-width: 20rem;
-    height: 100%;
-    max-height: 100%;
-
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: var(--chat-panel-width, min(24rem, 92vw));
-    height: 100vh;
-
+    height: auto;
+    max-height: var(--chat-panel-height, min(70vh, 720px));
+    position: relative;
+    right: auto;
+    top: auto;
+    bottom: auto;
     background: rgba(15, 23, 42, 0.96);
     border-radius: 1.25rem;
     box-shadow: 0 30px 80px rgba(15, 23, 42, 0.65);
@@ -332,6 +338,7 @@
     flex-direction: column;
     backdrop-filter: blur(8px);
     pointer-events: auto;
+    transition: max-height 0.25s ease, height 0.25s ease;
 }
 
 .chat-panel__header {
@@ -663,9 +670,9 @@
 .chat-contact__button {
     border: 0;
     border-radius: 1rem;
-    padding: 0.85rem 1rem;
-    min-height: 4.25rem;
-    background: rgba(15, 23, 42, 0.55);
+    padding: 0.75rem 0.9rem;
+    min-height: 3.85rem;
+    background: rgba(15, 23, 42, 0.5);
     color: inherit;
     font-size: 0.95rem;
     font-weight: 600;
@@ -676,8 +683,8 @@
     align-items: center;
     gap: 0.75rem;
     text-align: left;
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.3);
-    border: 1px solid rgba(148, 163, 184, 0.08);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.22);
+    border: 1px solid rgba(148, 163, 184, 0.12);
 }
 
     .chat-contact__button:focus-visible {
@@ -856,16 +863,15 @@
 }
 
 .chat-contact.is-unread {
-
-    border-color: rgba(59, 130, 246, 0.35);
-    background: rgba(37, 99, 235, 0.12);
-
+    border-color: rgba(59, 130, 246, 0.28);
+    background: rgba(37, 99, 235, 0.08);
     animation: chatBlink 1.2s ease-out 1;
 }
 
     .chat-contact.is-unread .chat-contact__button {
-        background: rgba(37, 99, 235, 0.18);
-        box-shadow: 0 25px 45px rgba(37, 99, 235, 0.25);
+        background: rgba(37, 99, 235, 0.12);
+        box-shadow: 0 16px 32px rgba(37, 99, 235, 0.22);
+        border-color: rgba(96, 165, 250, 0.3);
     }
 
     .chat-contact.is-unread .chat-contact__name {
