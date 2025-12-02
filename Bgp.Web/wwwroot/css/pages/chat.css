@@ -866,7 +866,6 @@
 .chat-contact.is-unread {
     border-color: rgba(59, 130, 246, 0.28);
     background: rgba(37, 99, 235, 0.08);
-    animation: chatBlink 1.2s ease-out 1;
 }
 
     .chat-contact.is-unread .chat-contact__button {
@@ -917,6 +916,7 @@
     width: clamp(16rem, 22vw, 21rem);
     height: auto;
     max-height: min(70vh, 32rem);
+    position: relative;
     align-self: flex-end;
     display: flex;
     flex-direction: column;

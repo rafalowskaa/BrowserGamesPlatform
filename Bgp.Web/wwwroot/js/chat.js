@@ -205,12 +205,12 @@
 
     if (mobileSheetQuery && typeof mobileSheetQuery.addEventListener === 'function') {
         mobileSheetQuery.addEventListener('change', () => {
-            syncThreadViewState(!mobileSheetQuery.matches);
+            syncThreadViewState(false);
             layoutDockWindows();
         });
     } else if (mobileSheetQuery && typeof mobileSheetQuery.addListener === 'function') {
         mobileSheetQuery.addListener(() => {
-            syncThreadViewState(!mobileSheetQuery.matches);
+            syncThreadViewState(false);
             layoutDockWindows();
         });
     }
@@ -425,9 +425,11 @@
             threadViewForced = false;
             return;
         }
-        if (threadViewForced) {
-            dock.classList.add('is-thread-view');
-        }
+        const activeKey = normalizeId(activeConversationId);
+        const hasActive = !!(activeKey && conversations.has(activeKey));
+        const shouldThread = threadViewForced || hasActive;
+        dock.classList.toggle('is-thread-view', shouldThread);
+        threadViewForced = shouldThread;
     }
 
     function enterThreadView() {
@@ -990,6 +992,39 @@
         if (options.dispatchInput) {
             searchInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
+    }
+
+    function panelContainsFocus() {
+        if (!panel || !document.activeElement) {
+            return false;
+        }
+        return panel.contains(document.activeElement);
+    }
+
+    function getFocusedFriendId() {
+        const active = document.activeElement;
+        if (!active) {
+            return null;
+        }
+        const friendNode = active.closest('[data-chat-friend]');
+        if (friendNode && friendNode.dataset.chatFriend) {
+            return friendNode.dataset.chatFriend;
+        }
+        return null;
+    }
+
+    function focusRelativeContact(delta) {
+        if (!panel) {
+            return;
+        }
+        const buttons = Array.from(panel.querySelectorAll('button[data-chat-item="contact"]'));
+        if (!buttons.length) {
+            return;
+        }
+        const current = document.activeElement && document.activeElement.closest('button[data-chat-item="contact"]');
+        const index = Math.max(0, buttons.indexOf(current));
+        const nextIndex = (index + delta + buttons.length) % buttons.length;
+        buttons[nextIndex].focus();
     }
 
     document.addEventListener('keydown', (evt) => {
@@ -2474,7 +2509,7 @@
         const header = document.createElement('div');
         header.className = 'chat-window__header';
         header.dataset.chatWindowHeader = friend.userId;
-        header.setAttribute('aria-expanded', 'false');
+        header.setAttribute('aria-expanded', 'true');
         header.draggable = true;
 
         const backBtn = document.createElement('button');
@@ -2670,7 +2705,7 @@
         element.appendChild(inputWrap);
 
         const restoredEntry = getWindowEntry(friend.userId);
-        const initialCollapse = restoredEntry && restoredEntry.state === 'minimized';
+        const initialCollapse = restoredEntry ? restoredEntry.state === 'minimized' : false;
 
         const conversation = {
             friendId: friend.userId,
@@ -3094,6 +3129,7 @@
         updateConversationAttention(conversation, false);
         layoutDockWindows();
         syncConversationVisibility();
+        syncThreadViewState(false);
         persistWindowsState();
     }
 
@@ -3183,7 +3219,14 @@
         }
         const availableIds = windowOrder.filter((id) => id && conversations.has(id)
             && (!popoutConversationId || normalizeId(popoutConversationId) !== id));
-        const orderedIds = availableIds.slice();
+        const collapsedVisible = availableIds.filter((id) => {
+            const convo = conversations.get(id);
+            return convo && convo.isCollapsed;
+        });
+        const orderedIds = availableIds.filter((id) => {
+            const convo = conversations.get(id);
+            return convo && !convo.isCollapsed;
+        });
         const activeId = normalizeId(activeConversationId);
         if (activeId) {
             const activeIndex = orderedIds.indexOf(activeId);
@@ -3194,8 +3237,10 @@
         }
         const total = orderedIds.length;
         const maxVisible = getMaxVisibleWindows();
-        const visible = orderedIds.slice(Math.max(0, total - maxVisible));
-        const hidden = orderedIds.slice(0, Math.max(0, total - maxVisible));
+        const remainingSlots = Math.max(0, maxVisible - collapsedVisible.length);
+        const visibleExpanded = orderedIds.slice(Math.max(0, total - remainingSlots));
+        const hidden = orderedIds.slice(0, Math.max(0, total - remainingSlots));
+        const visible = [...collapsedVisible, ...visibleExpanded];
         visible.forEach((id) => {
             const conversation = conversations.get(id);
             if (conversation && conversation.element) {
@@ -3818,6 +3863,15 @@
             }
         } else if (!message.fromSelf) {
             updateFriendVisual(friend);
+        }
+
+        if (isMobileSheet()) {
+            const activeKey = normalizeId(activeConversationId);
+            if (!activeKey && dock.classList.contains('is-open')) {
+                setActiveConversation(conversation);
+            } else if (activeKey && activeKey === normalizeId(friendId)) {
+                enterThreadView();
+            }
         }
     }
 
