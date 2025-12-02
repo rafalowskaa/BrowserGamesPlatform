@@ -92,11 +92,14 @@
     let pollErrorLogged = false;
     let lastUnreadTotal = 0;
     const windowOrder = [];
+    const windowsDock = new Map();
     const MAX_VISIBLE_WINDOWS_DESKTOP = 4;
     const MAX_VISIBLE_WINDOWS_MOBILE = 1;
     let activeConversationId = null;
     let popoutConversationId = null;
     let overflowMenuOpen = false;
+    let draggingWindowId = null;
+    let lastDragTargetId = null;
     const emojiPalette = ['😀', '😁', '😂', '😎', '😍', '🤔', '👍', '🎉', '🔥', '❤️', '✅', '❗', '🙌', '🥳', '🤖', '🕹️', '🏆', '⚡'];
 
     const reactionPalette = ['👍', '❤️', '🔥', '😂', '🎉'];
@@ -167,6 +170,9 @@
         contextAddFriend: 'Add friend',
         contextRemoveFriend: 'Remove friend',
         contextInvite: 'Invite to game',
+        contextGroup: 'Create group',
+        contextBlock: 'Block user',
+        contextReport: 'Report user',
         contextArchive: 'Archive',
         contextRestore: 'Restore',
         contextKeep: 'Keep archived',
@@ -285,23 +291,32 @@
 
     function loadWindowsState() {
         if (typeof window === 'undefined' || !window.localStorage) {
-            return { order: [], collapsed: {}, active: null };
+            return { order: [], states: {}, active: null };
         }
         try {
             const raw = window.localStorage.getItem(STORAGE_WINDOWS_STATE_KEY);
             if (!raw) {
-                return { order: [], collapsed: {}, active: null };
+                return { order: [], states: {}, active: null };
             }
             const parsed = JSON.parse(raw);
             const order = Array.isArray(parsed.order)
                 ? parsed.order.map(normalizeId).filter(Boolean)
                 : [];
             const collapsed = parsed.collapsed && typeof parsed.collapsed === 'object' ? parsed.collapsed : {};
+            const states = parsed.states && typeof parsed.states === 'object' ? parsed.states : {};
+            if (Object.keys(states).length === 0 && Object.keys(collapsed).length > 0) {
+                Object.keys(collapsed).forEach((key) => {
+                    states[key] = {
+                        state: collapsed[key] ? 'minimized' : 'open',
+                        badge: 0
+                    };
+                });
+            }
             const active = parsed.active ? normalizeId(parsed.active) : null;
-            return { order, collapsed, active };
+            return { order, states, active };
         } catch (err) {
             console.warn('Unable to load chat window state.', err);
-            return { order: [], collapsed: {}, active: null };
+            return { order: [], states: {}, active: null };
         }
     }
 
@@ -312,19 +327,52 @@
         try {
             const payload = {
                 order: [...windowOrder],
-                collapsed: {},
+                states: {},
                 active: activeConversationId ? normalizeId(activeConversationId) : null
             };
-            conversations.forEach((conversation, key) => {
-                if (conversation) {
-                    payload.collapsed[key] = !!conversation.isCollapsed;
-                }
+            windowsDock.forEach((entry, key) => {
+                payload.states[key] = {
+                    state: entry && entry.state ? entry.state : 'open',
+                    badge: entry && entry.badge ? entry.badge : 0
+                };
             });
+            if (Object.keys(payload.states).length === 0) {
+                conversations.forEach((conversation, key) => {
+                    if (conversation) {
+                        payload.states[key] = {
+                            state: conversation.isCollapsed ? 'minimized' : 'open',
+                            badge: conversation.unreadBadge || 0
+                        };
+                    }
+                });
+            }
             window.localStorage.setItem(STORAGE_WINDOWS_STATE_KEY, JSON.stringify(payload));
         } catch (err) {
             console.warn('Unable to persist chat window state.', err);
         }
     }
+
+    function getWindowEntry(friendId, createIfMissing = false) {
+        const key = normalizeId(friendId);
+        if (!key) {
+            return null;
+        }
+        if (!windowsDock.has(key) && createIfMissing) {
+            windowsDock.set(key, { state: 'open', badge: 0 });
+        }
+        return windowsDock.get(key) || null;
+    }
+
+    function setWindowEntry(friendId, updates) {
+        const entry = getWindowEntry(friendId, true);
+        if (!entry) {
+            return null;
+        }
+        const next = typeof updates === 'function' ? updates(entry) : { ...entry, ...updates };
+        windowsDock.set(normalizeId(friendId), next);
+        return next;
+    }
+
 
     function syncPanelCollapsedUi(collapsed) {
         if (panel) {
@@ -515,6 +563,21 @@
             key: 'invite',
             label: strings.contextInvite || strings.invite,
             action: () => dispatchInvite(friend.userId, friend.displayName)
+        });
+        items.push({
+            key: 'group',
+            label: strings.contextGroup || 'Create group',
+            action: () => dispatchChatAction('createGroup', { userId: friend.userId })
+        });
+        items.push({
+            key: 'block',
+            label: strings.contextBlock || 'Block user',
+            action: () => dispatchChatAction('block', { userId: friend.userId })
+        });
+        items.push({
+            key: 'report',
+            label: strings.contextReport || 'Report user',
+            action: () => dispatchChatAction('report', { userId: friend.userId })
         });
         if (isFriend) {
             const archiveLabel = isArchived
@@ -1102,6 +1165,35 @@
                 evt.preventDefault();
                 closePopout();
             }
+        });
+    }
+
+    if (windowsContainer) {
+        windowsContainer.addEventListener('dragover', (evt) => {
+            if (!draggingWindowId) {
+                return;
+            }
+            const header = evt.target.closest('[data-chat-window-header]');
+            if (!header) {
+                return;
+            }
+            const targetId = normalizeId(header.dataset.chatWindowHeader || '');
+            if (!targetId || targetId === draggingWindowId) {
+                return;
+            }
+            evt.preventDefault();
+            if (lastDragTargetId === targetId) {
+                return;
+            }
+            lastDragTargetId = targetId;
+            reorderWindowOrder(draggingWindowId, targetId);
+        });
+
+        windowsContainer.addEventListener('drop', (evt) => {
+            if (draggingWindowId) {
+                evt.preventDefault();
+            }
+            finishWindowDrag();
         });
     }
 
@@ -1937,16 +2029,26 @@
         }
         applyStatusDot(dotEl, friend);
         const shouldFlagUnread = (friend.unreadCount || 0) > 0;
-        const hasUnreadClass = friend.element.classList.contains('is-unread');
-        if (shouldFlagUnread && !hasUnreadClass) {
-            friend.element.classList.add('is-unread');
-        }
-        if (!shouldFlagUnread && hasUnreadClass) {
-            friend.element.classList.remove('is-unread');
-        }
+        updateFriendUnreadState(friend, shouldFlagUnread);
         updateFriendPlacement(friend);
         if (friend.tagEl) {
             friend.tagEl.hidden = !friend.isArchived;
+        }
+    }
+
+    function updateFriendUnreadState(friend, unread) {
+        if (!friend || !friend.element) {
+            return;
+        }
+        const shouldFlagUnread = !!unread;
+        if (friend.__hasUnread === shouldFlagUnread) {
+            return;
+        }
+        friend.__hasUnread = shouldFlagUnread;
+        friend.element.classList.remove('is-unread');
+        if (shouldFlagUnread) {
+            void friend.element.offsetWidth;
+            friend.element.classList.add('is-unread');
         }
     }
 
@@ -2304,6 +2406,11 @@
             registerConversation(conversation);
         }
 
+        setWindowEntry(friend.userId, {
+            state: conversation.isCollapsed ? 'minimized' : 'open',
+            badge: conversation.unreadBadge || 0
+        });
+
         if (windowsContainer && conversation.element
             && !conversation.element.classList.contains('chat-window--popout')
             && conversation.element.parentElement !== windowsContainer) {
@@ -2335,6 +2442,7 @@
         header.className = 'chat-window__header';
         header.dataset.chatWindowHeader = friend.userId;
         header.setAttribute('aria-expanded', 'false');
+        header.draggable = true;
 
         const backBtn = document.createElement('button');
         backBtn.type = 'button';
@@ -2346,6 +2454,16 @@
             exitThreadView(true);
         });
         header.appendChild(backBtn);
+
+        header.addEventListener('dragstart', (evt) => {
+            beginWindowDrag(friend.userId);
+            if (evt && evt.dataTransfer) {
+                evt.dataTransfer.effectAllowed = 'move';
+                evt.dataTransfer.setData('text/plain', friend.userId);
+            }
+        });
+
+        header.addEventListener('dragend', () => finishWindowDrag());
 
         const title = document.createElement('div');
         title.className = 'chat-window__title';
@@ -2552,6 +2670,13 @@
             }
         };
 
+        const restoredEntry = getWindowEntry(friend.userId);
+        const initialBadge = restoredEntry && typeof restoredEntry.badge === 'number'
+            ? restoredEntry.badge
+            : (friend.unreadCount || 0);
+        updateConversationBadge(conversation, initialBadge);
+        updateConversationAttention(conversation, initialBadge > 0 && conversation.isCollapsed);
+
         closeBtn.addEventListener('click', (evt) => {
             evt.preventDefault();
             evt.stopPropagation();
@@ -2740,6 +2865,10 @@
         document.dispatchEvent(new CustomEvent('bgp:chat:attachment', { detail }));
     }
 
+    function dispatchChatAction(name, detail) {
+        document.dispatchEvent(new CustomEvent(`bgp:chat:${name}`, { detail }));
+    }
+
     function pushWindowToOrder(friendId) {
         const key = normalizeId(friendId);
         if (!key) {
@@ -2750,6 +2879,40 @@
             windowOrder.splice(index, 1);
         }
         windowOrder.push(key);
+        persistWindowsState();
+    }
+
+    function reorderWindowOrder(sourceId, targetId) {
+        const source = normalizeId(sourceId);
+        const target = normalizeId(targetId);
+        if (!source || !target || source === target) {
+            return;
+        }
+        const srcIndex = windowOrder.indexOf(source);
+        const tgtIndex = windowOrder.indexOf(target);
+        if (srcIndex === -1 || tgtIndex === -1) {
+            return;
+        }
+        windowOrder.splice(srcIndex, 1);
+        const insertIndex = windowOrder.indexOf(target);
+        windowOrder.splice(insertIndex, 0, source);
+        persistWindowsState();
+        layoutDockWindows();
+    }
+
+    function beginWindowDrag(friendId) {
+        draggingWindowId = normalizeId(friendId);
+        if (windowsContainer) {
+            windowsContainer.classList.add('is-dragging');
+        }
+    }
+
+    function finishWindowDrag() {
+        draggingWindowId = null;
+        lastDragTargetId = null;
+        if (windowsContainer) {
+            windowsContainer.classList.remove('is-dragging');
+        }
         persistWindowsState();
     }
 
@@ -2775,6 +2938,10 @@
         }
         conversation.isCollapsed = shouldCollapse;
         conversation.element.classList.toggle('chat-window--collapsed', shouldCollapse);
+        setWindowEntry(conversation.friendId, (entry) => ({
+            ...entry,
+            state: shouldCollapse ? 'minimized' : 'open'
+        }));
         if (conversation.header) {
             conversation.header.setAttribute('aria-expanded', shouldCollapse ? 'false' : 'true');
         }
@@ -2786,6 +2953,7 @@
             conversation.collapseBtn.title = collapseLabel;
             conversation.collapseBtn.textContent = shouldCollapse ? '▢' : '–';
         }
+        updateConversationAttention(conversation, shouldCollapse && (conversation.unreadBadge || 0) > 0);
         if (shouldCollapse && normalizeId(activeConversationId) === normalizeId(conversation.friendId)) {
             activeConversationId = null;
             const fallback = findFallbackConversation();
@@ -2806,12 +2974,39 @@
             }
             const isActive = !!activeKey && key === activeKey && !conversation.isCollapsed;
             conversation.element.classList.toggle('chat-window--active', isActive);
-            if (isActive) {
-                conversation.element.style.zIndex = '5';
-            } else if (conversation.element.style.zIndex) {
-                conversation.element.style.zIndex = '';
-            }
+            
         });
+    }
+
+    function updateConversationAttention(conversation, active) {
+        if (!conversation || !conversation.element) {
+            return;
+        }
+        const shouldPulse = !!active;
+        if (conversation.hasAttention === shouldPulse) {
+            return;
+        }
+        conversation.hasAttention = shouldPulse;
+        conversation.element.classList.remove('chat-window--attention');
+        if (shouldPulse) {
+            void conversation.element.offsetWidth;
+            conversation.element.classList.add('chat-window--attention');
+        }
+    }
+
+    function updateConversationBadge(conversation, count) {
+        if (!conversation || !conversation.badgeEl) {
+            return;
+        }
+        const value = Math.max(0, count || 0);
+        conversation.unreadBadge = value;
+        conversation.badgeEl.textContent = String(value);
+        conversation.badgeEl.hidden = value === 0;
+        setWindowEntry(conversation.friendId, (entry) => ({
+            ...entry,
+            badge: value
+        }));
+        persistWindowsState();
     }
 
     function findFallbackConversation() {
@@ -2840,8 +3035,13 @@
             return;
         }
         activeConversationId = conversation.friendId;
+        setWindowEntry(conversation.friendId, (entry) => ({
+            ...entry,
+            state: 'open'
+        }));
         pushWindowToOrder(conversation.friendId);
         setConversationCollapsed(conversation, false);
+        updateConversationAttention(conversation, false);
         layoutDockWindows();
         syncConversationVisibility();
         persistWindowsState();
@@ -2868,6 +3068,10 @@
             return;
         }
 
+        if (Array.isArray(state.order) && state.order.length) {
+            windowOrder.splice(0, windowOrder.length, ...state.order);
+        }
+
         state.order.forEach((id) => {
             if (!hasFriend(id)) {
                 return;
@@ -2876,10 +3080,21 @@
             if (!conversation) {
                 return;
             }
-            const shouldCollapse = state.collapsed && Object.prototype.hasOwnProperty.call(state.collapsed, id)
-                ? !!state.collapsed[id]
+            const savedState = state.states && state.states[id] ? state.states[id] : null;
+            const shouldCollapse = savedState
+                ? savedState.state === 'minimized'
                 : true;
+
+            setWindowEntry(id, {
+                state: shouldCollapse ? 'minimized' : 'open',
+                badge: savedState && savedState.badge ? savedState.badge : 0
+            });
             setConversationCollapsed(conversation, shouldCollapse, { force: true });
+            if (savedState && savedState.badge && conversation.badgeEl) {
+                conversation.unreadBadge = savedState.badge;
+                conversation.badgeEl.textContent = String(savedState.badge);
+                conversation.badgeEl.hidden = savedState.badge === 0;
+            }
         });
 
         if (state.active && conversations.has(state.active)) {
@@ -2903,6 +3118,10 @@
             return;
         }
         windowsContainer.appendChild(conversation.element);
+        setWindowEntry(conversation.friendId, {
+            state: conversation.isCollapsed ? 'minimized' : 'open',
+            badge: conversation.unreadBadge || 0
+        });
         pushWindowToOrder(conversation.friendId);
         layoutDockWindows();
         syncConversationVisibility();
@@ -2934,6 +3153,13 @@
                 if (conversation.element.parentElement !== windowsContainer) {
                     windowsContainer.appendChild(conversation.element);
                 }
+            }
+        });
+        visible.forEach((id, index) => {
+            const conversation = conversations.get(id);
+            if (conversation && conversation.element) {
+                const isActive = normalizeId(activeConversationId) === id;
+                conversation.element.style.zIndex = String(5 + index + (isActive ? 10 : 0));
             }
         });
         if (overflowCount) {
@@ -3127,6 +3353,7 @@
             conversation.element.remove();
         }
         deleteConversation(friendId);
+        windowsDock.delete(normalizeId(friendId));
         removeWindowFromOrder(friendId);
         layoutDockWindows();
 
@@ -3160,6 +3387,9 @@
             return false;
         }
         if (conversation.element.classList.contains('chat-window--stacked')) {
+            return false;
+        }
+        if (normalizeId(activeConversationId) !== normalizeId(conversation.friendId)) {
             return false;
         }
         if (document.visibilityState === 'hidden') {
@@ -3506,7 +3736,7 @@
             } else {
                 const wasUnread = (friend.unreadCount || 0) > 0;
                 friend.unreadCount = (friend.unreadCount || 0) + 1;
-                
+                updateFriendUnreadState(friend, true);
                 updateFriendVisual(friend);
                 updateUnreadBadge();
 
@@ -3518,18 +3748,13 @@
                 if (shouldSignalAttention) {
                     friend.lastNotifiedMessageId = message.id || null;
                     triggerConversationAttention(conversation, message);
-                    if (friend.element) {
-                        friend.element.classList.add('is-attention');
-                    }
-
-                
-
+                    updateConversationAttention(conversation, true);
                 }
-                conversation.unreadBadge = (conversation.unreadBadge || 0) + 1;
-                if (conversation.badgeEl) {
-                    conversation.badgeEl.textContent = String(conversation.unreadBadge);
-                    conversation.badgeEl.hidden = false;
-                }
+                const entry = setWindowEntry(friendId, (prev) => ({
+                    ...prev,
+                    badge: (prev.badge || 0) + 1
+                }));
+                updateConversationBadge(conversation, entry && entry.badge ? entry.badge : (conversation.unreadBadge || 0));
             }
         } else if (!message.fromSelf) {
             updateFriendVisual(friend);
@@ -3559,6 +3784,7 @@
         if (!friend) return;
         friend.unreadCount = 0;
         friend.lastNotifiedMessageId = null;
+        updateFriendUnreadState(friend, false);
         updateFriendVisual(friend);
         if (friend.element) {
             friend.element.classList.remove('is-attention');
@@ -3568,15 +3794,16 @@
         if (conversation) {
             conversation.element.classList.remove('chat-window--attention');
             conversation.lastAttentionMessageId = null;
-            conversation.unreadBadge = 0;
-            if (conversation.badgeEl) {
-                conversation.badgeEl.textContent = '0';
-                conversation.badgeEl.hidden = true;
-            }
+            updateConversationAttention(conversation, false);
+            updateConversationBadge(conversation, 0);
             recordConversationSeen(conversation);
         } else {
             setLastSeenEntry(friend.userId, null, new Date().toISOString());
         }
+        setWindowEntry(friendId, (entry) => ({
+            ...entry,
+            badge: 0
+        }));
         ensureConnectionStarted().then((conn) => {
             if (!conn || conn.state !== 'Connected') {
                 return;
