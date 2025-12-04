@@ -18,14 +18,14 @@
 
 /* --- Chat dock --- */
 .chat-dock {
-    --chat-gutter: clamp(1rem, 2vw, 2.5rem);
+    --chat-gutter: clamp(0.75rem, 1.5vw, 1.5rem);
     --chat-offset-top: clamp(3.5rem, 7vh, 5rem);
     --chat-panel-width: clamp(20rem, 25vw, 22.5rem);
     --chat-panel-height: min(70vh, 720px);
     --chat-panel-gap: 1.25rem;
     position: fixed;
     inset: auto var(--chat-gutter) var(--chat-gutter) var(--chat-gutter);
-    z-index: 950;
+    z-index: 1200;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -62,8 +62,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 3.5rem;
-    height: 3.5rem;
+    width: 3.9rem;
+    height: 3.9rem;
     border-radius: 50%;
     border: 0;
     color: #fff;
@@ -81,7 +81,7 @@
     }
 
 .chat-toggle__icon {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
 }
 
 .chat-toggle__badge {
@@ -1166,6 +1166,9 @@
     font-size: 1rem;
     cursor: pointer;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 10px 24px rgba(56, 189, 248, 0.35);
+    padding: 0;
+    background-clip: padding-box;
 }
 
     .chat-window__send:hover,
@@ -1202,6 +1205,14 @@
     display: flex;
     gap: 0.75rem;
     align-items: flex-end;
+}
+
+.chat-message {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    max-width: min(640px, 100%);
 }
 
 .chat-message-group--me {
@@ -1301,6 +1312,14 @@
     max-width: 100%;
 }
 
+.chat-message--peer {
+    align-items: flex-start;
+}
+
+.chat-message--me {
+    align-items: flex-end;
+}
+
 .chat-message__meta {
     font-size: 0.75rem;
     color: rgba(148, 163, 184, 0.8);
@@ -1383,6 +1402,22 @@
 
 .chat-message--highlight {
     animation: chatAttention 1.4s ease-in-out 3;
+}
+
+.chat-message__reaction {
+    position: absolute;
+    right: 0.35rem;
+    bottom: -0.35rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    color: #e2e8f0;
+    font-size: 0.85rem;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.35);
 }
 
 .chat-message--pending .chat-message__bubble {

@@ -228,16 +228,11 @@ public class FriendsController : ControllerBase
 
         var term = q.Trim();
 
-        var excludedIds = await _db.Friendships
-            .Where(f => f.RequesterId == uid || f.AddresseeId == uid)
-            .Select(f => f.RequesterId == uid ? f.AddresseeId : f.RequesterId)
-            .ToListAsync();
-        excludedIds.Add(uid);
 
         var results = await _db.Users
             .AsNoTracking()
             .Where(u => !u.IsBlocked)
-            .Where(u => !excludedIds.Contains(u.Id))
+            .Where(u => u.Id != uid)
             .Where(u => EF.Functions.Like(u.DisplayName ?? u.Email ?? u.UserName ?? string.Empty, $"%{term}%"))
             .OrderBy(u => u.DisplayName ?? u.Email ?? u.UserName ?? u.Id)
             .Take(12)

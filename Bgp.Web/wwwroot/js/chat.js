@@ -496,6 +496,16 @@
         document.dispatchEvent(new CustomEvent(`bgp:chat:${name}`, { detail }));
     }
 
+    function formatFileSize(bytes) {
+        if (!bytes || bytes <= 0) {
+            return '0 B';
+        }
+        const units = ['B', 'KB', 'MB', 'GB'];
+        const exponent = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+        const value = bytes / (1024 ** exponent);
+        return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[exponent]}`;
+    }
+
     function closeContextMenu() {
         if (!contextMenu) {
             return;
@@ -1960,12 +1970,7 @@
                 return;
             }
             const existing = getFriend(identifier);
-            if (existing) {
-                if (!existing.isFriend) {
-                    ensureStrangerContact(existing);
-                }
-                return;
-            }
+            
             const li = document.createElement('li');
             li.className = 'chat-contact';
             li.dataset.strangerSearch = '';
@@ -1973,11 +1978,9 @@
 
             const button = document.createElement('button');
             button.type = 'button';
-            button.className = 'chat-contact__button chat-contact__button--ghost';
+            button.className = ['chat-contact__button', existing ? '' : 'chat-contact__button--ghost'].join(' ').trim();
             button.addEventListener('click', () => {
-                if (window.bgpChat && typeof window.bgpChat.open === 'function') {
-                    window.bgpChat.open(identifier, displayName);
-                }
+                openConversation(identifier, displayName);
             });
 
             const avatar = document.createElement('span');
@@ -2002,7 +2005,7 @@
 
             const prompt = document.createElement('span');
             prompt.className = 'chat-contact__status';
-            prompt.textContent = strings.strangersPrompt;
+            prompt.textContent = existing ? getStatusLine(existing) : strings.strangersPrompt;
             meta.appendChild(prompt);
 
             button.appendChild(avatar);
@@ -2019,7 +2022,7 @@
             menuBtn.addEventListener('click', (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                openContextMenu(identifier, menuBtn, {
+                openContextMenu(identifier, menuBtn, existing || {
                     userId: identifier,
                     displayName,
                     isFriend: false,
@@ -2726,6 +2729,23 @@
         attachBtn.textContent = '📎';
         actions.appendChild(attachBtn);
 
+        const attachmentInput = document.createElement('input');
+        attachmentInput.type = 'file';
+        attachmentInput.hidden = true;
+        attachmentInput.addEventListener('change', async () => {
+            const file = attachmentInput.files && attachmentInput.files[0];
+            if (!file) {
+                return;
+            }
+            const label = `${file.name} (${formatFileSize(file.size)})`;
+            input.value = label;
+            autoGrowInput(input);
+            await send();
+            setConversationCollapsed(conversation, true);
+            attachmentInput.value = '';
+        });
+        actions.appendChild(attachmentInput);
+
         const emojiPicker = document.createElement('div');
         emojiPicker.className = 'chat-emoji-picker';
         emojiPicker.hidden = true;
@@ -2909,7 +2929,7 @@
 
         attachBtn.addEventListener('click', (event) => {
             event.preventDefault();
-            dispatchAttachment(friend.userId);
+            attachmentInput.click();
         });
 
         autoGrowInput(input);
@@ -3779,6 +3799,7 @@
             btn.setAttribute('aria-label', `${strings.reactionLabel || 'React'} ${emoji}`);
             btn.addEventListener('click', (event) => {
                 event.preventDefault();
+                applyLocalReaction(conversation, message.id, emoji);
                 dispatchChatEvent('reaction', {
                     friendId: conversation.friendId,
                     messageId: message.id,
@@ -3802,6 +3823,24 @@
             bar.appendChild(deleteBtn);
         }
         return bar;
+    }
+
+    function applyLocalReaction(conversation, messageId, emoji) {
+        if (!conversation || !conversation.messages || !emoji) {
+            return;
+        }
+        const entry = conversation.messages.get(messageId);
+        if (!entry || !entry.element) {
+            return;
+        }
+        let pill = entry.element.querySelector('.chat-message__reaction');
+        if (!pill) {
+            pill = document.createElement('span');
+            pill.className = 'chat-message__reaction';
+            entry.element.appendChild(pill);
+        }
+        pill.textContent = emoji;
+        entry.data = { ...entry.data, reaction: emoji };
     }
 
     function updateGroupMeta(group) {
@@ -3905,6 +3944,9 @@
         group.lastMessage = data;
         updateGroupMeta(group);
         conversation.messages.set(message.id, { element: wrapper, meta: group.metaEl, data, group });
+        if (message.reaction) {
+            applyLocalReaction(conversation, message.id, message.reaction);
+        }
         if (autoScroll || fromSelf) {
             conversation.body.scrollTop = conversation.body.scrollHeight;
         }
