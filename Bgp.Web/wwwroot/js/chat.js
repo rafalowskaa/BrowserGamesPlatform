@@ -2654,13 +2654,7 @@
         popoutBtn.textContent = '↗';
         controls.appendChild(popoutBtn);
 
-        const closeBtn = document.createElement('button');
-        closeBtn.type = 'button';
-        closeBtn.className = 'btn-icon';
-        closeBtn.title = strings.close;
-        closeBtn.textContent = '✕';
-
-        controls.appendChild(closeBtn);
+        
 
         header.appendChild(title);
         header.appendChild(controls);
@@ -2813,12 +2807,6 @@
             : (friend.unreadCount || 0);
         updateConversationBadge(conversation, initialBadge);
         updateConversationAttention(conversation, initialBadge > 0 && conversation.isCollapsed);
-
-        closeBtn.addEventListener('click', (evt) => {
-            evt.preventDefault();
-            evt.stopPropagation();
-            destroyConversation(conversation);
-        });
 
         collapseBtn.addEventListener('click', (evt) => {
             evt.preventDefault();

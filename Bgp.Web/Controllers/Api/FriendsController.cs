@@ -233,6 +233,7 @@ public class FriendsController : ControllerBase
             .AsNoTracking()
             .Where(u => !u.IsBlocked)
             .Where(u => u.Id != uid)
+            .Where(u => u.DisplayNameVisibility == ProfileVisibility.Everyone)
             .Where(u => EF.Functions.Like(u.DisplayName ?? u.Email ?? u.UserName ?? string.Empty, $"%{term}%"))
             .OrderBy(u => u.DisplayName ?? u.Email ?? u.UserName ?? u.Id)
             .Take(12)

@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using Bgp.Web.Hubs;
 using Bgp.Web.Services;
+using Microsoft.Extensions.Localization;
+using Bgp.Web.Resources;
 
 namespace Bgp.Web.Controllers.Api;
 
@@ -21,12 +23,14 @@ public class ChatController : ControllerBase
     private readonly AppDbContext _db;
     private readonly IChatMessageService _chatMessages;
     private readonly IHubContext<ChatHub> _hub;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
-    public ChatController(AppDbContext db, IChatMessageService chatMessages, IHubContext<ChatHub> hub)
+    public ChatController(AppDbContext db, IChatMessageService chatMessages, IHubContext<ChatHub> hub, IStringLocalizer<SharedResource> localizer)
     {
         _db = db;
         _chatMessages = chatMessages;
         _hub = hub;
+        _localizer = localizer;
     }
 
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -50,9 +54,10 @@ public class ChatController : ControllerBase
             .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
             .ToListAsync();
 
+        var unknownLabel = _localizer["Dashboard_Friends_Unknown"].Value;
         var nameLookup = users.ToDictionary(
                 u => u.Id,
-                u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id));
+                u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, unknownLabel));
 
         var dto = msgs.Select(m => new ChatMessageDto(
             m.Id,
