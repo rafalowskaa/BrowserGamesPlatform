@@ -911,6 +911,7 @@
     flex: 1;
     min-height: 0;
     flex-wrap: nowrap;
+    overflow: hidden;
 }
 
 .chat-window {
@@ -1324,6 +1325,12 @@
 }
 
 .chat-message:hover .chat-message__reactions {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-2px);
+}
+
+.chat-message:focus-within .chat-message__reactions {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(-2px);

@@ -3174,6 +3174,9 @@
         pushWindowToOrder(conversation.friendId);
         setConversationCollapsed(conversation, false);
         updateConversationAttention(conversation, false);
+        if (isConversationScrolledToBottom(conversation)) {
+            markThreadRead(conversation.friendId);
+        }
         layoutDockWindows();
         syncConversationVisibility();
         syncThreadViewState(false);
@@ -3874,6 +3877,7 @@
         }
         wrapper.className = classNames.join(' ');
         wrapper.dataset.messageId = message.id;
+        wrapper.tabIndex = 0;
 
         const bubble = document.createElement('div');
         bubble.className = 'chat-message__bubble';
