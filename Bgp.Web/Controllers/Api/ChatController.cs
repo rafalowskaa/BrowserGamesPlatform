@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Linq;
 using Bgp.Application.Dtos;
 using Bgp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
@@ -117,6 +118,47 @@ public class ChatController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    [HttpPost("read/{otherUserId}")]
+    public async Task<ActionResult> MarkThreadRead(string otherUserId)
+    {
+        var uid = UserId;
+        if (string.IsNullOrWhiteSpace(uid))
+            return Unauthorized();
+
+        var unread = await _db.ChatMessages
+            .Where(m => m.SenderId == otherUserId &&
+                        m.ReceiverId == uid &&
+                        !m.IsRead &&
+                        !m.IsDeleted)
+            .ToListAsync();
+
+        if (unread.Count == 0)
+            return NoContent();
+
+        var now = DateTime.UtcNow;
+
+        foreach (var message in unread)
+        {
+            message.IsRead = true;
+            message.ReadAtUtc = now;
+        }
+
+        await _db.SaveChangesAsync();
+
+        var payload = new
+        {
+            userId = uid,
+            peerId = otherUserId,
+            messageIds = unread.Select(m => m.Id).ToArray(),
+            readAtUtc = now
+        };
+
+        await _hub.Clients.Group($"user-{otherUserId}").SendAsync("MessagesRead", payload);
+        await _hub.Clients.Group($"user-{uid}").SendAsync("MessagesRead", payload);
+
+        return Ok(payload);
     }
 
     [HttpDelete("messages/{id:guid}")]

@@ -1,4 +1,5 @@
-﻿(function () {
+﻿(function initChatDock() {
+    function setup() {
     const dock = document.getElementById('chatDock');
     if (!dock) {
         return;
@@ -685,21 +686,7 @@
             label: strings.contextInvite || strings.invite,
             action: () => dispatchInvite(friend.userId, friend.displayName)
         });
-        items.push({
-            key: 'group',
-            label: strings.contextGroup || 'Create group',
-            action: () => dispatchChatAction('createGroup', { userId: friend.userId })
-        });
-        items.push({
-            key: 'block',
-            label: strings.contextBlock || 'Block user',
-            action: () => dispatchChatAction('block', { userId: friend.userId })
-        });
-        items.push({
-            key: 'report',
-            label: strings.contextReport || 'Report user',
-            action: () => dispatchChatAction('report', { userId: friend.userId })
-        });
+        
         if (isFriend) {
             const archiveLabel = isArchived
                 ? (strings.contextRestore || strings.unarchive)
@@ -747,18 +734,27 @@
             li.appendChild(button);
             contextMenuList.appendChild(li);
         });
-        const rect = anchor && typeof anchor.getBoundingClientRect === 'function'
+        contextMenu.hidden = false;
+        contextMenu.style.left = '0px';
+        contextMenu.style.top = '0px';
+
+        const anchorRect = anchor && typeof anchor.getBoundingClientRect === 'function'
             ? anchor.getBoundingClientRect()
             : null;
-        const fallbackX = (anchor && anchor.clientX) || 0;
-        const fallbackY = (anchor && anchor.clientY) || 0;
-        const x = rect ? rect.left : fallbackX;
-        const y = rect ? rect.bottom : fallbackY;
-        const maxX = Math.max(0, window.innerWidth - 220);
-        const maxY = Math.max(0, window.innerHeight - 260);
-        contextMenu.style.left = `${Math.min(x, maxX)}px`;
-        contextMenu.style.top = `${Math.min(y, maxY)}px`;
-        contextMenu.hidden = false;
+
+        let x = anchorRect ? anchorRect.left : (anchor?.clientX || 0);
+        let y = anchorRect ? anchorRect.bottom : (anchor?.clientY || 0);
+
+        const menuRect = contextMenu.getBoundingClientRect();
+        const padding = 8;
+
+        x = Math.min(x, window.innerWidth - menuRect.width - padding);
+        y = Math.min(y, window.innerHeight - menuRect.height - padding);
+        x = Math.max(padding, x);
+        y = Math.max(padding, y);
+
+        contextMenu.style.left = `${x}px`;
+        contextMenu.style.top = `${y}px`;
         contextMenuState = { friendId };
     }
 
@@ -2889,7 +2885,7 @@
         attachmentInput.type = 'file';
         attachmentInput.hidden = true;
         attachmentInput.accept = 'image/*';
-        attachmentInput.addEventListener('change', async () => {
+        attachmentInput.addEventListener('change', () => {
             const file = attachmentInput.files && attachmentInput.files[0];
             if (!file) {
                 return;
@@ -2902,11 +2898,10 @@
                 attachmentInput.value = '';
                 return;
             }
-            const label = `${file.name} (${formatFileSize(file.size)})`;
-            input.value = label;
-            autoGrowInput(input);
-            await send();
-            setConversationCollapsed(conversation, true);
+
+            const detail = { userId: conversation.friendId, file };
+            document.dispatchEvent(new CustomEvent('bgp:chat:attachment', { detail }));
+
             attachmentInput.value = '';
         });
         actions.appendChild(attachmentInput);
@@ -4314,12 +4309,26 @@
             ...entry,
             badge: 0
         }));
-        ensureConnectionStarted().then((conn) => {
-            if (!conn || conn.state !== 'Connected') {
-                return;
+            ensureConnectionStarted()
+                .then((conn) => {
+                    if (conn && conn.state === 'Connected') {
+                        return conn.invoke('MarkThreadRead', friend.userId)
+                            .catch(() => markThreadReadHttp(friend.userId));
+                    }
+                    return markThreadReadHttp(friend.userId);
+                })
+                .catch(() => { /* lokalny stan został już zaktualizowany */ });
+        }
+
+        async function markThreadReadHttp(friendId) {
+            try {
+                await fetch(`/api/chat/read/${encodeURIComponent(friendId)}`, {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+            } catch (err) {
+                console.warn('HTTP MarkThreadRead failed', err);
             }
-            conn.invoke('MarkThreadRead', friend.userId).catch(() => { /* ignore */ });
-        });
     }
 
     function isConversationScrolledToBottom(conversation) {
@@ -4639,5 +4648,12 @@
     if (strangersEmpty) {
         showStrangerMessage(strings.searchHint);
     }
-    scheduleChatInitialization();
+        scheduleChatInitialization();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setup);
+    } else {
+        setup();
+    }
 })();
