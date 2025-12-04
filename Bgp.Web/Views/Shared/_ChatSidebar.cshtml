@@ -72,6 +72,9 @@
         contextAddFriend = L["Chat_Context_AddFriend"].Value,
         contextRemoveFriend = L["Chat_Context_RemoveFriend"].Value,
         contextInvite = L["Chat_Context_Invite"].Value,
+        contextGroup = L["Chat_Context_Group"].Value,
+        contextBlock = L["Chat_Context_Block"].Value,
+        contextReport = L["Chat_Context_Report"].Value,
         contextArchive = L["Chat_Context_Archive"].Value,
         contextRestore = L["Chat_Context_Restore"].Value,
         contextKeep = L["Chat_Context_Keep"].Value,
@@ -81,7 +84,8 @@
         deliveredShort = L["Chat_DeliveredShort"].Value,
         readShort = L["Chat_ReadShort"].Value,
         emojiLabel = L["Chat_EmojiLabel"].Value,
-        attachmentLabel = L["Chat_AttachmentLabel"].Value
+        attachmentLabel = L["Chat_AttachmentLabel"].Value,
+        attachmentUnsupported = L["Chat_AttachmentUnsupported"].Value
 
     };
 }
@@ -94,6 +98,10 @@
             aria-controls="chatPanel"
             title="@L["Chat_Open"].Value">
         <span class="chat-toggle__icon" aria-hidden="true">💬</span>
+        <span class="chat-toggle__label" aria-hidden="true">
+            <strong>@L["Chat_Title"].Value</strong>
+            <small>@L["Chat_ActiveHeading"].Value</small>
+        </span>
         <span class="chat-toggle__badge" data-chat-unread hidden>0</span>
         <span class="sr-only">@L["Chat_Open"].Value</span>
     </button>
@@ -189,11 +197,12 @@
                     </button>
                     <form class="chat-status-form chat-status-popover" data-chat-status-form hidden>
                         <label for="chatStatusMessage">@L["Chat_Status_MessageLabel"].Value</label>
-                        <input id="chatStatusMessage"
-                               data-chat-status-message
-                               maxlength="80"
-                               placeholder="@L["Chat_Status_MessagePlaceholder"].Value"
-                               autocomplete="off" />
+                        <textarea id="chatStatusMessage"
+                                  data-chat-status-message
+                                  maxlength="160"
+                                  rows="2"
+                                  placeholder="@L["Chat_Status_MessagePlaceholder"].Value"
+                                  autocomplete="off"></textarea>
                         <label for="chatPresence">@L["Chat_Status_PresenceLabel"].Value</label>
                         <select id="chatPresence" data-chat-presence>
                             <option value="available">@L["Chat_Status_Available"].Value</option>
@@ -208,30 +217,35 @@
                         </div>
                     </form>
                 </div>
-                <section class="chat-panel__section">
+                <section class="chat-panel__section" data-chat-section="active">
                     <div class="chat-panel__section-header">
-                        <h4>@L["Chat_ActiveHeading"].Value</h4>
+                        <button type="button" class="chat-panel__section-toggle" data-chat-section-toggle>
+                            <span>@L["Chat_ActiveHeading"].Value</span>
+                        </button>
                     </div>
                     <ul class="chat-contacts" data-chat-active></ul>
                     <p class="chat-empty" data-chat-active-empty>@L["Chat_NoFriends"].Value</p>
                 </section>
-                <section class="chat-panel__section">
+                <section class="chat-panel__section" data-chat-section="archived">
                     <div class="chat-panel__section-header">
-                        <h4>@L["Chat_ArchivedHeading"].Value</h4>
+                        <button type="button" class="chat-panel__section-toggle" data-chat-section-toggle>
+                            <span>@L["Chat_ArchivedHeading"].Value</span>
+                        </button>
                     </div>
                     <ul class="chat-contacts" data-chat-archived></ul>
                     <p class="chat-empty" data-chat-archived-empty>@L["Chat_ArchivedEmpty"].Value</p>
                 </section>
-               
-                <section class="chat-panel__section">
+                <section class="chat-panel__section" data-chat-section="strangers">
                     <div class="chat-panel__section-header">
-                        <h4>@L["Chat_Strangers"].Value</h4>
+                        <button type="button" class="chat-panel__section-toggle" data-chat-section-toggle>
+                            <span>@L["Chat_Strangers"].Value</span>
+                        </button>
                     </div>
                     <ul class="chat-contacts chat-contacts--strangers" data-chat-strangers></ul>
                     <p class="chat-empty" data-chat-strangers-empty>@L["Chat_SearchHint"].Value</p>
                 </section>
             </div>
-
+            <div class="chat-panel__resize" data-chat-resize></div>
         </div>
 
     </div>

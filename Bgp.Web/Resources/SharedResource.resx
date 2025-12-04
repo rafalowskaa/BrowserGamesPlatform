@@ -4159,6 +4159,15 @@
 	<data name="Chat_Context_Invite" xml:space="preserve">
         <value>Invite to game</value>
     </data>
+	<data name="Chat_Context_Group" xml:space="preserve">
+        <value>Create group</value>
+    </data>
+	<data name="Chat_Context_Block" xml:space="preserve">
+        <value>Block user</value>
+    </data>
+	<data name="Chat_Context_Report" xml:space="preserve">
+        <value>Report user</value>
+    </data>
 	<data name="Chat_Context_Archive" xml:space="preserve">
         <value>Archive chat</value>
     </data>
@@ -4182,6 +4191,9 @@
     </data>
 	<data name="Chat_ReadShort" xml:space="preserve">
         <value>Read</value>
+    </data>
+	<data name="Chat_AttachmentUnsupported" xml:space="preserve">
+        <value>Only image attachments are supported for now</value>
     </data>
 	<data name="Chat_ThreadBack" xml:space="preserve">
         <value>Back to chats</value>

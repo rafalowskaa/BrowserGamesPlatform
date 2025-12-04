@@ -67,6 +67,7 @@
     const pendingMessages = new Map();
     const pendingOutgoing = new Map();
     const strangerContacts = new Map();
+    const sectionState = loadSectionState();
     let connection = null;
     let loadFriendsPromise = null;
     let connectionPromise = null;
@@ -83,6 +84,8 @@
     const STORAGE_LAST_SEEN_KEY = 'bgp.chat.lastSeen';
     const STORAGE_PANEL_STATE_KEY = 'bgp.chat.panelState';
     const STORAGE_WINDOWS_STATE_KEY = 'bgp.chat.windowsState';
+    const STORAGE_PANEL_HEIGHT_KEY = 'bgp.chat.panelHeight';
+    const STORAGE_SECTION_STATE_KEY = 'bgp.chat.sectionState';
     const lastSeenMessages = loadLastSeenMessages();
     const STORAGE_ARCHIVED_KEY = 'bgp.chat.archived';
     const archivedThreads = loadArchivedThreads();
@@ -103,6 +106,7 @@
     const emojiPalette = ['😀', '😁', '😂', '😎', '😍', '🤔', '👍', '🎉', '🔥', '❤️', '✅', '❗', '🙌', '🥳', '🤖', '🕹️', '🏆', '⚡'];
 
     const reactionPalette = ['👍', '❤️', '🔥', '😂', '🎉'];
+    const reactionsEnabled = false;
     let panelCollapsedState = loadPanelCollapsedState();
     const mobileSheetQuery = typeof window !== 'undefined'
         ? window.matchMedia('(max-width: 64rem)')
@@ -113,6 +117,8 @@
     let chatBootstrapPromise = null;
     let chatBootstrapScheduled = false;
     let dockStateRestored = false;
+    const resizeHandle = panel ? panel.querySelector('[data-chat-resize]') : null;
+    const sectionContainers = panel ? panel.querySelectorAll('[data-chat-section]') : [];
 
 
     const strings = {
@@ -190,7 +196,8 @@
         deleteMessage: 'Delete message',
         deleteMessageConfirm: 'Delete this message?',
         messageDeleted: 'Message removed',
-        deleteMessageError: 'Unable to delete message'
+        deleteMessageError: 'Unable to delete message',
+        attachmentUnsupported: 'Only image attachments are supported right now'
 
     };
 
@@ -206,6 +213,8 @@
 
     syncPanelCollapsedUi(panelCollapsedState);
     syncThreadViewState(false);
+    applyStoredPanelHeight();
+    applyStoredSectionState();
 
     if (mobileSheetQuery && typeof mobileSheetQuery.addEventListener === 'function') {
         mobileSheetQuery.addEventListener('change', () => {
@@ -242,6 +251,62 @@
             console.warn('Unable to load chat last seen state.', err);
             return new Map();
         }
+    }
+
+    function loadSectionState() {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return {};
+        }
+        try {
+            const raw = window.localStorage.getItem(STORAGE_SECTION_STATE_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch (err) {
+            console.warn('Unable to load chat section state.', err);
+            return {};
+        }
+    }
+
+    function persistSectionState() {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return;
+        }
+        try {
+            window.localStorage.setItem(STORAGE_SECTION_STATE_KEY, JSON.stringify(sectionState));
+        } catch (err) {
+            console.warn('Unable to store chat section state.', err);
+        }
+    }
+
+    function applyStoredSectionState() {
+        if (!sectionContainers || !sectionContainers.length) {
+            return;
+        }
+        sectionContainers.forEach((section) => {
+            const key = section.dataset.chatSection;
+            if (!key) return;
+            const collapsed = sectionState[key] === true;
+            setSectionCollapsed(key, collapsed, { persist: false });
+        });
+    }
+
+    function loadStoredPanelHeight() {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return null;
+        }
+        const raw = window.localStorage.getItem(STORAGE_PANEL_HEIGHT_KEY);
+        if (!raw) {
+            return null;
+        }
+        const parsed = parseFloat(raw);
+        return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function applyStoredPanelHeight() {
+        const stored = loadStoredPanelHeight();
+        if (!stored) {
+            return;
+        }
+        applyPanelHeight(stored);
     }
 
     function normalizeLastSeenValue(value) {
@@ -411,6 +476,47 @@
         setPanelCollapsed(shouldCollapse);
     }
 
+    function setSectionCollapsed(key, collapsed, options = {}) {
+        if (!key) return;
+        const section = panel ? panel.querySelector(`[data-chat-section="${key}"]`) : null;
+        if (!section) return;
+        const isCollapsed = !!collapsed;
+        section.classList.toggle('is-collapsed', isCollapsed);
+        const list = section.querySelector('ul');
+        const empty = section.querySelector('.chat-empty');
+        if (list) {
+            list.style.display = isCollapsed ? 'none' : '';
+            list.setAttribute('aria-hidden', isCollapsed ? 'true' : 'false');
+        }
+        if (empty) {
+            empty.style.display = isCollapsed ? 'none' : '';
+            empty.setAttribute('aria-hidden', isCollapsed ? 'true' : 'false');
+        }
+        sectionState[key] = isCollapsed;
+        if (options.persist !== false) {
+            persistSectionState();
+        }
+    }
+
+    function clampPanelHeight(value) {
+        const min = Math.max(280, Math.round(window.innerHeight * 0.4));
+        const max = Math.max(min, Math.round(window.innerHeight * 0.9));
+        return Math.min(max, Math.max(min, value));
+    }
+
+    function applyPanelHeight(value) {
+        if (!dock || !value) {
+            return;
+        }
+        const clamped = clampPanelHeight(value);
+        dock.style.setProperty('--chat-panel-height', `${clamped}px`);
+        panel?.style.setProperty('max-height', `${clamped}px`);
+        try {
+            window.localStorage?.setItem(STORAGE_PANEL_HEIGHT_KEY, String(clamped));
+        } catch (err) {
+            console.warn('Unable to persist chat height.', err);
+        }
+    }
 
     function isMobileSheet() {
         return !!(mobileSheetQuery && mobileSheetQuery.matches);
@@ -978,6 +1084,21 @@
         });
     }
 
+    if (sectionContainers && sectionContainers.length) {
+        sectionContainers.forEach((section) => {
+            const key = section.dataset.chatSection;
+            const toggleBtn = section.querySelector('[data-chat-section-toggle]');
+            if (!key || !toggleBtn) {
+                return;
+            }
+            toggleBtn.addEventListener('click', (evt) => {
+                evt.preventDefault();
+                const shouldCollapse = !section.classList.contains('is-collapsed');
+                setSectionCollapsed(key, shouldCollapse);
+            });
+        });
+    }
+
     if (panelHeader) {
         panelHeader.addEventListener('click', (event) => {
             const closeTarget = event.target.closest('[data-chat-close]');
@@ -1166,7 +1287,37 @@
     window.addEventListener('resize', () => {
         closeContextMenu();
         layoutDockWindows();
+        const stored = loadStoredPanelHeight();
+        if (stored) {
+            applyPanelHeight(stored);
+        }
     });
+
+    if (resizeHandle && panel) {
+        let resizing = false;
+        let startY = 0;
+        let startHeight = 0;
+        const onMove = (evt) => {
+            if (!resizing) return;
+            const delta = startY - evt.clientY;
+            const nextHeight = clampPanelHeight(startHeight + delta);
+            applyPanelHeight(nextHeight);
+        };
+        const onUp = () => {
+            if (!resizing) return;
+            resizing = false;
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        };
+        resizeHandle.addEventListener('mousedown', (evt) => {
+            evt.preventDefault();
+            startY = evt.clientY;
+            startHeight = panel.getBoundingClientRect().height;
+            resizing = true;
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+    }
 
     dock.addEventListener('contextmenu', (evt) => {
         const contactTarget = evt.target.closest('[data-chat-friend]');
@@ -2654,7 +2805,18 @@
         popoutBtn.textContent = '↗';
         controls.appendChild(popoutBtn);
 
-        
+        const destroyBtn = document.createElement('button');
+        destroyBtn.type = 'button';
+        destroyBtn.className = 'btn-icon';
+        destroyBtn.title = strings.close;
+        destroyBtn.setAttribute('aria-label', strings.close);
+        destroyBtn.textContent = '✕';
+        destroyBtn.addEventListener('click', (evt) => {
+            evt.preventDefault();
+            evt.stopPropagation();
+            destroyConversation(conversation);
+        });
+        controls.appendChild(destroyBtn);
 
         header.appendChild(title);
         header.appendChild(controls);
@@ -2726,9 +2888,18 @@
         const attachmentInput = document.createElement('input');
         attachmentInput.type = 'file';
         attachmentInput.hidden = true;
+        attachmentInput.accept = 'image/*';
         attachmentInput.addEventListener('change', async () => {
             const file = attachmentInput.files && attachmentInput.files[0];
             if (!file) {
+                return;
+            }
+            if (file.type && !file.type.startsWith('image/')) {
+                showStatusFeedback(strings.attachmentUnsupported || strings.attachmentLabel, true);
+                if (liveRegion) {
+                    liveRegion.textContent = strings.attachmentUnsupported || strings.attachmentLabel;
+                }
+                attachmentInput.value = '';
                 return;
             }
             const label = `${file.name} (${formatFileSize(file.size)})`;
@@ -2942,8 +3113,13 @@
             ? window.getComputedStyle(textarea)
             : null;
         const lineHeight = styles ? parseFloat(styles.lineHeight || '0') : 20;
-        const maxHeight = Math.max(lineHeight * 4, 120);
-        textarea.style.height = `${Math.min(maxHeight, Math.max(textarea.scrollHeight, lineHeight))}px`;
+        const paddingTop = styles ? parseFloat(styles.paddingTop || '0') : 0;
+        const paddingBottom = styles ? parseFloat(styles.paddingBottom || '0') : 0;
+        const minHeight = Math.max(lineHeight * 1.6 + paddingTop + paddingBottom, 48);
+        const maxHeight = Math.max(lineHeight * 4 + paddingTop + paddingBottom, minHeight);
+        const nextHeight = Math.min(maxHeight, Math.max(textarea.scrollHeight, minHeight));
+        textarea.style.height = `${nextHeight}px`;
+        textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
     }
 
     function insertTextAtCursor(input, value) {
@@ -3778,6 +3954,9 @@
     }
 
     function createReactionBar(conversation, message, options = {}) {
+        if (!reactionsEnabled) {
+            return null;
+        }
         const bar = document.createElement('div');
         bar.className = 'chat-message__reactions';
         reactionPalette.forEach((emoji) => {
@@ -3884,6 +4063,37 @@
         updateConversationLatest(conversation, updated);
     }
 
+    function isLikelyUrl(value) {
+        if (!value || typeof value !== 'string') {
+            return false;
+        }
+        return /^https?:\/\//i.test(value) || value.startsWith('/');
+    }
+
+    function normalizeAttachment(message) {
+        if (!message || message.isDeleted) {
+            return null;
+        }
+        const url = message.attachmentUrl || message.fileUrl || (isLikelyUrl(message.content) ? message.content : null);
+        if (!url) {
+            return null;
+        }
+        let safeUrl = url;
+        try {
+            const parsed = new URL(url, window.location.origin);
+            if (!['http:', 'https:'].includes(parsed.protocol)) {
+                return null;
+            }
+            safeUrl = parsed.href;
+        } catch (_) {
+            if (!url.startsWith('/')) {
+                return null;
+            }
+        }
+        const label = message.attachmentName || message.content || strings.attachmentLabel || 'Attachment';
+        return { url: safeUrl, label };
+    }
+
     function renderMessage(conversation, message, options = {}) {
         const fromSelf = message.fromSelf === true || message.senderId === undefined || message.senderId !== conversation.friendId;
         const isDeleted = message.isDeleted === true;
@@ -3908,7 +4118,18 @@
 
         const bubble = document.createElement('div');
         bubble.className = 'chat-message__bubble';
-        bubble.textContent = isDeleted ? (strings.messageDeleted || 'Message removed') : message.content;
+        const attachment = !isDeleted ? normalizeAttachment(message) : null;
+        if (attachment) {
+            const anchor = document.createElement('a');
+            anchor.href = attachment.url;
+            anchor.target = '_blank';
+            anchor.rel = 'noopener noreferrer';
+            anchor.textContent = attachment.label;
+            anchor.className = 'chat-message__attachment';
+            bubble.appendChild(anchor);
+        } else {
+            bubble.textContent = isDeleted ? (strings.messageDeleted || 'Message removed') : message.content;
+        }
         bubble.title = formatDateTime(isDeleted ? (message.deletedAtUtc || message.sentAtUtc) : message.sentAtUtc)
             || formatTimeLabel(timestamp);
         wrapper.appendChild(bubble);

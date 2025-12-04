@@ -2991,7 +2991,16 @@
 		<data name="Chat_Context_Invite" xml:space="preserve">
         <value>Zaproś do gry</value>
     </data>
-		<data name="Chat_Context_Archive" xml:space="preserve">
+	<data name="Chat_Context_Group" xml:space="preserve">
+        <value>Utwórz grupę</value>
+    </data>
+	<data name="Chat_Context_Block" xml:space="preserve">
+        <value>Zablokuj użytkownika</value>
+    </data>
+	<data name="Chat_Context_Report" xml:space="preserve">
+        <value>Zgłoś użytkownika</value>
+    </data>
+	<data name="Chat_Context_Archive" xml:space="preserve">
         <value>Archiwizuj czat</value>
     </data>
 		<data name="Chat_Context_Restore" xml:space="preserve">
@@ -3014,6 +3023,9 @@
     </data>
 		<data name="Chat_ReadShort" xml:space="preserve">
         <value>Przeczytano</value>
+			 </data>
+		<data name="Chat_AttachmentUnsupported" xml:space="preserve">
+        <value>Obsługujemy tylko obrazki jako załączniki</value>
     </data>
 		<data name="Chat_ThreadBack" xml:space="preserve">
         <value>Wróć do listy</value>
