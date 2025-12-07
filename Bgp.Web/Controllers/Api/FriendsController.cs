@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Bgp.Application.Dtos;
 using Bgp.Domain.Entities;
@@ -22,7 +23,10 @@ public class FriendsController : ControllerBase
     private readonly AppDbContext _db;
     public FriendsController(AppDbContext db) => _db = db;
 
-    private string? UserId => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(ClaimTypes.Name);
+    private string? UserId =>
+        User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+        ?? User.FindFirstValue(ClaimTypes.Name);
     private readonly record struct RankSnapshot(string? Title, string AccentColor);
 
     [HttpGet]
@@ -302,7 +306,11 @@ public class FriendsController : ControllerBase
     [HttpPost("send")]
     public async Task<ActionResult> Send([FromBody] FriendRequestDto dto)
     {
-        var uid = UserId!;
+        var uid = UserId;
+        if (string.IsNullOrWhiteSpace(uid))
+        {
+            return Unauthorized();
+        }
         if (uid == dto.TargetUserId) return BadRequest("Nie można dodać siebie.");
 
         var exists = await _db.Friendships.AnyAsync(f =>
@@ -323,7 +331,11 @@ public class FriendsController : ControllerBase
     [HttpPost("accept/{requesterId}")]
     public async Task<ActionResult> Accept(string requesterId)
     {
-        var uid = UserId!;
+        var uid = UserId;
+        if (string.IsNullOrWhiteSpace(uid))
+        {
+            return Unauthorized();
+        }
         var fr = await _db.Friendships.FirstOrDefaultAsync(f => f.RequesterId == requesterId && f.AddresseeId == uid);
         if (fr is null) return NotFound();
         fr.Status = FriendshipStatus.Accepted;
@@ -335,7 +347,11 @@ public class FriendsController : ControllerBase
     [HttpDelete("{userId}")]
     public async Task<ActionResult> Remove(string userId)
     {
-        var uid = UserId!;
+        var uid = UserId;
+        if (string.IsNullOrWhiteSpace(uid))
+        {
+            return Unauthorized();
+        }
         var fr = await _db.Friendships.FirstOrDefaultAsync(f =>
             (f.RequesterId == uid && f.AddresseeId == userId) ||
             (f.RequesterId == userId && f.AddresseeId == uid));
@@ -348,7 +364,11 @@ public class FriendsController : ControllerBase
     [HttpPost("block/{userId}")]
     public async Task<ActionResult> Block(string userId)
     {
-        var uid = UserId!;
+        var uid = UserId;
+        if (string.IsNullOrWhiteSpace(uid))
+        {
+            return Unauthorized();
+        }
         var fr = await _db.Friendships.FirstOrDefaultAsync(f =>
             (f.RequesterId == uid && f.AddresseeId == userId) ||
             (f.RequesterId == userId && f.AddresseeId == uid));
@@ -369,7 +389,11 @@ public class FriendsController : ControllerBase
     [HttpPost("unblock/{userId}")]
     public async Task<ActionResult> Unblock(string userId)
     {
-        var uid = UserId!;
+        var uid = UserId;
+        if (string.IsNullOrWhiteSpace(uid))
+        {
+            return Unauthorized();
+        }
         var fr = await _db.Friendships.FirstOrDefaultAsync(f =>
             (f.RequesterId == uid && f.AddresseeId == userId) ||
             (f.RequesterId == userId && f.AddresseeId == uid));
