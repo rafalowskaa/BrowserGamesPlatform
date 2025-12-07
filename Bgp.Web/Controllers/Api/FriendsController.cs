@@ -102,6 +102,7 @@ public class FriendsController : ControllerBase
 
             return DisplayNameFormatter.Format(null, null, null, id);
         }
+        string? ResolveUserName(string id) => profileLookup.TryGetValue(id, out var profile) ? profile.UserName : null;
 
         string? ResolveAvatar(string id) => profileLookup.TryGetValue(id, out var profile) ? profile.AvatarUrl : null;
 
@@ -134,6 +135,7 @@ public class FriendsController : ControllerBase
                 return new FriendDto(
                     id,
                     ResolveName(id),
+                    ResolveUserName(id),
                     rank.Title,
                     ResolveAvatar(id),
                     rank.AccentColor,
@@ -153,6 +155,7 @@ public class FriendsController : ControllerBase
                 return new FriendDto(
                     id,
                     ResolveName(id),
+                    ResolveUserName(id),
                     rank.Title,
                     ResolveAvatar(id),
                     rank.AccentColor,
@@ -172,6 +175,7 @@ public class FriendsController : ControllerBase
                 return new FriendDto(
                     id,
                     ResolveName(id),
+                    ResolveUserName(id),
                     rank.Title,
                     ResolveAvatar(id),
                     rank.AccentColor,
@@ -191,6 +195,7 @@ public class FriendsController : ControllerBase
                 return new FriendDto(
                     id,
                     ResolveName(id),
+                    ResolveUserName(id),
                     rank.Title,
                     ResolveAvatar(id),
                     rank.AccentColor,
@@ -221,29 +226,50 @@ public class FriendsController : ControllerBase
     public async Task<ActionResult<IEnumerable<object>>> Search([FromQuery] string q)
     {
         var uid = UserId!;
-        if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 2)
+        if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 1)
         {
             return Ok(Array.Empty<object>());
         }
 
         var term = q.Trim();
+        var matchPattern = $"%{term}%";
+
+        var acceptedFriendIds = await _db.Friendships
+            .Where(f => (f.RequesterId == uid || f.AddresseeId == uid) && f.Status == FriendshipStatus.Accepted)
+            .Select(f => f.RequesterId == uid ? f.AddresseeId : f.RequesterId)
+            .ToListAsync();
 
 
-        var results = await _db.Users
+        var friendsQuery = _db.Users
+            .AsNoTracking()
+            .Where(u => acceptedFriendIds.Contains(u.Id))
+            .Where(u => EF.Functions.Like(u.DisplayName ?? string.Empty, matchPattern)
+                        || EF.Functions.Like(u.Email ?? string.Empty, matchPattern)
+                        || EF.Functions.Like(u.UserName ?? string.Empty, matchPattern));
+
+        var publicQuery = _db.Users
             .AsNoTracking()
             .Where(u => !u.IsBlocked)
             .Where(u => u.Id != uid)
             .Where(u => u.DisplayNameVisibility == ProfileVisibility.Everyone)
-            .Where(u => EF.Functions.Like(u.DisplayName ?? u.Email ?? u.UserName ?? string.Empty, $"%{term}%"))
+             .Where(u => EF.Functions.Like(u.DisplayName ?? string.Empty, matchPattern)
+                        || EF.Functions.Like(u.Email ?? string.Empty, matchPattern)
+                        || EF.Functions.Like(u.UserName ?? string.Empty, matchPattern));
+
+        var results = await friendsQuery
+            .Union(publicQuery)
             .OrderBy(u => u.DisplayName ?? u.Email ?? u.UserName ?? u.Id)
-            .Take(12)
+            .Take(20)
             .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName, u.AvatarUrl })
             .ToListAsync();
 
         var formattedResults = results
+            .GroupBy(u => u.Id)
+            .Select(g => g.First())
             .Select(u => new
             {
                 u.Id,
+                u.UserName,
                 Name = DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
                 u.AvatarUrl
             });

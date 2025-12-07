@@ -6,6 +6,7 @@ namespace Bgp.Application.Dtos;
 public record FriendDto(
     string UserId,
     string DisplayName,
+    string? UserName,
     string? RankTitle,
     string? AvatarUrl,
     string RankAccentColor,

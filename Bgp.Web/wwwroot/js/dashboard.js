@@ -24,11 +24,12 @@
         labels.viewProfile = 'View profile';
     }
 
-    function openProfile(userId) {
-        if (!userId) {
+    function openProfile(userId, userName) {
+        if (!userId && !userName) {
             return;
         }
-        const url = `/dashboard/profile/${encodeURIComponent(userId)}`;
+        const slug = userName || userId;
+        const url = `/dashboard/profile/${encodeURIComponent(slug)}`;
         window.open(url, '_blank', 'noopener');
     }
 
@@ -161,7 +162,7 @@
             const accent = f.rankAccentColor || '#38bdf8';
             buildFriendItem(acceptedList, f, {
                 actions: [
-                    { label: labels.viewProfile, handler: () => openProfile(f.userId), className: 'btn-ghost btn-small', icon: '👤' },
+                    { label: labels.viewProfile, handler: () => openProfile(f.userId, f.userName), className: 'btn-ghost btn-small', icon: '👤' },
                     { label: labels.chat, handler: () => openChat(f.userId, f.displayName), className: 'btn-primary btn-small btn-chat', icon: '💬' },
                     { label: labels.invite, handler: () => inviteToGame(f.userId, f.displayName), className: 'btn-rank', style: { '--accent-color': accent } },
                     { label: labels.report, handler: () => reportUser(f.userId, f.displayName), className: 'btn-ghost btn-small' },
@@ -175,7 +176,7 @@
             buildFriendItem(incomingList, f, {
                 showRank: false,
                 actions: [
-                    { label: labels.viewProfile, handler: () => openProfile(f.userId), className: 'btn-ghost btn-small', icon: '👤' },
+                    { label: labels.viewProfile, handler: () => openProfile(f.userId, f.userName), className: 'btn-ghost btn-small', icon: '👤' },
                     { label: labels.accept, handler: () => acceptFriend(f.userId), className: 'btn-primary btn-small' },
                     { label: labels.decline, handler: () => removeFriend(f.userId), className: 'btn-ghost btn-small' },
                     { label: labels.report, handler: () => reportUser(f.userId, f.displayName), className: 'btn-ghost btn-small' },
@@ -188,7 +189,7 @@
             buildFriendItem(outgoingList, f, {
                 showRank: false,
                 actions: [
-                    { label: labels.viewProfile, handler: () => openProfile(f.userId), className: 'btn-ghost btn-small', icon: '👤' },
+                    { label: labels.viewProfile, handler: () => openProfile(f.userId, f.userName), className: 'btn-ghost btn-small', icon: '👤' },
                     { label: labels.cancel, handler: () => removeFriend(f.userId), className: 'btn-ghost btn-small' },
                     { label: labels.report, handler: () => reportUser(f.userId, f.displayName), className: 'btn-ghost btn-small' },
                     { label: labels.block, handler: () => blockUser(f.userId, f.displayName), className: 'btn-danger btn-small' }
@@ -225,7 +226,7 @@
 
     async function searchFriends() {
         const term = (searchInput.value || '').trim();
-        if (term.length < 2) {
+        if (term.length < 1) {
             searchResults.innerHTML = '';
             setEmptyState(searchEmpty, false);
             return;
@@ -238,6 +239,7 @@
             results.forEach(r => {
                 const profile = {
                     userId: r.id,
+                    userName: r.userName,
                     displayName: r.name,
                     avatarUrl: r.avatarUrl,
                     rankTitle: null
@@ -245,7 +247,7 @@
                 buildFriendItem(searchResults, profile, {
                     showRank: false,
                     actions: [
-                        { label: labels.viewProfile, handler: () => openProfile(r.id), className: 'btn-ghost btn-small', icon: '👤' },
+                        { label: labels.viewProfile, handler: () => openProfile(r.id, r.userName), className: 'btn-ghost btn-small', icon: '👤' },
                         { label: labels.add, handler: () => sendInvite(r.id), className: 'btn-primary btn-small' },
                         { label: labels.chat, handler: () => openChat(r.id, r.name), className: 'btn-primary btn-small btn-chat', icon: '💬' },
                         { label: labels.report, handler: () => reportUser(r.id, r.name), className: 'btn-ghost btn-small' },

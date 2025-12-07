@@ -799,7 +799,7 @@
         items.push({
             key: 'profile',
             label: strings.contextProfile || strings.viewProfile,
-            action: () => openProfile(friend.userId)
+            action: () => openProfile(friend.userId, friend.userName)
         });
         items.push({
             key: 'friend',
@@ -2233,7 +2233,9 @@
             if (!friend.element) {
                 return;
             }
-            const matches = !searchTerm || friend.displayName.toLowerCase().includes(searchTerm)
+            const matches = !searchTerm
+                || friend.displayName.toLowerCase().includes(searchTerm)
+                || (friend.userName && friend.userName.toLowerCase().includes(searchTerm))
                 || (friend.statusMessage && friend.statusMessage.toLowerCase().includes(searchTerm));
             friend.element.hidden = !matches;
             if (matches) {
@@ -2308,13 +2310,14 @@
         } else {
             contact.userId = contact.userId || friend.userId;
             contact.displayName = contact.displayName || friend.displayName || contact.userId;
+            contact.userName = contact.userName || friend.userName;
             contact.avatarUrl = contact.avatarUrl || friend.avatarUrl;
             contact.statusMessage = contact.statusMessage || friend.statusMessage;
             contact.presence = typeof contact.presence === 'number' ? contact.presence : friend.presence;
             contact.isInvisible = typeof contact.isInvisible === 'boolean' ? contact.isInvisible : !!friend.isInvisible;
             contact.unreadCount = typeof contact.unreadCount === 'number' ? contact.unreadCount : (friend.unreadCount || 0);
         }
-        contact.displayName = contact.displayName || contact.userId;
+        contact.displayName = contact.displayName || contact.userName || contact.userId;
         if (!contact.element) {
             contact.element = createFriendElement(contact, { ghost: true });
         }
@@ -2375,10 +2378,14 @@
         results.forEach((player) => {
             const displayName = player.name || player.Name || player.id;
             const identifier = player.id;
+            const playerUserName = player.userName || player.UserName || null;
             if (!identifier) {
                 return;
             }
             const existing = getFriend(identifier);
+            if (existing && playerUserName && !existing.userName) {
+                existing.userName = playerUserName;
+            }
             
             const li = document.createElement('li');
             li.className = 'chat-contact';
@@ -2434,6 +2441,7 @@
                 openContextMenu(identifier, menuBtn, existing || {
                     userId: identifier,
                     displayName,
+                    userName: playerUserName,
                     isFriend: false,
                     avatarUrl: player.avatarUrl || null,
                     isArchived: false,
@@ -2504,7 +2512,7 @@
             clearTimeout(searchDebounceTimer);
             searchDebounceTimer = null;
         }
-        if (!value || value.length < 2) {
+        if (!value || value.length < 1) {
             if (searchController) {
                 searchController.abort();
                 searchController = null;
@@ -2657,11 +2665,12 @@
         }
     }
 
-    function openProfile(userId) {
-        if (!userId) {
+    function openProfile(userId, userName) {
+        const slug = userName || userId;
+        if (!slug) {
             return;
         }
-        const url = `/dashboard/profile/${encodeURIComponent(userId)}`;
+        const url = `/dashboard/profile/${encodeURIComponent(slug)}`;
         window.open(url, '_blank', 'noopener');
     }
 
@@ -2768,6 +2777,7 @@
         const friend = {
             userId: friendId,
             displayName: fallbackName,
+            userName: null,
             avatarUrl: null,
             statusMessage: '',
             presence: PRESENCE_OFFLINE,
@@ -3066,7 +3076,7 @@
         profileBtn.title = strings.viewProfile;
         profileBtn.setAttribute('aria-label', strings.viewProfile);
         profileBtn.textContent = '👤';
-        profileBtn.addEventListener('click', () => openProfile(friend.userId));
+        profileBtn.addEventListener('click', () => openProfile(friend.userId, friend.userName));
         controls.appendChild(profileBtn);
 
         const collapseBtn = document.createElement('button');
@@ -4657,6 +4667,7 @@
                         const unreadCount = Math.max(0, row.unreadCount || 0);
                         if (existing) {
                             existing.displayName = row.displayName;
+                            existing.userName = row.userName || existing.userName;
                             existing.avatarUrl = row.avatarUrl;
                             existing.statusMessage = row.statusMessage;
                             existing.presence = normalizePresence(row.presence);
@@ -4670,6 +4681,7 @@
                             const friend = {
                                 userId: row.userId,
                                 displayName: row.displayName,
+                                userName: row.userName || null,
                                 avatarUrl: row.avatarUrl,
                                 statusMessage: row.statusMessage,
                                 presence: normalizePresence(row.presence),

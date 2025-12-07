@@ -122,15 +122,22 @@ public class DashboardController : Controller
             return NotFound();
         }
 
-        if (string.Equals(viewer.Id, id, StringComparison.Ordinal))
+        if (string.Equals(viewer.Id, id, StringComparison.Ordinal)
+           || string.Equals(viewer.UserName, id, StringComparison.OrdinalIgnoreCase))
         {
             return RedirectToAction(nameof(Index), new { tab = "profile" });
         }
 
-        var target = await _users.FindByIdAsync(id);
+        var target = await _users.FindByNameAsync(id) ?? await _users.FindByIdAsync(id);
         if (target is null || target.IsBlocked)
         {
             return NotFound();
+        }
+
+        if (!string.IsNullOrWhiteSpace(target.UserName)
+            && !string.Equals(target.UserName, id, StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToAction(nameof(ViewProfile), new { id = target.UserName });
         }
 
         var relationship = await GetRelationshipAsync(viewer.Id, target.Id);
