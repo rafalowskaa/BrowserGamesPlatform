@@ -239,6 +239,14 @@ public class FriendsController : ControllerBase
             .Select(f => f.RequesterId == uid ? f.AddresseeId : f.RequesterId)
             .ToListAsync();
 
+        var pendingFriendIds = await _db.Friendships
+            .Where(f => (f.RequesterId == uid || f.AddresseeId == uid) && f.Status == FriendshipStatus.Pending)
+            .Select(f => f.RequesterId == uid ? f.AddresseeId : f.RequesterId)
+            .ToListAsync();
+
+        var relatedUserIds = acceptedFriendIds
+            .Concat(pendingFriendIds)
+            .ToList();
 
         var friendsQuery = _db.Users
             .AsNoTracking()
@@ -251,8 +259,8 @@ public class FriendsController : ControllerBase
             .AsNoTracking()
             .Where(u => !u.IsBlocked)
             .Where(u => u.Id != uid)
-            .Where(u => u.DisplayNameVisibility == ProfileVisibility.Everyone)
-             .Where(u => EF.Functions.Like(u.DisplayName ?? string.Empty, matchPattern)
+            .Where(u => u.DisplayNameVisibility == ProfileVisibility.Everyone || relatedUserIds.Contains(u.Id))
+            .Where(u => EF.Functions.Like(u.DisplayName ?? string.Empty, matchPattern)
                         || EF.Functions.Like(u.Email ?? string.Empty, matchPattern)
                         || EF.Functions.Like(u.UserName ?? string.Empty, matchPattern));
 
