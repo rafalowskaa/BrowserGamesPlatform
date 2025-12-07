@@ -51,7 +51,6 @@
         deliveredReceiptLabel = L["Chat_Receipt_Delivered"].Value,
         sending = L["Chat_Sending"].Value,
         sendError = L["Chat_SendFailed"].Value,
-        popout = L["Chat_Popout"].Value,
         overflow = L["Chat_Overflow"].Value,
         invite = L["Chat_Invite"].Value,
         searchThread = L["Chat_SearchThread"].Value,
@@ -135,6 +134,9 @@
             </div>
         </div>
         <div id="chatPanel" class="chat-panel" aria-hidden="true">
+            <div class="chat-panel__resize" data-chat-panel-resize aria-hidden="true">
+                <span class="chat-panel__resize-grip"></span>
+            </div>
             <header class="chat-panel__header" data-chat-panel-header>
                 <div class="chat-panel__title"
                      data-chat-panel-title
@@ -243,17 +245,6 @@
                     <ul class="chat-contacts chat-contacts--strangers" data-chat-strangers></ul>
                     <p class="chat-empty" data-chat-strangers-empty>@L["Chat_SearchHint"].Value</p>
                 </section>
-        </div>
-
-    </div>
-    <div class="chat-popout" data-chat-popout hidden>
-        <div class="chat-popout__scrim" data-chat-popout-dismiss aria-label="@L["Chat_Close"].Value"></div>
-        <div class="chat-popout__dialog" role="dialog" aria-modal="true" aria-label="@L["Chat_Popout"].Value">
-            <div class="chat-popout__header">
-                <strong>@L["Chat_Popout"].Value</strong>
-                <button type="button" class="btn-icon" data-chat-popout-dismiss aria-label="@L["Chat_Close"].Value">✕</button>
-            </div>
-            <div class="chat-popout__body" data-chat-popout-body></div>
         </div>
     </div>
 </div>

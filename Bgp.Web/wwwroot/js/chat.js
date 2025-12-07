@@ -26,8 +26,7 @@
     const unreadBadge = dock.querySelector('[data-chat-unread]');
     const liveRegion = dock.querySelector('[data-chat-live]');
     const stringsElement = document.getElementById('chatStrings');
-    const popoutLayer = dock.querySelector('[data-chat-popout]');
-    const popoutBody = popoutLayer ? popoutLayer.querySelector('[data-chat-popout-body]') : null;
+    const resizeHandle = panel ? panel.querySelector('[data-chat-panel-resize]') : null;
     const statusForm = panel ? panel.querySelector('[data-chat-status-form]') : null;
     const statusMessageInput = statusForm ? statusForm.querySelector('[data-chat-status-message]') : null;
     const statusSelect = statusForm ? statusForm.querySelector('[data-chat-presence]') : null;
@@ -85,6 +84,7 @@
     const STORAGE_LAST_SEEN_KEY = 'bgp.chat.lastSeen';
     const STORAGE_PANEL_STATE_KEY = 'bgp.chat.panelState';
     const STORAGE_WINDOWS_STATE_KEY = 'bgp.chat.windowsState';
+    const STORAGE_PANEL_HEIGHT_KEY = 'bgp.chat.panelHeight';
     const STORAGE_SECTION_STATE_KEY = 'bgp.chat.sectionState';
     const lastSeenMessages = loadLastSeenMessages();
     const STORAGE_ARCHIVED_KEY = 'bgp.chat.archived';
@@ -99,7 +99,7 @@
     const MAX_VISIBLE_WINDOWS_DESKTOP = 4;
     const MAX_VISIBLE_WINDOWS_MOBILE = 1;
     let activeConversationId = null;
-    let popoutConversationId = null;
+    let panelHeight = loadPanelHeight();
     let overflowMenuOpen = false;
     let draggingWindowId = null;
     let lastDragTargetId = null;
@@ -161,7 +161,6 @@
         keepArchived: 'Keep archived',
         releaseArchived: 'Return when new messages arrive',
         archiveBadge: 'ARCHIWUM',
-        popout: 'Pop out',
         overflow: 'More conversations',
         invite: 'Invite to game',
         searchThread: 'Search thread',
@@ -212,16 +211,19 @@
 
     syncPanelCollapsedUi(panelCollapsedState);
     syncThreadViewState(false);
+    applyPanelHeight(panelHeight, { persist: false });
     applyStoredSectionState();
 
     if (mobileSheetQuery && typeof mobileSheetQuery.addEventListener === 'function') {
         mobileSheetQuery.addEventListener('change', () => {
             syncThreadViewState(false);
+            applyPanelHeight(panelHeight, { persist: false });
             layoutDockWindows();
         });
     } else if (mobileSheetQuery && typeof mobileSheetQuery.addListener === 'function') {
         mobileSheetQuery.addListener(() => {
             syncThreadViewState(false);
+            applyPanelHeight(panelHeight, { persist: false });
             layoutDockWindows();
         });
     }
@@ -334,6 +336,34 @@
             console.warn('Unable to persist chat panel state.', err);
         }
     }
+
+        function loadPanelHeight() {
+            if (typeof window === 'undefined' || !window.localStorage) {
+                return null;
+            }
+            try {
+                const value = window.localStorage.getItem(STORAGE_PANEL_HEIGHT_KEY);
+                if (!value) {
+                    return null;
+                }
+                const parsed = parseFloat(value);
+                return Number.isFinite(parsed) ? parsed : null;
+            } catch (err) {
+                console.warn('Unable to load chat panel height.', err);
+                return null;
+            }
+        }
+
+        function persistPanelHeight(height) {
+            if (typeof window === 'undefined' || !window.localStorage) {
+                return;
+            }
+            try {
+                window.localStorage.setItem(STORAGE_PANEL_HEIGHT_KEY, String(height));
+            } catch (err) {
+                console.warn('Unable to persist chat panel height.', err);
+            }
+        }
 
     function loadWindowsState() {
         if (typeof window === 'undefined' || !window.localStorage) {
@@ -453,6 +483,45 @@
         const shouldCollapse = typeof force === 'boolean' ? force : !panelCollapsedState;
         setPanelCollapsed(shouldCollapse);
     }
+
+        function clampPanelHeight(desiredHeight) {
+            const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 0;
+            const minHeight = viewportHeight ? viewportHeight * 0.4 : 320;
+            const maxHeight = viewportHeight ? viewportHeight * 0.9 : 900;
+            if (isMobileSheet()) {
+                return viewportHeight || null;
+            }
+            const fallback = panel && panel.getBoundingClientRect().height
+                ? panel.getBoundingClientRect().height
+                : viewportHeight * 0.7;
+            const target = typeof desiredHeight === 'number' && Number.isFinite(desiredHeight)
+                ? desiredHeight
+                : fallback;
+            return Math.min(Math.max(target, minHeight), maxHeight);
+        }
+
+        function applyPanelHeight(height, options = {}) {
+            if (!panel) {
+                return;
+            }
+            if (isMobileSheet()) {
+                panel.style.removeProperty('height');
+                panel.style.removeProperty('max-height');
+                panel.style.removeProperty('--chat-panel-height');
+                return;
+            }
+            const clamped = clampPanelHeight(height);
+            if (!clamped) {
+                return;
+            }
+            panelHeight = clamped;
+            panel.style.height = `${clamped}px`;
+            panel.style.maxHeight = `${clamped}px`;
+            panel.style.setProperty('--chat-panel-height', `${clamped}px`);
+            if (options.persist !== false) {
+                persistPanelHeight(clamped);
+            }
+        }
 
     function setSectionCollapsed(key, collapsed, options = {}) {
         if (!key) return;
@@ -1122,10 +1191,6 @@
             if (contextMenuState) {
                 closeContextMenu();
             }
-            if (popoutConversationId) {
-                closePopout();
-                return;
-            }
             if (statusMenuOpen) {
                 setStatusMenu(false);
                 return;
@@ -1302,16 +1367,6 @@
         overflowClose.addEventListener('click', () => closeOverflowMenu());
     }
 
-    if (popoutLayer) {
-        popoutLayer.addEventListener('click', (evt) => {
-            const target = evt.target;
-            if (target instanceof Element && target.closest('[data-chat-popout-dismiss]')) {
-                evt.preventDefault();
-                closePopout();
-            }
-        });
-    }
-
     if (windowsContainer) {
         windowsContainer.addEventListener('dragover', (evt) => {
             if (!draggingWindowId) {
@@ -1340,6 +1395,40 @@
             finishWindowDrag();
         });
     }
+
+        if (resizeHandle && panel) {
+            const beginResize = (evt) => {
+                if (isMobileSheet()) {
+                    return;
+                }
+                evt.preventDefault();
+                const startY = evt.clientY;
+                const startHeight = panel.getBoundingClientRect().height;
+
+                const handleMove = (moveEvt) => {
+                    const delta = startY - moveEvt.clientY;
+                    const nextHeight = clampPanelHeight(startHeight + delta);
+                    applyPanelHeight(nextHeight, { persist: false });
+                };
+
+                const endResize = () => {
+                    document.removeEventListener('mousemove', handleMove);
+                    document.removeEventListener('mouseup', endResize);
+                    document.body.style.removeProperty('user-select');
+                    applyPanelHeight(panelHeight, { persist: true });
+                };
+
+                document.body.style.userSelect = 'none';
+                document.addEventListener('mousemove', handleMove);
+                document.addEventListener('mouseup', endResize);
+            };
+
+            resizeHandle.addEventListener('mousedown', beginResize);
+        }
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('resize', () => applyPanelHeight(panelHeight, { persist: false }));
+        }
 
     function showStatusFeedback(message, isError) {
         if (!statusFeedback) {
@@ -2667,7 +2756,6 @@
         });
 
         if (windowsContainer && conversation.element
-            && !conversation.element.classList.contains('chat-window--popout')
             && conversation.element.parentElement !== windowsContainer) {
             windowsContainer.appendChild(conversation.element);
         }
@@ -2782,14 +2870,6 @@
         collapseBtn.type = 'button';
         collapseBtn.className = 'btn-icon';
         controls.appendChild(collapseBtn);
-
-        const popoutBtn = document.createElement('button');
-        popoutBtn.type = 'button';
-        popoutBtn.className = 'btn-icon';
-        popoutBtn.title = strings.popout;
-        popoutBtn.setAttribute('aria-label', strings.popout);
-        popoutBtn.textContent = '↗';
-        controls.appendChild(popoutBtn);
 
         const destroyBtn = document.createElement('button');
         destroyBtn.type = 'button';
@@ -2975,16 +3055,6 @@
                 if (conversation.input) {
                     conversation.input.focus();
                 }
-            }
-        });
-
-        popoutBtn.addEventListener('click', (evt) => {
-            evt.preventDefault();
-            evt.stopPropagation();
-            if (popoutConversationId && normalizeId(popoutConversationId) === normalizeId(friend.userId)) {
-                closePopout();
-            } else {
-                openPopout(conversation);
             }
         });
 
@@ -3337,9 +3407,6 @@
             if (conversation.element && conversation.element.classList.contains('chat-window--stacked')) {
                 continue;
             }
-            if (popoutConversationId && normalizeId(popoutConversationId) === id) {
-                continue;
-            }
             return conversation;
         }
         return null;
@@ -3453,8 +3520,7 @@
         if (!windowsContainer) {
             return;
         }
-        const availableIds = windowOrder.filter((id) => id && conversations.has(id)
-            && (!popoutConversationId || normalizeId(popoutConversationId) !== id));
+        const availableIds = windowOrder.filter((id) => id && conversations.has(id));
         const collapsedVisible = availableIds.filter((id) => {
             const convo = conversations.get(id);
             return convo && convo.isCollapsed;
@@ -3648,37 +3714,6 @@
         }
     }
 
-    function openPopout(conversation) {
-        if (!popoutLayer || !popoutBody || !conversation || !conversation.element) {
-            return;
-        }
-        setConversationCollapsed(conversation, false, { force: true });
-        popoutLayer.hidden = false;
-        popoutBody.innerHTML = '';
-        popoutBody.appendChild(conversation.element);
-        conversation.element.classList.add('chat-window--popout');
-        popoutConversationId = normalizeId(conversation.friendId);
-        layoutDockWindows();
-        syncConversationVisibility();
-        persistWindowsState();
-    }
-
-    function closePopout() {
-        if (!popoutLayer || !popoutBody || !popoutConversationId) {
-            return;
-        }
-        const conversation = conversations.get(popoutConversationId);
-        if (conversation && conversation.element && windowsContainer) {
-            conversation.element.classList.remove('chat-window--popout');
-            windowsContainer.appendChild(conversation.element);
-        }
-        popoutLayer.hidden = true;
-        popoutConversationId = null;
-        layoutDockWindows();
-        syncConversationVisibility();
-        persistWindowsState();
-    }
-
     function destroyConversation(conversation) {
         if (!conversation) {
             return;
@@ -3686,9 +3721,7 @@
         const friendId = conversation.friendId;
         const normalizedFriendId = normalizeId(friendId);
         const wasActive = normalizedFriendId && normalizeId(activeConversationId) === normalizedFriendId;
-        if (popoutConversationId && normalizeId(popoutConversationId) === normalizedFriendId) {
-            closePopout();
-        }
+       
         if (conversation.element) {
             conversation.element.remove();
         }
@@ -3719,9 +3752,6 @@
     function isConversationActive(conversation) {
         if (!conversation || !conversation.element) {
             return false;
-        }
-        if (conversation.element.classList.contains('chat-window--popout')) {
-            return true;
         }
         if (conversation.isCollapsed) {
             return false;
