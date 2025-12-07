@@ -66,7 +66,7 @@
     const conversations = new Map();
     const pendingMessages = new Map();
     const pendingOutgoing = new Map();
-    const strangerContacts = new Map();
+    const strangerContacts = loadStrangerContacts();
     const sectionState = loadSectionState();
     let connection = null;
     let loadFriendsPromise = null;
@@ -86,6 +86,7 @@
     const STORAGE_WINDOWS_STATE_KEY = 'bgp.chat.windowsState';
     const STORAGE_PANEL_HEIGHT_KEY = 'bgp.chat.panelHeight';
     const STORAGE_SECTION_STATE_KEY = 'bgp.chat.sectionState';
+    const STORAGE_STRANGERS_KEY = 'bgp.chat.strangers';
     const lastSeenMessages = loadLastSeenMessages();
     const STORAGE_ARCHIVED_KEY = 'bgp.chat.archived';
     const archivedThreads = loadArchivedThreads();
@@ -153,7 +154,7 @@
         sending: 'Sending…',
         sendError: 'Failed to send message',
         fabLabel: 'Messages',
-        activeHeading: 'Active',
+        activeHeading: 'Friends',
         archivedHeading: 'Archive',
         archivedEmpty: 'No archived threads',
         archive: 'Archive',
@@ -213,6 +214,7 @@
     syncThreadViewState(false);
     applyPanelHeight(panelHeight, { persist: false });
     applyStoredSectionState();
+    restoreStoredStrangers();
 
     if (mobileSheetQuery && typeof mobileSheetQuery.addEventListener === 'function') {
         mobileSheetQuery.addEventListener('change', () => {
@@ -427,6 +429,105 @@
             console.warn('Unable to persist chat window state.', err);
         }
     }
+
+        function loadStrangerContacts() {
+            if (typeof window === 'undefined' || !window.localStorage) {
+                return new Map();
+            }
+            try {
+                const raw = window.localStorage.getItem(STORAGE_STRANGERS_KEY);
+                if (!raw) {
+                    return new Map();
+                }
+                const parsed = JSON.parse(raw);
+                if (!parsed || typeof parsed !== 'object') {
+                    return new Map();
+                }
+                const entries = Object.entries(parsed)
+                    .filter(([key, value]) => key && value && typeof value === 'object')
+                    .map(([key, value]) => {
+                        const normalized = normalizeId(key);
+                        return [normalized, {
+                            userId: key,
+                            displayName: typeof value.displayName === 'string' && value.displayName.trim()
+                                ? value.displayName.trim()
+                                : key,
+                            avatarUrl: value.avatarUrl || null,
+                            statusMessage: value.statusMessage || '',
+                            presence: normalizePresence(value.presence),
+                            isInvisible: !!value.isInvisible,
+                            unreadCount: Math.max(0, parseInt(value.unreadCount, 10) || 0)
+                        }];
+                    });
+                return new Map(entries);
+            } catch (err) {
+                console.warn('Unable to load stranger contacts.', err);
+                return new Map();
+            }
+        }
+
+        function persistStrangerContacts() {
+            if (typeof window === 'undefined' || !window.localStorage) {
+                return;
+            }
+            try {
+                const payload = {};
+                strangerContacts.forEach((contact, key) => {
+                    if (!contact || !contact.userId) {
+                        return;
+                    }
+                    payload[key] = {
+                        displayName: contact.displayName || contact.userId,
+                        avatarUrl: contact.avatarUrl || null,
+                        statusMessage: contact.statusMessage || '',
+                        presence: normalizePresence(contact.presence),
+                        isInvisible: !!contact.isInvisible,
+                        unreadCount: Math.max(0, contact.unreadCount || 0)
+                    };
+                });
+                window.localStorage.setItem(STORAGE_STRANGERS_KEY, JSON.stringify(payload));
+            } catch (err) {
+                console.warn('Unable to persist stranger contacts.', err);
+            }
+        }
+
+        function restoreStoredStrangers() {
+            if (!strangerContacts.size) {
+                return;
+            }
+            strangerContacts.forEach((contact, key) => {
+                if (!contact || !contact.userId) {
+                    strangerContacts.delete(key);
+                    return;
+                }
+                const hydrated = getFriend(contact.userId) || {
+                    userId: contact.userId,
+                    avatarUrl: contact.avatarUrl || null,
+                    statusMessage: contact.statusMessage || '',
+                    presence: normalizePresence(contact.presence),
+                    isInvisible: !!contact.isInvisible,
+                    unreadCount: Math.max(0, contact.unreadCount || 0),
+                    isFriend: false,
+                    isArchived: false,
+                    keepArchived: false,
+                    lastNotifiedMessageId: null
+                };
+                hydrated.displayName = contact.displayName || hydrated.displayName || hydrated.userId;
+                hydrated.avatarUrl = contact.avatarUrl || hydrated.avatarUrl || null;
+                hydrated.statusMessage = contact.statusMessage || hydrated.statusMessage || '';
+                hydrated.presence = normalizePresence(contact.presence);
+                hydrated.isInvisible = !!contact.isInvisible;
+                hydrated.unreadCount = Math.max(0, contact.unreadCount || hydrated.unreadCount || 0);
+                hydrated.isFriend = false;
+                hydrated.isArchived = false;
+                hydrated.keepArchived = false;
+                setFriend(hydrated);
+                setStrangerContact(hydrated.userId, hydrated);
+                updateFriendVisual(hydrated);
+            });
+            renderStrangerContacts();
+            applyFriendFilter();
+        }
 
     function getWindowEntry(friendId, createIfMissing = false) {
         const key = normalizeId(friendId);
@@ -956,11 +1057,21 @@
     }
 
     function setStrangerContact(id, contact) {
-        strangerContacts.set(normalizeId(id), contact);
+        const key = normalizeId(id);
+        if (!key) {
+            return;
+        }
+        const updated = contact || {};
+        updated.displayName = updated.displayName || updated.userId || id;
+        updated.statusMessage = updated.statusMessage || '';
+        updated.avatarUrl = updated.avatarUrl || null;
+        strangerContacts.set(key, updated);
+        persistStrangerContacts();
     }
 
     function deleteStrangerContact(id) {
         strangerContacts.delete(normalizeId(id));
+        persistStrangerContacts();
     }
 
     const currentUserKey = normalizeId(currentUserId);
@@ -2196,13 +2307,14 @@
             contact = { ...friend };
         } else {
             contact.userId = contact.userId || friend.userId;
-            contact.displayName = contact.displayName || friend.displayName;
+            contact.displayName = contact.displayName || friend.displayName || contact.userId;
             contact.avatarUrl = contact.avatarUrl || friend.avatarUrl;
             contact.statusMessage = contact.statusMessage || friend.statusMessage;
             contact.presence = typeof contact.presence === 'number' ? contact.presence : friend.presence;
             contact.isInvisible = typeof contact.isInvisible === 'boolean' ? contact.isInvisible : !!friend.isInvisible;
             contact.unreadCount = typeof contact.unreadCount === 'number' ? contact.unreadCount : (friend.unreadCount || 0);
         }
+        contact.displayName = contact.displayName || contact.userId;
         if (!contact.element) {
             contact.element = createFriendElement(contact, { ghost: true });
         }
@@ -2524,10 +2636,14 @@
         conversation.archiveBtn.textContent = friend.isArchived ? '↩' : '⬇';
     }
 
-    function openConversation(friendId) {
+    function openConversation(friendId, displayName) {
         togglePanel(true);
         ensureConnectionStarted();
-        const conversation = ensureConversation(friendId, { focus: true, autoRead: true });
+        const conversation = ensureConversation(friendId, {
+            focus: true,
+            autoRead: true,
+            displayName
+        });
         if (!conversation) {
             const errorMessage = strings.openConversationError || 'Unable to open conversation';
             if (typeof console !== 'undefined' && console.error) {
@@ -2567,7 +2683,7 @@
         button.dataset.chatItem = 'contact';
         button.dataset.chatFriend = friend.userId;
         button.className = buttonClasses.join(' ');
-        button.addEventListener('click', () => openConversation(friend.userId));
+        button.addEventListener('click', () => openConversation(friend.userId, friend.displayName));
 
         const avatar = document.createElement('span');
         avatar.className = 'chat-contact__avatar';
@@ -2791,14 +2907,17 @@
     function ensureConversation(friendId, options = {}) {
         let conversation = getConversation(friendId);
         let friend = getFriend(friendId);
+        const displayNameHint = typeof options.displayName === 'string' && options.displayName.trim()
+            ? options.displayName.trim()
+            : null;
         if (!friend) {
             const fallbackId = normalizeId(friendId);
             if (fallbackId) {
                 friend = {
                     userId: friendId,
-                    displayName: friendId,
-                    avatarUrl: '',
-                    statusMessage: '',
+                    displayName: displayNameHint || friendId,
+                    avatarUrl: options.avatarUrl || '',
+                    statusMessage: options.statusMessage || '',
                     presence: 'offline',
                     isInvisible: false,
                     unreadCount: 0,
@@ -2813,6 +2932,19 @@
         if (!friend) {
             console.error('Unable to ensure conversation: friend not found', friendId);
             return null;
+        }
+
+        if (displayNameHint && friend.displayName !== displayNameHint) {
+            friend.displayName = displayNameHint;
+        }
+        if (options.avatarUrl && !friend.avatarUrl) {
+            friend.avatarUrl = options.avatarUrl;
+        }
+        if (options.statusMessage && !friend.statusMessage) {
+            friend.statusMessage = options.statusMessage;
+        }
+        if (!friend.isFriend) {
+            ensureStrangerContact(friend);
         }
 
         if (!conversation) {
@@ -4762,7 +4894,7 @@
             if (pending) {
                 applyPresenceSnapshot(userId, pending);
             }
-            ensureConversation(userId, { focus: true, autoRead: true });
+            ensureConversation(userId, { focus: true, autoRead: true, displayName });
         },
         openWithMessage: async (userId, displayName, presetMessage) => {
             window.bgpChat.open(userId, displayName);

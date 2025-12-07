@@ -3037,7 +3037,7 @@
         <value>Messages</value>
     </data>
 	<data name="Chat_ActiveHeading" xml:space="preserve">
-        <value>Active</value>
+        <value>Friends</value>
     </data>
 	<data name="Chat_ArchivedHeading" xml:space="preserve">
         <value>Archive</value>
