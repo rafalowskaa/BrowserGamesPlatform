@@ -85,7 +85,6 @@
     const STORAGE_LAST_SEEN_KEY = 'bgp.chat.lastSeen';
     const STORAGE_PANEL_STATE_KEY = 'bgp.chat.panelState';
     const STORAGE_WINDOWS_STATE_KEY = 'bgp.chat.windowsState';
-    const STORAGE_PANEL_HEIGHT_KEY = 'bgp.chat.panelHeight';
     const STORAGE_SECTION_STATE_KEY = 'bgp.chat.sectionState';
     const lastSeenMessages = loadLastSeenMessages();
     const STORAGE_ARCHIVED_KEY = 'bgp.chat.archived';
@@ -107,7 +106,7 @@
     const emojiPalette = ['😀', '😁', '😂', '😎', '😍', '🤔', '👍', '🎉', '🔥', '❤️', '✅', '❗', '🙌', '🥳', '🤖', '🕹️', '🏆', '⚡'];
 
     const reactionPalette = ['👍', '❤️', '🔥', '😂', '🎉'];
-    const reactionsEnabled = false;
+    const reactionsEnabled = true;
     let panelCollapsedState = loadPanelCollapsedState();
     const mobileSheetQuery = typeof window !== 'undefined'
         ? window.matchMedia('(max-width: 64rem)')
@@ -118,7 +117,6 @@
     let chatBootstrapPromise = null;
     let chatBootstrapScheduled = false;
     let dockStateRestored = false;
-    const resizeHandle = panel ? panel.querySelector('[data-chat-resize]') : null;
     const sectionContainers = panel ? panel.querySelectorAll('[data-chat-section]') : [];
 
 
@@ -214,7 +212,6 @@
 
     syncPanelCollapsedUi(panelCollapsedState);
     syncThreadViewState(false);
-    applyStoredPanelHeight();
     applyStoredSectionState();
 
     if (mobileSheetQuery && typeof mobileSheetQuery.addEventListener === 'function') {
@@ -288,26 +285,6 @@
             const collapsed = sectionState[key] === true;
             setSectionCollapsed(key, collapsed, { persist: false });
         });
-    }
-
-    function loadStoredPanelHeight() {
-        if (typeof window === 'undefined' || !window.localStorage) {
-            return null;
-        }
-        const raw = window.localStorage.getItem(STORAGE_PANEL_HEIGHT_KEY);
-        if (!raw) {
-            return null;
-        }
-        const parsed = parseFloat(raw);
-        return Number.isFinite(parsed) ? parsed : null;
-    }
-
-    function applyStoredPanelHeight() {
-        const stored = loadStoredPanelHeight();
-        if (!stored) {
-            return;
-        }
-        applyPanelHeight(stored);
     }
 
     function normalizeLastSeenValue(value) {
@@ -496,26 +473,6 @@
         sectionState[key] = isCollapsed;
         if (options.persist !== false) {
             persistSectionState();
-        }
-    }
-
-    function clampPanelHeight(value) {
-        const min = Math.max(280, Math.round(window.innerHeight * 0.4));
-        const max = Math.max(min, Math.round(window.innerHeight * 0.9));
-        return Math.min(max, Math.max(min, value));
-    }
-
-    function applyPanelHeight(value) {
-        if (!dock || !value) {
-            return;
-        }
-        const clamped = clampPanelHeight(value);
-        dock.style.setProperty('--chat-panel-height', `${clamped}px`);
-        panel?.style.setProperty('max-height', `${clamped}px`);
-        try {
-            window.localStorage?.setItem(STORAGE_PANEL_HEIGHT_KEY, String(clamped));
-        } catch (err) {
-            console.warn('Unable to persist chat height.', err);
         }
     }
 
@@ -1313,41 +1270,6 @@
                 announceMessage(strings.attachmentUnsupported || strings.sendError || 'Attachment failed');
             }
         });
-
-    window.addEventListener('resize', () => {
-        closeContextMenu();
-        layoutDockWindows();
-        const stored = loadStoredPanelHeight();
-        if (stored) {
-            applyPanelHeight(stored);
-        }
-    });
-
-    if (resizeHandle && panel) {
-        let resizing = false;
-        let startY = 0;
-        let startHeight = 0;
-        const onMove = (evt) => {
-            if (!resizing) return;
-            const delta = startY - evt.clientY;
-            const nextHeight = clampPanelHeight(startHeight + delta);
-            applyPanelHeight(nextHeight);
-        };
-        const onUp = () => {
-            if (!resizing) return;
-            resizing = false;
-            document.removeEventListener('mousemove', onMove);
-            document.removeEventListener('mouseup', onUp);
-        };
-        resizeHandle.addEventListener('mousedown', (evt) => {
-            evt.preventDefault();
-            startY = evt.clientY;
-            startHeight = panel.getBoundingClientRect().height;
-            resizing = true;
-            document.addEventListener('mousemove', onMove);
-            document.addEventListener('mouseup', onUp);
-        });
-    }
 
     dock.addEventListener('contextmenu', (evt) => {
         const contactTarget = evt.target.closest('[data-chat-friend]');

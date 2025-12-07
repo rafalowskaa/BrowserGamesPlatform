@@ -581,119 +581,117 @@
             });
         });
     </script>
-        if (includeProfileScripts)
-        {
-    <script src="~/js/profile-editor.js" asp-append-version="true"></script>
-            
-            }
-            if (includeGamesScripts)
-            {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const wizard = document.querySelector('.game-wizard');
-            if (!wizard) {
-                return;
-            }
-
-            const steps = Array.from(wizard.querySelectorAll('.wizard-step'));
-            const progress = Array.from(wizard.querySelectorAll('.wizard-progress__step'));
-
-            const showWarning = (step, message) => {
-                const warning = step.querySelector('[data-step-warning]');
-                if (!warning) {
+        @if (includeProfileScripts)
+    {
+        <script src="~/js/profile-editor.js" asp-append-version="true"></script>
+    }
+    @if (includeGamesScripts)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const wizard = document.querySelector('.game-wizard');
+                if (!wizard) {
                     return;
                 }
-                if (message) {
-                    warning.textContent = message;
-                    warning.removeAttribute('hidden');
-                }
-                else {
-                    warning.textContent = '';
-                    warning.setAttribute('hidden', '');
-                }
-            };
+               const steps = Array.from(wizard.querySelectorAll('.wizard-step'));
+                const progress = Array.from(wizard.querySelectorAll('.wizard-progress__step'));
 
-            const setStepState = (index) => {
-                const current = Math.max(0, Math.min(index, steps.length - 1));
-                steps.forEach((step, idx) => {
-                    if (idx === current) {
-                        step.classList.add('is-active');
+                const showWarning = (step, message) => {
+                    const warning = step.querySelector('[data-step-warning]');
+                    if (!warning) {
+                        return;
+                    }
+                    if (message) {
+                        warning.textContent = message;
+                        warning.removeAttribute('hidden');
                     }
                     else {
-                        step.classList.remove('is-active');
+                        warning.textContent = '';
+                        warning.setAttribute('hidden', '');
                     }
-                    showWarning(step, '');
-                });
+                     };
+
+               const setStepState = (index) => {
+                    const current = Math.max(0, Math.min(index, steps.length - 1));
+                    steps.forEach((step, idx) => {
+                        if (idx === current) {
+                            step.classList.add('is-active');
+                        }
+                        else {
+                            step.classList.remove('is-active');
+                        }
+                        showWarning(step, '');
+                    });
 
                 progress.forEach((item, idx) => {
-                    item.classList.toggle('is-active', idx === current);
-                    item.classList.toggle('is-complete', idx < current);
-                });
+                        item.classList.toggle('is-active', idx === current);
+                        item.classList.toggle('is-complete', idx < current);
+                    });
 
-                wizard.dataset.currentStep = String(current);
-            };
+            wizard.dataset.currentStep = String(current);
+                };
 
             const stepIndexForElement = (element) => steps.findIndex(step => step.contains(element));
 
-            const validateStep = (index) => {
-                const step = steps[index];
-                if (!step) {
-                    return true;
-                }
-
-                const warningMessage = step.dataset.warning || '';
-                switch (index) {
-                    case 0: {
-                        const packageInput = wizard.querySelector('#GamePackage');
-                        const titleInput = wizard.querySelector('#GameTitle');
-                        const hasPackage = packageInput && packageInput.files && packageInput.files.length > 0;
-                        const hasTitle = titleInput && titleInput.value.trim().length > 0;
-                        if (!hasPackage || !hasTitle) {
-                            showWarning(step, warningMessage);
-                            return false;
+                const validateStep = (index) => {
+                    const step = steps[index];
+                    if (!step) {
+                        return true;
+                    }
+                    const warningMessage = step.dataset.warning || '';
+                    switch (index) {
+                        case 0: {
+                            const packageInput = wizard.querySelector('#GamePackage');
+                            const titleInput = wizard.querySelector('#GameTitle');
+                            const hasPackage = packageInput && packageInput.files && packageInput.files.length > 0;
+                            const hasTitle = titleInput && titleInput.value.trim().length > 0;
+                            if (!hasPackage || !hasTitle) {
+                                showWarning(step, warningMessage);
+                                return false;
+                            }
+                            showWarning(step, '');
+                            return true;
                         }
-                        showWarning(step, '');
-                        return true;
-                    }
-                    case 2: {
-                        const categoriesSelect = wizard.querySelector('#GameCategories');
-                        const categorySelected = categoriesSelect
-                            ? Array.from(categoriesSelect.selectedOptions || []).length > 0
-                            : false;
-                        const modeSelected = wizard.querySelectorAll('input[name="SelectedModeValues"]:checked').length > 0;
-                        if (!categorySelected || !modeSelected) {
-                            showWarning(step, warningMessage);
-                            return false;
+                        case 2: {
+                            const categoriesSelect = wizard.querySelector('#GameCategories');
+                            const categorySelected = categoriesSelect
+                                ? Array.from(categoriesSelect.selectedOptions || []).length > 0
+                                : false;
+                            const modeSelected = wizard.querySelectorAll('input[name="SelectedModeValues"]:checked').length > 0;
+                            if (!categorySelected || !modeSelected) {
+                                showWarning(step, warningMessage);
+                                return false;
+                            }
+                            showWarning(step, '');
+                            return true;
                         }
-                        showWarning(step, '');
-                        return true;
+                        default:
+                            showWarning(step, '');
+                            return true;
                     }
-                    default:
-                        showWarning(step, '');
-                        return true;
-                }
-            };
+                };
 
-            const goToStep = (index) => {
-                setStepState(index);
-            };
+                const goToStep = (index) => {
+                    setStepState(index);
+                };
 
-            const nextButtons = wizard.querySelectorAll('[data-wizard-next]');
-            nextButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const index = stepIndexForElement(button);
-                    if (validateStep(index)) {
-                        goToStep(index + 1);
-                    }
+                const nextButtons = wizard.querySelectorAll('[data-wizard-next]');
+                nextButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const index = stepIndexForElement(button);
+                        if (validateStep(index)) {
+                            goToStep(index + 1);
+                        }
+                    });
                 });
-            });
+            
 
-            const prevButtons = wizard.querySelectorAll('[data-wizard-prev]');
-            prevButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const index = stepIndexForElement(button);
-                    goToStep(index - 1);
-                });
+             const prevButtons = wizard.querySelectorAll('[data-wizard-prev]');
+                prevButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const index = stepIndexForElement(button);
+                        goToStep(index - 1);
+                    });
             });
 
             const firstErrorStep = steps.findIndex(step => Array.from(step.querySelectorAll('.val')).some(message => message.textContent && message.textContent.trim().length > 0));

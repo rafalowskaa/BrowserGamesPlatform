@@ -363,27 +363,6 @@
     overscroll-behavior: contain;
 }
 
-.chat-panel__resize {
-    position: relative;
-    width: 100%;
-    height: 0.85rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: ns-resize;
-    background: rgba(15, 23, 42, 0.7);
-    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
-}
-
-    .chat-panel__resize::before {
-        content: '';
-        width: 3rem;
-        height: 0.25rem;
-        border-radius: 999px;
-        background: rgba(148, 163, 184, 0.45);
-        box-shadow: 0 6px 12px rgba(15, 23, 42, 0.35);
-    }
-
 .chat-panel__header {
     display: flex;
     align-items: center;
@@ -955,20 +934,15 @@
     padding: 0.1rem 0.5rem;
 }
 
-.chat-contact.is-unread {
-    border-color: rgba(59, 130, 246, 0.28);
-    background: rgba(37, 99, 235, 0.08);
+.chat-contact.is-unread .chat-contact__button {
+    background: rgba(37, 99, 235, 0.12);
+    box-shadow: 0 16px 32px rgba(37, 99, 235, 0.22);
+    border-color: rgba(96, 165, 250, 0.3);
 }
 
-    .chat-contact.is-unread .chat-contact__button {
-        background: rgba(37, 99, 235, 0.12);
-        box-shadow: 0 16px 32px rgba(37, 99, 235, 0.22);
-        border-color: rgba(96, 165, 250, 0.3);
-    }
-
-    .chat-contact.is-unread .chat-contact__name {
-        color: #bfdbfe;
-    }
+.chat-contact.is-unread .chat-contact__name {
+    color: #bfdbfe;
+}
 
 .chat-requests li {
     display: grid;
