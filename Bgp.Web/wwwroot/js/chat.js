@@ -52,7 +52,7 @@
         <div class="chat-context-menu__panel">
             <ul class="chat-context-menu__list" data-chat-context-list></ul>
         </div>`;
-    dock.appendChild(contextMenu);
+        document.body.appendChild(contextMenu);
     const contextMenuList = contextMenu.querySelector('[data-chat-context-list]');
 
     const PRESENCE_AVAILABLE = 0;

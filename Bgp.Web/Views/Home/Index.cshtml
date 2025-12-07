@@ -493,7 +493,7 @@ else
 
     @section Scripts
     {
-        if (!Model.IsAuthenticated)
+         @if (!Model.IsAuthenticated)
         {
             <script src="~/js/home-guest.js" asp-append-version="true"></script>
         }
