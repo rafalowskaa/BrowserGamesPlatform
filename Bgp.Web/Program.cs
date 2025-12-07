@@ -278,6 +278,7 @@ app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PlayGrid API v1"));
 
 app.MapRazorPages();
+app.MapControllers();
 
 // Hubs
 app.MapHub<ChatHub>("/hubs/chat");
