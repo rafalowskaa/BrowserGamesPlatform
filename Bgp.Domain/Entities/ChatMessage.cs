@@ -18,6 +18,9 @@ public class ChatMessage
     [MaxLength(256)]
     public string? AttachmentName { get; set; }
 
+    [MaxLength(16)]
+    public string? Reaction { get; set; }
+
     public DateTime SentAtUtc { get; set; } = DateTime.UtcNow;
     public bool IsRead { get; set; }
     public DateTime? ReadAtUtc { get; set; }

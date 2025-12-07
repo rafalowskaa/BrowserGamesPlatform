@@ -9,6 +9,7 @@ public record ChatMessageDto(
     string Content,
     string? AttachmentUrl,
     string? AttachmentName,
+    string? Reaction,
     DateTime SentAtUtc,
     bool FromSelf,
     bool IsRead,

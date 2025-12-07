@@ -54,6 +54,10 @@ namespace Bgp.Infrastructure.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Reaction")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
                     b.Property<DateTime?>("ReadAtUtc")
                         .HasColumnType("datetime2");
 

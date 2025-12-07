@@ -168,6 +168,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
            .Property(x => x.DeletedById)
            .HasMaxLength(450);
 
+        b.Entity<ChatMessage>()
+          .Property(x => x.Reaction)
+          .HasMaxLength(16);
+
         b.Entity<Report>()
             .HasIndex(x => x.CreatedAtUtc);
         b.Entity<HomeFact>()

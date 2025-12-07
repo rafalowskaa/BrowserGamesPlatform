@@ -1401,29 +1401,61 @@
                 if (isMobileSheet()) {
                     return;
                 }
+                if (typeof evt.button === 'number' && evt.button !== 0) {
+                    return;
+                }
+                const startY = evt.clientY ?? (evt.touches && evt.touches[0]?.clientY);
+                if (typeof startY !== 'number') {
+                    return;
+                }
                 evt.preventDefault();
-                const startY = evt.clientY;
-                const startHeight = panel.getBoundingClientRect().height;
+                const rect = panel.getBoundingClientRect();
+                const startHeight = rect.height || panelHeight || clampPanelHeight();
+                let pendingHeight = startHeight;
+                let frameRequested = false;
+
+                const queueHeight = (clientY) => {
+                    const delta = startY - clientY;
+                    pendingHeight = clampPanelHeight(startHeight + delta);
+                    if (!frameRequested) {
+                        frameRequested = true;
+                        if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+                            window.requestAnimationFrame(() => {
+                                frameRequested = false;
+                                applyPanelHeight(pendingHeight, { persist: false });
+                            });
+                        } else {
+                            frameRequested = false;
+                            applyPanelHeight(pendingHeight, { persist: false });
+                        }
+                    }
+                };
 
                 const handleMove = (moveEvt) => {
-                    const delta = startY - moveEvt.clientY;
-                    const nextHeight = clampPanelHeight(startHeight + delta);
-                    applyPanelHeight(nextHeight, { persist: false });
+                    const currentY = moveEvt.clientY ?? (moveEvt.touches && moveEvt.touches[0]?.clientY);
+                    if (typeof currentY !== 'number') {
+                        return;
+                    }
+                    moveEvt.preventDefault();
+                    queueHeight(currentY);
                 };
 
                 const endResize = () => {
-                    document.removeEventListener('mousemove', handleMove);
-                    document.removeEventListener('mouseup', endResize);
+                    document.removeEventListener('pointermove', handleMove);
+                    document.removeEventListener('pointerup', endResize);
                     document.body.style.removeProperty('user-select');
                     applyPanelHeight(panelHeight, { persist: true });
                 };
 
                 document.body.style.userSelect = 'none';
-                document.addEventListener('mousemove', handleMove);
-                document.addEventListener('mouseup', endResize);
+                if (resizeHandle.setPointerCapture && evt.pointerId !== undefined) {
+                    resizeHandle.setPointerCapture(evt.pointerId);
+                }
+                document.addEventListener('pointermove', handleMove, { passive: false });
+                document.addEventListener('pointerup', endResize, { once: true });
             };
 
-            resizeHandle.addEventListener('mousedown', beginResize);
+            resizeHandle.addEventListener('pointerdown', beginResize);
         }
 
         if (typeof window !== 'undefined') {
@@ -1768,6 +1800,7 @@
                 reactions.remove();
             }
         }
+        applyLocalReaction(conversation, message.id, updatedData.reaction);
         if (entry.group) {
             entry.group.lastMessage = entry.data;
             updateGroupMeta(entry.group);
@@ -1802,6 +1835,7 @@
             content: raw.isDeleted ? '' : raw.content,
             attachmentUrl: raw.attachmentUrl || raw.fileUrl || null,
             attachmentName: raw.attachmentName || null,
+            reaction: raw.isDeleted ? null : (raw.reaction || null),
             sentAtUtc: raw.sentAtUtc,
             fromSelf: raw.fromSelf === true || (raw.senderId ? raw.senderId !== friendId : true),
             isRead: raw.isRead,
@@ -1832,7 +1866,8 @@
                     isRead: normalized.isRead,
                     readAtUtc: normalized.readAtUtc,
                     isDeleted: normalized.isDeleted,
-                    deletedAtUtc: normalized.deletedAtUtc
+                    deletedAtUtc: normalized.deletedAtUtc,
+                    reaction: normalized.reaction
                 });
                 entry.data = updated;
                 if (updated.isDeleted) {
@@ -1844,7 +1879,10 @@
                     updateGroupMeta(entry.group);
                     updateConversationLatest(conversation, updated);
                 }
-            
+
+                if (!updated.isDeleted) {
+                    applyLocalReaction(conversation, updated.id, updated.reaction);
+                }
             }
             return;
         }
@@ -1976,7 +2014,40 @@
             console.error('Failed to delete message.', err);
             announceMessage(strings.deleteMessageError || strings.statusError || 'Unable to delete message');
         }
-    }
+        }
+
+        async function sendReaction(conversation, messageId, emoji, options = {}) {
+            if (!conversation || !messageId || !emoji) {
+                return;
+            }
+
+            const entry = conversation.messages ? conversation.messages.get(messageId) : null;
+            const previousReaction = entry && entry.data ? entry.data.reaction : null;
+
+            if (options.optimistic) {
+                applyLocalReaction(conversation, messageId, emoji);
+            }
+
+            try {
+                const res = await fetch(`/api/chat/messages/${encodeURIComponent(messageId)}/reaction`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ reaction: emoji })
+                });
+                if (!res.ok) {
+                    throw new Error(await extractErrorMessage(res));
+                }
+                const payload = await res.json();
+                handleMessageReaction(payload);
+            } catch (err) {
+                console.error('Failed to set reaction.', err);
+                if (options.optimistic) {
+                    applyLocalReaction(conversation, messageId, previousReaction || null);
+                }
+                announceMessage(strings.statusError || 'Unable to react to message');
+            }
+        }
 
     async function extractErrorMessage(res) {
         try {
@@ -3989,6 +4060,9 @@
         if (!reactionsEnabled) {
             return null;
         }
+        if (!conversation || !message || !message.id || message.isPending) {
+            return null;
+        }
         const bar = document.createElement('div');
         bar.className = 'chat-message__reactions';
         reactionPalette.forEach((emoji) => {
@@ -3998,12 +4072,7 @@
             btn.setAttribute('aria-label', `${strings.reactionLabel || 'React'} ${emoji}`);
             btn.addEventListener('click', (event) => {
                 event.preventDefault();
-                applyLocalReaction(conversation, message.id, emoji);
-                dispatchChatEvent('reaction', {
-                    friendId: conversation.friendId,
-                    messageId: message.id,
-                    emoji
-                });
+                sendReaction(conversation, message.id, emoji, { optimistic: true });
             });
             bar.appendChild(btn);
         });
@@ -4025,20 +4094,31 @@
     }
 
     function applyLocalReaction(conversation, messageId, emoji) {
-        if (!conversation || !conversation.messages || !emoji) {
+        if (!conversation || !conversation.messages) {
             return;
         }
         const entry = conversation.messages.get(messageId);
         if (!entry || !entry.element) {
             return;
         }
-        let pill = entry.element.querySelector('.chat-message__reaction');
-        if (!pill) {
-            pill = document.createElement('span');
-            pill.className = 'chat-message__reaction';
-            entry.element.appendChild(pill);
+
+        const pill = entry.element.querySelector('.chat-message__reaction');
+
+        if (!emoji) {
+            if (pill) {
+                pill.remove();
+            }
+            entry.data = { ...entry.data, reaction: null };
+            return;
         }
-        pill.textContent = emoji;
+
+        let reactionPill = pill;
+        if (!reactionPill) {
+            reactionPill = document.createElement('span');
+            reactionPill.className = 'chat-message__reaction';
+            entry.element.appendChild(reactionPill);
+        }
+        reactionPill.textContent = emoji;
         entry.data = { ...entry.data, reaction: emoji };
     }
 
@@ -4062,11 +4142,17 @@
         const updated = Object.assign({}, entry.data || {}, {
             isDeleted: true,
             deletedAtUtc: deletedAt,
-            deletedById
+            deletedById,
+            reaction: null
         });
 
         entry.data = updated;
         entry.element.classList.add('chat-message--deleted');
+
+        const reactionPill = entry.element.querySelector('.chat-message__reaction');
+        if (reactionPill) {
+            reactionPill.remove();
+        }
 
         const bubble = entry.element.querySelector('.chat-message__bubble');
         if (bubble) {
@@ -4308,11 +4394,30 @@
         });
     }
 
+        function handleMessageReaction(payload) {
+            if (!payload || !payload.messageId || !payload.peerId) {
+                return;
+            }
+            const actorId = normalizeId(payload.userId);
+            const peerId = normalizeId(payload.peerId);
+            const friendId = actorId === currentUserId ? peerId : (actorId || peerId);
+            if (!friendId) {
+                return;
+            }
+            const conversation = getConversation(friendId);
+            if (!conversation) {
+                return;
+            }
+            applyLocalReaction(conversation, payload.messageId, payload.reaction);
+        }
+
     function handleMessageDeleted(payload) {
         if (!payload || !payload.messageId) {
             return;
         }
-        const friendId = payload.peerId || null;
+        const actorId = normalizeId(payload.userId || payload.deletedById);
+        const peerId = normalizeId(payload.peerId);
+        const friendId = actorId === currentUserId ? peerId : (actorId || peerId);
         if (!friendId) {
             return;
         }
@@ -4556,7 +4661,7 @@
         connection.on('ReceiveMessage', (msg) => {
             deliverMessageFromServer(msg);
         });
-        connection.on('MessageDeleted', (payload) => handleMessageDeleted(payload));
+        connection.on('MessageReaction', (payload) => handleMessageReaction(payload));
 
 
         connection.on('MessagesRead', handleMessagesRead);

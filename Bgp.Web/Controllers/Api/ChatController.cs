@@ -79,6 +79,7 @@ public class ChatController : ControllerBase
             m.IsDeleted ? string.Empty : m.Content,
             m.IsDeleted ? null : m.AttachmentUrl,
             m.IsDeleted ? null : m.AttachmentName,
+            m.IsDeleted ? null : m.Reaction,
             m.SentAtUtc,
             m.SenderId == uid,
             m.IsRead,
@@ -125,6 +126,7 @@ public class ChatController : ControllerBase
                 payload.Content,
                 payload.IsDeleted ? null : payload.AttachmentUrl,
                 payload.IsDeleted ? null : payload.AttachmentName,
+                payload.Reaction,
                 payload.SentAtUtc,
                 true,
                 payload.IsRead,
@@ -238,6 +240,7 @@ public class ChatController : ControllerBase
             message.DeletedAtUtc = DateTime.UtcNow;
             message.DeletedById = uid;
             message.Content = string.Empty;
+            message.Reaction = null;
             if (!message.IsRead)
             {
                 message.IsRead = true;
@@ -253,11 +256,65 @@ public class ChatController : ControllerBase
             messageId = message.Id,
             peerId,
             deletedById = message.DeletedById ?? uid,
-            deletedAtUtc = message.DeletedAtUtc
+            deletedAtUtc = message.DeletedAtUtc,
+            userId = uid
         };
 
         await _hub.Clients.Group($"user-{uid}").SendAsync("MessageDeleted", payload);
         await _hub.Clients.Group($"user-{peerId}").SendAsync("MessageDeleted", payload);
+
+        return Ok(payload);
+    }
+    public class SetReactionRequest
+    {
+        public string? Reaction { get; set; }
+    }
+
+    [HttpPost("messages/{id:guid}/reaction")]
+    public async Task<ActionResult> SetReaction(Guid id, [FromBody] SetReactionRequest request)
+    {
+        var uid = UserId;
+        if (string.IsNullOrWhiteSpace(uid))
+        {
+            return Unauthorized();
+        }
+
+        var message = await _db.ChatMessages.FirstOrDefaultAsync(m => m.Id == id);
+        if (message is null)
+        {
+            return NotFound();
+        }
+
+        if (message.SenderId != uid && message.ReceiverId != uid)
+        {
+            return Forbid();
+        }
+
+        if (message.IsDeleted)
+        {
+            return BadRequest(new { error = _localizer["Chat_MessageDeleted"].Value });
+        }
+
+        var reaction = (request?.Reaction ?? string.Empty).Trim();
+        if (reaction.Length > 16)
+        {
+            reaction = reaction[..16];
+        }
+
+        message.Reaction = string.IsNullOrEmpty(reaction) ? null : reaction;
+        await _db.SaveChangesAsync();
+
+        var peerId = message.SenderId == uid ? message.ReceiverId : message.SenderId;
+        var payload = new
+        {
+            messageId = message.Id,
+            reaction = message.Reaction,
+            peerId,
+            userId = uid
+        };
+
+        await _hub.Clients.Group($"user-{uid}").SendAsync("MessageReaction", payload);
+        await _hub.Clients.Group($"user-{peerId}").SendAsync("MessageReaction", payload);
 
         return Ok(payload);
     }
