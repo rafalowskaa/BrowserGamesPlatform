@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Helpers;
@@ -8,7 +9,13 @@ namespace Bgp.Web.Services;
 
 public interface IChatMessageService
 {
-    Task<ChatMessagePayload> CreateAsync(string senderId, string receiverId, string content, CancellationToken cancellationToken = default);
+    Task<ChatMessagePayload> CreateAsync(
+        string senderId,
+        string receiverId,
+        string content,
+        string? attachmentUrl = null,
+        string? attachmentName = null,
+        CancellationToken cancellationToken = default);
 }
 
 public record ChatMessagePayload(
@@ -18,6 +25,8 @@ public record ChatMessagePayload(
     string SenderName,
     string ReceiverName,
     string Content,
+    string? AttachmentUrl,
+    string? AttachmentName,
     DateTime SentAtUtc,
     bool IsRead,
     DateTime? ReadAtUtc,
@@ -33,7 +42,13 @@ public class ChatMessageService : IChatMessageService
         _db = db;
     }
 
-    public async Task<ChatMessagePayload> CreateAsync(string senderId, string receiverId, string content, CancellationToken cancellationToken = default)
+    public async Task<ChatMessagePayload> CreateAsync(
+       string senderId,
+       string receiverId,
+       string content,
+       string? attachmentUrl = null,
+       string? attachmentName = null,
+       CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(senderId))
         {
@@ -45,11 +60,20 @@ public class ChatMessageService : IChatMessageService
             throw new ArgumentException("Receiver is required.", nameof(receiverId));
         }
 
-        var trimmed = content?.Trim();
-        if (string.IsNullOrWhiteSpace(trimmed))
+        var trimmed = content?.Trim() ?? string.Empty;
+        var hasAttachment = !string.IsNullOrWhiteSpace(attachmentUrl);
+        var normalizedAttachmentName = string.IsNullOrWhiteSpace(attachmentName)
+            ? null
+            : attachmentName.Trim();
+
+        if (string.IsNullOrWhiteSpace(trimmed) && !hasAttachment)
         {
             throw new InvalidOperationException("Message content cannot be empty.");
         }
+
+        var messageContent = string.IsNullOrWhiteSpace(trimmed)
+            ? (normalizedAttachmentName ?? Path.GetFileName(attachmentUrl) ?? "[attachment]")
+            : trimmed;
 
         var blocked = await _db.Friendships.AnyAsync(f =>
             (f.RequesterId == senderId && f.AddresseeId == receiverId ||
@@ -66,7 +90,9 @@ public class ChatMessageService : IChatMessageService
         {
             SenderId = senderId,
             ReceiverId = receiverId,
-            Content = trimmed,
+            Content = messageContent,
+            AttachmentUrl = hasAttachment ? attachmentUrl : null,
+            AttachmentName = normalizedAttachmentName,
             SentAtUtc = DateTime.UtcNow
         };
 
@@ -100,6 +126,8 @@ public class ChatMessageService : IChatMessageService
             senderName,
             receiverName,
             message.Content,
+            message.AttachmentUrl,
+            message.AttachmentName,
             message.SentAtUtc,
             message.IsRead,
             message.ReadAtUtc,

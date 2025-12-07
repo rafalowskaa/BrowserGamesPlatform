@@ -12,6 +12,12 @@ public class ChatMessage
     [Required, MaxLength(2000)]
     public string Content { get; set; } = string.Empty;
 
+    [MaxLength(2048)]
+    public string? AttachmentUrl { get; set; }
+
+    [MaxLength(256)]
+    public string? AttachmentName { get; set; }
+
     public DateTime SentAtUtc { get; set; } = DateTime.UtcNow;
     public bool IsRead { get; set; }
     public DateTime? ReadAtUtc { get; set; }

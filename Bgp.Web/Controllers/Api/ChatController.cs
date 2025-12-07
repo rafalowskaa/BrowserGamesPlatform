@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Linq;
@@ -13,6 +14,8 @@ using Bgp.Web.Hubs;
 using Bgp.Web.Services;
 using Microsoft.Extensions.Localization;
 using Bgp.Web.Resources;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 
 namespace Bgp.Web.Controllers.Api;
 
@@ -25,13 +28,20 @@ public class ChatController : ControllerBase
     private readonly IChatMessageService _chatMessages;
     private readonly IHubContext<ChatHub> _hub;
     private readonly IStringLocalizer<SharedResource> _localizer;
+    private readonly IWebHostEnvironment _env;
 
-    public ChatController(AppDbContext db, IChatMessageService chatMessages, IHubContext<ChatHub> hub, IStringLocalizer<SharedResource> localizer)
+    public ChatController(
+        AppDbContext db,
+        IChatMessageService chatMessages,
+        IHubContext<ChatHub> hub,
+        IStringLocalizer<SharedResource> localizer,
+        IWebHostEnvironment env)
     {
         _db = db;
         _chatMessages = chatMessages;
         _hub = hub;
         _localizer = localizer;
+        _env = env;
     }
 
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -67,6 +77,8 @@ public class ChatController : ControllerBase
             nameLookup.GetValueOrDefault(m.SenderId, m.SenderId.ToUpperInvariant()),
             nameLookup.GetValueOrDefault(m.ReceiverId, m.ReceiverId.ToUpperInvariant()),
             m.IsDeleted ? string.Empty : m.Content,
+            m.IsDeleted ? null : m.AttachmentUrl,
+            m.IsDeleted ? null : m.AttachmentName,
             m.SentAtUtc,
             m.SenderId == uid,
             m.IsRead,
@@ -80,7 +92,8 @@ public class ChatController : ControllerBase
     [HttpPost("messages")]
     public async Task<ActionResult<ChatMessageDto>> SendMessage([FromBody] SendMessageRequest request)
     {
-        if (request is null || string.IsNullOrWhiteSpace(request.ToUserId) || string.IsNullOrWhiteSpace(request.Content))
+        if (request is null || string.IsNullOrWhiteSpace(request.ToUserId) ||
+            (string.IsNullOrWhiteSpace(request.Content) && string.IsNullOrWhiteSpace(request.AttachmentUrl)))
         {
             return BadRequest(new { error = "Invalid payload." });
         }
@@ -93,7 +106,12 @@ public class ChatController : ControllerBase
 
         try
         {
-            var payload = await _chatMessages.CreateAsync(senderId, request.ToUserId, request.Content);
+            var payload = await _chatMessages.CreateAsync(
+                senderId,
+                request.ToUserId,
+                request.Content ?? string.Empty,
+                request.AttachmentUrl,
+                request.AttachmentName);
 
             await _hub.Clients.Group($"user-{request.ToUserId}").SendAsync("ReceiveMessage", payload);
             await _hub.Clients.Group($"user-{senderId}").SendAsync("ReceiveMessage", payload);
@@ -105,6 +123,8 @@ public class ChatController : ControllerBase
                 payload.SenderName,
                 payload.ReceiverName,
                 payload.Content,
+                payload.IsDeleted ? null : payload.AttachmentUrl,
+                payload.IsDeleted ? null : payload.AttachmentName,
                 payload.SentAtUtc,
                 true,
                 payload.IsRead,
@@ -118,6 +138,37 @@ public class ChatController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    [HttpPost("attachments")]
+    [RequestSizeLimit(15 * 1024 * 1024)]
+    public async Task<ActionResult> UploadAttachment([FromForm] IFormFile? file)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new { error = "No file provided." });
+        }
+
+        if (!string.IsNullOrEmpty(file.ContentType) && !file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new { error = "Only image attachments are supported." });
+        }
+
+        var uploadsRoot = Path.Combine(_env.WebRootPath ?? Path.GetTempPath(), "uploads", "chat");
+        Directory.CreateDirectory(uploadsRoot);
+
+        var safeName = Path.GetFileName(file.FileName);
+        var extension = Path.GetExtension(safeName);
+        var storedName = $"{Guid.NewGuid():N}{extension}";
+        var filePath = Path.Combine(uploadsRoot, storedName);
+
+        await using (var stream = System.IO.File.Create(filePath))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        var attachmentUrl = $"/uploads/chat/{storedName}";
+        return Ok(new { attachmentUrl, attachmentName = safeName });
     }
 
     [HttpPost("read/{otherUserId}")]

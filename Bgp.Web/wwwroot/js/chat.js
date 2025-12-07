@@ -1280,6 +1280,40 @@
         }
     });
 
+        document.addEventListener('bgp:chat:attachment', async (evt) => {
+            const detail = evt.detail || {};
+            const friendId = detail.userId;
+            if (!friendId) {
+                return;
+            }
+            openConversation(friendId);
+            const conversation = getConversation(friendId);
+            if (!conversation || typeof conversation.sendPayload !== 'function') {
+                return;
+            }
+            const file = detail.file || null;
+            const fallbackName = (file && file.name) || detail.attachmentName || strings.attachmentLabel || 'Attachment';
+            try {
+                let uploadResult = null;
+                if (file) {
+                    uploadResult = await uploadAttachment(file);
+                }
+                const outgoing = {
+                    content: '',
+                    attachmentUrl: uploadResult?.attachmentUrl || detail.attachmentUrl || null,
+                    attachmentName: uploadResult?.attachmentName || detail.attachmentName || fallbackName
+                };
+                if (!outgoing.attachmentUrl) {
+                    outgoing.content = fallbackName;
+                }
+                conversation.sendPayload(outgoing, { skipInputClear: true, skipInputReset: true });
+            } catch (err) {
+                console.error('Attachment upload failed.', err);
+                conversation.sendPayload({ content: fallbackName }, { skipInputClear: true });
+                announceMessage(strings.attachmentUnsupported || strings.sendError || 'Attachment failed');
+            }
+        });
+
     window.addEventListener('resize', () => {
         closeContextMenu();
         layoutDockWindows();
@@ -1668,17 +1702,22 @@
         return `✓ ${sentLabel || strings.deliveredShort || strings.deliveredReceiptLabel}`;
     }
 
-    function registerPendingMessage(conversation, content) {
+        function registerPendingMessage(conversation, draft) {
         const localId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
         const queue = getPendingQueue(conversation.friendId, true);
         if (queue) {
             queue.push(localId);
         }
+            const pendingContent = (draft && typeof draft.content === 'string' && draft.content.trim())
+                ? draft.content.trim()
+                : (draft?.attachmentName || draft?.attachmentUrl || strings.attachmentLabel || '[attachment]');
         const pending = {
             id: localId,
             senderId: currentUserId,
             receiverId: conversation.friendId,
-            content,
+            content: pendingContent,
+            attachmentUrl: draft?.attachmentUrl || null,
+            attachmentName: draft?.attachmentName || null,
             sentAtUtc: new Date().toISOString(),
             fromSelf: true,
             isPending: true,
@@ -1709,7 +1748,7 @@
         entry.element.classList.remove('chat-message--pending', 'chat-message--error');
         const bubble = entry.element.querySelector('.chat-message__bubble');
         if (bubble) {
-            bubble.textContent = updatedData.isDeleted ? (strings.messageDeleted || 'Message removed') : message.content;
+            applyBubbleContent(bubble, updatedData);
         }
         if (updatedData.isDeleted) {
             entry.element.classList.add('chat-message--deleted');
@@ -1750,6 +1789,8 @@
             senderName: raw.senderName || '',
             receiverName: raw.receiverName || '',
             content: raw.isDeleted ? '' : raw.content,
+            attachmentUrl: raw.attachmentUrl || raw.fileUrl || null,
+            attachmentName: raw.attachmentName || null,
             sentAtUtc: raw.sentAtUtc,
             fromSelf: raw.fromSelf === true || (raw.senderId ? raw.senderId !== friendId : true),
             isRead: raw.isRead,
@@ -1852,13 +1893,13 @@
         }
     }
 
-    async function trySendViaSignalR(friendId, message) {
+        async function trySendViaSignalR(friendId, payload) {
         try {
             const conn = await ensureConnectionStarted();
             if (!conn || conn.state !== 'Connected') {
                 return false;
             }
-            await conn.invoke('SendPrivateMessage', friendId, message);
+            await conn.invoke('SendPrivateMessage', friendId, payload.content || '', payload.attachmentUrl || null, payload.attachmentName || null);
             return true;
         } catch (err) {
             console.warn('SignalR delivery failed, falling back to HTTP.', err);
@@ -1866,19 +1907,38 @@
         }
     }
 
-    async function sendMessageViaHttp(friendId, message) {
+        async function sendMessageViaHttp(friendId, payload) {
         const res = await fetch('/api/chat/messages', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
-            body: JSON.stringify({ toUserId: friendId, content: message })
+            body: JSON.stringify({
+                toUserId: friendId,
+                content: payload.content || '',
+                attachmentUrl: payload.attachmentUrl,
+                attachmentName: payload.attachmentName
+            })
         });
         if (!res.ok) {
             throw new Error(await extractErrorMessage(res));
         }
-        const payload = await res.json();
-        payload.fromSelf = true;
-        deliverMessageFromServer(payload, friendId);
+            const responsePayload = await res.json();
+            responsePayload.fromSelf = true;
+            deliverMessageFromServer(responsePayload, friendId);
+        }
+
+        async function uploadAttachment(file) {
+            const form = new FormData();
+            form.append('file', file);
+            const res = await fetch('/api/chat/attachments', {
+                method: 'POST',
+                body: form,
+                credentials: 'same-origin'
+            });
+            if (!res.ok) {
+                throw new Error(await extractErrorMessage(res));
+            }
+            return res.json();
     }
 
     async function deleteMessage(conversation, message) {
@@ -1932,7 +1992,7 @@
         return res.statusText || 'Request failed';
     }
 
-    function markPendingMessageFailed(conversation, pendingId, content) {
+        function markPendingMessageFailed(conversation, pendingId, payload) {
         const queue = getPendingQueue(conversation.friendId, false);
         if (queue) {
             const index = queue.indexOf(pendingId);
@@ -1949,11 +2009,19 @@
         }
         entry.data.isPending = false;
         entry.data.sendError = true;
-        if (typeof content === 'string' && content.trim()) {
-            entry.data.content = content;
+            if (payload) {
+                if (typeof payload.content === 'string' && payload.content.trim()) {
+                    entry.data.content = payload.content.trim();
+                }
+                if (payload.attachmentUrl) {
+                    entry.data.attachmentUrl = payload.attachmentUrl;
+                }
+                if (payload.attachmentName) {
+                    entry.data.attachmentName = payload.attachmentName;
+                }
             const bubble = entry.element.querySelector('.chat-message__bubble');
             if (bubble) {
-                bubble.textContent = content;
+                applyBubbleContent(bubble, entry.data);
             }
         }
         entry.element.classList.remove('chat-message--pending');
@@ -3022,30 +3090,47 @@
             setActiveConversation(conversation);
         });
 
-        const send = async () => {
-            const value = input.value;
-            if (!value || !value.trim()) {
+        const sendPayload = async (payload, options = {}) => {
+            const content = (payload?.content || '').trim();
+            const attachmentUrl = payload?.attachmentUrl || null;
+            const attachmentName = payload?.attachmentName || null;
+            if (!content && !attachmentUrl) {
                 return;
             }
-            input.value = '';
-            autoGrowInput(input);
-            const pendingId = registerPendingMessage(conversation, value);
-            const sentViaSignalR = await trySendViaSignalR(friend.userId, value);
+            if (!options.skipInputClear) {
+                input.value = '';
+                autoGrowInput(input);
+            }
+            const pendingId = registerPendingMessage(conversation, { content, attachmentUrl, attachmentName });
+            const outgoing = { content, attachmentUrl, attachmentName };
+            const sentViaSignalR = await trySendViaSignalR(friend.userId, outgoing);
             if (sentViaSignalR) {
                 return;
             }
             try {
-                await sendMessageViaHttp(friend.userId, value);
+                await sendMessageViaHttp(friend.userId, outgoing);
             } catch (err) {
                 console.error('Failed to send message.', err);
 
-                markPendingMessageFailed(conversation, pendingId, value);
-                input.value = value;
-                autoGrowInput(input);
-                input.focus();
+                markPendingMessageFailed(conversation, pendingId, outgoing);
+                if (!options.skipInputReset) {
+                    input.value = payload?.content || '';
+                    autoGrowInput(input);
+                    input.focus();
+                }
             }
 
         };
+
+        const send = () => {
+            const value = (input.value || '').trim();
+            if (!value) {
+                return;
+            }
+            sendPayload({ content: value });
+        };
+
+        conversation.sendPayload = sendPayload;
 
         sendBtn.addEventListener('click', () => { send(); });
         input.addEventListener('keydown', (evt) => {
@@ -4089,6 +4174,26 @@
         return { url: safeUrl, label };
     }
 
+        function applyBubbleContent(bubble, message) {
+            if (!bubble || !message) {
+                return;
+            }
+            bubble.textContent = '';
+            const isDeleted = message.isDeleted === true;
+            const attachment = !isDeleted ? normalizeAttachment(message) : null;
+            if (attachment) {
+                const anchor = document.createElement('a');
+                anchor.href = attachment.url;
+                anchor.target = '_blank';
+                anchor.rel = 'noopener noreferrer';
+                anchor.textContent = attachment.label;
+                anchor.className = 'chat-message__attachment';
+                bubble.appendChild(anchor);
+            } else {
+                bubble.textContent = isDeleted ? (strings.messageDeleted || 'Message removed') : message.content;
+            }
+        }
+
     function renderMessage(conversation, message, options = {}) {
         const fromSelf = message.fromSelf === true || message.senderId === undefined || message.senderId !== conversation.friendId;
         const isDeleted = message.isDeleted === true;
@@ -4113,18 +4218,7 @@
 
         const bubble = document.createElement('div');
         bubble.className = 'chat-message__bubble';
-        const attachment = !isDeleted ? normalizeAttachment(message) : null;
-        if (attachment) {
-            const anchor = document.createElement('a');
-            anchor.href = attachment.url;
-            anchor.target = '_blank';
-            anchor.rel = 'noopener noreferrer';
-            anchor.textContent = attachment.label;
-            anchor.className = 'chat-message__attachment';
-            bubble.appendChild(anchor);
-        } else {
-            bubble.textContent = isDeleted ? (strings.messageDeleted || 'Message removed') : message.content;
-        }
+        applyBubbleContent(bubble, message);
         bubble.title = formatDateTime(isDeleted ? (message.deletedAtUtc || message.sentAtUtc) : message.sentAtUtc)
             || formatTimeLabel(timestamp);
         wrapper.appendChild(bubble);
@@ -4356,11 +4450,6 @@
         }
 
         loadFriendsPromise = (async () => {
-            const previousUnread = new Map();
-            friends.forEach((friend, key) => {
-                previousUnread.set(key, friend.unreadCount || 0);
-            });
-
 
             try {
                 const res = await fetch('/api/friends', { credentials: 'same-origin' });
@@ -4376,11 +4465,7 @@
                     if (row.status === 1) {
                         const key = normalizeId(row.userId);
                         const existing = getFriend(row.userId);
-                        const unreadCount = Math.max(
-                            row.unreadCount || 0,
-                            previousUnread.get(key) || 0,
-                            existing && existing.unreadCount ? existing.unreadCount : 0
-                        );
+                        const unreadCount = Math.max(0, row.unreadCount || 0);
                         if (existing) {
                             existing.displayName = row.displayName;
                             existing.avatarUrl = row.avatarUrl;
@@ -4443,11 +4528,7 @@
                     }
                     const existing = existingFriend || stranger;
                     existing.userId = existing.userId || strangerId;
-                    existing.unreadCount = Math.max(
-                        existing.unreadCount || 0,
-                        stranger.unreadCount || 0,
-                        previousUnread.get(strangerId) || 0
-                    );
+                    existing.unreadCount = Math.max(0, existing.unreadCount || stranger.unreadCount || 0);
                     setFriend(existing);
                     ensureStrangerContact(existing);
                     flushPendingMessages(existing.userId);
@@ -4464,13 +4545,14 @@
                 if (!dockStateRestored) {
                     restoreDockState();
                 }
+                updateUnreadBadge();
             } catch (err) {
                 console.error('Failed to load friends.', err);
                 if (friendsEmpty) {
                     friendsEmpty.textContent = strings.noFriends;
                     friendsEmpty.style.display = 'block';
                 }
-            
+                updateUnreadBadge();
             }
         })();
 

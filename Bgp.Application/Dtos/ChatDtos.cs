@@ -7,6 +7,8 @@ public record ChatMessageDto(
     string SenderName,
     string ReceiverName,
     string Content,
+    string? AttachmentUrl,
+    string? AttachmentName,
     DateTime SentAtUtc,
     bool FromSelf,
     bool IsRead,
@@ -18,4 +20,6 @@ public class SendMessageRequest
 {
     public string ToUserId { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
+    public string? AttachmentUrl { get; set; }
+    public string? AttachmentName { get; set; }
 }

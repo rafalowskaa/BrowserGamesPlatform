@@ -57,15 +57,15 @@ public class ChatHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task SendPrivateMessage(string toUserId, string message)
+    public async Task SendPrivateMessage(string toUserId, string message, string? attachmentUrl = null, string? attachmentName = null)
     {
-        if (string.IsNullOrWhiteSpace(message))
+        if (string.IsNullOrWhiteSpace(message) && string.IsNullOrWhiteSpace(attachmentUrl))
             return;
         if (UserId is null) throw new HubException("Unauthorized");
 
         try
         {
-            var payload = await _chatMessages.CreateAsync(UserId, toUserId, message, Context.ConnectionAborted);
+            var payload = await _chatMessages.CreateAsync(UserId, toUserId, message, attachmentUrl, attachmentName, Context.ConnectionAborted);
 
             await Clients.Group($"user-{toUserId}").SendAsync("ReceiveMessage", payload);
             await Clients.Group($"user-{UserId}").SendAsync("ReceiveMessage", payload);
