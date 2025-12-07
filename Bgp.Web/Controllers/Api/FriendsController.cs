@@ -22,13 +22,17 @@ public class FriendsController : ControllerBase
     private readonly AppDbContext _db;
     public FriendsController(AppDbContext db) => _db = db;
 
-    private string? UserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
+    private string? UserId => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(ClaimTypes.Name);
     private readonly record struct RankSnapshot(string? Title, string AccentColor);
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<FriendDto>>> Get()
     {
-        var uid = UserId!;
+        var uid = UserId;
+        if (string.IsNullOrWhiteSpace(uid))
+        {
+            return Unauthorized();
+        }
 
         var accepted = await _db.Friendships
             .Where(f => (f.RequesterId == uid || f.AddresseeId == uid) && f.Status == FriendshipStatus.Accepted)
@@ -225,7 +229,11 @@ public class FriendsController : ControllerBase
     [HttpGet("search")]
     public async Task<ActionResult<IEnumerable<object>>> Search([FromQuery] string q)
     {
-        var uid = UserId!;
+        var uid = UserId;
+        if (string.IsNullOrWhiteSpace(uid))
+        {
+            return Unauthorized();
+        }
         if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 1)
         {
             return Ok(Array.Empty<object>());
@@ -248,6 +256,12 @@ public class FriendsController : ControllerBase
             .Concat(pendingFriendIds)
             .ToList();
 
+        var chatPartnerIds = await _db.ChatMessages
+            .Where(m => m.SenderId == uid || m.ReceiverId == uid)
+            .Select(m => m.SenderId == uid ? m.ReceiverId : m.SenderId)
+            .Distinct()
+            .ToListAsync();
+
         var friendsQuery = _db.Users
             .AsNoTracking()
             .Where(u => acceptedFriendIds.Contains(u.Id))
@@ -259,7 +273,7 @@ public class FriendsController : ControllerBase
             .AsNoTracking()
             .Where(u => !u.IsBlocked)
             .Where(u => u.Id != uid)
-            .Where(u => u.DisplayNameVisibility == ProfileVisibility.Everyone || relatedUserIds.Contains(u.Id))
+            .Where(u => u.DisplayNameVisibility == ProfileVisibility.Everyone || relatedUserIds.Contains(u.Id) || chatPartnerIds.Contains(u.Id))
             .Where(u => EF.Functions.Like(u.DisplayName ?? string.Empty, matchPattern)
                         || EF.Functions.Like(u.Email ?? string.Empty, matchPattern)
                         || EF.Functions.Like(u.UserName ?? string.Empty, matchPattern));
