@@ -2375,17 +2375,27 @@
 
         clearStrangerResults();
         const fragment = document.createDocumentFragment();
+        const seen = new Set();
         results.forEach((player) => {
-            const displayName = player.name || player.Name || player.id;
-            const identifier = player.id;
+            const identifier = normalizeId(player.id || player.Id);
+            const displayName = player.name || player.Name || player.id || identifier;
             const playerUserName = player.userName || player.UserName || null;
-            if (!identifier) {
+            if (!identifier || seen.has(identifier)) {
                 return;
             }
             const existing = getFriend(identifier);
-            if (existing && playerUserName && !existing.userName) {
-                existing.userName = playerUserName;
+            if (existing) {
+                seen.add(identifier);
+                if (playerUserName && !existing.userName) {
+                    existing.userName = playerUserName;
+                }
+                if (!existing.isFriend) {
+                    ensureStrangerContact(existing);
+                }
+                return;
             }
+
+            seen.add(identifier);
             
             const li = document.createElement('li');
             li.className = 'chat-contact';
@@ -2394,7 +2404,7 @@
 
             const button = document.createElement('button');
             button.type = 'button';
-            button.className = ['chat-contact__button', existing ? '' : 'chat-contact__button--ghost'].join(' ').trim();
+            button.className = ['chat-contact__button', 'chat-contact__button--ghost'].join(' ').trim();
             button.addEventListener('click', () => {
                 openConversation(identifier, displayName);
             });
@@ -2421,7 +2431,7 @@
 
             const prompt = document.createElement('span');
             prompt.className = 'chat-contact__status';
-            prompt.textContent = existing ? getStatusLine(existing) : strings.strangersPrompt;
+            prompt.textContent = strings.strangersPrompt;
             meta.appendChild(prompt);
 
             button.appendChild(avatar);
@@ -2438,7 +2448,7 @@
             menuBtn.addEventListener('click', (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                openContextMenu(identifier, menuBtn, existing || {
+                openContextMenu(identifier, menuBtn, {
                     userId: identifier,
                     displayName,
                     userName: playerUserName,

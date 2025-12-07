@@ -145,11 +145,39 @@
         }
     }
 
+    function normalizeFriend(row) {
+        if (!row || typeof row !== 'object') {
+            return null;
+        }
+
+        const status = typeof row.status === 'number'
+            ? row.status
+            : typeof row.Status === 'number'
+                ? row.Status
+                : Number.parseInt(row.status ?? row.Status ?? '-1', 10);
+
+        return {
+            userId: row.userId ?? row.UserId ?? row.id ?? row.Id ?? '',
+            displayName: row.displayName ?? row.DisplayName ?? '',
+            userName: row.userName ?? row.UserName ?? null,
+            avatarUrl: row.avatarUrl ?? row.AvatarUrl ?? null,
+            rankTitle: row.rankTitle ?? row.RankTitle ?? null,
+            rankAccentColor: row.rankAccentColor ?? row.RankAccentColor ?? '#38bdf8',
+            status,
+            outgoingRequest: !!(row.outgoingRequest ?? row.OutgoingRequest),
+            statusMessage: row.statusMessage ?? row.StatusMessage ?? null,
+            presence: row.presence ?? row.Presence ?? 0,
+            isInvisible: !!(row.isInvisible ?? row.IsInvisible),
+            unreadCount: Number.parseInt(row.unreadCount ?? row.UnreadCount ?? '0', 10) || 0
+        };
+    }
+
     function renderFriends(items) {
-        const accepted = items.filter(x => x.status === 1);
-        const incoming = items.filter(x => x.status === 0 && !x.outgoingRequest);
-        const outgoing = items.filter(x => x.status === 0 && x.outgoingRequest);
-        const blocked = items.filter(x => x.status === 2);
+        const normalized = Array.isArray(items) ? items.map(normalizeFriend).filter(Boolean) : [];
+        const accepted = normalized.filter(x => x.status === 1);
+        const incoming = normalized.filter(x => x.status === 0 && !x.outgoingRequest);
+        const outgoing = normalized.filter(x => x.status === 0 && x.outgoingRequest);
+        const blocked = normalized.filter(x => x.status === 2);
 
         clearList(acceptedList);
         clearList(incomingList);
@@ -237,21 +265,24 @@
             const results = await res.json();
             clearList(searchResults);
             results.forEach(r => {
+                const userId = r.id ?? r.Id ?? '';
+                const userName = r.userName ?? r.UserName ?? null;
+                const displayName = r.name ?? r.Name ?? userName ?? userId;
                 const profile = {
-                    userId: r.id,
-                    userName: r.userName,
-                    displayName: r.name,
-                    avatarUrl: r.avatarUrl,
+                    userId,
+                    userName,
+                    displayName,
+                    avatarUrl: r.avatarUrl ?? r.AvatarUrl ?? null,
                     rankTitle: null
                 };
                 buildFriendItem(searchResults, profile, {
                     showRank: false,
                     actions: [
-                        { label: labels.viewProfile, handler: () => openProfile(r.id, r.userName), className: 'btn-ghost btn-small', icon: '👤' },
-                        { label: labels.add, handler: () => sendInvite(r.id), className: 'btn-primary btn-small' },
-                        { label: labels.chat, handler: () => openChat(r.id, r.name), className: 'btn-primary btn-small btn-chat', icon: '💬' },
-                        { label: labels.report, handler: () => reportUser(r.id, r.name), className: 'btn-ghost btn-small' },
-                        { label: labels.block, handler: () => blockUser(r.id, r.name), className: 'btn-danger btn-small' }
+                        { label: labels.viewProfile, handler: () => openProfile(userId, userName), className: 'btn-ghost btn-small', icon: '👤' },
+                        { label: labels.add, handler: () => sendInvite(userId), className: 'btn-primary btn-small' },
+                        { label: labels.chat, handler: () => openChat(userId, displayName), className: 'btn-primary btn-small btn-chat', icon: '💬' },
+                        { label: labels.report, handler: () => reportUser(userId, displayName), className: 'btn-ghost btn-small' },
+                        { label: labels.block, handler: () => blockUser(userId, displayName), className: 'btn-danger btn-small' }
                     ]
                 });
             });
