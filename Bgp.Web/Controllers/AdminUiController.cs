@@ -184,6 +184,7 @@ public class AdminUiController : Controller
                 return new AdminUserRowViewModel(
                     u.Id,
                     DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
+                    u.UserName,
                     u.Email ?? string.Empty,
                     u.CreatedAtUtc,
                     isBlocked,

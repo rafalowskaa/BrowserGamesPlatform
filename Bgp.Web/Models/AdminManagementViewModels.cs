@@ -25,6 +25,7 @@ public enum AdminUserAccessLevel
 public record AdminUserRowViewModel(
     string Id,
     string DisplayName,
+    string? UserName,
     string Email,
     DateTime CreatedAtUtc,
     bool IsBlocked,
