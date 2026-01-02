@@ -2395,6 +2395,17 @@
                 return;
             }
 
+            const contact = getStrangerContact(identifier);
+            if (contact) {
+                seen.add(identifier);
+                contact.displayName = contact.displayName || displayName;
+                contact.userName = contact.userName || playerUserName;
+                contact.avatarUrl = contact.avatarUrl || player.avatarUrl || null;
+                ensureStrangerContact(contact);
+                return;
+            }
+
+
             seen.add(identifier);
             
             const li = document.createElement('li');

@@ -31,6 +31,7 @@
     var includeProfileScripts = false;
     var includeOverviewScripts = false;
     var includeGamesScripts = false;
+    var includeFriendsScripts = false;
     var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     string StatusClass(GameApprovalStatus status) => status switch
@@ -312,6 +313,7 @@
             </section>
             break;
         case "friends":
+            includeFriendsScripts = true;
 
             <section class="dashboard-panel friends-panel">
                 <article class="friends-section friends-section--search">
@@ -530,6 +532,10 @@
         @if (includeOverviewScripts)
         {
     <script src="~/js/dashboard.js" asp-append-version="true"></script>
+        }
+        @if (includeFriendsScripts)
+        {
+    <script src="~/js/friends.js" asp-append-version="true"></script>
         }
     <script>
         document.addEventListener('DOMContentLoaded', function () {

@@ -231,7 +231,7 @@ public class FriendsController : ControllerBase
     }
 
     [HttpGet("search")]
-    public async Task<ActionResult<IEnumerable<object>>> Search([FromQuery] string q)
+    public async Task<ActionResult<IEnumerable<FriendSearchResultDto>>> Search([FromQuery] string q)
     {
         var uid = UserId;
         if (string.IsNullOrWhiteSpace(uid))
@@ -240,21 +240,47 @@ public class FriendsController : ControllerBase
         }
         if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 1)
         {
-            return Ok(Array.Empty<object>());
+            return Ok(Array.Empty<FriendSearchResultDto>());
         }
 
         var term = q.Trim();
-        var matchPattern = $"%{term}%";
+        var lowered = term.ToLowerInvariant();
+        var matchPattern = $"%{lowered}%";
 
-        var acceptedFriendIds = await _db.Friendships
-            .Where(f => (f.RequesterId == uid || f.AddresseeId == uid) && f.Status == FriendshipStatus.Accepted)
-            .Select(f => f.RequesterId == uid ? f.AddresseeId : f.RequesterId)
+        var relationships = await _db.Friendships
+            .Where(f => f.RequesterId == uid || f.AddresseeId == uid)
+            .Select(f => new
+            {
+                OtherUserId = f.RequesterId == uid ? f.AddresseeId : f.RequesterId,
+                f.Status,
+                Outgoing = f.RequesterId == uid,
+                f.BlockedByUserId
+            })
             .ToListAsync();
 
-        var pendingFriendIds = await _db.Friendships
-            .Where(f => (f.RequesterId == uid || f.AddresseeId == uid) && f.Status == FriendshipStatus.Pending)
-            .Select(f => f.RequesterId == uid ? f.AddresseeId : f.RequesterId)
-            .ToListAsync();
+        var acceptedFriendIds = relationships
+            .Where(r => r.Status == FriendshipStatus.Accepted)
+            .Select(r => r.OtherUserId)
+            .ToList();
+
+        var pendingFriendIds = relationships
+            .Where(r => r.Status == FriendshipStatus.Pending)
+            .Select(r => r.OtherUserId)
+            .ToList();
+
+        var relationshipLookup = relationships
+            .GroupBy(r => r.OtherUserId)
+            .ToDictionary(
+                g => g.Key,
+                g =>
+                {
+                    var blockedByCurrent = g.Any(x => x.Status == FriendshipStatus.Blocked && x.BlockedByUserId == uid);
+                    var status = blockedByCurrent
+                        ? FriendshipStatus.Blocked
+                        : g.Select(x => x.Status).FirstOrDefault();
+                    var outgoing = g.Any(x => x.Outgoing);
+                    return (status, outgoing);
+                });
 
         var relatedUserIds = acceptedFriendIds
             .Concat(pendingFriendIds)
@@ -268,19 +294,19 @@ public class FriendsController : ControllerBase
 
         var friendsQuery = _db.Users
             .AsNoTracking()
-            .Where(u => acceptedFriendIds.Contains(u.Id))
-            .Where(u => EF.Functions.Like(u.DisplayName ?? string.Empty, matchPattern)
-                        || EF.Functions.Like(u.Email ?? string.Empty, matchPattern)
-                        || EF.Functions.Like(u.UserName ?? string.Empty, matchPattern));
+            .Where(u => acceptedFriendIds.Contains(u.Id) || pendingFriendIds.Contains(u.Id))
+            .Where(u => EF.Functions.Like((u.DisplayName ?? string.Empty).ToLower(), matchPattern)
+                        || EF.Functions.Like((u.Email ?? string.Empty).ToLower(), matchPattern)
+                        || EF.Functions.Like((u.UserName ?? string.Empty).ToLower(), matchPattern));
 
         var publicQuery = _db.Users
             .AsNoTracking()
             .Where(u => !u.IsBlocked)
             .Where(u => u.Id != uid)
             .Where(u => u.DisplayNameVisibility == ProfileVisibility.Everyone || relatedUserIds.Contains(u.Id) || chatPartnerIds.Contains(u.Id))
-            .Where(u => EF.Functions.Like(u.DisplayName ?? string.Empty, matchPattern)
-                        || EF.Functions.Like(u.Email ?? string.Empty, matchPattern)
-                        || EF.Functions.Like(u.UserName ?? string.Empty, matchPattern));
+            .Where(u => EF.Functions.Like((u.DisplayName ?? string.Empty).ToLower(), matchPattern)
+                        || EF.Functions.Like((u.Email ?? string.Empty).ToLower(), matchPattern)
+                        || EF.Functions.Like((u.UserName ?? string.Empty).ToLower(), matchPattern));
 
         var results = await friendsQuery
             .Union(publicQuery)
@@ -292,12 +318,18 @@ public class FriendsController : ControllerBase
         var formattedResults = results
             .GroupBy(u => u.Id)
             .Select(g => g.First())
-            .Select(u => new
+            .Select(u =>
             {
-                u.Id,
-                u.UserName,
-                Name = DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
-                u.AvatarUrl
+                var relation = relationshipLookup.TryGetValue(u.Id, out var value)
+                     ? value
+                     : ((FriendshipStatus?)null, false);
+                return new FriendSearchResultDto(
+                    u.Id,
+                    DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
+                    u.UserName,
+                    u.AvatarUrl,
+                    relation.Item1,
+                    relation.Item2);
             });
 
         return Ok(formattedResults);
