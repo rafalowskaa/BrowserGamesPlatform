@@ -158,6 +158,36 @@
         </data>
 	<data name="Chat_SearchHint" xml:space="preserve">
         <value>Zacznij wpisywać, aby znaleźć graczy</value>
+		</data>
+	<data name="Chat_Search_LocalHeading" xml:space="preserve">
+        <value>Wyniki lokalne</value>
+    </data>
+	<data name="Chat_Search_GlobalHeading" xml:space="preserve">
+        <value>Użytkownicy</value>
+    </data>
+	<data name="Chat_Search_Loading" xml:space="preserve">
+        <value>Wyszukiwanie…</value>
+    </data>
+	<data name="Chat_Search_OpenChat" xml:space="preserve">
+        <value>Otwórz czat</value>
+    </data>
+	<data name="Chat_Search_Invite" xml:space="preserve">
+        <value>Zaproś</value>
+    </data>
+	<data name="Chat_Search_Write" xml:space="preserve">
+        <value>Napisz</value>
+    </data>
+	<data name="Chat_Search_Pending" xml:space="preserve">
+        <value>Oczekujące</value>
+    </data>
+	<data name="Chat_Search_Accept" xml:space="preserve">
+        <value>Akceptuj</value>
+    </data>
+	<data name="Chat_Search_Decline" xml:space="preserve">
+        <value>Odrzuć</value>
+    </data>
+	<data name="Chat_Search_ApprovalRequired" xml:space="preserve">
+        <value>Wymaga akceptacji</value>
     </data>
 	<data name="Chat_Friends" xml:space="preserve">
         <value>Znajomi</value>

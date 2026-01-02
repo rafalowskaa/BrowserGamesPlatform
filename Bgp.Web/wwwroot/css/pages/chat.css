@@ -477,6 +477,12 @@
             outline: 0;
         }
 
+.chat-panel__loader {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: rgba(148, 163, 184, 0.8);
+}
+
 .chat-panel__body {
     flex: 1;
     padding: 1.25rem 1.25rem 1.5rem;
@@ -594,6 +600,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    isolation: isolate;
     overflow: visible;
     box-shadow: none;
 }
@@ -603,12 +610,15 @@
         height: 100%;
         object-fit: cover;
         border-radius: 50%;
+        position: relative;
+        z-index: 1;
     }
 
     .chat-status-toggle__avatar .chat-status-dot {
         position: absolute;
         bottom: -0.05rem;
         right: -0.05rem;
+        z-index: 2;
     }
 
     .chat-status-toggle__avatar.avatar-placeholder,
@@ -838,6 +848,7 @@
     width: 2.75rem;
     height: 2.75rem;
     border-radius: 50%;
+    isolation: isolate;
     overflow: visible;
     display: inline-flex;
     align-items: center;
@@ -852,6 +863,8 @@
         height: 100%;
         border-radius: 50%;
         object-fit: cover;
+        position: relative;
+        z-index: 1;
     }
 
 .chat-status-dot {
@@ -863,6 +876,7 @@
     border-radius: 50%;
     border: 3px solid rgba(15, 23, 42, 0.95);
     background: rgba(148, 163, 184, 0.65);
+    z-index: 2;
     transition: background 0.2s ease;
 }
 
@@ -1081,6 +1095,7 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 50%;
+    isolation: isolate;
     overflow: visible;
     display: inline-flex;
     align-items: center;
@@ -1094,6 +1109,8 @@
         height: 100%;
         object-fit: cover;
         border-radius: 50%;
+        position: relative;
+        z-index: 1;
     }
 
     .chat-window__avatar .chat-status-dot {

@@ -149,9 +149,39 @@
     </data>
 	<data name="Chat_SearchPlaceholder" xml:space="preserve">
         <value>Search player...</value>
-        <data name="Chat_SearchHint" xml:space="preserve">
+        </data>
+	<data name="Chat_SearchHint" xml:space="preserve">
         <value>Start typing to find players</value>
     </data>
+	<data name="Chat_Search_LocalHeading" xml:space="preserve">
+        <value>Local results</value>
+    </data>
+	<data name="Chat_Search_GlobalHeading" xml:space="preserve">
+        <value>Users</value>
+    </data>
+	<data name="Chat_Search_Loading" xml:space="preserve">
+        <value>Searching…</value>
+    </data>
+	<data name="Chat_Search_OpenChat" xml:space="preserve">
+        <value>Open chat</value>
+    </data>
+	<data name="Chat_Search_Invite" xml:space="preserve">
+        <value>Invite</value>
+    </data>
+	<data name="Chat_Search_Write" xml:space="preserve">
+        <value>Message</value>
+    </data>
+	<data name="Chat_Search_Pending" xml:space="preserve">
+        <value>Pending</value>
+    </data>
+	<data name="Chat_Search_Accept" xml:space="preserve">
+        <value>Accept</value>
+    </data>
+	<data name="Chat_Search_Decline" xml:space="preserve">
+        <value>Decline</value>
+    </data>
+	<data name="Chat_Search_ApprovalRequired" xml:space="preserve">
+        <value>Requires approval</value>
     </data>
 	<data name="Chat_Friends" xml:space="preserve">
         <value>Friends</value>
@@ -165,37 +195,12 @@
 	<data name="Chat_WriteMessage" xml:space="preserve">
         <value>Type a message...</value>
     </data>
-
-
-
-
-	<data name="Chat_Send" xml:space="preserve">
-        
-        
-    
-        
+	<data name="Chat_Send" xml:space="preserve">  
         <value>Send</value>
-        
-        
-  
-    
     </data>
-
-
-
-
-	<data name="Chat_Open" xml:space="preserve">
-        
-        
-    
-        
+	<data name="Chat_Open" xml:space="preserve">  
         <value>Open chat</value>
-        
-        
-  
-    
     </data>
-
 	<data name="Chat_ReadReceipt" xml:space="preserve">
 		<value>Read at {0}</value>
 	</data>

@@ -17,6 +17,10 @@
     const requestsEmpty = panel ? panel.querySelector('[data-chat-requests-empty]') : null;
     const strangersList = panel ? panel.querySelector('[data-chat-strangers]') : null;
     const strangersEmpty = panel ? panel.querySelector('[data-chat-strangers-empty]') : null;
+    const localResultsSection = panel ? panel.querySelector('[data-chat-search-section]') : null;
+    const localResultsList = panel ? panel.querySelector('[data-chat-local-results]') : null;
+    const localResultsEmpty = panel ? panel.querySelector('[data-chat-local-empty]') : null;
+    const searchLoader = panel ? panel.querySelector('[data-chat-search-loader]') : null;
     const windowsContainer = dock.querySelector('[data-chat-windows]');
     const overflowToggle = dock.querySelector('[data-chat-overflow]');
     const overflowMenu = dock.querySelector('[data-chat-overflow-menu]');
@@ -68,6 +72,8 @@
     const pendingOutgoing = new Map();
     const strangerContacts = loadStrangerContacts();
     const sectionState = loadSectionState();
+    let incomingRequests = [];
+    let outgoingRequests = [];
     let connection = null;
     let loadFriendsPromise = null;
     let connectionPromise = null;
@@ -78,6 +84,7 @@
     let searchDebounceTimer = null;
     let searchController = null;
     let searchRequestId = 0;
+    let latestLocalResultIds = new Set();
     let strangerMessage = '';
     let strangerMessageForced = false;
     const pendingPresence = new Map();
@@ -196,7 +203,17 @@
         deleteMessageConfirm: 'Delete this message?',
         messageDeleted: 'Message removed',
         deleteMessageError: 'Unable to delete message',
-        attachmentUnsupported: 'Only image attachments are supported right now'
+        attachmentUnsupported: 'Only image attachments are supported right now',
+        searchLocalHeading: 'Local results',
+        searchGlobalHeading: 'Users',
+        searchLoading: 'Searching…',
+        searchOpenChat: 'Open chat',
+        searchInvite: 'Invite',
+        searchWrite: 'Message',
+        searchPending: 'Pending',
+        searchAccept: 'Accept',
+        searchDecline: 'Decline',
+        searchApprovalRequired: 'Requires approval'
 
     };
 
@@ -1685,9 +1702,7 @@
     if (searchInput) {
         searchInput.addEventListener('input', (evt) => {
             const value = evt.target.value || '';
-            searchTerm = value.toLowerCase().trim();
-            applyFriendFilter();
-            scheduleSearch(value);
+            runSearch(value);
         });
     }
 
@@ -2225,6 +2240,280 @@
         updateGroupMeta(entry.group);
     }
 
+        function setSearchBusy(isBusy) {
+            if (!searchLoader) {
+                return;
+            }
+            searchLoader.hidden = !isBusy;
+        }
+
+        function clearLocalSearchResults() {
+            if (!localResultsSection || !localResultsList || !localResultsEmpty) {
+                return;
+            }
+            localResultsList.innerHTML = '';
+            localResultsEmpty.style.display = 'none';
+            localResultsSection.hidden = true;
+            latestLocalResultIds = new Set();
+        }
+
+        function normalizeSearchTerm(raw) {
+            return (raw || '').trim().toLowerCase();
+        }
+
+        function matchesSearch(candidate, term) {
+            if (!candidate) {
+                return false;
+            }
+            if (!term) {
+                return true;
+            }
+            const lowered = term.toLowerCase();
+            return (candidate.displayName && candidate.displayName.toLowerCase().includes(lowered))
+                || (candidate.userName && candidate.userName.toLowerCase().includes(lowered))
+                || (candidate.statusMessage && candidate.statusMessage.toLowerCase().includes(lowered));
+        }
+
+        function buildLocalSearchResults(rawValue) {
+            const trimmed = (rawValue || '').trim();
+            const term = trimmed.toLowerCase();
+            if (!term) {
+                clearLocalSearchResults();
+                return [];
+            }
+
+            const results = [];
+            const seen = new Set();
+
+            friends.forEach((friend) => {
+                if (!friend || seen.has(normalizeId(friend.userId))) {
+                    return;
+                }
+                if (!matchesSearch(friend, term)) {
+                    return;
+                }
+                const relation = friend.isFriend
+                    ? (friend.isArchived ? 'archived' : 'friend')
+                    : 'stranger';
+                seen.add(normalizeId(friend.userId));
+                results.push({
+                    userId: friend.userId,
+                    displayName: friend.displayName,
+                    userName: friend.userName,
+                    avatarUrl: friend.avatarUrl,
+                    statusMessage: friend.statusMessage,
+                    presence: friend.presence,
+                    isInvisible: friend.isInvisible,
+                    relation,
+                    outgoingRequest: false,
+                    incomingRequest: false
+                });
+            });
+
+            incomingRequests.forEach((request) => {
+                if (!request || seen.has(normalizeId(request.userId))) {
+                    return;
+                }
+                if (!matchesSearch(request, term)) {
+                    return;
+                }
+                seen.add(normalizeId(request.userId));
+                results.push({
+                    userId: request.userId,
+                    displayName: request.displayName,
+                    userName: request.userName,
+                    avatarUrl: request.avatarUrl,
+                    statusMessage: request.statusMessage,
+                    presence: normalizePresence(request.presence),
+                    isInvisible: !!request.isInvisible,
+                    relation: 'pending-in',
+                    outgoingRequest: false,
+                    incomingRequest: true
+                });
+            });
+
+            outgoingRequests.forEach((request) => {
+                if (!request || seen.has(normalizeId(request.userId))) {
+                    return;
+                }
+                if (!matchesSearch(request, term)) {
+                    return;
+                }
+                seen.add(normalizeId(request.userId));
+                results.push({
+                    userId: request.userId,
+                    displayName: request.displayName,
+                    userName: request.userName,
+                    avatarUrl: request.avatarUrl,
+                    statusMessage: request.statusMessage,
+                    presence: normalizePresence(request.presence),
+                    isInvisible: !!request.isInvisible,
+                    relation: 'pending-out',
+                    outgoingRequest: true,
+                    incomingRequest: false
+                });
+            });
+
+            results.sort((a, b) => {
+                const relationOrder = {
+                    friend: 0,
+                    archived: 1,
+                    'pending-in': 2,
+                    'pending-out': 3,
+                    stranger: 4
+                };
+                const relationDiff = (relationOrder[a.relation] || 9) - (relationOrder[b.relation] || 9);
+                if (relationDiff !== 0) {
+                    return relationDiff;
+                }
+                return a.displayName.localeCompare(b.displayName);
+            });
+
+            return results;
+        }
+
+        function createSearchActionButtons(entry) {
+            const actions = document.createElement('div');
+            actions.className = 'chat-contact__actions';
+            if (entry.relation === 'pending-in') {
+                const acceptBtn = document.createElement('button');
+                acceptBtn.type = 'button';
+                acceptBtn.className = 'chat-contact__button';
+                acceptBtn.textContent = strings.searchAccept || strings.accept;
+                acceptBtn.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    await fetch(`/api/friends/accept/${encodeURIComponent(entry.userId)}`, {
+                        method: 'POST',
+                        credentials: 'same-origin'
+                    });
+                    await loadFriends();
+                    runSearch(searchTerm);
+                });
+                actions.appendChild(acceptBtn);
+
+                const declineBtn = document.createElement('button');
+                declineBtn.type = 'button';
+                declineBtn.className = 'chat-contact__button chat-contact__button--ghost';
+                declineBtn.textContent = strings.searchDecline || strings.decline;
+                declineBtn.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    await fetch(`/api/friends/${encodeURIComponent(entry.userId)}`, {
+                        method: 'DELETE',
+                        credentials: 'same-origin'
+                    });
+                    await loadFriends();
+                    runSearch(searchTerm);
+                });
+                actions.appendChild(declineBtn);
+            } else if (entry.relation === 'pending-out') {
+                const pendingTag = document.createElement('span');
+                pendingTag.className = 'chat-contact__status';
+                pendingTag.textContent = strings.searchPending || strings.pendingOutgoing;
+                actions.appendChild(pendingTag);
+            }
+            return actions;
+        }
+
+        function renderLocalSearchResults(results) {
+            if (!localResultsSection || !localResultsList || !localResultsEmpty) {
+                return;
+            }
+            localResultsList.innerHTML = '';
+            latestLocalResultIds = new Set();
+            if (!results || results.length === 0) {
+                localResultsEmpty.textContent = searchTerm ? (strings.noMatches || '') : '';
+                localResultsEmpty.style.display = 'block';
+                localResultsSection.hidden = false;
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            results.forEach((entry) => {
+                const li = document.createElement('li');
+                li.className = 'chat-contact';
+                li.dataset.searchResult = entry.relation;
+                li.dataset.chatFriend = entry.userId;
+
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'chat-contact__button chat-contact__button--ghost';
+                button.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    if (entry.relation === 'pending-out') {
+                        return;
+                    }
+                    openConversation(entry.userId, entry.displayName);
+                });
+
+                const avatar = document.createElement('span');
+                avatar.className = 'chat-contact__avatar';
+                avatar.setAttribute('aria-hidden', 'true');
+                if (entry.avatarUrl) {
+                    const img = document.createElement('img');
+                    img.src = entry.avatarUrl;
+                    img.alt = '';
+                    avatar.appendChild(img);
+                } else {
+                    avatar.classList.add('avatar-placeholder');
+                }
+
+                const statusDot = document.createElement('span');
+                statusDot.className = 'chat-status-dot';
+                statusDot.dataset.friendDot = '';
+                avatar.appendChild(statusDot);
+
+                const meta = document.createElement('span');
+                meta.className = 'chat-contact__meta';
+
+                const name = document.createElement('span');
+                name.className = 'chat-contact__name';
+                name.textContent = entry.displayName;
+                meta.appendChild(name);
+
+                const status = document.createElement('span');
+                status.className = 'chat-contact__status';
+                if (entry.relation === 'pending-out') {
+                    status.textContent = strings.searchPending || strings.pendingOutgoing;
+                } else if (entry.relation === 'pending-in') {
+                    status.textContent = strings.searchApprovalRequired || strings.searchPending;
+                } else {
+                    status.textContent = entry.statusMessage || presenceLabel(entry);
+                }
+                meta.appendChild(status);
+
+                button.appendChild(avatar);
+                button.appendChild(meta);
+                li.appendChild(button);
+
+                const actions = createSearchActionButtons(entry);
+                if (actions && actions.childNodes.length > 0) {
+                    li.appendChild(actions);
+                }
+
+                fragment.appendChild(li);
+                latestLocalResultIds.add(normalizeId(entry.userId));
+                applyStatusDot(statusDot, entry);
+            });
+
+            localResultsList.appendChild(fragment);
+            localResultsEmpty.style.display = 'none';
+            localResultsSection.hidden = false;
+        }
+
+        function runSearch(value) {
+            const normalized = normalizeSearchTerm(value);
+            searchTerm = normalized;
+            applyFriendFilter();
+            if (!normalized) {
+                clearLocalSearchResults();
+                scheduleSearch('');
+                return;
+            }
+            const localResults = buildLocalSearchResults(value);
+            renderLocalSearchResults(localResults);
+            scheduleSearch(value);
+        }
+
     function applyFriendFilter() {
         let visibleActive = 0;
         let visibleArchived = 0;
@@ -2383,6 +2672,19 @@
             if (!identifier || seen.has(identifier)) {
                 return;
             }
+            if (latestLocalResultIds.has(identifier)) {
+                return;
+            }
+            const rawStatus = typeof player.status === 'number' ? player.status : parseInt(player.status, 10);
+            if (rawStatus === 2) {
+                return;
+            }
+            const relation = rawStatus === 1
+                ? 'friend'
+                : (rawStatus === 0
+                    ? (player.outgoingRequest ? 'pending-out' : 'pending-in')
+                    : 'stranger');
+
             const existing = getFriend(identifier);
             if (existing) {
                 seen.add(identifier);
@@ -2417,6 +2719,9 @@
             button.type = 'button';
             button.className = ['chat-contact__button', 'chat-contact__button--ghost'].join(' ').trim();
             button.addEventListener('click', () => {
+                if (relation === 'pending-out') {
+                    return;
+                }
                 openConversation(identifier, displayName);
             });
 
@@ -2432,6 +2737,11 @@
                 avatar.classList.add('avatar-placeholder');
             }
 
+            const statusDot = document.createElement('span');
+            statusDot.className = 'chat-status-dot';
+            statusDot.dataset.friendDot = '';
+            avatar.appendChild(statusDot);
+
             const meta = document.createElement('span');
             meta.className = 'chat-contact__meta';
 
@@ -2442,7 +2752,15 @@
 
             const prompt = document.createElement('span');
             prompt.className = 'chat-contact__status';
-            prompt.textContent = strings.strangersPrompt;
+            if (relation === 'pending-out') {
+                prompt.textContent = strings.searchPending || strings.pendingOutgoing;
+            } else if (relation === 'pending-in') {
+                prompt.textContent = strings.searchApprovalRequired || strings.searchPending;
+            } else if (relation === 'friend') {
+                prompt.textContent = strings.searchOpenChat || strings.strangersPrompt;
+            } else {
+                prompt.textContent = strings.searchWrite || strings.strangersPrompt;
+            }
             meta.appendChild(prompt);
 
             button.appendChild(avatar);
@@ -2450,6 +2768,21 @@
             li.appendChild(button);
             const actions = document.createElement('div');
             actions.className = 'chat-contact__actions';
+            const actionEntry = {
+                userId: identifier,
+                displayName,
+                userName: playerUserName,
+                avatarUrl: player.avatarUrl || null,
+                statusMessage: player.statusMessage,
+                presence: normalizePresence(player.presence),
+                isInvisible: !!player.isInvisible,
+                relation,
+                outgoingRequest: !!player.outgoingRequest
+            };
+            const requestActions = createSearchActionButtons(actionEntry);
+            if (requestActions && requestActions.childNodes.length > 0) {
+                actions.append(...Array.from(requestActions.childNodes));
+            }
             const menuBtn = document.createElement('button');
             menuBtn.type = 'button';
             menuBtn.className = 'chat-contact__menu';
@@ -2473,6 +2806,7 @@
             actions.appendChild(menuBtn);
             li.appendChild(actions);
             fragment.appendChild(li);
+            applyStatusDot(statusDot, actionEntry);
         });
         strangersList.appendChild(fragment);
         showStrangerMessage('', false);
@@ -2490,6 +2824,7 @@
         const controller = new AbortController();
         searchController = controller;
         const requestId = ++searchRequestId;
+        setSearchBusy(true);
         fetch(`/api/friends/search?q=${encodeURIComponent(value)}`, {
             credentials: 'same-origin',
             signal: controller.signal
@@ -2524,6 +2859,7 @@
                 if (searchController === controller) {
                     searchController = null;
                 }
+                setSearchBusy(false);
             });
     }
 
@@ -2540,13 +2876,15 @@
             }
             clearStrangerResults();
             showStrangerMessage(strings.searchHint, false);
+            setSearchBusy(false);
             return;
         }
         clearStrangerResults();
         showStrangerMessage(strings.searchHint, true);
+        setSearchBusy(true);
         searchDebounceTimer = setTimeout(() => {
             updateSearchResults(value);
-        }, 250);
+        }, 300);
     }
 
     function updateFriendVisual(friend) {
@@ -4724,6 +5062,9 @@
                     }
                 });
 
+                incomingRequests = incoming || [];
+                outgoingRequests = outgoing || [];
+
                 friends.forEach((friend, key) => {
                     if (friend && friend.isFriend && !seenFriendIds.has(key)) {
                         if (friend.element) {
@@ -4770,6 +5111,8 @@
                 updateUnreadBadge();
             } catch (err) {
                 console.error('Failed to load friends.', err);
+                incomingRequests = [];
+                outgoingRequests = [];
                 if (friendsEmpty) {
                     friendsEmpty.textContent = strings.noFriends;
                     friendsEmpty.style.display = 'block';

@@ -84,7 +84,17 @@
         readShort = L["Chat_ReadShort"].Value,
         emojiLabel = L["Chat_EmojiLabel"].Value,
         attachmentLabel = L["Chat_AttachmentLabel"].Value,
-        attachmentUnsupported = L["Chat_AttachmentUnsupported"].Value
+        attachmentUnsupported = L["Chat_AttachmentUnsupported"].Value,
+        searchLocalHeading = L["Chat_Search_LocalHeading"].Value,
+        searchGlobalHeading = L["Chat_Search_GlobalHeading"].Value,
+        searchLoading = L["Chat_Search_Loading"].Value,
+        searchOpenChat = L["Chat_Search_OpenChat"].Value,
+        searchInvite = L["Chat_Search_Invite"].Value,
+        searchWrite = L["Chat_Search_Write"].Value,
+        searchPending = L["Chat_Search_Pending"].Value,
+        searchAccept = L["Chat_Search_Accept"].Value,
+        searchDecline = L["Chat_Search_Decline"].Value,
+        searchApprovalRequired = L["Chat_Search_ApprovalRequired"].Value
 
     };
 }
@@ -170,6 +180,17 @@
                        autocomplete="off" />
             </div>
 
+            <section class="chat-panel__section"
+                     data-chat-section="local-results"
+                     data-chat-search-section
+                     hidden>
+                <div class="chat-panel__section-header">
+                    <h4>@L["Chat_Search_LocalHeading"].Value</h4>
+                </div>
+                <ul class="chat-contacts chat-contacts--search" data-chat-local-results></ul>
+                <p class="chat-empty" data-chat-local-empty>@L["Chat_NoMatches"].Value</p>
+            </section>
+
             <div class="chat-panel__body" id="chatPanelBody">
                 <div class="chat-panel__profile" data-chat-status>
                     <button type="button"
@@ -238,8 +259,9 @@
                 <section class="chat-panel__section" data-chat-section="strangers">
                     <div class="chat-panel__section-header">
                         <button type="button" class="chat-panel__section-toggle" data-chat-section-toggle>
-                            <span>@L["Chat_Strangers"].Value</span>
+                            <span>@L["Chat_Search_GlobalHeading"].Value</span>
                         </button>
+                        <span class="chat-panel__loader" data-chat-search-loader hidden aria-live="polite">@L["Chat_Search_Loading"].Value</span>
                     </div>
                     <ul class="chat-contacts chat-contacts--strangers" data-chat-strangers></ul>
                     <p class="chat-empty" data-chat-strangers-empty>@L["Chat_SearchHint"].Value</p>
