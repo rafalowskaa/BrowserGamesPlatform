@@ -594,7 +594,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: none;
 }
 
@@ -602,6 +602,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        border-radius: 50%;
     }
 
     .chat-status-toggle__avatar .chat-status-dot {
@@ -1080,7 +1081,7 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 50%;
-    overflow: hidden;
+    overflow: visible;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1092,6 +1093,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        border-radius: 50%;
     }
 
     .chat-window__avatar .chat-status-dot {
