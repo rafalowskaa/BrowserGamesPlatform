@@ -180,18 +180,17 @@
                        autocomplete="off" />
             </div>
 
-            <section class="chat-panel__section"
-                     data-chat-section="local-results"
-                     data-chat-search-section
-                     hidden>
-                <div class="chat-panel__section-header">
-                    <h4>@L["Chat_Search_LocalHeading"].Value</h4>
-                </div>
-                <ul class="chat-contacts chat-contacts--search" data-chat-local-results></ul>
-                <p class="chat-empty" data-chat-local-empty>@L["Chat_NoMatches"].Value</p>
-            </section>
-
             <div class="chat-panel__body" id="chatPanelBody">
+                <section class="chat-panel__section chat-panel__section--search"
+                         data-chat-section="local-results"
+                         data-chat-search-section
+                         hidden>
+                    <div class="chat-panel__section-header">
+                        <h4>@L["Chat_Search_LocalHeading"].Value</h4>
+                    </div>
+                    <ul class="chat-contacts chat-contacts--search" data-chat-local-results></ul>
+                    <p class="chat-empty" data-chat-local-empty>@L["Chat_NoMatches"].Value</p>
+                </section>
                 <div class="chat-panel__profile" data-chat-status>
                     <button type="button"
                             class="chat-status-toggle"
@@ -200,14 +199,16 @@
                             aria-expanded="false"
                             aria-label="@L["Chat_Status_Header"].Value">
                         <span class="chat-status-toggle__avatar@(string.IsNullOrEmpty(currentUser?.AvatarUrl) ? " avatar-placeholder" : string.Empty)">
-                            @if (!string.IsNullOrEmpty(currentUser?.AvatarUrl))
-                            {
-                                <img src="@currentUser.AvatarUrl" alt="@displayName ?? fallbackName" />
-                            }
-                            else
-                            {
-                                <span class="sr-only">@L["Dashboard_Profile_NoAvatar"].Value</span>
-                            }
+                            <span class="chat-avatar__clip">
+                                @if (!string.IsNullOrEmpty(currentUser?.AvatarUrl))
+                                {
+                                    <img src="@currentUser.AvatarUrl" alt="@displayName ?? fallbackName" />
+                                }
+                                else
+                                {
+                                    <span class="sr-only">@L["Dashboard_Profile_NoAvatar"].Value</span>
+                                }
+                            </span>
                             <span class="chat-status-dot" data-chat-self-dot></span>
                         </span>
                         <span class="chat-status-toggle__details">

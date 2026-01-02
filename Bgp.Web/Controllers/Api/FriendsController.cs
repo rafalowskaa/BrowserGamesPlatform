@@ -308,11 +308,31 @@ public class FriendsController : ControllerBase
                         || EF.Functions.Like((u.Email ?? string.Empty).ToLower(), matchPattern)
                         || EF.Functions.Like((u.UserName ?? string.Empty).ToLower(), matchPattern));
 
+        var directoryQuery = _db.Users
+            .AsNoTracking()
+            .Where(u => !u.IsBlocked)
+            .Where(u => u.Id != uid)
+            .Where(u => u.DisplayNameVisibility == ProfileVisibility.Everyone)
+            .Where(u => EF.Functions.Like((u.DisplayName ?? string.Empty).ToLower(), matchPattern)
+                        || EF.Functions.Like((u.Email ?? string.Empty).ToLower(), matchPattern)
+                        || EF.Functions.Like((u.UserName ?? string.Empty).ToLower(), matchPattern));
+
         var results = await friendsQuery
             .Union(publicQuery)
+            .Union(directoryQuery)
             .OrderBy(u => u.DisplayName ?? u.Email ?? u.UserName ?? u.Id)
             .Take(20)
-            .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName, u.AvatarUrl })
+             .Select(u => new
+             {
+                 u.Id,
+                 u.DisplayName,
+                 u.Email,
+                 u.UserName,
+                 u.AvatarUrl,
+                 u.StatusMessage,
+                 u.PresenceStatus,
+                 u.IsInvisible
+             })
             .ToListAsync();
 
         var formattedResults = results
@@ -329,7 +349,10 @@ public class FriendsController : ControllerBase
                     u.UserName,
                     u.AvatarUrl,
                     relation.Item1,
-                    relation.Item2);
+                    relation.Item2,
+                    u.PresenceStatus,
+                    u.IsInvisible,
+                    NormalizeStatusMessage(u.StatusMessage));
             });
 
         return Ok(formattedResults);
@@ -435,6 +458,17 @@ public class FriendsController : ControllerBase
         _db.Friendships.Remove(fr);
         await _db.SaveChangesAsync();
         return Ok();
+    }
+
+    private static string? NormalizeStatusMessage(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var trimmed = value.Trim();
+        return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 
     private async Task<Dictionary<string, RankSnapshot>> BuildRankSnapshotsAsync(IReadOnlyCollection<string> userIds)

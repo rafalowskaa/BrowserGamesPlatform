@@ -23,7 +23,10 @@ public record FriendSearchResultDto(
     string? UserName,
     string? AvatarUrl,
     FriendshipStatus? Status,
-    bool OutgoingRequest);
+    bool OutgoingRequest,
+    UserPresenceStatus? Presence,
+    bool IsInvisible,
+    string? StatusMessage);
 
 public class FriendRequestDto
 {

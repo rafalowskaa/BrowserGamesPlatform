@@ -495,6 +495,23 @@
     overscroll-behavior: contain;
 }
 
+.chat-panel.is-searching .chat-panel__profile,
+.chat-panel.is-searching [data-chat-section]:not([data-chat-section="local-results"]):not([data-chat-section="strangers"]) {
+    display: none;
+}
+
+.chat-panel.is-searching .chat-panel__body {
+    gap: 1rem;
+}
+
+.chat-panel.is-searching [data-chat-search-section] {
+    display: block;
+}
+
+.chat-panel.is-searching [data-chat-strangers] [data-stranger-contact] {
+    display: none;
+}
+
 .chat-panel__profile {
     position: relative;
     border-radius: 0.75rem;
@@ -604,15 +621,6 @@
     overflow: visible;
     box-shadow: none;
 }
-
-    .chat-status-toggle__avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 50%;
-        position: relative;
-        z-index: 1;
-    }
 
     .chat-status-toggle__avatar .chat-status-dot {
         position: absolute;
@@ -858,15 +866,6 @@
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.35);
 }
 
-    .chat-contact__avatar img {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        object-fit: cover;
-        position: relative;
-        z-index: 1;
-    }
-
 .chat-status-dot {
     position: absolute;
     bottom: -0.2rem;
@@ -1104,19 +1103,27 @@
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.35);
 }
 
-    .chat-window__avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 50%;
-        position: relative;
-        z-index: 1;
-    }
-
     .chat-window__avatar .chat-status-dot {
         width: 0.75rem;
         height: 0.75rem;
         border-width: 2px;
+    }
+
+.chat-avatar__clip {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+}
+
+    .chat-avatar__clip img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: relative;
+        z-index: 1;
     }
 
 .chat-window__title small {

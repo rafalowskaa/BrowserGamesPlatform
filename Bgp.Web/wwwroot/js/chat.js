@@ -87,6 +87,7 @@
     let latestLocalResultIds = new Set();
     let strangerMessage = '';
     let strangerMessageForced = false;
+    let searchSectionSnapshot = null;
     const pendingPresence = new Map();
     const STORAGE_LAST_SEEN_KEY = 'bgp.chat.lastSeen';
     const STORAGE_PANEL_STATE_KEY = 'bgp.chat.panelState';
@@ -2247,6 +2248,46 @@
             searchLoader.hidden = !isBusy;
         }
 
+        function setSearchMode(enabled) {
+            if (!panel) {
+                return;
+            }
+            panel.classList.toggle('is-searching', !!enabled);
+            if (enabled) {
+                const localSection = panel.querySelector('[data-chat-section="local-results"]');
+                const strangerSection = panel.querySelector('[data-chat-section="strangers"]');
+                searchSectionSnapshot = {
+                    local: !!(localSection && localSection.classList.contains('is-collapsed')),
+                    strangers: !!(strangerSection && strangerSection.classList.contains('is-collapsed'))
+                };
+                setSectionCollapsed('local-results', false, { persist: false });
+                setSectionCollapsed('strangers', false, { persist: false });
+            } else if (searchSectionSnapshot) {
+                if (searchSectionSnapshot.local) {
+                    setSectionCollapsed('local-results', true, { persist: false });
+                }
+                if (searchSectionSnapshot.strangers) {
+                    setSectionCollapsed('strangers', true, { persist: false });
+                }
+                searchSectionSnapshot = null;
+            }
+        }
+
+        function buildAvatarImage(avatarEl, url, alt = '') {
+            const clip = document.createElement('span');
+            clip.className = 'chat-avatar__clip';
+            if (url) {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = alt;
+                clip.appendChild(img);
+            } else {
+                avatarEl.classList.add('avatar-placeholder');
+            }
+            avatarEl.appendChild(clip);
+            return clip;
+        }
+
         function clearLocalSearchResults() {
             if (!localResultsSection || !localResultsList || !localResultsEmpty) {
                 return;
@@ -2448,14 +2489,7 @@
                 const avatar = document.createElement('span');
                 avatar.className = 'chat-contact__avatar';
                 avatar.setAttribute('aria-hidden', 'true');
-                if (entry.avatarUrl) {
-                    const img = document.createElement('img');
-                    img.src = entry.avatarUrl;
-                    img.alt = '';
-                    avatar.appendChild(img);
-                } else {
-                    avatar.classList.add('avatar-placeholder');
-                }
+                buildAvatarImage(avatar, entry.avatarUrl || '', '');
 
                 const statusDot = document.createElement('span');
                 statusDot.className = 'chat-status-dot';
@@ -2503,6 +2537,7 @@
         function runSearch(value) {
             const normalized = normalizeSearchTerm(value);
             searchTerm = normalized;
+            setSearchMode(!!normalized);
             applyFriendFilter();
             if (!normalized) {
                 clearLocalSearchResults();
@@ -2675,7 +2710,8 @@
             if (latestLocalResultIds.has(identifier)) {
                 return;
             }
-            const rawStatus = typeof player.status === 'number' ? player.status : parseInt(player.status, 10);
+            const statusValue = player.status ?? player.Status;
+            const rawStatus = typeof statusValue === 'number' ? statusValue : parseInt(statusValue, 10);
             if (rawStatus === 2) {
                 return;
             }
@@ -2728,14 +2764,7 @@
             const avatar = document.createElement('span');
             avatar.className = 'chat-contact__avatar';
             avatar.setAttribute('aria-hidden', 'true');
-            if (player.avatarUrl) {
-                const img = document.createElement('img');
-                img.src = player.avatarUrl;
-                img.alt = '';
-                avatar.appendChild(img);
-            } else {
-                avatar.classList.add('avatar-placeholder');
-            }
+            buildAvatarImage(avatar, player.avatarUrl || player.AvatarUrl || '', '');
 
             const statusDot = document.createElement('span');
             statusDot.className = 'chat-status-dot';
@@ -2772,10 +2801,10 @@
                 userId: identifier,
                 displayName,
                 userName: playerUserName,
-                avatarUrl: player.avatarUrl || null,
-                statusMessage: player.statusMessage,
-                presence: normalizePresence(player.presence),
-                isInvisible: !!player.isInvisible,
+                avatarUrl: player.avatarUrl || player.AvatarUrl || null,
+                statusMessage: player.statusMessage || player.StatusMessage,
+                presence: normalizePresence(player.presence ?? player.Presence),
+                isInvisible: !!(player.isInvisible ?? player.IsInvisible),
                 relation,
                 outgoingRequest: !!player.outgoingRequest
             };
@@ -3056,14 +3085,7 @@
         const avatar = document.createElement('span');
         avatar.className = 'chat-contact__avatar';
         avatar.setAttribute('aria-hidden', 'true');
-        if (friend.avatarUrl) {
-            const img = document.createElement('img');
-            img.src = friend.avatarUrl;
-            img.alt = '';
-            avatar.appendChild(img);
-        } else {
-            avatar.classList.add('avatar-placeholder');
-        }
+        buildAvatarImage(avatar, friend.avatarUrl || '', '');
 
         const statusDot = document.createElement('span');
         statusDot.className = 'chat-status-dot';
@@ -3386,14 +3408,7 @@
         const avatar = document.createElement('span');
         avatar.className = 'chat-window__avatar';
         avatar.setAttribute('aria-hidden', 'true');
-        if (friend.avatarUrl) {
-            const img = document.createElement('img');
-            img.src = friend.avatarUrl;
-            img.alt = '';
-            avatar.appendChild(img);
-        } else {
-            avatar.classList.add('avatar-placeholder');
-        }
+        buildAvatarImage(avatar, friend.avatarUrl || '', '');
 
         const labelWrap = document.createElement('div');
 
