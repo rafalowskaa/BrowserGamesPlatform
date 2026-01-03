@@ -69,16 +69,18 @@
                 data-name="@entry.DisplayName"
                 data-tier="@entry.RankTitle"
                 data-rank="@entry.Position">
-                <div class="leaderboard__position">
-                    <span class="leaderboard__position-index">#@entry.Position</span>
-                    @if (entry.Position <= 3)
-                    {
-                        <span class="leaderboard__medal" aria-hidden="true">
-                            @(entry.Position == 1 ? "🥇" : entry.Position == 2 ? "🥈" : "🥉")
-                        </span>
-                    }
+                <div class="leaderboard__cell leaderboard__cell--position">
+                    <div class="leaderboard__position">
+                        <span class="leaderboard__position-index">#@entry.Position</span>
+                        @if (entry.Position <= 3)
+                        {
+                            <span class="leaderboard__medal" aria-hidden="true">
+                                @(entry.Position == 1 ? "🥇" : entry.Position == 2 ? "🥈" : "🥉")
+                            </span>
+                        }
+                    </div>
                 </div>
-                <div class="leaderboard__identity">
+                <div class="leaderboard__cell leaderboard__cell--identity">
                     <div class="@avatarClass">
                         <span class="chat-status-dot @presenceClass" aria-hidden="true"></span>
                         <div class="leaderboard__avatar-clip">
@@ -101,15 +103,18 @@
                                 <span class="leaderboard__badge">@Model.SelfBadgeLabel</span>
                             }
                         </div>
-                        <div class="leaderboard__tags">
-                            <span class="leaderboard__rank" style="--rank-accent:@entry.AccentColor;--rank-glow:@entry.AccentHighlightColor;">@entry.RankTitle</span>
-                            <span class="leaderboard__level">@Model.LevelLabel: @entry.Level</span>
+                        <div class="leaderboard__meta-sub">
+                            <span class="leaderboard__presence">@entry.PresenceLabel</span>
                         </div>
                     </div>
                 </div>
-                <div class="leaderboard__xp" aria-label="@Model.ExperienceLabel">
-                        @if (entry.ExperienceBreakdown is { Count: > 1 })
-                        {
+                <div class="leaderboard__cell leaderboard__cell--rank">
+                    <span class="leaderboard__rank" style="--rank-accent:@entry.AccentColor;--rank-glow:@entry.AccentHighlightColor;">@entry.RankTitle</span>
+                    <span class="leaderboard__level">@Model.LevelLabel: @entry.Level</span>
+                </div>
+                <div class="leaderboard__cell leaderboard__cell--xp" aria-label="@Model.ExperienceLabel">
+                    @if (entry.ExperienceBreakdown is { Count: > 1 })
+                    {
                         <div class="leaderboard__xp-chips">
                             @foreach (var xpItem in entry.ExperienceBreakdown)
                             {
@@ -128,7 +133,7 @@
                         </div>
                     }
                 </div>
-                <div class="leaderboard__actions">
+                <div class="leaderboard__cell leaderboard__cell--actions">
                     <button type="button"
                             class="leaderboard__menu-btn"
                             aria-haspopup="true"
