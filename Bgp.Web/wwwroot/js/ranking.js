@@ -8,6 +8,7 @@
     const currentUserId = chatDock?.dataset.chatUser;
     const menuPortals = new Map();
     let activeMenu = null;
+    const interactiveSelectors = ['button', 'a', 'input', 'select', 'textarea', '[data-ranking-menu]', '[data-ranking-action]', '.leaderboard__menu', '.leaderboard__cell--actions'];
 
     const api = {
         openChat: (userId, displayName) => {
@@ -194,7 +195,25 @@
         }
 
         applyFilters();
-        });
+
+        if (list) {
+            list.addEventListener('click', (event) => {
+                const target = event.target;
+                if (!(target instanceof HTMLElement)) return;
+
+                if (interactiveSelectors.some(selector => target.closest(selector))) {
+                    return;
+                }
+
+                const row = target.closest('[data-user-id]');
+                if (!row) return;
+
+                event.preventDefault();
+                closeMenus();
+                api.viewProfile(row.dataset.userId);
+            });
+        }
+    });
 
     document.addEventListener('click', (event) => {
         const target = event.target;

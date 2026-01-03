@@ -1,5 +1,6 @@
 ﻿@using Bgp.Web.ViewModels
 @model GlobalRankingSectionViewModel
+@using System
 @using System.Globalization
 
 @{
@@ -135,7 +136,13 @@
                         </td>
                         <td class="leaderboard__cell leaderboard__cell--xp" data-label="@Model.ExperienceLabel">
                             <div class="leaderboard__xp truncate" title="@entry.ExperiencePoints.ToString("N0", CultureInfo.CurrentCulture) XP">
+                                @{
+                                    var xpProgressPercent = (int)Math.Round(Math.Max(0d, Math.Min(1d, (entry.ExperiencePoints % 1000) / 1000d)) * 100);
+                                }
                                 <strong>@entry.ExperiencePoints.ToString("N0", CultureInfo.CurrentCulture) XP</strong>
+                                <span class="leaderboard__xp-meter" aria-hidden="true">
+                                    <span class="leaderboard__xp-meter-fill" style="width:@xpProgressPercent%;"></span>
+                                </span>
                                 @if (entry.ExperienceBreakdown is { Count: > 1 })
                                 {
                                     var breakdownSummary = string.Join(" · ", entry.ExperienceBreakdown.Select(x => $"{x.Label}: {x.Points.ToString("N0", CultureInfo.CurrentCulture)}"));
