@@ -5,6 +5,7 @@ using System.Linq;
 using Bgp.Domain.Enums;
 using Bgp.Web.Helpers;
 using Bgp.Web.Resources;
+using Bgp.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Localization;
@@ -22,6 +23,7 @@ public class DashboardViewModel
     public CreateGameFormViewModel NewGame { get; init; } = new();
     public IReadOnlyList<FriendViewModel> Friends { get; init; } = Array.Empty<FriendViewModel>();
     public FriendLeaderboardCollectionViewModel FriendLeaderboards { get; init; } = new();
+    public GlobalRankingViewModel GlobalRanking { get; init; } = new();
 }
 
 public record GameSummaryViewModel(Guid Id, string Title, string Slug, string? CoverImagePath, double AverageRating, GameApprovalStatus ApprovalStatus, DateTime CreatedAtUtc, DateTime? RejectedAtUtc, string? ModerationNotes);

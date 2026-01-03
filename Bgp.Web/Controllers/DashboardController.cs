@@ -3,6 +3,7 @@ using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Identity;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Models;
+using Bgp.Web.Services;
 using Bgp.Web.Resources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -40,6 +41,7 @@ public class DashboardController : Controller
     private readonly IWebHostEnvironment _env;
     private readonly ILogger<DashboardController> _logger;
     private readonly IStringLocalizer<SharedResource> _localizer;
+    private readonly GlobalRankingService _globalRankingService;
 
     private const long MaxAvatarBytes = 2 * 1024 * 1024;
     private const int AvatarTargetSize = 256;
@@ -64,7 +66,8 @@ public class DashboardController : Controller
         AppDbContext db,
         IWebHostEnvironment env,
         ILogger<DashboardController> logger,
-        IStringLocalizer<SharedResource> localizer)
+        IStringLocalizer<SharedResource> localizer,
+        GlobalRankingService globalRankingService)
     {
         _users = users;
         _signInManager = signInManager;
@@ -72,6 +75,7 @@ public class DashboardController : Controller
         _env = env;
         _logger = logger;
         _localizer = localizer;
+        _globalRankingService = globalRankingService;
     }
 
     public async Task<IActionResult> Index(string tab = "overview", string? panel = null)
@@ -1035,7 +1039,8 @@ public class DashboardController : Controller
             Stats = stats,
             NewGame = BuildEmptyCreateGameForm(),
             Friends = friendVms,
-            FriendLeaderboards = friendLeaderboards
+            FriendLeaderboards = friendLeaderboards,
+            GlobalRanking = await _globalRankingService.GetRankingAsync(user.Id)
         };
     }
 

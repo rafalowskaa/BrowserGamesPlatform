@@ -624,8 +624,9 @@
 
     .chat-status-toggle__avatar .chat-status-dot {
         position: absolute;
-        bottom: -0.1rem;
-        right: -0.1rem;
+        top: -0.14rem;
+        right: -0.14rem;
+        bottom: auto;
         z-index: 5;
     }
 
@@ -868,13 +869,13 @@
 
 .chat-status-dot {
     position: absolute;
-    bottom: -0.12rem;
-    right: -0.12rem;
+    top: -0.18rem;
+    right: -0.18rem;
     width: 0.875rem;
     height: 0.875rem;
     border-radius: 50%;
     border: 2px solid #0f172a;
-    box-shadow: 0 0 0 2px #0f172a;
+    box-shadow: 0 0 0 3px #0f172a;
     background: rgba(148, 163, 184, 0.65);
     z-index: 5;
     transition: background 0.2s ease;
@@ -1125,8 +1126,9 @@
         width: 0.75rem;
         height: 0.75rem;
         border-width: 2px;
-        bottom: -0.1rem;
-        right: -0.1rem;
+        top: -0.08rem;
+        right: -0.08rem;
+        bottom: auto;
     }
 
 .chat-avatar__clip {

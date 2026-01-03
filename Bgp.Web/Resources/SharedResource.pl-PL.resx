@@ -3101,5 +3101,76 @@
   </data>
 	<data name="Chat_DeleteMessageError" xml:space="preserve">
     <value>Nie udało się usunąć wiadomości</value>
+		@@ -3079,27 +3079,72 @@
+        <value>Opisz zasady, warunki zwycięstwa i ograniczenia. Tekst może być dowolnie długi.</value>
+    </data>
+	<data name="Admin_Games_Preview_NoRules" xml:space="preserve">
+        <value>Brak zasad.</value>
+    </data>
+	<data name="Dashboard_Games_Rules_Label" xml:space="preserve">
+    <value>Zasady gry</value>
+  </data>
+	<data name="Dashboard_Games_Rules_Hint" xml:space="preserve">
+    <value>Opisz, jak grać, jak wygrać i czego unikać. Tekst może być dowolnie długi.</value>
+  </data>
+	<data name="Games_Details_Rules_Heading" xml:space="preserve">
+    <value>Zasady gry</value>
+  </data>
+	<data name="Chat_DeleteMessage" xml:space="preserve">
+    <value>Usuń wiadomość</value>
+  </data>
+	<data name="Chat_DeleteMessageConfirm" xml:space="preserve">
+    <value>Czy na pewno chcesz usunąć tę wiadomość?</value>
+  </data>
+	<data name="Chat_MessageDeleted" xml:space="preserve">
+    <value>Wiadomość usunięta</value>
+  </data>
+	<data name="Chat_DeleteMessageError" xml:space="preserve">
+    <value>Nie udało się usunąć wiadomości</value>
+  </data>
+	<data name="Dashboard_Ranking_Tab" xml:space="preserve">
+    <value>Ranking</value>
+  </data>
+	<data name="GlobalRanking_Title" xml:space="preserve">
+    <value>Ranking globalny</value>
+  </data>
+	<data name="GlobalRanking_Description" xml:space="preserve">
+    <value>Zobacz swoje miejsce wśród wszystkich zarejestrowanych graczy.</value>
+  </data>
+	<data name="GlobalRanking_SearchPlaceholder" xml:space="preserve">
+    <value>Szukaj graczy</value>
+  </data>
+	<data name="GlobalRanking_FilterLabel" xml:space="preserve">
+    <value>Filtruj po randze</value>
+  </data>
+	<data name="GlobalRanking_Filter_All" xml:space="preserve">
+    <value>Wszystkie rangi</value>
+  </data>
+	<data name="GlobalRanking_LevelLabel" xml:space="preserve">
+    <value>Poziom</value>
+  </data>
+	<data name="GlobalRanking_ExperienceLabel" xml:space="preserve">
+    <value>Doświadczenie</value>
+  </data>
+	<data name="GlobalRanking_Actions_Message" xml:space="preserve">
+    <value>Napisz wiadomość</value>
+  </data>
+	<data name="GlobalRanking_Actions_AddFriend" xml:space="preserve">
+    <value>Zaproś do znajomych</value>
+  </data>
+	<data name="GlobalRanking_Actions_ViewProfile" xml:space="preserve">
+    <value>Zobacz profil</value>
+  </data>
+	<data name="GlobalRanking_Actions_Invite" xml:space="preserve">
+    <value>Zaproś do gry</value>
+  </data>
+	<data name="GlobalRanking_Actions_More" xml:space="preserve">
+    <value>Więcej akcji</value>
+  </data>
+	<data name="GlobalRanking_SelfBadge" xml:space="preserve">
+    <value>Ty</value>
+  </data>
+	<data name="GlobalRanking_Empty" xml:space="preserve">
+    <value>Brak graczy dla wybranych filtrów.</value>
   </data>
 </root>

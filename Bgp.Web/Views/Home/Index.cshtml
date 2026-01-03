@@ -1,5 +1,6 @@
 ﻿@model Bgp.Web.ViewModels.HomeViewModel
 @using Bgp.Web.Resources
+@using Bgp.Web.ViewModels
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<SharedResource> L
 @{
@@ -466,6 +467,29 @@ else
         
     }
 
+    @{
+        var globalRankingSection = new GlobalRankingSectionViewModel
+        {
+            Title = L["GlobalRanking_Title"].Value,
+            Subtitle = L["GlobalRanking_Description"].Value,
+            SearchPlaceholder = L["GlobalRanking_SearchPlaceholder"].Value,
+            FilterLabel = L["GlobalRanking_FilterLabel"].Value,
+            FilterAllLabel = L["GlobalRanking_Filter_All"].Value,
+            LevelLabel = L["GlobalRanking_LevelLabel"].Value,
+            ExperienceLabel = L["GlobalRanking_ExperienceLabel"].Value,
+            EmptyLabel = L["GlobalRanking_Empty"].Value,
+            ActionsMessage = L["GlobalRanking_Actions_Message"].Value,
+            ActionsAddFriend = L["GlobalRanking_Actions_AddFriend"].Value,
+            ActionsInvite = L["GlobalRanking_Actions_Invite"].Value,
+            ActionsViewProfile = L["GlobalRanking_Actions_ViewProfile"].Value,
+            ActionsMoreLabel = L["GlobalRanking_Actions_More"].Value,
+            SelfBadgeLabel = L["GlobalRanking_SelfBadge"].Value,
+            Data = Model.GlobalRanking
+        };
+    }
+
+    @await Html.PartialAsync("_GlobalRanking", globalRankingSection)
+
     <section class="home-section home-community">
         <div class="community-panel">
             <h2>@L["Home_Community_Title"].Value</h2>
@@ -497,4 +521,5 @@ else
         {
             <script src="~/js/home-guest.js" asp-append-version="true"></script>
         }
+        <script src="~/js/ranking.js" asp-append-version="true"></script>
     }

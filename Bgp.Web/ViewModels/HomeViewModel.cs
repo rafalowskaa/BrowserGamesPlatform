@@ -21,6 +21,7 @@ public class HomeViewModel
     public IReadOnlyList<string> FunFacts { get; set; } = new List<string>();
     public IReadOnlyList<EventHighlightViewModel> WeeklyEvents { get; set; } = new List<EventHighlightViewModel>();
     public GameSummaryViewModel? GameOfTheDay { get; set; }
+    public GlobalRankingViewModel GlobalRanking { get; set; } = new();
 }
 
 public class HeroViewModel

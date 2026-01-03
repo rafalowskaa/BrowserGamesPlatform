@@ -41,6 +41,7 @@ builder.Services.AddScoped<IPresenceNotifier, PresenceNotifier>();
 builder.Services.AddScoped<IChatMessageService, ChatMessageService>();
 builder.Services.AddScoped<IGameContentResolver, GameContentResolver>();
 builder.Services.AddScoped<HomeContentService>();
+builder.Services.AddScoped<GlobalRankingService>();
 builder.Services.AddSingleton<IMatchmakingService, InMemoryMatchmakingService>();
 builder.Services.AddHostedService<RejectedGamesCleanupService>();
 builder.Services.Configure<BrandingOptions>(builder.Configuration.GetSection("Branding"));

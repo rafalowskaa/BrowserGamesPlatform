@@ -26,17 +26,20 @@ public class HomeController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IStringLocalizer<SharedResource> _localizer;
     private readonly HomeContentService _homeContentService;
+    private readonly GlobalRankingService _globalRankingService;
 
     public HomeController(
         AppDbContext db,
         UserManager<ApplicationUser> userManager,
         IStringLocalizer<SharedResource> localizer,
-        HomeContentService homeContentService)
+        HomeContentService homeContentService,
+        GlobalRankingService globalRankingService)
     {
         _db = db;
         _userManager = userManager;
         _localizer = localizer;
         _homeContentService = homeContentService;
+        _globalRankingService = globalRankingService;
     }
 
     public async Task<IActionResult> Index()
@@ -50,7 +53,7 @@ public class HomeController : Controller
 
     public IActionResult Policy() => View();
 
-    private async Task<HomeViewModel> BuildGuestViewModel()
+    private async Task<HomeViewModel> BuildGuestViewModel(string? viewerUserId = null)
     {
         var featured = await _homeContentService.GetFeaturedAsync(8);
         var trending = await _homeContentService.GetTrendingAsync(8);
@@ -58,6 +61,7 @@ public class HomeController : Controller
         var gameOfTheDay = await _homeContentService.GetGameOfTheDayAsync() ?? featured.FirstOrDefault();
         var facts = await GetHomeFactsAsync();
         var weeklyEvents = await GetWeeklyEventsAsync();
+        var globalRanking = await _globalRankingService.GetRankingAsync(viewerUserId);
 
         return new HomeViewModel
         {
@@ -75,13 +79,16 @@ public class HomeController : Controller
             TopTags = tags,
             WeeklyEvents = weeklyEvents,
             FunFacts = facts,
-            CommunityMetrics = await BuildCommunityMetricsAsync()
+            CommunityMetrics = await BuildCommunityMetricsAsync(),
+            GlobalRanking = globalRanking
         };
     }
 
     private async Task<HomeViewModel> BuildAuthenticatedViewModel()
     {
-        var baseModel = await BuildGuestViewModel();
+        var user = await _userManager.GetUserAsync(User);
+        var viewerId = user?.Id;
+        var baseModel = await BuildGuestViewModel(viewerId);
         baseModel.IsAuthenticated = true;
 
         baseModel.ContinuePlaying = await FetchRecentSessionsAsync(3);

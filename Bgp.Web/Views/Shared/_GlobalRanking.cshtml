@@ -1,0 +1,117 @@
+﻿@using Bgp.Web.ViewModels
+@model GlobalRankingSectionViewModel
+@using System.Globalization
+
+@{
+    var entries = Model.Data?.Entries ?? Array.Empty<GlobalRankingEntryViewModel>();
+    var filterOptions = entries
+        .Select(e => e.RankTitle)
+        .Where(title => !string.IsNullOrWhiteSpace(title))
+        .Distinct(StringComparer.CurrentCultureIgnoreCase)
+        .OrderBy(title => title, StringComparer.CurrentCultureIgnoreCase)
+        .ToList();
+}
+
+<section id="@Model.AnchorId" class="ranking-section" data-ranking data-ranking-context="@Model.AnchorId">
+    <header class="ranking-header">
+        <div>
+            <p class="ranking-eyebrow">@Model.Subtitle</p>
+            <h2>@Model.Title</h2>
+        </div>
+        <div class="ranking-controls">
+            <label class="ranking-control">
+                <span class="sr-only">@Model.SearchPlaceholder</span>
+                <input type="search"
+                       placeholder="@Model.SearchPlaceholder"
+                       autocomplete="off"
+                       data-ranking-search />
+            </label>
+            <label class="ranking-control">
+                <span>@Model.FilterLabel</span>
+                <select data-ranking-filter>
+                    <option value="">@Model.FilterAllLabel</option>
+                    @foreach (var option in filterOptions)
+                    {
+                        <option value="@option">@option</option>
+                    }
+                </select>
+            </label>
+        </div>
+    </header>
+
+    <ol class="ranking-list" data-ranking-list>
+        @foreach (var entry in entries)
+        {
+            var avatarClass = string.IsNullOrEmpty(entry.AvatarUrl)
+            ? "ranking-row__avatar ranking-row__avatar--placeholder"
+            : "ranking-row__avatar";
+
+            var presenceClass = entry.PresenceStatus switch
+            {
+                Bgp.Domain.Enums.UserPresenceStatus.Available => "is-online",
+                Bgp.Domain.Enums.UserPresenceStatus.Away => "is-away",
+                Bgp.Domain.Enums.UserPresenceStatus.DoNotDisturb => "is-dnd",
+                Bgp.Domain.Enums.UserPresenceStatus.Invisible => "is-invisible",
+                _ => "is-offline"
+            };
+            var nameInitial = !string.IsNullOrWhiteSpace(entry.DisplayName)
+            ? entry.DisplayName.Trim()[0]
+            : '?';
+            <li class="ranking-row@(entry.IsCurrentUser ? " is-self" : string.Empty)"
+                data-name="@entry.DisplayName"
+                data-tier="@entry.RankTitle">
+                <div class="ranking-row__position">#@entry.Position</div>
+                <div class="ranking-row__content">
+                    <div class="@avatarClass">
+                        <span class="chat-status-dot @presenceClass" aria-hidden="true"></span>
+                        <div class="ranking-row__avatar-clip">
+                            @if (!string.IsNullOrEmpty(entry.AvatarUrl))
+                            {
+                                <img src="@entry.AvatarUrl" alt="@entry.DisplayName" loading="lazy" decoding="async" />
+                            }
+                            else
+                            {
+                                <span aria-hidden="true">@nameInitial</span>
+                            }
+                        </div>
+                        <span class="sr-only">@entry.PresenceLabel</span>
+                    </div>
+                    <div class="ranking-row__meta">
+                        <div class="ranking-row__name">
+                            <span>@entry.DisplayName</span>
+                            @if (entry.IsCurrentUser)
+                            {
+                                <span class="ranking-row__badge">@Model.SelfBadgeLabel</span>
+                            }
+                        </div>
+                        <div class="ranking-row__tags">
+                            <span class="ranking-row__rank" style="--rank-accent:@entry.AccentColor;--rank-glow:@entry.AccentHighlightColor;">@entry.RankTitle</span>
+                            <span class="ranking-row__level">@Model.LevelLabel: @entry.Level</span>
+                        </div>
+                        <div class="ranking-row__xp">
+                            <span>@Model.ExperienceLabel</span>
+                            <strong>@entry.ExperiencePoints.ToString("N0", CultureInfo.CurrentCulture) XP</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="ranking-row__actions">
+                    <button type="button"
+                            class="ranking-row__menu-toggle"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-label="@Model.ActionsMoreLabel"
+                            data-ranking-menu>
+                        <span aria-hidden="true">•••</span>
+                    </button>
+                    <div class="ranking-row__menu" data-ranking-menu-panel hidden>
+                        <button type="button" data-ranking-action="message">@Model.ActionsMessage</button>
+                        <button type="button" data-ranking-action="friend">@Model.ActionsAddFriend</button>
+                        <button type="button" data-ranking-action="invite">@Model.ActionsInvite</button>
+                        <button type="button" data-ranking-action="profile">@Model.ActionsViewProfile</button>
+                    </div>
+                </div>
+            </li>
+        }
+    </ol>
+    <p class="ranking-empty" data-ranking-empty hidden>@Model.EmptyLabel</p>
+</section>

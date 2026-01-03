@@ -5,6 +5,7 @@
 @using Bgp.Domain.Enums
 @using Bgp.Web.Helpers
 @using Bgp.Web.Models
+@using Bgp.Web.ViewModels
 @model DashboardViewModel
 @section Styles {
     <link rel="stylesheet" href="~/css/pages/dashboard.css" asp-append-version="true" />
@@ -32,6 +33,7 @@
     var includeOverviewScripts = false;
     var includeGamesScripts = false;
     var includeFriendsScripts = false;
+    var includeRankingScripts = false;
     var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     string StatusClass(GameApprovalStatus status) => status switch
@@ -84,6 +86,7 @@
         <a class="dashboard-nav__item@(activeTab == "stats" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="stats">@L["Dashboard_Stats_Tab"].Value</a>
         <a class="dashboard-nav__item@(activeTab == "games" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="games">@L["Dashboard_Games_AddTab"].Value</a>
         <a class="dashboard-nav__item@(activeTab == "friends" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="friends">@L["Dashboard_Friends_Tab"].Value</a>
+        <a class="dashboard-nav__item@(activeTab == "ranking" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="ranking">@L["Dashboard_Ranking_Tab"].Value</a>
     </nav>
 
     @if (!string.IsNullOrEmpty(successMessage))
@@ -387,6 +390,31 @@
                 <script type="application/json" id="friendStrings">@Html.Raw(JsonSerializer.Serialize(friendStrings))</script>
             </section>
             break;
+             case "ranking":
+            includeRankingScripts = true;
+            var rankingSection = new GlobalRankingSectionViewModel
+            {
+                Title = L["GlobalRanking_Title"].Value,
+                Subtitle = L["GlobalRanking_Description"].Value,
+                SearchPlaceholder = L["GlobalRanking_SearchPlaceholder"].Value,
+                FilterLabel = L["GlobalRanking_FilterLabel"].Value,
+                FilterAllLabel = L["GlobalRanking_Filter_All"].Value,
+                LevelLabel = L["GlobalRanking_LevelLabel"].Value,
+                ExperienceLabel = L["GlobalRanking_ExperienceLabel"].Value,
+                EmptyLabel = L["GlobalRanking_Empty"].Value,
+                ActionsMessage = L["GlobalRanking_Actions_Message"].Value,
+                ActionsAddFriend = L["GlobalRanking_Actions_AddFriend"].Value,
+                ActionsInvite = L["GlobalRanking_Actions_Invite"].Value,
+                ActionsViewProfile = L["GlobalRanking_Actions_ViewProfile"].Value,
+                ActionsMoreLabel = L["GlobalRanking_Actions_More"].Value,
+                SelfBadgeLabel = L["GlobalRanking_SelfBadge"].Value,
+                Data = Model.GlobalRanking,
+                AnchorId = "dashboard-ranking"
+            };
+            <section class="dashboard-panel">
+                @await Html.PartialAsync("_GlobalRanking", rankingSection)
+            </section>
+            break;
         default:
             includeOverviewScripts = true;
             var friendLeaderboards = Model.FriendLeaderboards;
@@ -536,6 +564,10 @@
         @if (includeFriendsScripts)
         {
     <script src="~/js/friends.js" asp-append-version="true"></script>
+        }
+        @if (includeRankingScripts)
+        {
+    <script src="~/js/ranking.js" asp-append-version="true"></script>
         }
     <script>
         document.addEventListener('DOMContentLoaded', function () {
