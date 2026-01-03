@@ -6,6 +6,7 @@
 
     const chatDock = document.getElementById('chatDock');
     const currentUserId = chatDock?.dataset.chatUser;
+    const menuPortals = new Map();
     let activeMenu = null;
 
     const api = {
@@ -41,33 +42,48 @@
 
     function closeMenus(reason) {
         if (!activeMenu) return;
-        activeMenu.panel.hidden = true;
+        activeMenu.portal.hidden = true;
         activeMenu.button.setAttribute('aria-expanded', 'false');
+        activeMenu.portal.style.visibility = '';
         if (reason === 'escape') {
             activeMenu.button.focus();
         }
         activeMenu = null;
     }
 
-    function openMenu(button, panel) {
+    function positionMenu(button, portal) {
+        const rect = button.getBoundingClientRect();
+        const width = portal.offsetWidth || 200;
+        const maxLeft = window.innerWidth - width - 8;
+        const left = Math.max(8, Math.min(maxLeft, rect.right + window.scrollX - width));
+        const top = rect.bottom + window.scrollY + 8;
+
+        portal.style.left = `${left}px`;
+        portal.style.top = `${top}px`;
+        portal.style.minWidth = `${Math.max(width, 200)}px`;
+    }
+
+    function openMenu(button, row, portal) {
         if (activeMenu?.button === button) {
             closeMenus();
             return;
         }
 
         closeMenus();
-        panel.hidden = false;
+        portal.hidden = false;
+        portal.style.visibility = 'hidden';
+        positionMenu(button, portal);
+        portal.style.visibility = 'visible';
         button.setAttribute('aria-expanded', 'true');
-        activeMenu = { button, panel };
+        activeMenu = { button, row, portal };
     }
 
-    function handleActionClick(actionButton) {
+    function handleActionClick(actionButton, row) {
         const action = actionButton.dataset.rankingAction;
-        if (!action) return;
+        if (!action || !row) return;
 
-        const row = actionButton.closest('[data-user-id]');
-        const userId = row?.dataset.userId;
-        const displayName = row?.dataset.name || userId || '';
+        const userId = row.dataset.userId;
+        const displayName = row.dataset.name || userId || '';
 
         switch (action) {
             case 'message':
@@ -89,37 +105,70 @@
         closeMenus();
     }
 
+    function createMenuPortal(section) {
+        const template = section.querySelector('[data-ranking-menu-template]');
+        const portal = template ? template.cloneNode(true) : document.createElement('div');
+        const menuId = `${section.dataset.rankingContext || 'leaderboard'}-menu`;
+
+        portal.hidden = true;
+        portal.id = menuId;
+        portal.removeAttribute('data-ranking-menu-template');
+        portal.classList.add('leaderboard__menu');
+        if (!portal.hasAttribute('role')) {
+            portal.setAttribute('role', 'menu');
+        }
+
+        document.body.appendChild(portal);
+        menuPortals.set(section, portal);
+        return { portal, menuId };
+    }
+
     sections.forEach(section => {
         const list = section.querySelector('[data-ranking-list]');
-        const items = Array.from(list ? list.children : []);
+        const rows = Array.from(list?.querySelectorAll('[data-user-id]') ?? []);
         const search = section.querySelector('[data-ranking-search]');
         const filter = section.querySelector('[data-ranking-filter]');
         const empty = section.querySelector('[data-ranking-empty]');
 
-        items.forEach((item, index) => {
-            const menu = item.querySelector('[data-ranking-menu-panel]');
-            const button = item.querySelector('[data-ranking-menu]');
-            if (menu && button) {
-                const id = `${section.dataset.rankingContext || 'leaderboard'}-menu-${index}`;
-                menu.id = id;
-                button.setAttribute('aria-controls', id);
+        const jumpButton = section.querySelector('[data-ranking-jump]');
+        const { portal, menuId } = createMenuPortal(section);
+
+        rows.forEach(row => {
+            const button = row.querySelector('[data-ranking-menu]');
+            if (button) {
+                button.setAttribute('aria-controls', menuId);
+                button.setAttribute('aria-expanded', 'false');
             }
 
-            if (currentUserId && item.dataset.userId === currentUserId) {
-                item.classList.add('is-self');
+            if (currentUserId && row.dataset.userId === currentUserId) {
+                row.classList.add('is-self');
             }
         });
+
+        if (jumpButton && rows.some(r => r.classList.contains('is-self'))) {
+            jumpButton.hidden = false;
+            jumpButton.addEventListener('click', () => {
+                if (search) search.value = '';
+                if (filter) filter.value = '';
+                applyFilters();
+                const target = rows.find(r => r.classList.contains('is-self'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    target.classList.add('is-self');
+                }
+            });
+        }
 
         function applyFilters() {
             const query = (search?.value || '').trim().toLowerCase();
             const tier = (filter?.value || '').trim().toLowerCase();
             let visible = 0;
 
-            items.forEach(item => {
-                const name = (item.dataset.name || '').toLowerCase();
-                const itemTier = (item.dataset.tier || '').toLowerCase();
+            rows.forEach(row => {
+                const name = (row.dataset.name || '').toLowerCase();
+                const itemTier = (row.dataset.tier || '').toLowerCase()
                 const matches = (!query || name.includes(query)) && (!tier || itemTier === tier);
-                item.hidden = !matches;
+                row.hidden = !matches;
                 if (matches) {
                     visible += 1;
                 }
@@ -131,46 +180,56 @@
         }
 
         if (search) {
-            search.addEventListener('input', applyFilters);
+            search.addEventListener('input', () => {
+                closeMenus();
+                applyFilters();
+            });
         }
 
         if (filter) {
-            filter.addEventListener('change', applyFilters);
+            filter.addEventListener('change', () => {
+                closeMenus();
+                applyFilters();
+            });
         }
 
         applyFilters();
         });
 
-        document.addEventListener('click', (event) => {
-            const target = event.target;
-            if (!(target instanceof HTMLElement)) {
-                return;
-            }
+    document.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return;
+        }
 
-            const menuButton = target.closest('[data-ranking-menu]');
-            if (menuButton) {
-                const panel = menuButton.nextElementSibling;
-                if (panel instanceof HTMLElement) {
-                    openMenu(menuButton, panel);
-                    event.stopPropagation();
-                return;
-                }
+        const menuButton = target.closest('[data-ranking-menu]');
+        if (menuButton) {
+            const row = menuButton.closest('[data-user-id]');
+            const section = menuButton.closest('[data-ranking]');
+            const portal = section ? menuPortals.get(section) : null;
+            if (row && portal) {
+                openMenu(menuButton, row, portal);
+                event.stopPropagation();
             }
+            return;
+        }
 
-            const actionButton = target.closest('[data-ranking-action]');
-            if (actionButton) {
-                handleActionClick(actionButton);
-                return;
-            }
+        const actionButton = target.closest('[data-ranking-action]');
+        if (actionButton) {
+            handleActionClick(actionButton, activeMenu?.row || actionButton.closest('[data-user-id]'));
+            return;
+        }
 
-            if (activeMenu && !activeMenu.panel.contains(target) && !activeMenu.button.contains(target)) {
-                closeMenus();
-            }
-        });
+        if (activeMenu && !activeMenu.portal.contains(target) && !activeMenu.button.contains(target)) {
+            closeMenus();
+        }
+    });
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             closeMenus('escape');
         }
     });
+    window.addEventListener('resize', () => closeMenus());
+    window.addEventListener('scroll', () => closeMenus(), true);
 })();
