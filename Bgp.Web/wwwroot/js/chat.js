@@ -1756,17 +1756,32 @@
         if (!dotEl) {
             return;
         }
+        const presenceState = friend.isInvisible
+            ? 'invisible'
+            : (friend.presence === PRESENCE_AVAILABLE
+                ? 'online'
+                : (friend.presence === PRESENCE_AWAY
+                    ? 'away'
+                    : (friend.presence === PRESENCE_DND ? 'dnd' : 'offline')));
         dotEl.classList.remove('is-online', 'is-away', 'is-offline', 'is-invisible', 'is-dnd');
-        if (friend.isInvisible) {
+        if (presenceState === 'invisible') {
             dotEl.classList.add('is-invisible');
-        } else if (friend.presence === PRESENCE_AVAILABLE) {
+        } else if (presenceState === 'online') {
             dotEl.classList.add('is-online');
-        } else if (friend.presence === PRESENCE_AWAY) {
+        } else if (presenceState === 'away') {
             dotEl.classList.add('is-away');
-        } else if (friend.presence === PRESENCE_DND) {
+        } else if (presenceState === 'dnd') {
             dotEl.classList.add('is-dnd');
         } else {
             dotEl.classList.add('is-offline');
+        }
+
+        const host = dotEl.closest('.chat-contact, .chat-window, .chat-status-toggle');
+        if (host) {
+            ['online', 'away', 'offline', 'invisible', 'dnd'].forEach((state) => {
+                host.classList.toggle(`is-${state}`, presenceState === state);
+            });
+            host.dataset.presenceState = presenceState;
         }
     }
 
@@ -2477,6 +2492,54 @@
             return actions;
         }
 
+        function hydrateFriendSnapshot(snapshot) {
+            if (!snapshot || !snapshot.userId) {
+                return;
+            }
+            const normalizedId = normalizeId(snapshot.userId);
+            if (!normalizedId) {
+                return;
+            }
+            const existing = getFriend(snapshot.userId);
+            const merged = existing ? { ...existing } : {
+                userId: snapshot.userId,
+                displayName: snapshot.displayName || snapshot.userName || snapshot.userId,
+                userName: snapshot.userName || null,
+                avatarUrl: snapshot.avatarUrl || null,
+                statusMessage: snapshot.statusMessage || '',
+                presence: normalizePresence(snapshot.presence),
+                isInvisible: !!snapshot.isInvisible,
+                unreadCount: existing?.unreadCount || 0,
+                isFriend: snapshot.relation === 'friend' || snapshot.isFriend === true || (existing?.isFriend ?? false),
+                isArchived: existing?.isArchived || false,
+                keepArchived: existing?.keepArchived || false,
+                lastNotifiedMessageId: existing?.lastNotifiedMessageId || null
+            };
+
+            merged.displayName = snapshot.displayName || merged.displayName;
+            merged.userName = snapshot.userName || merged.userName;
+            merged.avatarUrl = snapshot.avatarUrl ?? merged.avatarUrl;
+            merged.statusMessage = snapshot.statusMessage ?? merged.statusMessage;
+            merged.presence = normalizePresence(snapshot.presence ?? merged.presence);
+            merged.isInvisible = snapshot.isInvisible ?? merged.isInvisible;
+            if (snapshot.relation === 'friend') {
+                merged.isFriend = true;
+            } else if (typeof snapshot.isFriend === 'boolean') {
+                merged.isFriend = snapshot.isFriend;
+            }
+
+            setFriend(merged);
+            if (merged.isFriend) {
+                if (!merged.element) {
+                    createFriendElement(merged);
+                }
+                updateFriendVisual(merged);
+                updateFriendPlacement(merged);
+            } else {
+                ensureStrangerContact(merged);
+            }
+        }
+
         function renderLocalSearchResults(results) {
             if (!localResultsSection || !localResultsList || !localResultsEmpty) {
                 return;
@@ -2502,9 +2565,7 @@
                 button.className = 'chat-contact__button chat-contact__button--ghost';
                 button.addEventListener('click', (event) => {
                     event.preventDefault();
-                    if (entry.relation === 'pending-out') {
-                        return;
-                    }
+                    hydrateFriendSnapshot(entry);
                     openConversation(entry.userId, entry.displayName);
                 });
 
@@ -2741,6 +2802,17 @@
                 : (rawStatus === 0
                     ? (player.outgoingRequest ? 'pending-out' : 'pending-in')
                     : 'stranger');
+            const actionEntry = {
+                userId: rawUserId,
+                displayName,
+                userName: playerUserName,
+                avatarUrl: player.avatarUrl || player.AvatarUrl || null,
+                statusMessage: player.statusMessage || player.StatusMessage,
+                presence: normalizePresence(player.presence ?? player.Presence),
+                isInvisible: !!(player.isInvisible ?? player.IsInvisible),
+                relation,
+                outgoingRequest: !!player.outgoingRequest
+            };
 
             const existing = getFriend(rawUserId);
             if (existing) {
@@ -2780,6 +2852,7 @@
             button.type = 'button';
             button.className = ['chat-contact__button', 'chat-contact__button--ghost'].join(' ').trim();
             button.addEventListener('click', () => {
+                hydrateFriendSnapshot(actionEntry);
                 if (relation === 'pending-out') {
                     return;
                 }
@@ -2822,17 +2895,7 @@
             li.appendChild(button);
             const actions = document.createElement('div');
             actions.className = 'chat-contact__actions';
-            const actionEntry = {
-                userId: rawUserId,
-                displayName,
-                userName: playerUserName,
-                avatarUrl: player.avatarUrl || player.AvatarUrl || null,
-                statusMessage: player.statusMessage || player.StatusMessage,
-                presence: normalizePresence(player.presence ?? player.Presence),
-                isInvisible: !!(player.isInvisible ?? player.IsInvisible),
-                relation,
-                outgoingRequest: !!player.outgoingRequest
-            };
+            
             const requestActions = createSearchActionButtons(actionEntry);
             if (requestActions && requestActions.childNodes.length > 0) {
                 actions.append(...Array.from(requestActions.childNodes));

@@ -624,8 +624,8 @@
 
     .chat-status-toggle__avatar .chat-status-dot {
         position: absolute;
-        bottom: 0.05rem;
-        right: 0.05rem;
+        bottom: -0.1rem;
+        right: -0.1rem;
         z-index: 5;
     }
 
@@ -868,12 +868,13 @@
 
 .chat-status-dot {
     position: absolute;
-    bottom: 0.05rem;
-    right: 0.05rem;
+    bottom: -0.12rem;
+    right: -0.12rem;
     width: 0.875rem;
     height: 0.875rem;
     border-radius: 50%;
-    border: 3px solid rgba(15, 23, 42, 0.95);
+    border: 2px solid #0f172a;
+    box-shadow: 0 0 0 2px #0f172a;
     background: rgba(148, 163, 184, 0.65);
     z-index: 5;
     transition: background 0.2s ease;
@@ -902,6 +903,13 @@
 .chat-contact__meta {
     display: grid;
     gap: 0.25rem;
+}
+
+.chat-contact.is-offline .chat-contact__name,
+.chat-contact.is-invisible .chat-contact__name,
+.chat-contact.is-offline .chat-contact__status,
+.chat-contact.is-invisible .chat-contact__status {
+    color: rgba(148, 163, 184, 0.65);
 }
 
 .chat-contact__name {
@@ -1089,6 +1097,16 @@
     color: #f1f5f9;
 }
 
+.chat-window.is-offline [data-window-status],
+.chat-window.is-invisible [data-window-status] {
+    color: rgba(148, 163, 184, 0.7);
+}
+
+.chat-window.is-offline [data-window-name],
+.chat-window.is-invisible [data-window-name] {
+    opacity: 0.85;
+}
+
 .chat-window__avatar {
     position: relative;
     width: 2.5rem;
@@ -1107,6 +1125,8 @@
         width: 0.75rem;
         height: 0.75rem;
         border-width: 2px;
+        bottom: -0.1rem;
+        right: -0.1rem;
     }
 
 .chat-avatar__clip {
