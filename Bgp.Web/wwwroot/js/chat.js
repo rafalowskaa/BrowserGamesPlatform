@@ -3,7 +3,12 @@
     const dock = document.getElementById('chatDock');
     if (!dock) {
         return;
-    }
+        }
+
+        if (dock.dataset.chatInit === '1') {
+            return;
+        }
+        dock.dataset.chatInit = '1';
 
     const toggle = document.getElementById('chatToggle');
     const panel = document.getElementById('chatPanel');
@@ -48,15 +53,28 @@
     const panelTitleToggle = panel ? panel.querySelector('[data-chat-panel-title]') : null;
 
     const currentUserId = dock.dataset.chatUser || null;
-    const contextMenu = document.createElement('div');
-    contextMenu.className = 'chat-context-menu';
-    contextMenu.dataset.chatContext = '';
-    contextMenu.hidden = true;
-    contextMenu.innerHTML = `
+        let contextMenu = document.querySelector('[data-chat-context]');
+        if (!contextMenu) {
+            contextMenu = document.createElement('div');
+            contextMenu.className = 'chat-context-menu';
+            contextMenu.dataset.chatContext = '';
+            contextMenu.hidden = true;
+            contextMenu.innerHTML = `
         <div class="chat-context-menu__panel">
             <ul class="chat-context-menu__list" data-chat-context-list></ul>
         </div>`;
-        document.body.appendChild(contextMenu);
+            document.body.appendChild(contextMenu);
+        }
+        contextMenu.hidden = true;
+        if (!contextMenu.querySelector('[data-chat-context-list]')) {
+            const list = document.createElement('ul');
+            list.className = 'chat-context-menu__list';
+            list.dataset.chatContextList = '';
+            const panel = document.createElement('div');
+            panel.className = 'chat-context-menu__panel';
+            panel.appendChild(list);
+            contextMenu.appendChild(panel);
+        }
     const contextMenuList = contextMenu.querySelector('[data-chat-context-list]');
 
     const PRESENCE_AVAILABLE = 0;
@@ -1859,6 +1877,10 @@
         if (!fromSelf) {
             return sentLabel || formatDateTime(message.sentAtUtc);
         }
+        const errorLabel = typeof message.sendError === 'string' && message.sendError.trim();
+        if (errorLabel) {
+            return errorLabel;
+        }
         if (message.sendError) {
             return strings.sendError;
         }
@@ -2217,7 +2239,7 @@
             return;
         }
         entry.data.isPending = false;
-        entry.data.sendError = true;
+        entry.data.sendError = payload && payload.sendErrorText ? payload.sendErrorText : true;
             if (payload) {
                 if (typeof payload.content === 'string' && payload.content.trim()) {
                     entry.data.content = payload.content.trim();
@@ -2701,10 +2723,11 @@
         const fragment = document.createDocumentFragment();
         const seen = new Set();
         results.forEach((player) => {
-            const identifier = normalizeId(player.id || player.Id);
-            const displayName = player.name || player.Name || player.id || identifier;
+            const rawUserId = String(player.id || player.Id || player.userId || player.UserId || '').trim();
+            const identifier = normalizeId(rawUserId);
+            const displayName = player.name || player.Name || rawUserId || identifier;
             const playerUserName = player.userName || player.UserName || null;
-            if (!identifier || seen.has(identifier)) {
+            if (!rawUserId || !identifier || seen.has(identifier)) {
                 return;
             }
             if (latestLocalResultIds.has(identifier)) {
@@ -2712,20 +2735,21 @@
             }
             const statusValue = player.status ?? player.Status;
             const rawStatus = typeof statusValue === 'number' ? statusValue : parseInt(statusValue, 10);
-            if (rawStatus === 2) {
-                return;
-            }
+            
             const relation = rawStatus === 1
                 ? 'friend'
                 : (rawStatus === 0
                     ? (player.outgoingRequest ? 'pending-out' : 'pending-in')
                     : 'stranger');
 
-            const existing = getFriend(identifier);
+            const existing = getFriend(rawUserId);
             if (existing) {
                 seen.add(identifier);
                 if (playerUserName && !existing.userName) {
                     existing.userName = playerUserName;
+                }
+                if (rawUserId && existing.userId !== rawUserId) {
+                    existing.userId = rawUserId;
                 }
                 if (!existing.isFriend) {
                     ensureStrangerContact(existing);
@@ -2733,9 +2757,10 @@
                 return;
             }
 
-            const contact = getStrangerContact(identifier);
+            const contact = getStrangerContact(rawUserId);
             if (contact) {
                 seen.add(identifier);
+                contact.userId = contact.userId || rawUserId;
                 contact.displayName = contact.displayName || displayName;
                 contact.userName = contact.userName || playerUserName;
                 contact.avatarUrl = contact.avatarUrl || player.avatarUrl || null;
@@ -2749,7 +2774,7 @@
             const li = document.createElement('li');
             li.className = 'chat-contact';
             li.dataset.strangerSearch = '';
-            li.dataset.chatFriend = identifier;
+            li.dataset.chatFriend = rawUserId;
 
             const button = document.createElement('button');
             button.type = 'button';
@@ -2758,7 +2783,7 @@
                 if (relation === 'pending-out') {
                     return;
                 }
-                openConversation(identifier, displayName);
+                openConversation(rawUserId, displayName);
             });
 
             const avatar = document.createElement('span');
@@ -2798,7 +2823,7 @@
             const actions = document.createElement('div');
             actions.className = 'chat-contact__actions';
             const actionEntry = {
-                userId: identifier,
+                userId: rawUserId,
                 displayName,
                 userName: playerUserName,
                 avatarUrl: player.avatarUrl || player.AvatarUrl || null,
@@ -2815,14 +2840,14 @@
             const menuBtn = document.createElement('button');
             menuBtn.type = 'button';
             menuBtn.className = 'chat-contact__menu';
-            menuBtn.dataset.chatContextTrigger = identifier;
+            menuBtn.dataset.chatContextTrigger = rawUserId;
             menuBtn.setAttribute('aria-label', strings.contextProfile || 'More options');
             menuBtn.innerHTML = '⋮';
             menuBtn.addEventListener('click', (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                openContextMenu(identifier, menuBtn, {
-                    userId: identifier,
+                openContextMenu(rawUserId, menuBtn, {
+                    userId: rawUserId,
                     displayName,
                     userName: playerUserName,
                     isFriend: false,
@@ -3691,7 +3716,9 @@
             } catch (err) {
                 console.error('Failed to send message.', err);
 
-                markPendingMessageFailed(conversation, pendingId, outgoing);
+                const errorMessage = (err && err.message) ? err.message : (strings.sendError || 'Failed to send message');
+                markPendingMessageFailed(conversation, pendingId, { ...outgoing, sendErrorText: errorMessage });
+                announceMessage(errorMessage);
                 if (!options.skipInputReset) {
                     input.value = payload?.content || '';
                     autoGrowInput(input);
