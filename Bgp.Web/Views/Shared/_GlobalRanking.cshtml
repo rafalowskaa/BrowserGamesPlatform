@@ -134,7 +134,7 @@
                             <span class="leaderboard__level-badge">Lv. @entry.Level</span>
                         </td>
                         <td class="leaderboard__cell leaderboard__cell--xp" data-label="@Model.ExperienceLabel">
-                            <div class="leaderboard__xp truncate" title="@entry.ExperiencePoints.ToString('N0', CultureInfo.CurrentCulture) XP">
+                            <div class="leaderboard__xp truncate" title="@entry.ExperiencePoints.ToString("N0", CultureInfo.CurrentCulture) XP">
                                 <strong>@entry.ExperiencePoints.ToString("N0", CultureInfo.CurrentCulture) XP</strong>
                                 @if (entry.ExperienceBreakdown is { Count: > 1 })
                                 {
