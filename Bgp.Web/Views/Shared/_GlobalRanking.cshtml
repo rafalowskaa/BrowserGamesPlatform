@@ -39,12 +39,12 @@
         </div>
     </header>
 
-    <ol class="ranking-list" data-ranking-list>
+    <ol class="leaderboard" data-ranking-list>
         @foreach (var entry in entries)
         {
             var avatarClass = string.IsNullOrEmpty(entry.AvatarUrl)
-            ? "ranking-row__avatar ranking-row__avatar--placeholder"
-            : "ranking-row__avatar";
+            ? "leaderboard__avatar leaderboard__avatar--placeholder"
+            : "leaderboard__avatar";
 
             var presenceClass = entry.PresenceStatus switch
             {
@@ -57,14 +57,31 @@
             var nameInitial = !string.IsNullOrWhiteSpace(entry.DisplayName)
             ? entry.DisplayName.Trim()[0]
             : '?';
-            <li class="ranking-row@(entry.IsCurrentUser ? " is-self" : string.Empty)"
+            var topClass = entry.Position switch
+            {
+                1 => " is-top is-gold",
+                2 => " is-top is-silver",
+                3 => " is-top is-bronze",
+                _ => string.Empty
+            };
+            <li class="leaderboard__row@(entry.IsCurrentUser ? " is-self" : string.Empty)@topClass"
+                data-user-id="@entry.UserId"
                 data-name="@entry.DisplayName"
-                data-tier="@entry.RankTitle">
-                <div class="ranking-row__position">#@entry.Position</div>
-                <div class="ranking-row__content">
+                data-tier="@entry.RankTitle"
+                data-rank="@entry.Position">
+                <div class="leaderboard__position">
+                    <span class="leaderboard__position-index">#@entry.Position</span>
+                    @if (entry.Position <= 3)
+                    {
+                        <span class="leaderboard__medal" aria-hidden="true">
+                            @(entry.Position == 1 ? "🥇" : entry.Position == 2 ? "🥈" : "🥉")
+                        </span>
+                    }
+                </div>
+                <div class="leaderboard__identity">
                     <div class="@avatarClass">
                         <span class="chat-status-dot @presenceClass" aria-hidden="true"></span>
-                        <div class="ranking-row__avatar-clip">
+                        <div class="leaderboard__avatar-clip">
                             @if (!string.IsNullOrEmpty(entry.AvatarUrl))
                             {
                                 <img src="@entry.AvatarUrl" alt="@entry.DisplayName" loading="lazy" decoding="async" />
@@ -76,38 +93,59 @@
                         </div>
                         <span class="sr-only">@entry.PresenceLabel</span>
                     </div>
-                    <div class="ranking-row__meta">
-                        <div class="ranking-row__name">
+                    <div class="leaderboard__meta">
+                        <div class="leaderboard__name">
                             <span>@entry.DisplayName</span>
                             @if (entry.IsCurrentUser)
                             {
-                                <span class="ranking-row__badge">@Model.SelfBadgeLabel</span>
+                                <span class="leaderboard__badge">@Model.SelfBadgeLabel</span>
                             }
                         </div>
-                        <div class="ranking-row__tags">
-                            <span class="ranking-row__rank" style="--rank-accent:@entry.AccentColor;--rank-glow:@entry.AccentHighlightColor;">@entry.RankTitle</span>
-                            <span class="ranking-row__level">@Model.LevelLabel: @entry.Level</span>
-                        </div>
-                        <div class="ranking-row__xp">
-                            <span>@Model.ExperienceLabel</span>
-                            <strong>@entry.ExperiencePoints.ToString("N0", CultureInfo.CurrentCulture) XP</strong>
+                        <div class="leaderboard__tags">
+                            <span class="leaderboard__rank" style="--rank-accent:@entry.AccentColor;--rank-glow:@entry.AccentHighlightColor;">@entry.RankTitle</span>
+                            <span class="leaderboard__level">@Model.LevelLabel: @entry.Level</span>
                         </div>
                     </div>
                 </div>
-                <div class="ranking-row__actions">
+                <div class="leaderboard__xp" aria-label="@Model.ExperienceLabel">
+                        @if (entry.ExperienceBreakdown is { Count: > 1 })
+                        {
+                        <div class="leaderboard__xp-chips">
+                            @foreach (var xpItem in entry.ExperienceBreakdown)
+                            {
+                                <span class="leaderboard__xp-chip">
+                                    <span class="leaderboard__xp-chip-label">@xpItem.Label</span>
+                                    <strong>@xpItem.Points.ToString("N0", CultureInfo.CurrentCulture) XP</strong>
+                                </span>
+                            }
+                        </div>
+                        }
+                        else
+                        {
+                        <div class="leaderboard__xp-total">
+                            <span>@Model.ExperienceLabel</span>
+                            <strong>@entry.ExperiencePoints.ToString("N0", CultureInfo.CurrentCulture) XP</strong>
+                        </div>
+                    }
+                </div>
+                <div class="leaderboard__actions">
                     <button type="button"
-                            class="ranking-row__menu-toggle"
+                            class="leaderboard__menu-btn"
                             aria-haspopup="true"
                             aria-expanded="false"
                             aria-label="@Model.ActionsMoreLabel"
                             data-ranking-menu>
-                        <span aria-hidden="true">•••</span>
+                        <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false" class="leaderboard__menu-icon">
+                            <circle cx="12" cy="5" r="1.6"></circle>
+                            <circle cx="12" cy="12" r="1.6"></circle>
+                            <circle cx="12" cy="19" r="1.6"></circle>
+                        </svg>
                     </button>
-                    <div class="ranking-row__menu" data-ranking-menu-panel hidden>
-                        <button type="button" data-ranking-action="message">@Model.ActionsMessage</button>
-                        <button type="button" data-ranking-action="friend">@Model.ActionsAddFriend</button>
-                        <button type="button" data-ranking-action="invite">@Model.ActionsInvite</button>
-                        <button type="button" data-ranking-action="profile">@Model.ActionsViewProfile</button>
+                    <div class="leaderboard__menu" role="menu" data-ranking-menu-panel hidden>
+                        <button type="button" data-ranking-action="message" role="menuitem">@Model.ActionsMessage</button>
+                        <button type="button" data-ranking-action="friend" role="menuitem">@Model.ActionsAddFriend</button>
+                        <button type="button" data-ranking-action="invite" role="menuitem">@Model.ActionsInvite</button>
+                        <button type="button" data-ranking-action="profile" role="menuitem">@Model.ActionsViewProfile</button>
                     </div>
                 </div>
             </li>

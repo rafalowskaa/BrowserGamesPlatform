@@ -25,6 +25,13 @@ public class GlobalRankingEntryViewModel
     public string PresenceLabel { get; set; } = string.Empty;
     public string AccentColor { get; set; } = "#38bdf8";
     public string AccentHighlightColor { get; set; } = "#a855f7";
+    public IReadOnlyList<ExperienceBreakdownViewModel> ExperienceBreakdown { get; set; } = Array.Empty<ExperienceBreakdownViewModel>();
+}
+
+public class ExperienceBreakdownViewModel
+{
+    public string Label { get; set; } = string.Empty;
+    public int Points { get; set; }
 }
 
 public class GlobalRankingSectionViewModel

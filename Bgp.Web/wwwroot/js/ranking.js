@@ -4,19 +4,89 @@
         return;
     }
 
-    function closeMenus(section, except) {
-        const menus = section.querySelectorAll('[data-ranking-menu-panel]');
-        const toggles = section.querySelectorAll('[data-ranking-menu]');
-        menus.forEach(menu => {
-            if (menu !== except) {
-                menu.hidden = true;
+    const chatDock = document.getElementById('chatDock');
+    const currentUserId = chatDock?.dataset.chatUser;
+    let activeMenu = null;
+
+    const api = {
+        openChat: (userId, displayName) => {
+            if (window.bgpChat && typeof window.bgpChat.open === 'function') {
+                window.bgpChat.open(userId, displayName);
             }
-        });
-        toggles.forEach(toggle => {
-            if (!except || toggle.nextElementSibling !== except) {
-                toggle.setAttribute('aria-expanded', 'false');
+        },
+        inviteToGame: (userId, displayName) => {
+            if (window.bgpChat && typeof window.bgpChat.openWithMessage === 'function') {
+                window.bgpChat.openWithMessage(userId, displayName, '');
+            } else if (window.bgpChat && typeof window.bgpChat.open === 'function') {
+                window.bgpChat.open(userId, displayName);
             }
-        });
+        },
+        addFriend: async (userId) => {
+            try {
+                await fetch('/api/friends/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ targetUserId: userId })
+                });
+            } catch (err) {
+                console.error('Unable to send friend request from leaderboard.', err);
+            }
+        },
+        viewProfile: (userId) => {
+            if (!userId) return;
+            window.location.href = `/dashboard/profile/${encodeURIComponent(userId)}`;
+        }
+    };
+
+    function closeMenus(reason) {
+        if (!activeMenu) return;
+        activeMenu.panel.hidden = true;
+        activeMenu.button.setAttribute('aria-expanded', 'false');
+        if (reason === 'escape') {
+            activeMenu.button.focus();
+        }
+        activeMenu = null;
+    }
+
+    function openMenu(button, panel) {
+        if (activeMenu?.button === button) {
+            closeMenus();
+            return;
+        }
+
+        closeMenus();
+        panel.hidden = false;
+        button.setAttribute('aria-expanded', 'true');
+        activeMenu = { button, panel };
+    }
+
+    function handleActionClick(actionButton) {
+        const action = actionButton.dataset.rankingAction;
+        if (!action) return;
+
+        const row = actionButton.closest('[data-user-id]');
+        const userId = row?.dataset.userId;
+        const displayName = row?.dataset.name || userId || '';
+
+        switch (action) {
+            case 'message':
+                api.openChat(userId, displayName);
+                break;
+            case 'invite':
+                api.inviteToGame(userId, displayName);
+                break;
+            case 'friend':
+                api.addFriend(userId);
+                break;
+            case 'profile':
+                api.viewProfile(userId);
+                break;
+            default:
+                break;
+        }
+
+        closeMenus();
     }
 
     sections.forEach(section => {
@@ -25,6 +95,20 @@
         const search = section.querySelector('[data-ranking-search]');
         const filter = section.querySelector('[data-ranking-filter]');
         const empty = section.querySelector('[data-ranking-empty]');
+
+        items.forEach((item, index) => {
+            const menu = item.querySelector('[data-ranking-menu-panel]');
+            const button = item.querySelector('[data-ranking-menu]');
+            if (menu && button) {
+                const id = `${section.dataset.rankingContext || 'leaderboard'}-menu-${index}`;
+                menu.id = id;
+                button.setAttribute('aria-controls', id);
+            }
+
+            if (currentUserId && item.dataset.userId === currentUserId) {
+                item.classList.add('is-self');
+            }
+        });
 
         function applyFilters() {
             const query = (search?.value || '').trim().toLowerCase();
@@ -55,48 +139,38 @@
         }
 
         applyFilters();
+        });
 
-        section.addEventListener('click', (event) => {
+        document.addEventListener('click', (event) => {
             const target = event.target;
             if (!(target instanceof HTMLElement)) {
                 return;
             }
 
-            if (target.dataset.rankingAction) {
-                const action = target.dataset.rankingAction;
-                const row = target.closest('.ranking-row');
-                const name = row?.dataset.name || '';
-                target.setAttribute('data-ranking-selected', action);
-                target.setAttribute('data-ranking-user', name);
-                closeMenus(section);
+            const menuButton = target.closest('[data-ranking-menu]');
+            if (menuButton) {
+                const panel = menuButton.nextElementSibling;
+                if (panel instanceof HTMLElement) {
+                    openMenu(menuButton, panel);
+                    event.stopPropagation();
+                return;
+                }
+            }
+
+            const actionButton = target.closest('[data-ranking-action]');
+            if (actionButton) {
+                handleActionClick(actionButton);
                 return;
             }
 
-            if (target.matches('[data-ranking-menu]')) {
-                const menu = target.nextElementSibling;
-                if (!(menu instanceof HTMLElement)) {
-                    return;
-                }
-                const isOpen = menu.hidden === false;
-                closeMenus(section);
-                if (!isOpen) {
-                    menu.hidden = false;
-                    target.setAttribute('aria-expanded', 'true');
-                }
-                event.stopPropagation();
+            if (activeMenu && !activeMenu.panel.contains(target) && !activeMenu.button.contains(target)) {
+                closeMenus();
             }
         });
 
-        document.addEventListener('click', (event) => {
-            if (!section.contains(event.target)) {
-                closeMenus(section);
-            }
-        });
-
-        section.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
-                closeMenus(section);
-            }
-        });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeMenus('escape');
+        }
     });
 })();
