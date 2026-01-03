@@ -49,6 +49,7 @@
             <thead>
                 <tr>
                     <th scope="col" class="leaderboard__col leaderboard__col--rank">Rank</th>
+                    <th scope="col" class="leaderboard__col leaderboard__col--avatar">Avatar</th>
                     <th scope="col" class="leaderboard__col leaderboard__col--player">Player</th>
                     <th scope="col" class="leaderboard__col leaderboard__col--status">Status</th>
                     <th scope="col" class="leaderboard__col leaderboard__col--level">@Model.LevelLabel</th>
@@ -93,64 +94,52 @@
                                 }
                             </div>
                         </td>
-                        <td class="leaderboard__cell leaderboard__cell--identity" data-label="Player">
-                            <span class="leaderboard__avatar@(string.IsNullOrEmpty(entry.AvatarUrl) ? " leaderboard__avatar--placeholder" : string.Empty)">
+                        <td class="leaderboard__cell leaderboard__cell--avatar" data-label="Avatar">
+                            <span class="leaderboard__avatar@(string.IsNullOrEmpty(entry.AvatarUrl) ? " is-placeholder" : " has-image")" data-initial="@nameInitial">
                                 <span class="leaderboard__avatar-clip">
                                     @if (!string.IsNullOrEmpty(entry.AvatarUrl))
                                     {
-                                        <img src="@entry.AvatarUrl" alt="@entry.DisplayName" loading="lazy" decoding="async" />
+                                        <img src="@entry.AvatarUrl"
+                                             alt="@entry.DisplayName"
+                                             loading="lazy"
+                                             decoding="async"
+                                             onerror="var avatar=this.closest('.leaderboard__avatar'); if(avatar){avatar.classList.remove('has-image');avatar.classList.add('is-placeholder');} this.remove();" />
                                     }
-                                    else
-                                    {
-                                        <span aria-hidden="true">@nameInitial</span>
-                                    }
+                                    <span class="leaderboard__avatar-fallback" aria-hidden="true">@nameInitial</span>
                                 </span>
                                 <span class="chat-status-dot @presenceClass" aria-hidden="true"></span>
                                 <span class="sr-only">@entry.PresenceLabel</span>
                             </span>
-                            <span class="leaderboard__meta">
-                                <span class="leaderboard__name">
-                                    <span>@entry.DisplayName</span>
-                                    @if (entry.IsCurrentUser)
-                                    {
-                                        <span class="leaderboard__badge">@Model.SelfBadgeLabel</span>
-                                    }
-                                </span>
-                                <span class="leaderboard__meta-sub">
-                                    <span class="leaderboard__presence">@entry.PresenceLabel</span>
-                                </span>
+                        </td>
+                        <td class="leaderboard__cell leaderboard__cell--player" data-label="Player">
+                            <span class="leaderboard__player">
+                                <span class="leaderboard__name truncate" title="@entry.DisplayName">@entry.DisplayName</span>
+                                @if (entry.IsCurrentUser)
+                                {
+                                    <span class="leaderboard__badge">@Model.SelfBadgeLabel</span>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(entry.RankTitle))
+                                {
+                                    <span class="leaderboard__role">@entry.RankTitle</span>
+                                }
                             </span>
                         </td>
-                        <td class="leaderboard__cell leaderboard__cell--rank" data-label="Status">
+                        <td class="leaderboard__cell leaderboard__cell--status" data-label="Status">
                             <span class="leaderboard__presence-chip">
                                 <span class="chat-status-dot @presenceClass" aria-hidden="true"></span>
                                 <span>@entry.PresenceLabel</span>
                             </span>
-                            <span class="leaderboard__rank" style="--rank-accent:@entry.AccentColor;--rank-glow:@entry.AccentHighlightColor;">@entry.RankTitle</span>
                         </td>
                         <td class="leaderboard__cell leaderboard__cell--level" data-label="@Model.LevelLabel">
-                            <span class="leaderboard__level">Lv. @entry.Level</span>
+                            <span class="leaderboard__level-badge">Lv. @entry.Level</span>
                         </td>
                         <td class="leaderboard__cell leaderboard__cell--xp" data-label="@Model.ExperienceLabel">
-                            <div class="leaderboard__xp">
+                            <div class="leaderboard__xp truncate" title="@entry.ExperiencePoints.ToString('N0', CultureInfo.CurrentCulture) XP">
+                                <strong>@entry.ExperiencePoints.ToString("N0", CultureInfo.CurrentCulture) XP</strong>
                                 @if (entry.ExperienceBreakdown is { Count: > 1 })
                                 {
-                                    <div class="leaderboard__xp-chips">
-                                        @foreach (var xpItem in entry.ExperienceBreakdown)
-                                        {
-                                            <span class="leaderboard__xp-chip">
-                                                <span class="leaderboard__xp-chip-label">@xpItem.Label</span>
-                                                <strong>@xpItem.Points.ToString("N0", CultureInfo.CurrentCulture) XP</strong>
-                                            </span>
-                                        }
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="leaderboard__xp-total">
-                                        <span>@Model.ExperienceLabel</span>
-                                        <strong>@entry.ExperiencePoints.ToString("N0", CultureInfo.CurrentCulture) XP</strong>
-                                    </div>
+                                    var breakdownSummary = string.Join(" · ", entry.ExperienceBreakdown.Select(x => $"{x.Label}: {x.Points.ToString("N0", CultureInfo.CurrentCulture)}"));
+                                    <span class="leaderboard__xp-breakdown" title="@breakdownSummary">@breakdownSummary</span>
                                 }
                             </div>
                         </td>
