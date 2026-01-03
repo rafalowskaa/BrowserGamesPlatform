@@ -39,7 +39,7 @@
                 </label>
             </div>
             <button type="button" class="ranking-control ranking-control--ghost" data-ranking-jump hidden>
-                <span>Jump to me</span>
+                <span>@Model.JumpToMeLabel</span>
             </button>
         </div>
     </header>
@@ -48,13 +48,13 @@
         <table class="leaderboard-table" data-ranking-table>
             <thead>
                 <tr>
-                    <th scope="col" class="leaderboard__col leaderboard__col--rank">Rank</th>
-                    <th scope="col" class="leaderboard__col leaderboard__col--avatar">Avatar</th>
-                    <th scope="col" class="leaderboard__col leaderboard__col--player">Player</th>
-                    <th scope="col" class="leaderboard__col leaderboard__col--status">Status</th>
+                    <th scope="col" class="leaderboard__col leaderboard__col--rank">@Model.RankLabel</th>
+                    <th scope="col" class="leaderboard__col leaderboard__col--avatar">@Model.AvatarLabel</th>
+                    <th scope="col" class="leaderboard__col leaderboard__col--player">@Model.PlayerLabel</th>
+                    <th scope="col" class="leaderboard__col leaderboard__col--status">@Model.StatusLabel</th>
                     <th scope="col" class="leaderboard__col leaderboard__col--level">@Model.LevelLabel</th>
                     <th scope="col" class="leaderboard__col leaderboard__col--xp">@Model.ExperienceLabel</th>
-                    <th scope="col" class="leaderboard__col leaderboard__col--actions" aria-label="Actions"></th>
+                    <th scope="col" class="leaderboard__col leaderboard__col--actions" aria-label="@Model.ActionsLabel">@Model.ActionsLabel</th>
                 </tr>
             </thead>
             <tbody class="leaderboard__body" data-ranking-list>
@@ -83,7 +83,7 @@
                         data-name="@entry.DisplayName"
                         data-tier="@entry.RankTitle"
                         data-rank="@entry.Position">
-                        <td class="leaderboard__cell leaderboard__cell--position" data-label="Rank">
+                        <td class="leaderboard__cell leaderboard__cell--position" data-label="@Model.RankLabel">
                             <div class="leaderboard__position">
                                 <span class="leaderboard__position-index">#@entry.Position</span>
                                 @if (entry.Position <= 3)
@@ -94,7 +94,7 @@
                                 }
                             </div>
                         </td>
-                        <td class="leaderboard__cell leaderboard__cell--avatar" data-label="Avatar">
+                        <td class="leaderboard__cell leaderboard__cell--avatar" data-label="@Model.AvatarLabel">
                             <span class="leaderboard__avatar@(string.IsNullOrEmpty(entry.AvatarUrl) ? " is-placeholder" : " has-image")" data-initial="@nameInitial">
                                 <span class="leaderboard__avatar-clip">
                                     @if (!string.IsNullOrEmpty(entry.AvatarUrl))
@@ -111,7 +111,7 @@
                                 <span class="sr-only">@entry.PresenceLabel</span>
                             </span>
                         </td>
-                        <td class="leaderboard__cell leaderboard__cell--player" data-label="Player">
+                        <td class="leaderboard__cell leaderboard__cell--player" data-label="@Model.PlayerLabel">
                             <span class="leaderboard__player">
                                 <span class="leaderboard__name truncate" title="@entry.DisplayName">@entry.DisplayName</span>
                                 @if (entry.IsCurrentUser)
@@ -124,7 +124,7 @@
                                 }
                             </span>
                         </td>
-                        <td class="leaderboard__cell leaderboard__cell--status" data-label="Status">
+                        <td class="leaderboard__cell leaderboard__cell--status" data-label="@Model.StatusLabel">
                             <span class="leaderboard__presence-chip">
                                 <span class="chat-status-dot @presenceClass" aria-hidden="true"></span>
                                 <span>@entry.PresenceLabel</span>

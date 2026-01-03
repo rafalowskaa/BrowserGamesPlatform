@@ -38,17 +38,23 @@ public class GlobalRankingSectionViewModel
 {
     public string Title { get; set; } = string.Empty;
     public string Subtitle { get; set; } = string.Empty;
+    public string RankLabel { get; set; } = string.Empty;
+    public string AvatarLabel { get; set; } = string.Empty;
+    public string PlayerLabel { get; set; } = string.Empty;
+    public string StatusLabel { get; set; } = string.Empty;
     public string SearchPlaceholder { get; set; } = string.Empty;
     public string FilterLabel { get; set; } = string.Empty;
     public string FilterAllLabel { get; set; } = string.Empty;
     public string LevelLabel { get; set; } = string.Empty;
     public string ExperienceLabel { get; set; } = string.Empty;
     public string EmptyLabel { get; set; } = string.Empty;
+    public string ActionsLabel { get; set; } = string.Empty;
     public string ActionsMessage { get; set; } = string.Empty;
     public string ActionsAddFriend { get; set; } = string.Empty;
     public string ActionsViewProfile { get; set; } = string.Empty;
     public string ActionsInvite { get; set; } = string.Empty;
     public string ActionsMoreLabel { get; set; } = string.Empty;
+    public string JumpToMeLabel { get; set; } = string.Empty;
     public string SelfBadgeLabel { get; set; } = string.Empty;
     public string AnchorId { get; set; } = "global-ranking";
     public GlobalRankingViewModel Data { get; set; } = new();

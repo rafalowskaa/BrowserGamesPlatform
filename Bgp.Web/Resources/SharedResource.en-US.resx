@@ -3219,6 +3219,18 @@
 	<data name="GlobalRanking_SearchPlaceholder" xml:space="preserve">
     <value>Search players</value>
   </data>
+	<data name="GlobalRanking_RankLabel" xml:space="preserve">
+    <value>Rank</value>
+  </data>
+	<data name="GlobalRanking_AvatarLabel" xml:space="preserve">
+    <value>Avatar</value>
+  </data>
+	<data name="GlobalRanking_PlayerLabel" xml:space="preserve">
+    <value>Player</value>
+  </data>
+	<data name="GlobalRanking_StatusLabel" xml:space="preserve">
+    <value>Status</value>
+  </data>
 	<data name="GlobalRanking_FilterLabel" xml:space="preserve">
     <value>Filter by rank</value>
   </data>
@@ -3230,6 +3242,9 @@
   </data>
 	<data name="GlobalRanking_ExperienceLabel" xml:space="preserve">
     <value>Experience</value>
+		</data>
+	<data name="GlobalRanking_Actions_Label" xml:space="preserve">
+    <value>Actions</value>
   </data>
 	<data name="GlobalRanking_Actions_Message" xml:space="preserve">
     <value>Send message</value>
@@ -3245,6 +3260,9 @@
   </data>
 	<data name="GlobalRanking_Actions_More" xml:space="preserve">
     <value>More actions</value>
+		</data>
+	<data name="GlobalRanking_JumpToMe_Label" xml:space="preserve">
+    <value>Jump to me</value>
   </data>
 	<data name="GlobalRanking_SelfBadge" xml:space="preserve">
     <value>You</value>
