@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Mvc;
 using Bgp.Web.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Bgp.Web.Models;
+using Microsoft.Extensions.Localization;
+using Bgp.Web.Resources;
 
 namespace Bgp.Web.Controllers.Api;
 
@@ -21,7 +23,12 @@ namespace Bgp.Web.Controllers.Api;
 public class FriendsController : ControllerBase
 {
     private readonly AppDbContext _db;
-    public FriendsController(AppDbContext db) => _db = db;
+    private readonly IStringLocalizer<SharedResource> _localizer;
+    public FriendsController(AppDbContext db, IStringLocalizer<SharedResource> localizer)
+    {
+        _db = db;
+        _localizer = localizer;
+    }
 
     private string? UserId =>
         User.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -65,15 +72,22 @@ public class FriendsController : ControllerBase
             .Select(f => f.RequesterId == uid ? f.AddresseeId : f.RequesterId)
             .ToListAsync();
 
+        var chatPartnerIds = await _db.ChatMessages
+            .Where(m => m.SenderId == uid || m.ReceiverId == uid)
+            .Select(m => m.SenderId == uid ? m.ReceiverId : m.SenderId)
+            .Distinct()
+            .ToListAsync();
+
         var allIds = friendIds
             .Concat(outgoing)
             .Concat(incoming)
             .Concat(blocked)
+            .Concat(chatPartnerIds)
             .Distinct()
             .ToList();
 
         var profileLookup = allIds.Count == 0
-            ? new Dictionary<string, (string? DisplayName, string? Email, string? UserName, string? AvatarUrl, string? StatusMessage, UserPresenceStatus PresenceStatus, bool IsInvisible)>()
+            ? new Dictionary<string, (string? DisplayName, string? Email, string? UserName, string? AvatarUrl, string? StatusMessage, UserPresenceStatus PresenceStatus, bool IsInvisible, ProfileVisibility DisplayNameVisibility)>()
             : (await _db.Users
                 .AsNoTracking()
                 .Where(u => allIds.Contains(u.Id))
@@ -86,10 +100,11 @@ public class FriendsController : ControllerBase
                     u.AvatarUrl,
                     u.StatusMessage,
                     u.PresenceStatus,
-                    u.IsInvisible
+                    u.IsInvisible,
+                    u.DisplayNameVisibility
                 })
                 .ToListAsync())
-                .ToDictionary(u => u.Id, u => (u.DisplayName, u.Email, u.UserName, u.AvatarUrl, u.StatusMessage, u.PresenceStatus, u.IsInvisible));
+                .ToDictionary(u => u.Id, u => (u.DisplayName, u.Email, u.UserName, u.AvatarUrl, u.StatusMessage, u.PresenceStatus, u.IsInvisible, u.DisplayNameVisibility));
 
         var rankLookup = await BuildRankSnapshotsAsync(friendIds.Concat(blocked).ToList());
 
@@ -101,14 +116,35 @@ public class FriendsController : ControllerBase
                 .Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionaryAsync(g => g.Key, g => g.Count);
 
+        bool CanSeeDisplayName(string id)
+        {
+            if (!profileLookup.TryGetValue(id, out var profile))
+            {
+                return true;
+            }
+
+            if (profile.DisplayNameVisibility == ProfileVisibility.Everyone)
+            {
+                return true;
+            }
+
+            return friendIds.Contains(id) || id == uid;
+        }
+
         string ResolveName(string id)
         {
             if (profileLookup.TryGetValue(id, out var profile))
             {
+                if (!CanSeeDisplayName(id))
+                {
+                    return _localizer["Dashboard_Profile_Private_DisplayName"].Value;
+                }
                 return DisplayNameFormatter.Format(profile.DisplayName, profile.Email, profile.UserName, id);
             }
 
-            return DisplayNameFormatter.Format(null, null, null, id);
+            return CanSeeDisplayName(id)
+                ? DisplayNameFormatter.Format(null, null, null, id)
+                : _localizer["Dashboard_Profile_Private_DisplayName"].Value;
         }
         string? ResolveUserName(string id) => profileLookup.TryGetValue(id, out var profile) ? profile.UserName : null;
 
@@ -152,7 +188,8 @@ public class FriendsController : ControllerBase
                     ResolveStatusMessage(id),
                     ResolvePresence(id),
                     ResolveInvisible(id),
-                    ResolveUnread(id));
+                    ResolveUnread(id),
+                    false);
             })
             .ToList();
 
@@ -172,7 +209,8 @@ public class FriendsController : ControllerBase
                     ResolveStatusMessage(id),
                     ResolvePresence(id),
                     ResolveInvisible(id),
-                    0);
+                    0,
+                    false);
             })
             .ToList();
 
@@ -192,7 +230,36 @@ public class FriendsController : ControllerBase
                     ResolveStatusMessage(id),
                     ResolvePresence(id),
                     ResolveInvisible(id),
-                    0);
+                    0,
+                    false);
+            })
+            .ToList();
+
+        var conversationOnlyIds = chatPartnerIds
+            .Except(friendIds)
+            .Except(outgoing)
+            .Except(incoming)
+            .Except(blocked)
+            .ToList();
+
+        var conversationDtos = conversationOnlyIds
+            .Select(id =>
+            {
+                var rank = ResolveRank(id);
+                return new FriendDto(
+                    id,
+                    ResolveName(id),
+                    ResolveUserName(id),
+                    rank.Title,
+                    ResolveAvatar(id),
+                    rank.AccentColor,
+                    FriendshipStatus.Pending,
+                    false,
+                    ResolveStatusMessage(id),
+                    ResolvePresence(id),
+                    ResolveInvisible(id),
+                    0,
+                    true);
             })
             .ToList();
 
@@ -212,11 +279,16 @@ public class FriendsController : ControllerBase
                     ResolveStatusMessage(id),
                     ResolvePresence(id),
                     ResolveInvisible(id),
-                    0);
+                    0,
+                    false);
             })
             .ToList();
 
-        return Ok(acceptedDtos.Concat(outgoingDtos).Concat(incomingDtos).Concat(blockedDtos));
+        return Ok(acceptedDtos
+            .Concat(outgoingDtos)
+            .Concat(incomingDtos)
+            .Concat(conversationDtos)
+            .Concat(blockedDtos));
 
         static string? NormalizeStatus(string? value)
         {
@@ -331,9 +403,22 @@ public class FriendsController : ControllerBase
                  u.AvatarUrl,
                  u.StatusMessage,
                  u.PresenceStatus,
-                 u.IsInvisible
+                 u.IsInvisible,
+                 u.DisplayNameVisibility
              })
             .ToListAsync();
+
+        var hiddenLabel = _localizer["Dashboard_Profile_Private_DisplayName"].Value;
+        string FormatDisplayName(string id, string? displayName, string? email, string? userName, ProfileVisibility visibility)
+        {
+            var isFriend = acceptedFriendIds.Contains(id);
+            if (visibility != ProfileVisibility.Everyone && !isFriend)
+            {
+                return hiddenLabel;
+            }
+
+            return DisplayNameFormatter.Format(displayName, email, userName, id);
+        }
 
         var formattedResults = results
             .GroupBy(u => u.Id)
@@ -345,7 +430,7 @@ public class FriendsController : ControllerBase
                      : ((FriendshipStatus?)null, false);
                 return new FriendSearchResultDto(
                     u.Id,
-                    DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
+                    FormatDisplayName(u.Id, u.DisplayName, u.Email, u.UserName, u.DisplayNameVisibility),
                     u.UserName,
                     u.AvatarUrl,
                     relation.Item1,

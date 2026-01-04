@@ -15,7 +15,8 @@ public record FriendDto(
     string? StatusMessage,
     UserPresenceStatus Presence,
     bool IsInvisible,
-    int UnreadCount);
+    int UnreadCount,
+    bool ConversationOnly = false);
 
 public record FriendSearchResultDto(
     string UserId,

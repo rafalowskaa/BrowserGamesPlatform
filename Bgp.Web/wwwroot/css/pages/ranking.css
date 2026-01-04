@@ -1,5 +1,5 @@
 ﻿.ranking-section {
-    --ranking-scale: 1;
+    --ranking-scale: 0.65;
     margin: var(--space-4) auto;
     padding: var(--space-4);
     border-radius: var(--radius-lg);
@@ -135,20 +135,20 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
     max-height: 720px;
     position: relative;
-    padding: 0.25rem 0.75rem 1rem;
+    padding: 0.25rem 0.5rem 0.75rem;
 }
 
 .leaderboard-table {
     width: 100%;
-    padding: 0.25rem 0.75rem 1rem;
+    padding: 0.25rem 0.5rem 0.75rem;
     border-collapse: separate;
-    border-spacing: 1.6rem 1.25rem;
+    padding: 0.25rem 0.5rem 0.75rem;
     table-layout: fixed;
 }
 
 .leaderboard__col {
-    text-align: left;
-    padding: 1.1rem 1.2rem;
+    text-align: center;
+    padding: 0.9rem 1rem;
     color: rgba(148, 163, 184, 0.9);
     font-weight: 900;
     font-size: calc(1.85rem * var(--ranking-scale));
@@ -163,61 +163,61 @@
 }
 
 .leaderboard__col--rank {
-    width: 8%;
+    width: 9%;
     min-width: 5rem;
 }
 
-.leaderboard__col--avatar {
-    width: 10%;
-    min-width: 6rem;
+.leaderboard__col--tier {
+    width: 14%;
+    min-width: 10rem;
 }
 
 .leaderboard__col--player {
     min-width: 18rem;
-    width: 24%;
+    width: 26%;
 }
 
 .leaderboard__col--most-played {
-    min-width: 14rem;
-    width: 18%;
+    min-width: 12rem;
+    width: 17%;
 }
 
 .leaderboard__col--level {
-    width: 11%;
+    width: 10%;
 }
 
 .leaderboard__col--xp {
-    width: 21%;
-    min-width: 13rem;
+    width: 20%;
+    min-width: 12rem;
 }
 
 .leaderboard__col--actions {
     width: 8%;
-    text-align: right;
+    text-align: center;
 }
 
 .leaderboard__cell--position {
-    width: 8%
-}
-
-.leaderboard__cell--avatar {
-    width: 10%;
+    width: 9%
 }
 
 .leaderboard__cell--player {
-    width: 24%;
+    width: 26%;
+}
+
+.leaderboard__cell--tier {
+    width: 14%;
 }
 
 .leaderboard__cell--most-played {
-    width: 18%;
+    width: 17%;
 }
 
 .leaderboard__cell--level {
-    width: 11%;
+    width: 10%;
 }
 
 .leaderboard__cell--xp {
-    width: 21%;
+    width: 20%;
 }
 
 .leaderboard__cell--actions {
@@ -322,21 +322,22 @@
     }
 
 .leaderboard__cell {
-    padding: 1.35rem 1.6rem;
+    padding: 1rem 1.1rem;
     color: #e2e8f0;
     vertical-align: middle;
     border-bottom: 0;
     white-space: nowrap;
     font-size: calc(1.83rem * var(--ranking-scale));
+    text-align: center;
 }
 
 .leaderboard__cell--position,
-.leaderboard__cell--avatar,
 .leaderboard__cell--player,
+.leaderboard__cell--tier,
 .leaderboard__cell--status,
 .leaderboard__cell--level,
 .leaderboard__cell--xp {
-    text-align: left;
+    text-align: center;
 }
 
 .leaderboard__cell--player,
@@ -346,7 +347,7 @@
 }
 
 .leaderboard__cell--actions {
-    text-align: right;
+    text-align: center;
     cursor: default;
 }
 
@@ -357,6 +358,7 @@
     font-weight: 800;
     font-size: calc(2.25rem * var(--ranking-scale));
     color: rgba(226, 232, 240, 0.95);
+    justify-content: center;
 }
 
 .leaderboard__position-index {
@@ -380,7 +382,7 @@
 }
 
 .leaderboard__medal {
-    font-size: calc(2rem * var(--ranking-scale));
+    font-size: calc(2.6rem * var(--ranking-scale));
     line-height: 1;
 }
 
@@ -543,10 +545,12 @@
 .leaderboard__player {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
+    justify-content: center;
+    gap: 0.8rem;
     min-width: 0;
     max-width: 100%;
     line-height: 1.2;
+    flex-wrap: wrap;
 }
 
 .leaderboard__name {
@@ -554,11 +558,14 @@
     color: #e2e8f0;
     font-size: calc(1.95rem * var(--ranking-scale));
     min-width: 0;
+    text-align: center;
 }
 
 .leaderboard__name-link {
     text-decoration: none;
     transition: color 0.2s ease;
+    white-space: normal;
+    word-break: break-word;
 }
 
     .leaderboard__name-link:hover,
@@ -577,16 +584,20 @@
     letter-spacing: 0.01em;
 }
 
-.leaderboard__role {
+.leaderboard__tier {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.75rem;
     background: rgba(94, 234, 212, 0.12);
     color: #7dd3fc;
     border: 1px solid rgba(125, 211, 252, 0.4);
-    border-radius: 0.75rem;
-    padding: 0.2rem 0.65rem;
     font-size: calc(1.5rem * var(--ranking-scale));
     font-weight: 700;
+    letter-spacing: 0.04em;
+    min-width: 7rem;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
 }
 
 .leaderboard__presence-chip {
@@ -612,10 +623,11 @@
     color: #e0f2fe;
     font-weight: 700;
     max-width: 100%;
-    white-space: nowrap;
+    white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: calc(1.6rem * var(--ranking-scale));
+    white-space: normal;
 }
 
     .leaderboard__presence-chip .chat-status-dot {
@@ -643,7 +655,7 @@
 .leaderboard__xp {
     display: inline-flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.35rem;
     color: rgba(148, 163, 184, 0.8);
     width: 100%;
@@ -708,7 +720,7 @@
 }
 
 .leaderboard__cell--actions {
-    text-align: right;
+    text-align: center;
 }
 
 .truncate {
@@ -739,7 +751,7 @@
         outline: none;
         box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.16);
         color: #e2e8f0;
-        transform: translateY(-1px);
+        transform: none;
     }
 
 .leaderboard-table .leaderboard__cell--actions .leaderboard__menu-btn {

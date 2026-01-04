@@ -60,7 +60,7 @@
         <table class="leaderboard-table" data-ranking-table>
             <colgroup>
                 <col class="leaderboard__col--rank" />
-                <col class="leaderboard__col--avatar" />
+                <col class="leaderboard__col--tier" />
                 <col class="leaderboard__col--player" />
                 <col class="leaderboard__col--most-played" />
                 <col class="leaderboard__col--level" />
@@ -70,7 +70,7 @@
             <thead>
                 <tr>
                     <th scope="col" class="leaderboard__col leaderboard__col--rank">@Model.RankLabel</th>
-                    <th scope="col" class="leaderboard__col leaderboard__col--avatar">@Model.AvatarLabel</th>
+                    <th scope="col" class="leaderboard__col leaderboard__col--tier">@Model.RankTitleLabel</th>
                     <th scope="col" class="leaderboard__col leaderboard__col--player">@Model.PlayerLabel</th>
                     <th scope="col" class="leaderboard__col leaderboard__col--most-played">@Model.MostPlayedGameLabel</th>
                     <th scope="col" class="leaderboard__col leaderboard__col--level">@Model.LevelLabel</th>
@@ -111,30 +111,32 @@
                                 }
                             </div>
                         </td>
-                        <td class="leaderboard__cell leaderboard__cell--avatar" data-label="@Model.AvatarLabel">
-                            <span class="leaderboard__avatar@(hasAvatar ? " has-image" : " is-placeholder")"
-                                  data-initial="@nameInitial"
-                                  data-has-avatar="@(hasAvatar ? "true" : "false")">
-                                <span class="leaderboard__avatar-clip">
-                                    @if (hasAvatar)
-                                    {
-                                        <img src="@entry.AvatarUrl"
-                                             alt="@entry.DisplayName"
-                                             loading="lazy"
-                                             decoding="async"
-                                             width="96"
-                                             height="96"
-                                             onerror="var avatar=this.closest('.leaderboard__avatar'); if(avatar){avatar.classList.remove('has-image');avatar.classList.add('is-placeholder'); var fallback=avatar.querySelector('.leaderboard__avatar-fallback'); if(fallback){fallback.hidden=false;}} this.remove();" />
-                                    }
-                                    <span class="leaderboard__avatar-fallback" aria-hidden="true" @(hasAvatar ? "hidden" : string.Empty)></span>
-                                </span>
-                               
-                                <span class="sr-only">@entry.PresenceLabel</span>
+                        <td class="leaderboard__cell leaderboard__cell--tier" data-label="@Model.RankTitleLabel">
+                            <span class="leaderboard__tier" title="@entry.RankTitle">
+                                @(!string.IsNullOrWhiteSpace(entry.RankTitle) ? entry.RankTitle : Model.RankTitleUnknownLabel)
                             </span>
                         </td>
                         <td class="leaderboard__cell leaderboard__cell--player" data-label="@Model.PlayerLabel">
                             <span class="leaderboard__player">
-                                <a class="leaderboard__name leaderboard__name-link truncate"
+                                <span class="leaderboard__avatar@(hasAvatar ? " has-image" : " is-placeholder")"
+                                      data-initial="@nameInitial"
+                                      data-has-avatar="@(hasAvatar ? "true" : "false")">
+                                    <span class="leaderboard__avatar-clip">
+                                        @if (hasAvatar)
+                                        {
+                                            <img src="@entry.AvatarUrl"
+                                                 alt="@entry.DisplayName"
+                                                 loading="lazy"
+                                                 decoding="async"
+                                                 width="96"
+                                                 height="96"
+                                                 onerror="var avatar=this.closest('.leaderboard__avatar'); if(avatar){avatar.classList.remove('has-image');avatar.classList.add('is-placeholder'); var fallback=avatar.querySelector('.leaderboard__avatar-fallback'); if(fallback){fallback.hidden=false;}} this.remove();" />
+                                        }
+                                        <span class="leaderboard__avatar-fallback" aria-hidden="true" @(hasAvatar ? "hidden" : string.Empty)></span>
+                                    </span>
+                                    <span class="sr-only">@entry.PresenceLabel</span>
+                                </span>
+                                <a class="leaderboard__name leaderboard__name-link"
                                    href="@profileUrl"
                                    title="@entry.DisplayName">
                                     @entry.DisplayName
@@ -143,10 +145,7 @@
                                 {
                                     <span class="leaderboard__badge">@Model.SelfBadgeLabel</span>
                                 }
-                                @if (!string.IsNullOrWhiteSpace(entry.RankTitle))
-                                {
-                                    <span class="leaderboard__role">@entry.RankTitle</span>
-                                }
+                                
                             </span>
                         </td>
                         <td class="leaderboard__cell leaderboard__cell--most-played" data-label="@Model.MostPlayedGameLabel">

@@ -48,6 +48,8 @@ public class GlobalRankingSectionViewModel
     public string FilterAllLabel { get; set; } = string.Empty;
     public string LevelLabel { get; set; } = string.Empty;
     public string ExperienceLabel { get; set; } = string.Empty;
+    public string RankTitleLabel { get; set; } = string.Empty;
+    public string RankTitleUnknownLabel { get; set; } = string.Empty;
     public string EmptyLabel { get; set; } = string.Empty;
     public string ActionsLabel { get; set; } = string.Empty;
     public string ActionsMessage { get; set; } = string.Empty;

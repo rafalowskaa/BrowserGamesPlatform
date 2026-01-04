@@ -5125,6 +5125,37 @@
                 const outgoing = [];
                 const seenFriendIds = new Set();
                 data.forEach((row) => {
+                    const normalizedPresence = row.isInvisible ? PRESENCE_OFFLINE : normalizePresence(row.presence);
+                    if (row.conversationOnly) {
+                        const key = normalizeId(row.userId);
+                        const unreadCount = Math.max(0, row.unreadCount || 0);
+                        const existing = getFriend(row.userId);
+                        const contact = existing || {
+                            userId: row.userId,
+                            displayName: row.displayName,
+                            userName: row.userName || null,
+                            avatarUrl: row.avatarUrl,
+                            statusMessage: row.statusMessage,
+                            presence: normalizedPresence,
+                            isInvisible: !!row.isInvisible,
+                            unreadCount,
+                            isFriend: false,
+                            isArchived: false,
+                            keepArchived: false,
+                            lastNotifiedMessageId: null
+                        };
+                        contact.displayName = row.displayName || contact.displayName || row.userId;
+                        contact.userName = row.userName || contact.userName || null;
+                        contact.avatarUrl = row.avatarUrl || contact.avatarUrl || null;
+                        contact.statusMessage = row.statusMessage || contact.statusMessage || '';
+                        contact.presence = normalizedPresence;
+                        contact.isInvisible = !!row.isInvisible;
+                        contact.unreadCount = unreadCount;
+                        setFriend(contact);
+                        ensureStrangerContact(contact);
+                        seenFriendIds.add(key);
+                        return;
+                    }
                     if (row.status === 1) {
                         const key = normalizeId(row.userId);
                         const existing = getFriend(row.userId);
@@ -5134,7 +5165,7 @@
                             existing.userName = row.userName || existing.userName;
                             existing.avatarUrl = row.avatarUrl;
                             existing.statusMessage = row.statusMessage;
-                            existing.presence = normalizePresence(row.presence);
+                            existing.presence = normalizedPresence;
                             existing.isInvisible = !!row.isInvisible;
                             existing.unreadCount = unreadCount;
                             existing.isFriend = true;
@@ -5148,7 +5179,7 @@
                                 userName: row.userName || null,
                                 avatarUrl: row.avatarUrl,
                                 statusMessage: row.statusMessage,
-                                presence: normalizePresence(row.presence),
+                                presence: normalizedPresence,
                                 isInvisible: !!row.isInvisible,
                                 unreadCount,
                                 isFriend: true,
