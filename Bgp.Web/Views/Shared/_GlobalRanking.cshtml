@@ -24,7 +24,7 @@
          data-ranking-report-success="@Model.ActionsReportSuccess"
          data-ranking-report-error="@Model.ActionsReportError">
     <header class="ranking-header">
-        <div>
+        <div class="ranking-heading">
             <p class="ranking-eyebrow">@Model.Subtitle</p>
             <h2>@Model.Title</h2>
         </div>
@@ -119,7 +119,9 @@
                             </div>
                         </td>
                         <td class="leaderboard__cell leaderboard__cell--avatar" data-label="@Model.AvatarLabel">
-                            <span class="leaderboard__avatar@(hasAvatar ? " has-image" : " is-placeholder")" data-initial="@nameInitial">
+                            <span class="leaderboard__avatar@(hasAvatar ? " has-image" : " is-placeholder")"
+                                  data-initial="@nameInitial"
+                                  data-has-avatar="@(hasAvatar ? "true" : "false")">
                                 <span class="leaderboard__avatar-clip">
                                     @if (hasAvatar)
                                     {
