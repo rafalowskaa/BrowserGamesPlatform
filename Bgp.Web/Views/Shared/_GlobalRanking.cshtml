@@ -81,14 +81,7 @@
             <tbody class="leaderboard__body" data-ranking-list>
                 @foreach (var entry in entries)
                 {
-                    var presenceClass = entry.PresenceStatus switch
-                    {
-                        Bgp.Domain.Enums.UserPresenceStatus.Available => "is-online",
-                        Bgp.Domain.Enums.UserPresenceStatus.Away => "is-away",
-                        Bgp.Domain.Enums.UserPresenceStatus.DoNotDisturb => "is-dnd",
-                        Bgp.Domain.Enums.UserPresenceStatus.Invisible => "is-invisible",
-                        _ => "is-offline"
-                    };
+                    
                     var nameInitial = !string.IsNullOrWhiteSpace(entry.DisplayName)
                     ? entry.DisplayName.Trim()[0]
                     : '?';
@@ -135,7 +128,7 @@
                                     }
                                     <span class="leaderboard__avatar-fallback" aria-hidden="true" @(hasAvatar ? "hidden" : string.Empty)></span>
                                 </span>
-                                <span class="chat-status-dot @presenceClass" aria-hidden="true"></span>
+                               
                                 <span class="sr-only">@entry.PresenceLabel</span>
                             </span>
                         </td>

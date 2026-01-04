@@ -1,5 +1,5 @@
 ﻿.ranking-section {
-    --ranking-scale: 1.5;
+    --ranking-scale: 1;
     margin: var(--space-4) auto;
     padding: var(--space-4);
     border-radius: var(--radius-lg);
@@ -415,7 +415,7 @@
 
 .leaderboard__avatar {
     position: relative;
-    --leaderboard-avatar-size: 4.75rem;
+    --leaderboard-avatar-size: 2.5rem;
     width: var(--leaderboard-avatar-size);
     height: var(--leaderboard-avatar-size);
     flex: 0 0 var(--leaderboard-avatar-size);
