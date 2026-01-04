@@ -2570,6 +2570,24 @@
 </data>
 	<data name="Home_Hero_Cta_Register" xml:space="preserve">
   <value>Dołącz za darmo</value>
+		</data>
+	<data name="Home_Roadmap_Title" xml:space="preserve">
+  <value>Nowe lub do rozwinięcia</value>
+</data>
+	<data name="Home_Roadmap_Subtitle" xml:space="preserve">
+  <value>Obszary, które wprowadzamy w następnej kolejności.</value>
+</data>
+	<data name="Home_Roadmap_Security_Title" xml:space="preserve">
+  <value>Bezpieczeństwo i ochrona danych</value>
+</data>
+	<data name="Home_Roadmap_Security_Description" xml:space="preserve">
+  <value>Szyfrowanie danych użytkowników oraz zabezpieczenia przed manipulowaniem wynikami w grach.</value>
+</data>
+	<data name="Home_Roadmap_Comments_Title" xml:space="preserve">
+  <value>Sekcja komentarzy w każdej grze</value>
+</data>
+	<data name="Home_Roadmap_Comments_Description" xml:space="preserve">
+  <value>Komentarze do edycji i usuwania przez administratorów oraz moderatorów, z możliwością cytowania, lajków i usuwania własnych wpisów.</value>
 </data>
 	<data name="Home_GameOfTheDay_Label" xml:space="preserve">
   <value>Gra dnia</value>
@@ -3150,7 +3168,7 @@
     <value>Gracz</value>
   </data>
 	<data name="GlobalRanking_MostPlayedLabel" xml:space="preserve">
-    <value>Najczęściej grana gra</value>
+    <value>Top gra</value>
   </data>
 	<data name="GlobalRanking_FilterLabel" xml:space="preserve">
     <value>Filtruj po randze</value>

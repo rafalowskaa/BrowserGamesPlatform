@@ -5138,10 +5138,10 @@
                             statusMessage: row.statusMessage,
                             presence: normalizedPresence,
                             isInvisible: !!row.isInvisible,
-                            unreadCount,
-                            isFriend: false,
-                            isArchived: false,
-                            keepArchived: false,
+                            isFriend: true,
+                            isConversationOnly: true,
+                            isArchived: isThreadArchived(row.userId),
+                            keepArchived: shouldKeepArchived(row.userId),
                             lastNotifiedMessageId: null
                         };
                         contact.displayName = row.displayName || contact.displayName || row.userId;
@@ -5151,8 +5151,12 @@
                         contact.presence = normalizedPresence;
                         contact.isInvisible = !!row.isInvisible;
                         contact.unreadCount = unreadCount;
+                        contact.isFriend = true;
+                        contact.isConversationOnly = true;
+                        contact.isArchived = isThreadArchived(row.userId);
+                        contact.keepArchived = shouldKeepArchived(row.userId);
                         setFriend(contact);
-                        ensureStrangerContact(contact);
+                        accepted.push(contact);
                         seenFriendIds.add(key);
                         return;
                     }

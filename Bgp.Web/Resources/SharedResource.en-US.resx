@@ -2675,6 +2675,24 @@
 </data>
 	<data name="Home_Hero_Cta_Register" xml:space="preserve">
   <value>Join for free</value>
+		</data>
+	<data name="Home_Roadmap_Title" xml:space="preserve">
+  <value>Upcoming &amp; in progress</value>
+</data>
+	<data name="Home_Roadmap_Subtitle" xml:space="preserve">
+  <value>Focus areas we're rolling out next.</value>
+</data>
+	<data name="Home_Roadmap_Security_Title" xml:space="preserve">
+  <value>Security &amp; data protection</value>
+</data>
+	<data name="Home_Roadmap_Security_Description" xml:space="preserve">
+  <value>User data encryption and anti-cheat safeguards to prevent score tampering.</value>
+</data>
+	<data name="Home_Roadmap_Comments_Title" xml:space="preserve">
+  <value>Per-game comments &amp; moderation</value>
+</data>
+	<data name="Home_Roadmap_Comments_Description" xml:space="preserve">
+  <value>Editable, quotable threads with likes and admin/moderator controls to remove or manage feedback.</value>
 </data>
 	<data name="Home_GameOfTheDay_Label" xml:space="preserve">
   <value>Game of the day</value>
@@ -3229,7 +3247,7 @@
     <value>Player</value>
   </data>
 	<data name="GlobalRanking_MostPlayedLabel" xml:space="preserve">
-    <value>Most played game</value>
+    <value>Top game</value>
   </data>
 	<data name="GlobalRanking_FilterLabel" xml:space="preserve">
     <value>Filter by rank</value>

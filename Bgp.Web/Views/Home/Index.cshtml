@@ -487,6 +487,7 @@ else
             ActionsLabel = L["GlobalRanking_Actions_Label"].Value,
             ActionsMessage = L["GlobalRanking_Actions_Message"].Value,
             ActionsAddFriend = L["GlobalRanking_Actions_AddFriend"].Value,
+            ActionsRemoveFriend = L["Dashboard_Friends_Remove"].Value,
             ActionsInvite = L["GlobalRanking_Actions_Invite"].Value,
             ActionsViewProfile = L["GlobalRanking_Actions_ViewProfile"].Value,
             ActionsMoreLabel = L["GlobalRanking_Actions_More"].Value,
@@ -529,6 +530,23 @@ else
                 <a class="btn-primary" asp-controller="Account" asp-action="Register">@L["Home_Community_Cta"].Value</a>
             }
         </div>
+    </section>
+
+    <section class="home-section home-roadmap">
+        <div class="home-section__header">
+            <h2>@L["Home_Roadmap_Title"].Value</h2>
+            <p>@L["Home_Roadmap_Subtitle"].Value</p>
+        </div>
+        <ul class="home-roadmap__list">
+            <li class="home-roadmap__item">
+                <h3>@L["Home_Roadmap_Security_Title"].Value</h3>
+                <p>@L["Home_Roadmap_Security_Description"].Value</p>
+            </li>
+            <li class="home-roadmap__item">
+                <h3>@L["Home_Roadmap_Comments_Title"].Value</h3>
+                <p>@L["Home_Roadmap_Comments_Description"].Value</p>
+            </li>
+        </ul>
     </section>
 
     @section Scripts

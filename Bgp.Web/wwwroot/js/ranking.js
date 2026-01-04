@@ -41,6 +41,16 @@
                 console.error('Unable to send friend request from leaderboard.', err);
             }
         },
+        removeFriend: async (userId) => {
+            try {
+                await fetch(`/api/friends/${encodeURIComponent(userId)}`, {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                });
+            } catch (err) {
+                console.error('Unable to remove friend from leaderboard.', err);
+            }
+        },
         viewProfile: (userId) => {
             if (!userId) return;
             window.location.href = `/dashboard/profile/${encodeURIComponent(userId)}`;
@@ -123,12 +133,44 @@
         }
 
         closeMenus();
+        configureMenuForRow(row, portal);
         portal.hidden = false;
         portal.style.visibility = 'hidden';
         positionMenu(button, portal);
         portal.style.visibility = 'visible';
         button.setAttribute('aria-expanded', 'true');
         activeMenu = { button, row, portal };
+    }
+
+    function configureMenuForRow(row, portal) {
+        if (!portal || !row) {
+            return;
+        }
+        const isFriend = row.dataset.isFriend === 'true';
+        const isSelf = row.dataset.isSelf === 'true';
+        const controls = {
+            friend: portal.querySelector('[data-ranking-action="friend"]'),
+            removeFriend: portal.querySelector('[data-ranking-action="remove-friend"]'),
+            profile: portal.querySelector('[data-ranking-action="profile"]'),
+            invite: portal.querySelector('[data-ranking-action="invite"]'),
+            message: portal.querySelector('[data-ranking-action="message"]'),
+            block: portal.querySelector('[data-ranking-action="block"]'),
+            report: portal.querySelector('[data-ranking-action="report"]')
+        };
+
+        const setVisible = (el, visible) => {
+            if (!el) return;
+            el.hidden = !visible;
+            el.tabIndex = visible ? 0 : -1;
+        };
+
+        setVisible(controls.friend, !isFriend && !isSelf);
+        setVisible(controls.removeFriend, isFriend && !isSelf);
+        setVisible(controls.profile, !isFriend && !isSelf);
+        setVisible(controls.invite, !isSelf);
+        setVisible(controls.message, !isSelf);
+        setVisible(controls.block, !isSelf);
+        setVisible(controls.report, !isSelf);
     }
 
     function handleActionClick(actionButton, row) {
@@ -148,6 +190,10 @@
                 break;
             case 'friend':
                 api.addFriend(userId);
+                break;
+            case 'remove-friend':
+                api.removeFriend(userId);
+                row.dataset.isFriend = 'false';
                 break;
             case 'profile':
                 api.viewProfile(userId);

@@ -289,33 +289,7 @@
     <script type="application/json" id="gameDetailsConfig">@Html.Raw(JsonSerializer.Serialize(config))</script>
 </section>
 
-<section class="panel">
-    <h3>@L["Details_LeaderboardTitle"].Value</h3>
-    <div id="leaderboard" class="leaderboard" aria-live="polite">@L["Details_LeaderboardLoading"].Value</div>
-</section>
-
 @section Scripts {
-    <script>
-        const leaderboardErrorText = @JsonSerializer.Serialize(L["Details_LeaderboardError"].Value);
-        const leaderboardEmptyText = @JsonSerializer.Serialize(L["Details_LeaderboardEmpty"].Value);
-        (async () => {
-            const leaderboardElement = document.getElementById('leaderboard');
-            if (!leaderboardElement) { return; }
-            try {
-                const r = await fetch(`/api/games/@game.Id/leaderboard?top=10`);
-                if (!r.ok) { leaderboardElement.innerText = leaderboardErrorText; return; }
-                const data = await r.json();
-                if (!Array.isArray(data) || data.length === 0) {
-                    leaderboardElement.innerHTML = `<p class="muted">${leaderboardEmptyText}</p>`;
-                    return;
-                }
-                const listItems = data.map((x, index) => `<li><span class="leaderboard__position">${index + 1}.</span><span class="leaderboard__name">${x.userName}</span><span class="leaderboard__score">${x.bestScore}</span></li>`);
-                leaderboardElement.innerHTML = `<ol class="leaderboard__list">${listItems.join('')}</ol>`;
-            } catch (err) {
-                console.error(err);
-                leaderboardElement.innerText = leaderboardErrorText;
-            }
-        })();
-    </script>
+    
     <script src="~/js/game-details.js" asp-append-version="true"></script>
 }

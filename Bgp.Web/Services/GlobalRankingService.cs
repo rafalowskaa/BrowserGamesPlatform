@@ -117,16 +117,26 @@ public class GlobalRankingService
             .Select(f => new { f.RequesterId, f.AddresseeId })
             .ToListAsync(cancellationToken);
 
+        var viewerFriendIds = new HashSet<string>(StringComparer.Ordinal);
+
         foreach (var friendship in friendships)
         {
             if (!string.IsNullOrWhiteSpace(friendship.RequesterId))
             {
                 friendCounts[friendship.RequesterId] = friendCounts.GetValueOrDefault(friendship.RequesterId) + 1;
+                if (viewerUserId is not null && string.Equals(friendship.RequesterId, viewerUserId, StringComparison.Ordinal))
+                {
+                    viewerFriendIds.Add(friendship.AddresseeId);
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(friendship.AddresseeId))
             {
                 friendCounts[friendship.AddresseeId] = friendCounts.GetValueOrDefault(friendship.AddresseeId) + 1;
+                if (viewerUserId is not null && string.Equals(friendship.AddresseeId, viewerUserId, StringComparison.Ordinal))
+                {
+                    viewerFriendIds.Add(friendship.RequesterId);
+                }
             }
         }
 
@@ -194,6 +204,7 @@ public class GlobalRankingService
                 PresenceLabel = presenceLabel,
                 AccentColor = rank.AccentColor,
                 AccentHighlightColor = rank.AccentHighlightColor,
+                IsFriend = viewerFriendIds.Contains(user.Id),
                 IsCurrentUser = viewerUserId is not null && string.Equals(user.Id, viewerUserId, StringComparison.Ordinal)
             });
         }

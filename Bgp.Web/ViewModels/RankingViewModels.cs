@@ -26,6 +26,7 @@ public class GlobalRankingEntryViewModel
     public string PresenceLabel { get; set; } = string.Empty;
     public string AccentColor { get; set; } = "#38bdf8";
     public string AccentHighlightColor { get; set; } = "#a855f7";
+    public bool IsFriend { get; set; }
     public IReadOnlyList<ExperienceBreakdownViewModel> ExperienceBreakdown { get; set; } = Array.Empty<ExperienceBreakdownViewModel>();
 }
 
@@ -54,6 +55,7 @@ public class GlobalRankingSectionViewModel
     public string ActionsLabel { get; set; } = string.Empty;
     public string ActionsMessage { get; set; } = string.Empty;
     public string ActionsAddFriend { get; set; } = string.Empty;
+    public string ActionsRemoveFriend { get; set; } = string.Empty;
     public string ActionsViewProfile { get; set; } = string.Empty;
     public string ActionsInvite { get; set; } = string.Empty;
     public string ActionsMoreLabel { get; set; } = string.Empty;

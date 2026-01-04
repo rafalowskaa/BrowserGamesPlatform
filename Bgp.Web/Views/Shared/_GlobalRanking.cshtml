@@ -99,7 +99,9 @@
                         data-user-id="@entry.UserId"
                         data-name="@entry.DisplayName"
                         data-tier="@entry.RankTitle"
-                        data-rank="@entry.Position">
+                        data-rank="@entry.Position"
+                        data-is-friend="@(entry.IsFriend ? "true" : "false")"
+                        data-is-self="@(entry.IsCurrentUser ? "true" : "false")">
                         <td class="leaderboard__cell leaderboard__cell--position" data-label="@Model.RankLabel">
                             <div class="leaderboard__position">
                                 <span class="leaderboard__position-index">#@entry.Position</span>
@@ -197,6 +199,7 @@
     <div class="leaderboard__menu" data-ranking-menu-template hidden role="menu">
         <button type="button" data-ranking-action="message" role="menuitem">@Model.ActionsMessage</button>
         <button type="button" data-ranking-action="friend" role="menuitem">@Model.ActionsAddFriend</button>
+        <button type="button" data-ranking-action="remove-friend" role="menuitem">@Model.ActionsRemoveFriend</button>
         <button type="button" data-ranking-action="invite" role="menuitem">@Model.ActionsInvite</button>
         <button type="button" data-ranking-action="profile" role="menuitem">@Model.ActionsViewProfile</button>
         <div class="leaderboard__menu-divider" role="separator" aria-hidden="true"></div>
