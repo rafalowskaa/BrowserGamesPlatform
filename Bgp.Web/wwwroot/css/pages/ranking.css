@@ -5,9 +5,9 @@
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(21, 30, 51, 0.92));
     border: 1px solid rgba(148, 163, 184, 0.18);
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
-    max-width: min(1800px, calc(100vw - 2rem));
-    width: min(1800px, 100%);
-    font-size: 1.08rem;
+    max-width: 100%;
+    width: 100%;
+    font-size: 1.62rem;
 }
 
 .ranking-header {
@@ -23,21 +23,21 @@
     margin: 0 0 0.35rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    font-size: 1rem;
+    font-size: 1.5rem;
     color: rgba(148, 163, 184, 0.8);
 }
 
 .ranking-header h2 {
     margin: 0;
-    font-size: 2.2rem;
+    font-size: 3.3rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 .ranking-controls {
     display: flex;
-    gap: var(--space-3);
-    align-items: stretch;
+    gap: var(--space-4);
+    align-items: center;
     flex-wrap: wrap;
     justify-content: space-between;
     width: 100%;
@@ -45,23 +45,31 @@
 
 .ranking-controls__inputs {
     display: flex;
-    gap: var(--space-3);
-    align-items: stretch;
+    gap: var(--space-4);
+    align-items: center;
     flex-wrap: wrap;
     flex: 1 1 70%;
     min-width: 0;
 }
 
     .ranking-controls__inputs .ranking-control {
-        flex: 1 1 16rem;
+        flex: 1 1 18rem;
     }
+
+.ranking-controls__actions {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    align-self: flex-start;
+    justify-content: flex-end;
+}
 
 .ranking-control {
     display: inline-flex;
     flex-direction: column;
     gap: 0.35rem;
     color: #cbd5e1;
-    font-size: 1.05rem;
+    font-size: 1.58rem;
 }
 
     .ranking-control input,
@@ -70,9 +78,9 @@
         border: 1px solid rgba(148, 163, 184, 0.25);
         border-radius: 0.8rem;
         color: #e2e8f0;
-        padding: 0.65rem 0.9rem;
+        padding: 0.85rem 1.1rem;
         min-width: 14rem;
-        font-size: 1.05rem;
+        font-size: 1.58rem;
     }
 
         .ranking-control input:focus-visible,
@@ -104,7 +112,7 @@
 .ranking-control--jump {
     align-self: center;
     height: 100%;
-    padding-inline: 1.1rem;
+    padding-inline: 1.3rem;
     justify-content: center;
 }
 
@@ -122,9 +130,9 @@
 .leaderboard-table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0 0.9rem;
+    border-spacing: 1.1rem 1.1rem;
     table-layout: fixed;
-    min-width: 840px;
+    min-width: 960px;
 }
 
 .leaderboard__col {
@@ -132,7 +140,7 @@
     padding: 0.85rem 1rem;
     color: rgba(148, 163, 184, 0.9);
     font-weight: 700;
-    font-size: 1.22rem;
+    font-size: 1.85rem;
     background: rgba(10, 16, 29, 0.95);
     position: sticky;
     top: 0;
@@ -254,6 +262,14 @@
         font-weight: 800;
     }
 
+    .leaderboard__row.is-gold .leaderboard__name-link,
+    .leaderboard__row.is-gold .leaderboard__position-index {
+        text-decoration: underline;
+        text-decoration-color: #facc15;
+        text-decoration-thickness: 0.18em;
+        text-underline-offset: 0.22em;
+    }
+
     .leaderboard__row.is-gold .leaderboard__cell:not(.leaderboard__cell--actions) {
         color: #fef3c7;
     }
@@ -262,8 +278,24 @@
         color: #f8fafc;
     }
 
+    .leaderboard__row.is-silver .leaderboard__name-link,
+    .leaderboard__row.is-silver .leaderboard__position-index {
+        text-decoration: underline;
+        text-decoration-color: #e5e7eb;
+        text-decoration-thickness: 0.18em;
+        text-underline-offset: 0.22em;
+    }
+
     .leaderboard__row.is-bronze .leaderboard__cell:not(.leaderboard__cell--actions) {
         color: #ffedd5;
+    }
+
+    .leaderboard__row.is-bronze .leaderboard__name-link,
+    .leaderboard__row.is-bronze .leaderboard__position-index {
+        text-decoration: underline;
+        text-decoration-color: #fb923c;
+        text-decoration-thickness: 0.18em;
+        text-underline-offset: 0.22em;
     }
 
     .leaderboard__row.is-top .leaderboard__name,
@@ -278,12 +310,12 @@
     }
 
 .leaderboard__cell {
-    padding: 0.9rem 1rem;
+    padding: 1.1rem 1.3rem;
     color: #e2e8f0;
     vertical-align: middle;
     border-bottom: 0;
     white-space: nowrap;
-    font-size: 1.22rem;
+    font-size: 1.83rem;
 }
 
 .leaderboard__cell--position,
@@ -311,7 +343,7 @@
     align-items: center;
     gap: 0.35rem;
     font-weight: 800;
-    font-size: 1.75rem;
+    font-size: 2.25rem;
     color: rgba(226, 232, 240, 0.95);
 }
 
@@ -320,7 +352,7 @@
     display: inline-block;
     color: #e2e8f0;
     font-weight: 900;
-    font-size: 1.6rem;
+    font-size: 2.25rem;
 }
 
 .leaderboard__row.is-gold .leaderboard__position-index {
@@ -336,7 +368,7 @@
 }
 
 .leaderboard__medal {
-    font-size: 1.2rem;
+    font-size: 2rem;
     line-height: 1;
 }
 
@@ -435,11 +467,12 @@
 
 .leaderboard__avatar.is-placeholder .leaderboard__avatar-fallback {
     display: inline-flex;
-    background: linear-gradient(135deg, rgba(51, 65, 85, 0.15), rgba(30, 41, 59, 0.3));
+    background: rgba(15, 23, 42, 0.2);
     color: transparent;
     font-size: 0;
     letter-spacing: 0;
     position: relative;
+    border: 1px dashed rgba(148, 163, 184, 0.35);
 }
 
 .leaderboard__avatar.is-placeholder .leaderboard__avatar-clip {
@@ -448,11 +481,8 @@
 
 .leaderboard__avatar.is-placeholder .leaderboard__avatar-fallback::after {
     content: '';
-    width: 62%;
-    height: 62%;
-    border: 1px dashed rgba(148, 163, 184, 0.45);
-    border-radius: 0.85rem;
-    background: rgba(255, 255, 255, 0.02);
+    width: 0;
+    height: 0;
 }
 
 .leaderboard__avatar .chat-status-dot {
@@ -496,7 +526,7 @@
 .leaderboard__name {
     font-weight: 700;
     color: #e2e8f0;
-    font-size: 1.3rem;
+    font-size: 1.95rem;
     min-width: 0;
 }
 
@@ -516,7 +546,7 @@
     color: #4ade80;
     border-radius: 999px;
     padding: 0.2rem 0.65rem;
-    font-size: 0.9rem;
+    font-size: 1.35rem;
     font-weight: 700;
     letter-spacing: 0.01em;
 }
@@ -527,8 +557,10 @@
     border: 1px solid rgba(125, 211, 252, 0.4);
     border-radius: 0.75rem;
     padding: 0.2rem 0.65rem;
-    font-size: 1rem;
+    font-size: 1.5rem;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 
 .leaderboard__presence-chip {
@@ -539,7 +571,7 @@
     border-radius: 999px;
     background: rgba(51, 65, 85, 0.55);
     color: rgba(226, 232, 240, 0.9);
-    font-size: 1rem;
+    font-size: 1.45rem;
     line-height: 1.1;
 }
 
@@ -557,7 +589,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 1.05rem;
+    font-size: 1.6rem;
 }
 
     .leaderboard__presence-chip .chat-status-dot {
@@ -579,7 +611,7 @@
     border: 1px solid rgba(59, 130, 246, 0.35);
     font-weight: 700;
     letter-spacing: 0.01em;
-    font-size: 1.05rem;
+    font-size: 1.6rem;
 }
 
 .leaderboard__xp {
@@ -601,7 +633,7 @@
 
     .leaderboard__xp strong {
         color: #e2e8f0;
-        font-size: 1.2rem;
+        font-size: 1.8rem;
         font-weight: 700;
         display: inline-flex;
         align-items: center;
@@ -610,7 +642,7 @@
 
         .leaderboard__xp strong::after {
             content: attr(data-xp-progress);
-            font-size: 0.95rem;
+            font-size: 1.35rem;
             color: rgba(148, 163, 184, 0.85);
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid rgba(148, 163, 184, 0.25);
@@ -642,7 +674,7 @@
 
 .leaderboard__xp-breakdown {
     color: rgba(148, 163, 184, 0.85);
-    font-size: 1rem;
+    font-size: 1.45rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -661,7 +693,7 @@
 
 
 .leaderboard__menu-btn {
-    border: 0;
+    border: 1px solid transparent;
     background: transparent;
     color: #cbd5e1;
     border-radius: 999px;
@@ -670,7 +702,8 @@
     display: grid;
     place-items: center;
     cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: none;
 }
 
     .leaderboard__menu-btn:hover,
@@ -679,6 +712,7 @@
         outline: none;
         box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
         color: #e2e8f0;
+        border-color: rgba(96, 165, 250, 0.35);
     }
 
 .leaderboard-table .leaderboard__cell--actions .leaderboard__menu-btn {
@@ -693,8 +727,8 @@
     }
 
 .leaderboard__menu-icon {
-    width: 1.45rem;
-    height: 1.45rem;
+    width: 1.75rem;
+    height: 1.75rem;
     fill: currentColor;
 }
 
@@ -728,7 +762,7 @@
         border-radius: 0.65rem;
         cursor: pointer;
         font-weight: 600;
-        font-size: 0.95rem;
+        font-size: 1.45rem;
     }
 
         .leaderboard__menu button:hover,

@@ -9,7 +9,7 @@
     const menuPortals = new Map();
     const sectionStrings = new Map();
     let activeMenu = null;
-    const interactiveSelectors = ['button', 'a', 'input', 'select', 'textarea', '[data-ranking-menu]', '[data-ranking-action]', '.leaderboard__menu', '.leaderboard__cell--actions'];
+    const interactiveSelectors = ['button', 'a', 'input', 'select', 'textarea', '[data-ranking-menu]', '[data-ranking-action]', '.leaderboard__menu'];
 
     const isInteractiveTarget = (node) => {
         if (!(node instanceof HTMLElement)) return false;
@@ -267,9 +267,7 @@
 
             if (actionCell && button) {
                 actionCell.addEventListener('click', (event) => {
-                    if (event.target instanceof HTMLElement && isInteractiveTarget(event.target)) {
-                        return;
-                    }
+                    
                     event.stopPropagation();
                     openMenu(button, row, portal);
                 });
