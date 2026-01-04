@@ -4254,8 +4254,8 @@
 	<data name="GlobalRanking_PlayerLabel" xml:space="preserve">
     <value>Player</value>
   </data>
-	<data name="GlobalRanking_StatusLabel" xml:space="preserve">
-    <value>Status</value>
+	<data name="GlobalRanking_MostPlayedLabel" xml:space="preserve">
+    <value>Most played game</value>
   </data>
 	<data name="GlobalRanking_FilterLabel" xml:space="preserve">
     <value>Filter by rank</value>

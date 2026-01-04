@@ -21,6 +21,7 @@ public class GlobalRankingEntryViewModel
     public int Position { get; set; }
     public string? AvatarUrl { get; set; }
     public bool IsCurrentUser { get; set; }
+    public string? MostPlayedGameTitle { get; set; }
     public UserPresenceStatus PresenceStatus { get; set; } = UserPresenceStatus.Offline;
     public string PresenceLabel { get; set; } = string.Empty;
     public string AccentColor { get; set; } = "#38bdf8";
@@ -41,7 +42,7 @@ public class GlobalRankingSectionViewModel
     public string RankLabel { get; set; } = string.Empty;
     public string AvatarLabel { get; set; } = string.Empty;
     public string PlayerLabel { get; set; } = string.Empty;
-    public string StatusLabel { get; set; } = string.Empty;
+    public string MostPlayedGameLabel { get; set; } = string.Empty;
     public string SearchPlaceholder { get; set; } = string.Empty;
     public string FilterLabel { get; set; } = string.Empty;
     public string FilterAllLabel { get; set; } = string.Empty;

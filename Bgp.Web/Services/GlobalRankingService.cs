@@ -77,6 +77,39 @@ public class GlobalRankingService
             })
             .ToDictionaryAsync(g => g.Key, g => g, cancellationToken);
 
+        var playsByUser = await _db.Scores
+            .AsNoTracking()
+            .GroupBy(s => new { s.UserId, s.GameId })
+            .Select(g => new
+            {
+                g.Key.UserId,
+                g.Key.GameId,
+                Count = g.Count()
+            })
+            .ToListAsync(cancellationToken);
+
+        var mostPlayedByUser = playsByUser
+            .GroupBy(x => x.UserId)
+            .ToDictionary(
+                g => g.Key,
+                g => g
+                    .OrderByDescending(x => x.Count)
+                    .ThenBy(x => x.GameId)
+                    .First());
+
+        var mostPlayedGameIds = mostPlayedByUser.Values
+            .Select(x => x.GameId)
+            .Distinct()
+            .ToArray();
+
+        var gameTitles = mostPlayedGameIds.Length == 0
+            ? new Dictionary<Guid, string>()
+            : await _db.Games
+                .AsNoTracking()
+                .Where(g => mostPlayedGameIds.Contains(g.Id))
+                .Select(g => new { g.Id, g.Title })
+                .ToDictionaryAsync(g => g.Id, g => g.Title ?? string.Empty, cancellationToken);
+
         var friendCounts = new Dictionary<string, int>(StringComparer.Ordinal);
         var friendships = await _db.Friendships
             .AsNoTracking()
@@ -154,6 +187,9 @@ public class GlobalRankingService
                 ExperiencePoints = xp,
                 Level = level,
                 AvatarUrl = user.AvatarUrl,
+                MostPlayedGameTitle = mostPlayedByUser.TryGetValue(user.Id, out var mostPlayed) && gameTitles.TryGetValue(mostPlayed.GameId, out var title)
+                    ? title
+                    : null,
                 PresenceStatus = presenceStatus,
                 PresenceLabel = presenceLabel,
                 AccentColor = rank.AccentColor,

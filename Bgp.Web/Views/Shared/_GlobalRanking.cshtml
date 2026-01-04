@@ -61,7 +61,7 @@
                     <th scope="col" class="leaderboard__col leaderboard__col--rank">@Model.RankLabel</th>
                     <th scope="col" class="leaderboard__col leaderboard__col--avatar">@Model.AvatarLabel</th>
                     <th scope="col" class="leaderboard__col leaderboard__col--player">@Model.PlayerLabel</th>
-                    <th scope="col" class="leaderboard__col leaderboard__col--status">@Model.StatusLabel</th>
+                    <th scope="col" class="leaderboard__col leaderboard__col--most-played">@Model.MostPlayedGameLabel</th>
                     <th scope="col" class="leaderboard__col leaderboard__col--level">@Model.LevelLabel</th>
                     <th scope="col" class="leaderboard__col leaderboard__col--xp">@Model.ExperienceLabel</th>
                     <th scope="col" class="leaderboard__col leaderboard__col--actions" aria-label="@Model.ActionsLabel">@Model.ActionsLabel</th>
@@ -90,6 +90,7 @@
                     };
                     var hasAvatar = !string.IsNullOrEmpty(entry.AvatarUrl);
                     var profileUrl = Url.Action("ViewProfile", "Dashboard", new { id = entry.UserId }) ?? $"/dashboard/profile/{entry.UserId}";
+                    var hasMostPlayed = !string.IsNullOrWhiteSpace(entry.MostPlayedGameTitle);
                     <tr class="leaderboard__row@(entry.IsCurrentUser ? " is-self" : string.Empty)@topClass"
                         data-user-id="@entry.UserId"
                         data-name="@entry.DisplayName"
@@ -119,7 +120,7 @@
                                              height="96"
                                              onerror="var avatar=this.closest('.leaderboard__avatar'); if(avatar){avatar.classList.remove('has-image');avatar.classList.add('is-placeholder'); var fallback=avatar.querySelector('.leaderboard__avatar-fallback'); if(fallback){fallback.hidden=false;}} this.remove();" />
                                     }
-                                    <span class="leaderboard__avatar-fallback" aria-hidden="true" @(hasAvatar ? "hidden" : string.Empty)>@nameInitial</span>
+                                    <span class="leaderboard__avatar-fallback" aria-hidden="true" @(hasAvatar ? "hidden" : string.Empty)></span>
                                 </span>
                                 <span class="chat-status-dot @presenceClass" aria-hidden="true"></span>
                                 <span class="sr-only">@entry.PresenceLabel</span>
@@ -142,11 +143,13 @@
                                 }
                             </span>
                         </td>
-                        <td class="leaderboard__cell leaderboard__cell--status" data-label="@Model.StatusLabel">
-                            <span class="leaderboard__presence-chip">
-                                <span class="chat-status-dot @presenceClass" aria-hidden="true"></span>
-                                <span>@entry.PresenceLabel</span>
-                            </span>
+                        <td class="leaderboard__cell leaderboard__cell--most-played" data-label="@Model.MostPlayedGameLabel">
+                            @if (hasMostPlayed)
+                            {
+                                <span class="leaderboard__most-played" title="@entry.MostPlayedGameTitle">
+                                    @entry.MostPlayedGameTitle
+                                </span>
+                            }
                         </td>
                         <td class="leaderboard__cell leaderboard__cell--level" data-label="@Model.LevelLabel">
                             <span class="leaderboard__level-badge">Lv. @entry.Level</span>

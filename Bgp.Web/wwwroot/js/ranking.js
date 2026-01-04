@@ -258,6 +258,10 @@
             if (button) {
                 button.setAttribute('aria-controls', menuId);
                 button.setAttribute('aria-expanded', 'false');
+                button.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    openMenu(button, row, portal);
+                });
             }
 
             if (currentUserId && row.dataset.userId === currentUserId) {

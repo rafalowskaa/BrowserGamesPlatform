@@ -14,7 +14,7 @@
     flex-wrap: wrap;
     justify-content: space-between;
     gap: var(--space-3);
-    align-items: flex-end;
+    align-items: flex-start;
     margin-bottom: var(--space-3);
 }
 
@@ -36,7 +36,7 @@
     gap: var(--space-2);
     align-items: center;
     flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: flex-start;
     width: 100%;
 }
 
@@ -45,6 +45,7 @@
     gap: var(--space-2);
     align-items: center;
     flex-wrap: wrap;
+    flex: 1 1 auto;
 }
 
 .ranking-control {
@@ -81,6 +82,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+    margin-left: auto;
 }
 
     .ranking-control--ghost:hover,
@@ -104,8 +106,8 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0 0.9rem;
-    table-layout: fixed;
-    min-width: 720px;
+    table-layout: auto;
+    min-width: 840px;
 }
 
 .leaderboard__col {
@@ -131,11 +133,13 @@
 }
 
 .leaderboard__col--player {
-    width: 38%;
+    min-width: 16rem;
+    width: 32%;
 }
 
-.leaderboard__col--status {
-    width: 13.5rem;
+.leaderboard__col--most-played {
+    min-width: 14rem;
+    width: 26%;
 }
 
 .leaderboard__col--level {
@@ -148,7 +152,7 @@
 }
 
 .leaderboard__col--actions {
-    width: 6rem;
+    width: 4.5rem;
     text-align: right;
 }
 
@@ -197,6 +201,12 @@
         
     }
 
+    .leaderboard__row.is-top .leaderboard__name,
+    .leaderboard__row.is-top .leaderboard__position-index {
+        font-weight: 900;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+    }
+
     .leaderboard__row:focus-within {
         outline: 2px solid rgba(94, 234, 212, 0.5);
         outline-offset: -2px;
@@ -208,7 +218,7 @@
     vertical-align: middle;
     border-bottom: 0;
     white-space: nowrap;
-    font-size: 1.12rem;
+    font-size: 1.18rem;
 }
 
 .leaderboard__cell--position,
@@ -236,7 +246,7 @@
     align-items: center;
     gap: 0.35rem;
     font-weight: 800;
-    font-size: 1.55rem;
+    font-size: 1.65rem;
     color: rgba(226, 232, 240, 0.95);
 }
 
@@ -277,6 +287,17 @@
     color: #fb923c;
 }
 
+.leaderboard__row.is-gold .leaderboard__name {
+    color: #fef9c3;
+}
+
+.leaderboard__row.is-silver .leaderboard__name {
+    color: #f8fafc;
+}
+
+.leaderboard__row.is-bronze .leaderboard__name {
+    color: #ffedd5;
+}
 
 .leaderboard__avatar {
     position: relative;
@@ -349,15 +370,14 @@
 
 .leaderboard__avatar.is-placeholder .leaderboard__avatar-fallback {
     display: inline-flex;
-    background: #374151;
-    color: #e5e7eb;
-    font-size: 0.95rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    background: #0b1223;
+    color: transparent;
+    font-size: 0;
+    letter-spacing: 0;
 }
 
 .leaderboard__avatar.is-placeholder .leaderboard__avatar-clip {
-    background: #374151;
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.32), rgba(30, 41, 59, 0.35));
 }
 
 .leaderboard__avatar .chat-status-dot {
@@ -401,7 +421,7 @@
 .leaderboard__name {
     font-weight: 700;
     color: #e2e8f0;
-    font-size: 1.12rem;
+    font-size: 1.2rem;
     min-width: 0;
 }
 
@@ -446,6 +466,22 @@
     color: rgba(226, 232, 240, 0.9);
     font-size: 0.9rem;
     line-height: 1.1;
+}
+
+.leaderboard__most-played {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 0.75rem;
+    background: rgba(14, 116, 144, 0.22);
+    border: 1px solid rgba(45, 212, 191, 0.28);
+    color: #e0f2fe;
+    font-weight: 700;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
     .leaderboard__presence-chip .chat-status-dot {
@@ -550,11 +586,11 @@
 
 .leaderboard__menu-btn {
     border: 1px solid rgba(148, 163, 184, 0.22);
-    background: rgba(15, 23, 42, 0.7);
-    color: #e2e8f0;
-    border-radius: 0.55rem;
-    width: 2.25rem;
-    height: 2.25rem;
+    background: transparent;
+    color: #9ca3af;
+    border-radius: 999px;
+    width: 2.75rem;
+    height: 2.75rem;
     display: grid;
     place-items: center;
     cursor: pointer;
@@ -570,21 +606,21 @@
     }
 
 .leaderboard-table .leaderboard__cell--actions .leaderboard__menu-btn {
-    background: rgba(24, 31, 50, 0.96);
-    border-color: rgba(148, 163, 184, 0.32);
-    color: #e2e8f0;
+    background: transparent;
+    border-color: rgba(148, 163, 184, 0.28);
+    color: #cbd5e1;
 }
 
     .leaderboard-table .leaderboard__cell--actions .leaderboard__menu-btn:hover,
     .leaderboard-table .leaderboard__cell--actions .leaderboard__menu-btn:focus-visible {
-        background: rgba(51, 65, 85, 0.95);
+        background: rgba(59, 130, 246, 0.12);
         border-color: rgba(94, 234, 212, 0.75);
         color: #e2e8f0;
     }
 
 .leaderboard__menu-icon {
-    width: 1.2rem;
-    height: 1.2rem;
+    width: 1.35rem;
+    height: 1.35rem;
     fill: currentColor;
 }
 
@@ -670,8 +706,8 @@
         min-width: 100%;
     }
 
-    .leaderboard__col--status,
-    .leaderboard__cell--status {
+    .leaderboard__col--most-played,
+    .leaderboard__cell--most-played {
         display: none;
     }
 

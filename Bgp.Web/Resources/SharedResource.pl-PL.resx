@@ -3149,8 +3149,8 @@
 	<data name="GlobalRanking_PlayerLabel" xml:space="preserve">
     <value>Gracz</value>
   </data>
-	<data name="GlobalRanking_StatusLabel" xml:space="preserve">
-    <value>Status</value>
+	<data name="GlobalRanking_MostPlayedLabel" xml:space="preserve">
+    <value>Najczęściej grana gra</value>
   </data>
 	<data name="GlobalRanking_FilterLabel" xml:space="preserve">
     <value>Filtruj po randze</value>
