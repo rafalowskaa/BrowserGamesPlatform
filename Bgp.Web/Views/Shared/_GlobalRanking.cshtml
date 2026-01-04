@@ -139,8 +139,8 @@
                                 @{
                                     var xpProgressPercent = (int)Math.Round(Math.Max(0d, Math.Min(1d, (entry.ExperiencePoints % 1000) / 1000d)) * 100);
                                 }
-                                <strong>@entry.ExperiencePoints.ToString("N0", CultureInfo.CurrentCulture) XP</strong>
-                                <span class="leaderboard__xp-meter" aria-hidden="true">
+                                <strong data-xp-progress="@xpProgressPercent%">@entry.ExperiencePoints.ToString("N0", CultureInfo.CurrentCulture) XP</strong>
+                                <span class="leaderboard__xp-meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@xpProgressPercent" aria-label="@($"{xpProgressPercent}% toward next level")">
                                     <span class="leaderboard__xp-meter-fill" style="width:@xpProgressPercent%;"></span>
                                 </span>
                                 @if (entry.ExperienceBreakdown is { Count: > 1 })

@@ -10,6 +10,11 @@
     let activeMenu = null;
     const interactiveSelectors = ['button', 'a', 'input', 'select', 'textarea', '[data-ranking-menu]', '[data-ranking-action]', '.leaderboard__menu', '.leaderboard__cell--actions'];
 
+    const isInteractiveTarget = (node) => {
+        if (!(node instanceof HTMLElement)) return false;
+        return interactiveSelectors.some(selector => node.closest(selector));
+    };
+
     const api = {
         openChat: (userId, displayName) => {
             if (window.bgpChat && typeof window.bgpChat.open === 'function') {
@@ -104,6 +109,12 @@
         }
 
         closeMenus();
+    }
+
+    function navigateToProfile(row) {
+        if (!row) return;
+        closeMenus();
+        api.viewProfile(row.dataset.userId);
     }
 
     function createMenuPortal(section) {
@@ -201,7 +212,7 @@
                 const target = event.target;
                 if (!(target instanceof HTMLElement)) return;
 
-                if (interactiveSelectors.some(selector => target.closest(selector))) {
+                if (isInteractiveTarget(target)) {
                     return;
                 }
 
@@ -209,8 +220,7 @@
                 if (!row) return;
 
                 event.preventDefault();
-                closeMenus();
-                api.viewProfile(row.dataset.userId);
+                navigateToProfile(row);
             });
         }
     });
