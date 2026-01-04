@@ -13,7 +13,16 @@
         .ToList();
 }
 
-<section id="@Model.AnchorId" class="ranking-section" data-ranking data-ranking-context="@Model.AnchorId">
+<section id="@Model.AnchorId"
+         class="ranking-section"
+         data-ranking
+         data-ranking-context="@Model.AnchorId"
+         data-ranking-block-confirm="@Model.ActionsBlockConfirm"
+         data-ranking-block-success="@Model.ActionsBlockSuccess"
+         data-ranking-block-error="@Model.ActionsBlockError"
+         data-ranking-report-prompt="@Model.ActionsReportPrompt"
+         data-ranking-report-success="@Model.ActionsReportSuccess"
+         data-ranking-report-error="@Model.ActionsReportError">
     <header class="ranking-header">
         <div>
             <p class="ranking-eyebrow">@Model.Subtitle</p>
@@ -79,6 +88,8 @@
                         3 => " is-top is-bronze",
                         _ => string.Empty
                     };
+                    var hasAvatar = !string.IsNullOrEmpty(entry.AvatarUrl);
+                    var profileUrl = Url.Action("ViewProfile", "Dashboard", new { id = entry.UserId }) ?? $"/dashboard/profile/{entry.UserId}";
                     <tr class="leaderboard__row@(entry.IsCurrentUser ? " is-self" : string.Empty)@topClass"
                         data-user-id="@entry.UserId"
                         data-name="@entry.DisplayName"
@@ -96,17 +107,19 @@
                             </div>
                         </td>
                         <td class="leaderboard__cell leaderboard__cell--avatar" data-label="@Model.AvatarLabel">
-                            <span class="leaderboard__avatar@(string.IsNullOrEmpty(entry.AvatarUrl) ? " is-placeholder" : " has-image")" data-initial="@nameInitial">
+                            <span class="leaderboard__avatar@(hasAvatar ? " has-image" : " is-placeholder")" data-initial="@nameInitial">
                                 <span class="leaderboard__avatar-clip">
-                                    @if (!string.IsNullOrEmpty(entry.AvatarUrl))
+                                    @if (hasAvatar)
                                     {
                                         <img src="@entry.AvatarUrl"
                                              alt="@entry.DisplayName"
                                              loading="lazy"
                                              decoding="async"
-                                             onerror="var avatar=this.closest('.leaderboard__avatar'); if(avatar){avatar.classList.remove('has-image');avatar.classList.add('is-placeholder');} this.remove();" />
+                                             width="96"
+                                             height="96"
+                                             onerror="var avatar=this.closest('.leaderboard__avatar'); if(avatar){avatar.classList.remove('has-image');avatar.classList.add('is-placeholder'); var fallback=avatar.querySelector('.leaderboard__avatar-fallback'); if(fallback){fallback.hidden=false;}} this.remove();" />
                                     }
-                                    <span class="leaderboard__avatar-fallback" aria-hidden="true">@nameInitial</span>
+                                    <span class="leaderboard__avatar-fallback" aria-hidden="true" @(hasAvatar ? "hidden" : string.Empty)>@nameInitial</span>
                                 </span>
                                 <span class="chat-status-dot @presenceClass" aria-hidden="true"></span>
                                 <span class="sr-only">@entry.PresenceLabel</span>
@@ -114,7 +127,11 @@
                         </td>
                         <td class="leaderboard__cell leaderboard__cell--player" data-label="@Model.PlayerLabel">
                             <span class="leaderboard__player">
-                                <span class="leaderboard__name truncate" title="@entry.DisplayName">@entry.DisplayName</span>
+                                <a class="leaderboard__name leaderboard__name-link truncate"
+                                   href="@profileUrl"
+                                   title="@entry.DisplayName">
+                                    @entry.DisplayName
+                                </a>
                                 @if (entry.IsCurrentUser)
                                 {
                                     <span class="leaderboard__badge">@Model.SelfBadgeLabel</span>
@@ -174,6 +191,10 @@
         <button type="button" data-ranking-action="friend" role="menuitem">@Model.ActionsAddFriend</button>
         <button type="button" data-ranking-action="invite" role="menuitem">@Model.ActionsInvite</button>
         <button type="button" data-ranking-action="profile" role="menuitem">@Model.ActionsViewProfile</button>
+        <div class="leaderboard__menu-divider" role="separator" aria-hidden="true"></div>
+        <button type="button" data-ranking-action="block" role="menuitem">@Model.ActionsBlock</button>
+        <button type="button" data-ranking-action="report" role="menuitem">@Model.ActionsReport</button>
     </div>
     <p class="ranking-empty" data-ranking-empty hidden>@Model.EmptyLabel</p>
+    <div class="sr-only" aria-live="polite" data-ranking-live></div>
 </section>

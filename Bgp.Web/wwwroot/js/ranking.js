@@ -7,6 +7,7 @@
     const chatDock = document.getElementById('chatDock');
     const currentUserId = chatDock?.dataset.chatUser;
     const menuPortals = new Map();
+    const sectionStrings = new Map();
     let activeMenu = null;
     const interactiveSelectors = ['button', 'a', 'input', 'select', 'textarea', '[data-ranking-menu]', '[data-ranking-action]', '.leaderboard__menu', '.leaderboard__cell--actions'];
 
@@ -45,6 +46,52 @@
             window.location.href = `/dashboard/profile/${encodeURIComponent(userId)}`;
         }
     };
+
+    function announce(section, message) {
+        if (!message) {
+            return;
+        }
+        const liveRegion = section?.querySelector('[data-ranking-live]');
+        if (liveRegion) {
+            liveRegion.textContent = message;
+            window.clearTimeout(liveRegion._clearTimer);
+            liveRegion._clearTimer = window.setTimeout(() => {
+                liveRegion.textContent = '';
+            }, 2200);
+        }
+    }
+
+    async function apiCall(url, options = {}) {
+        const opts = Object.assign({ credentials: 'same-origin' }, options);
+        opts.headers = Object.assign({ Accept: 'application/json' }, options.headers || {});
+        if (opts.body && !opts.headers['Content-Type']) {
+            opts.headers['Content-Type'] = 'application/json';
+        }
+        const response = await fetch(url, opts);
+        if (!response.ok) {
+            let errorMessage = 'Something went wrong.';
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                try {
+                    const payload = await response.json();
+                    if (payload && typeof payload.message === 'string' && payload.message.trim()) {
+                        errorMessage = payload.message.trim();
+                    }
+                } catch (err) {
+                    console.warn('Failed to parse error payload.', err);
+                }
+            }
+            throw new Error(errorMessage);
+        }
+        if (response.status === 204) {
+            return null;
+        }
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            return response.json();
+        }
+        return response.text();
+    }
 
     function closeMenus(reason) {
         if (!activeMenu) return;
@@ -90,6 +137,7 @@
 
         const userId = row.dataset.userId;
         const displayName = row.dataset.name || userId || '';
+        const section = row.closest('[data-ranking]');
 
         switch (action) {
             case 'message':
@@ -104,6 +152,12 @@
             case 'profile':
                 api.viewProfile(userId);
                 break;
+            case 'block':
+                blockUser(row, section);
+                break;
+            case 'report':
+                reportUser(row, section);
+                break;
             default:
                 break;
         }
@@ -115,6 +169,52 @@
         if (!row) return;
         closeMenus();
         api.viewProfile(row.dataset.userId);
+    }
+
+    async function blockUser(row, section) {
+        if (!row || !section) return;
+        const userId = row.dataset.userId;
+        if (!userId) return;
+        const strings = sectionStrings.get(section) || {};
+        if (strings.blockConfirm && !window.confirm(strings.blockConfirm)) {
+            return;
+        }
+        try {
+            await apiCall(`/api/friends/block/${encodeURIComponent(userId)}`, { method: 'POST' });
+            announce(section, strings.blockSuccess || '');
+        } catch (err) {
+            console.error('Unable to block player from leaderboard.', err);
+            announce(section, strings.blockError || err.message || '');
+        }
+    }
+
+    async function reportUser(row, section) {
+        if (!row || !section) return;
+        const userId = row.dataset.userId;
+        if (!userId) return;
+        const strings = sectionStrings.get(section) || {};
+        const template = strings.reportPrompt || '';
+        const name = row.dataset.name || userId;
+        const promptMessage = template && name ? template.replace('{0}', name) : template;
+        const description = window.prompt(promptMessage || strings.reportPrompt || '');
+        if (description === null) {
+            return;
+        }
+        const payload = {
+            targetUserId: userId,
+            category: 4,
+            description: description.trim() ? description.trim() : null
+        };
+        try {
+            await apiCall('/api/reports', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            announce(section, strings.reportSuccess || '');
+        } catch (err) {
+            console.error('Unable to report player from leaderboard.', err);
+            announce(section, strings.reportError || err.message || '');
+        }
     }
 
     function createMenuPortal(section) {
@@ -144,6 +244,14 @@
 
         const jumpButton = section.querySelector('[data-ranking-jump]');
         const { portal, menuId } = createMenuPortal(section);
+        sectionStrings.set(section, {
+            blockConfirm: section.dataset.rankingBlockConfirm || '',
+            blockSuccess: section.dataset.rankingBlockSuccess || '',
+            blockError: section.dataset.rankingBlockError || '',
+            reportPrompt: section.dataset.rankingReportPrompt || '',
+            reportSuccess: section.dataset.rankingReportSuccess || '',
+            reportError: section.dataset.rankingReportError || ''
+        });
 
         rows.forEach(row => {
             const button = row.querySelector('[data-ranking-menu]');
@@ -178,7 +286,7 @@
 
             rows.forEach(row => {
                 const name = (row.dataset.name || '').toLowerCase();
-                const itemTier = (row.dataset.tier || '').toLowerCase()
+                const itemTier = (row.dataset.tier || '').toLowerCase();
                 const matches = (!query || name.includes(query)) && (!tier || itemTier === tier);
                 row.hidden = !matches;
                 if (matches) {

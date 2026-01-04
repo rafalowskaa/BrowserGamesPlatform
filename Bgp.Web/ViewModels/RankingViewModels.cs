@@ -54,8 +54,17 @@ public class GlobalRankingSectionViewModel
     public string ActionsViewProfile { get; set; } = string.Empty;
     public string ActionsInvite { get; set; } = string.Empty;
     public string ActionsMoreLabel { get; set; } = string.Empty;
+    public string ActionsBlock { get; set; } = string.Empty;
+    public string ActionsBlockConfirm { get; set; } = string.Empty;
+    public string ActionsBlockSuccess { get; set; } = string.Empty;
+    public string ActionsBlockError { get; set; } = string.Empty;
+    public string ActionsReport { get; set; } = string.Empty;
+    public string ActionsReportPrompt { get; set; } = string.Empty;
+    public string ActionsReportSuccess { get; set; } = string.Empty;
+    public string ActionsReportError { get; set; } = string.Empty;
     public string JumpToMeLabel { get; set; } = string.Empty;
     public string SelfBadgeLabel { get; set; } = string.Empty;
+
     public string AnchorId { get; set; } = "global-ranking";
     public GlobalRankingViewModel Data { get; set; } = new();
 }
