@@ -255,10 +255,21 @@
 
         rows.forEach(row => {
             const button = row.querySelector('[data-ranking-menu]');
+            const actionCell = row.querySelector('.leaderboard__cell--actions');
             if (button) {
                 button.setAttribute('aria-controls', menuId);
                 button.setAttribute('aria-expanded', 'false');
                 button.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    openMenu(button, row, portal);
+                });
+            }
+
+            if (actionCell && button) {
+                actionCell.addEventListener('click', (event) => {
+                    if (event.target instanceof HTMLElement && isInteractiveTarget(event.target)) {
+                        return;
+                    }
                     event.stopPropagation();
                     openMenu(button, row, portal);
                 });

@@ -48,7 +48,7 @@
                     </select>
                 </label>
             </div>
-            <button type="button" class="ranking-control ranking-control--ghost" data-ranking-jump hidden>
+            <button type="button" class="ranking-control ranking-control--ghost ranking-control--jump" data-ranking-jump hidden>
                 <span>@Model.JumpToMeLabel</span>
             </button>
         </div>
@@ -56,6 +56,15 @@
 
     <div class="leaderboard-table-wrap">
         <table class="leaderboard-table" data-ranking-table>
+            <colgroup>
+                <col class="leaderboard__col--rank" />
+                <col class="leaderboard__col--avatar" />
+                <col class="leaderboard__col--player" />
+                <col class="leaderboard__col--most-played" />
+                <col class="leaderboard__col--level" />
+                <col class="leaderboard__col--xp" />
+                <col class="leaderboard__col--actions" />
+            </colgroup>
             <thead>
                 <tr>
                     <th scope="col" class="leaderboard__col leaderboard__col--rank">@Model.RankLabel</th>
