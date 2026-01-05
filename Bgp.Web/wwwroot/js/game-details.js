@@ -66,7 +66,22 @@
     let userRating = Number(ratingConfig.user ?? 0) || 0;
     let currentAverage = Number(ratingConfig.average ?? 0) || 0;
     let reviewCount = Number(ratingConfig.count ?? 0) || 0;
-
+    const commentsSection = document.querySelector('[data-comments]');
+    const commentsList = commentsSection ? commentsSection.querySelector('[data-comments-list]') : null;
+    const commentsEmpty = commentsSection ? commentsSection.querySelector('[data-comments-empty]') : null;
+    const commentForm = commentsSection ? commentsSection.querySelector('[data-comment-form]') : null;
+    const commentInput = commentsSection ? commentsSection.querySelector('[data-comment-input]') : null;
+    const commentSubmit = commentsSection ? commentsSection.querySelector('[data-comment-submit]') : null;
+    const commentFeedback = commentsSection ? commentsSection.querySelector('[data-comment-feedback]') : null;
+    const commentsConfig = (config.comments && typeof config.comments === 'object') ? config.comments : {};
+    const reviewsEndpoint = typeof ratingConfig.submitUrl === 'string' && ratingConfig.submitUrl.length > 0
+        ? ratingConfig.submitUrl
+        : (typeof commentsConfig.fetchUrl === 'string' && commentsConfig.fetchUrl.length > 0
+            ? commentsConfig.fetchUrl
+            : (commentsSection && typeof commentsSection.dataset.commentsUrl === 'string' ? commentsSection.dataset.commentsUrl : ''));
+    const rulesModal = document.querySelector('[data-rules-modal]');
+    const rulesOpeners = container ? Array.from(container.querySelectorAll('[data-rules-open]')) : [];
+    const rulesClosers = rulesModal ? Array.from(rulesModal.querySelectorAll('[data-rules-close]')) : [];
     const stage = playerContainer ? playerContainer.querySelector('[data-game-stage]') : null;
     const viewer = playerContainer ? playerContainer.querySelector('[data-game-viewer]') : null;
     const controls = playerContainer ? playerContainer.querySelector('[data-game-controls]') : null;
@@ -98,6 +113,7 @@
 
     initializeViewer();
     initializeRating();
+    initializeRulesModal();
 
     function canLaunchWebGame() {
         return Boolean(config.hasWeb && config.webUrl && frame && playerContainer && viewer);
@@ -943,62 +959,93 @@
         updateRatingSummary(currentAverage, reviewCount);
         updateUserRating(userRating);
 
-        if (!ratingInput || ratingButtons.length === 0 || typeof ratingConfig.submitUrl !== 'string' || ratingConfig.submitUrl.length === 0) {
-            return;
-        }
-
-        ratingButtons.forEach(button => {
-            button.addEventListener('click', function (event) {
+        if (commentForm && commentInput) {
+            commentForm.addEventListener('submit', function (event) {
                 event.preventDefault();
-                const value = Number(button.dataset.starValue);
-                if (!Number.isFinite(value) || value < 1 || value > 5) {
+                const text = (commentInput.value || '').trim();
+                if (!text) {
+                    setCommentFeedback(commentsConfig.placeholder || commentsConfig.emptyLabel || '');
                     return;
                 }
-                submitRating(value);
+                submitReview({ stars: userRating || 5, comment: text }, { fromComment: true });
             });
-        });
+        }
+
+        if (ratingInput && ratingButtons.length > 0 && reviewsEndpoint) {
+            ratingButtons.forEach(button => {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const value = Number(button.dataset.starValue);
+                    if (!Number.isFinite(value) || value < 1 || value > 5) {
+                        return;
+                    }
+                    submitReview({ stars: value });
+                });
+            });
+        }
+
+        if (reviewsEndpoint) {
+            refreshRating();
+        }
     }
 
-    async function submitRating(value) {
-        if (!ratingConfig || typeof ratingConfig.submitUrl !== 'string' || ratingConfig.submitUrl.length === 0) {
+    async function submitReview(payload, options = {}) {
+        if (!reviewsEndpoint) {
             return;
         }
 
         setRatingFeedback();
+        setCommentFeedback();
         setRatingButtonsDisabled(true);
+        setCommentFormDisabled(true);
 
+        const fromComment = options && options.fromComment;
         try {
-            const response = await fetch(ratingConfig.submitUrl, {
+            const response = await fetch(reviewsEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
-                body: JSON.stringify({ stars: value })
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
                 throw new Error('Rating submission failed');
             }
 
-            updateUserRating(value);
+            if (payload && typeof payload.stars === 'number') {
+                updateUserRating(payload.stars);
+            }
             await refreshRating();
-            setRatingFeedback('success');
+            if (fromComment) {
+                if (commentInput) {
+                    commentInput.value = '';
+                }
+                setCommentFeedback(commentsConfig.success || ratingMessages.success || '', false);
+            } else {
+                setRatingFeedback('success');
+            }
         } catch (err) {
             console.error('Failed to submit rating', err);
-            setRatingFeedback('error');
+            if (fromComment) {
+                setCommentFeedback(commentsConfig.error || ratingMessages.error || '', true);
+            } else {
+                setRatingFeedback('error');
+            }
         } finally {
             setRatingButtonsDisabled(false);
+            setCommentFormDisabled(false);
         }
     }
 
     async function refreshRating() {
-        if (!ratingConfig || typeof ratingConfig.submitUrl !== 'string' || ratingConfig.submitUrl.length === 0) {
+        if (!reviewsEndpoint) {
             return;
         }
 
         try {
-            const response = await fetch(ratingConfig.submitUrl, { method: 'GET', credentials: 'include' });
+            const response = await fetch(reviewsEndpoint, { method: 'GET', credentials: 'include' });
             if (!response.ok) {
                 throw new Error('Failed to load rating data');
             }
@@ -1017,6 +1064,8 @@
                 if (Number.isFinite(user)) {
                     updateUserRating(user);
                 }
+                const reviewItems = Array.isArray(data.Items) ? data.Items : Array.isArray(data.items) ? data.items : [];
+                updateComments(reviewItems);
             }
 
             updateRatingSummary(currentAverage, reviewCount);
@@ -1096,6 +1145,127 @@
         ratingFeedback.hidden = !message;
         ratingFeedback.classList.toggle('is-error', isError);
         ratingFeedback.classList.toggle('is-success', isSuccess);
+    }
+
+    function setCommentFormDisabled(disabled) {
+        if (commentInput) {
+            commentInput.disabled = !!disabled;
+        }
+        if (commentSubmit) {
+            commentSubmit.disabled = !!disabled;
+        }
+    }
+
+    function setCommentFeedback(message, isError = false) {
+        if (!commentFeedback) {
+            return;
+        }
+        const text = message || '';
+        commentFeedback.textContent = text;
+        commentFeedback.hidden = !text;
+        commentFeedback.classList.toggle('is-error', !!isError && !!text);
+        commentFeedback.classList.toggle('is-success', !isError && !!text);
+    }
+
+    function updateComments(items) {
+        if (!commentsList) {
+            return;
+        }
+        commentsList.innerHTML = '';
+        const entries = Array.isArray(items) ? items : [];
+        if (!entries.length) {
+            if (commentsEmpty) {
+                commentsEmpty.hidden = false;
+            }
+            return;
+        }
+        if (commentsEmpty) {
+            commentsEmpty.hidden = true;
+        }
+        const fragment = document.createDocumentFragment();
+        entries.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'game-comments__item';
+            const meta = document.createElement('div');
+            meta.className = 'game-comments__meta';
+
+            const author = document.createElement('strong');
+            const authorName = item.Author || item.author || commentsConfig.anonymous || 'Player';
+            author.textContent = authorName;
+            meta.appendChild(author);
+
+            const timestamp = document.createElement('span');
+            timestamp.className = 'game-comments__timestamp';
+            timestamp.textContent = formatCommentDate(item.CreatedAtUtc || item.createdAtUtc);
+            meta.appendChild(timestamp);
+
+            li.appendChild(meta);
+
+            if (item.Comment || item.comment) {
+                const body = document.createElement('p');
+                body.className = 'game-comments__text';
+                const safe = escapeHtml(item.Comment || item.comment || '');
+                body.innerHTML = safe.replace(/\n/g, '<br />');
+                li.appendChild(body);
+            }
+
+            fragment.appendChild(li);
+        });
+        commentsList.appendChild(fragment);
+    }
+
+    function formatCommentDate(value) {
+        if (!value) {
+            return '';
+        }
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return '';
+        }
+        return date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    function escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value || '';
+        return div.innerHTML;
+    }
+
+    function initializeRulesModal() {
+        if (!rulesModal) {
+            return;
+        }
+        const toggleModal = (open) => {
+            rulesModal.hidden = !open;
+            if (open) {
+                const closeButton = rulesModal.querySelector('[data-rules-close]');
+                if (closeButton) {
+                    closeButton.focus();
+                }
+            }
+        };
+        rulesOpeners.forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                toggleModal(true);
+            });
+        });
+        rulesClosers.forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                toggleModal(false);
+            });
+        });
+        rulesModal.addEventListener('click', (event) => {
+            if (event.target === rulesModal) {
+                toggleModal(false);
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !rulesModal.hidden) {
+                toggleModal(false);
+            }
+        });
     }
 
     function formatTemplate(template, ...args) {

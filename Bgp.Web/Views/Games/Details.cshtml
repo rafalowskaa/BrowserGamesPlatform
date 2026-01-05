@@ -1,4 +1,5 @@
-﻿@using System.Text.Json 
+﻿@using System.Text.Encodings.Web
+@using System.Text.Json
 @using Bgp.Domain.Enums
 @using Bgp.Web.Helpers
 @model Bgp.Web.Models.GameDetailsViewModel
@@ -108,7 +109,16 @@
             label = L["Games_Details_Rating_YourRating"].Value
         },
         ratingStarLabel = L["Games_Details_Rating_StarLabel"].Value,
-        activePlayers = Model.ActivePlayerCount
+        activePlayers = Model.ActivePlayerCount,
+        comments = new
+        {
+            fetchUrl = Url.Content($"/api/games/{game.Id}/reviews"),
+            success = L["Games_Details_Comments_Success"].Value,
+            error = L["Games_Details_Comments_Error"].Value,
+            emptyLabel = L["Games_Details_Comments_Empty"].Value,
+            placeholder = L["Games_Details_Comments_Placeholder"].Value,
+            anonymous = L["Games_Details_Comments_Anonymous"].Value
+        }
     };
 }
 <h2>@game.Title</h2>
@@ -200,9 +210,35 @@
 
         @if (!string.IsNullOrWhiteSpace(game.Rules))
         {
+            var trimmedRules = game.Rules.Trim();
+            var rulesPreview = trimmedRules.Length > 240
+            ? string.Concat(trimmedRules.AsSpan(0, 240).TrimEnd(), "…")
+            : trimmedRules;
+            var encodedRules = HtmlEncoder.Default.Encode(trimmedRules).Replace("\n", "<br />");
             <div class="game-play__rules">
-                <h4>@L["Games_Details_Rules_Heading"].Value</h4>
-                <pre class="game-play__rules-text">@game.Rules</pre>
+                <div class="game-play__rules-header">
+                    <h4>@L["Games_Details_Rules_Heading"].Value</h4>
+                    <button type="button" class="btn-outline btn-compact" data-rules-open>
+                        @L["Games_Details_Rules_Heading"].Value
+                    </button>
+                </div>
+                <p class="game-play__rules-preview">@rulesPreview</p>
+            </div>
+            <div class="modal-backdrop" data-rules-modal hidden>
+                <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="gameRulesTitle">
+                    <div class="modal-dialog__content">
+                        <header class="game-rules__header">
+                            <h3 id="gameRulesTitle">@L["Games_Details_Rules_Heading"].Value</h3>
+                            <button type="button" class="btn-icon modal-dialog__close" data-rules-close aria-label="@L["Dashboard_Profile_Action_Cancel"].Value">✕</button>
+                        </header>
+                        <div class="modal-dialog__message game-rules__body">
+                            @Html.Raw(encodedRules)
+                        </div>
+                        <div class="modal-dialog__actions">
+                            <button type="button" class="btn-primary btn-compact" data-rules-close>@L["Dashboard_Profile_Action_Cancel"].Value</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         }
 
@@ -287,6 +323,31 @@
         }
     </div>
     <script type="application/json" id="gameDetailsConfig">@Html.Raw(JsonSerializer.Serialize(config))</script>
+</section>
+
+<section class="panel game-comments" data-comments data-comments-url="@Url.Content($"/api/games/{game.Id}/reviews")">
+    <header class="panel__header">
+        <div>
+            <h3>@L["Games_Details_Comments_Title"].Value</h3>
+            <p class="muted">@L["Games_Details_Comments_Subtitle"].Value</p>
+        </div>
+    </header>
+    <div class="game-comments__body">
+        <form class="game-comments__form" data-comment-form>
+            <label class="sr-only" for="gameComment">@L["Games_Details_Comments_Label"].Value</label>
+            <textarea id="gameComment"
+                      data-comment-input
+                      maxlength="2000"
+                      placeholder="@L["Games_Details_Comments_Placeholder"].Value"></textarea>
+            <div class="game-comments__actions">
+                <span class="game-comments__hint">@L["Games_Details_Comments_Placeholder"].Value</span>
+                <button type="submit" class="btn-primary btn-compact" data-comment-submit>@L["Games_Details_Comments_Submit"].Value</button>
+            </div>
+            <p class="game-comments__feedback muted" data-comment-feedback hidden></p>
+        </form>
+        <ul class="game-comments__list" data-comments-list></ul>
+        <p class="game-comments__empty" data-comments-empty hidden>@L["Games_Details_Comments_Empty"].Value</p>
+    </div>
 </section>
 
 @section Scripts {

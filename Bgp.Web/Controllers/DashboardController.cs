@@ -50,7 +50,7 @@ public class DashboardController : Controller
     private static readonly Regex SlugRegex = new("[^a-z0-9-]", RegexOptions.Compiled);
     private static readonly Regex VersionSanitizer = new("[^a-zA-Z0-9._-]", RegexOptions.Compiled);
     private static readonly string[] SupportedLanguages = { "system", "en", "pl" };
-    private static readonly string[] SupportedThemes = { "system", "light", "dark", "contrast" };
+    private static readonly string[] SupportedThemes = { "dark", "contrast" };
     private static readonly (string TitleKey, string BodyKey)[] ProfileTips =
     {
         ("Dashboard_Profile_Tip_Strategy_Title", "Dashboard_Profile_Tip_Strategy_Body"),
@@ -236,7 +236,7 @@ public class DashboardController : Controller
         user.BirthDateVisibility = input.BirthDateVisibility;
         user.EmailVisibility = input.EmailVisibility;
         user.PreferredLanguage = NormalizePreference(input.PreferredLanguage, SupportedLanguages, "system");
-        user.PreferredTheme = NormalizePreference(input.PreferredTheme, SupportedThemes, "system");
+        user.PreferredTheme = NormalizePreference(input.PreferredTheme, SupportedThemes, "dark");
         user.EnableEmailNotifications = input.EnableEmailNotifications;
         user.EnableFriendInvites = input.EnableFriendInvites;
 
@@ -1084,7 +1084,7 @@ public class DashboardController : Controller
         if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.PreferredTheme), out var themeState) &&
             !string.IsNullOrWhiteSpace(themeState.AttemptedValue))
         {
-            vm.Preferences.PreferredTheme = NormalizePreference(themeState.AttemptedValue, SupportedThemes, "system");
+            vm.Preferences.PreferredTheme = NormalizePreference(themeState.AttemptedValue, SupportedThemes, "dark");
         }
 
         if (ModelState.TryGetValue(nameof(UpdateProfileInputModel.EnableEmailNotifications), out var emailNotifyState))
@@ -1585,11 +1585,9 @@ public class DashboardController : Controller
 
     private IReadOnlyList<SelectListItem> BuildThemeOptions(string? current)
     {
-        var normalized = NormalizePreference(current, SupportedThemes, "system");
+        var normalized = NormalizePreference(current, SupportedThemes, "dark");
         var options = new (string Value, string Label)[]
         {
-            ("system", Localize("Dashboard_Preferences_Theme_System")),
-            ("light", Localize("Dashboard_Preferences_Theme_Light")),
             ("dark", Localize("Dashboard_Preferences_Theme_Dark")),
             ("contrast", Localize("Dashboard_Preferences_Theme_Contrast"))
         };
@@ -1637,7 +1635,7 @@ public class DashboardController : Controller
 
     private void ApplyThemeCookie(string? preference)
     {
-        var normalized = NormalizePreference(preference, SupportedThemes, "system");
+        var normalized = NormalizePreference(preference, SupportedThemes, "dark");
         if (normalized is "light" or "dark" or "contrast")
         {
             Response.Cookies.Append(ThemeCookieName, normalized, BuildPreferenceCookieOptions());

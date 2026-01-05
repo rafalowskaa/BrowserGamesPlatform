@@ -746,8 +746,8 @@
     <value>Anuluj</value>
   </data>
 	<data name="Dashboard_Friends_Remove" xml:space="preserve">
-    <value>Usuń</value>
-  </data>
+    <value>Usuń ze znajomych</value>
+	  </data>
 	<data name="Dashboard_Friends_InviteToGame" xml:space="preserve">
     <value>Zaproś do gry</value>
   </data>
@@ -2321,8 +2321,35 @@
                 <value>Dziękujemy! Twoja ocena została zapisana.</value>
         </data>
 	<data name="Games_Details_Rating_Error" xml:space="preserve">
-                <value>Nie udało się zapisać oceny. Spróbuj ponownie.</value>
-        </data>
+	                <value>Nie udało się zapisać oceny. Spróbuj ponownie.</value>
+	        </data>
+	<data name="Games_Details_Comments_Title" xml:space="preserve">
+	        <value>Komentarze</value>
+	    </data>
+	<data name="Games_Details_Comments_Subtitle" xml:space="preserve">
+	        <value>Zobacz, co mówią inni gracze o tej grze.</value>
+	    </data>
+	<data name="Games_Details_Comments_Label" xml:space="preserve">
+	        <value>Twój komentarz</value>
+	    </data>
+	<data name="Games_Details_Comments_Placeholder" xml:space="preserve">
+	        <value>Podziel się wrażeniami lub zostaw feedback twórcom.</value>
+	    </data>
+	<data name="Games_Details_Comments_Submit" xml:space="preserve">
+	        <value>Opublikuj komentarz</value>
+	    </data>
+	<data name="Games_Details_Comments_Empty" xml:space="preserve">
+	        <value>Brak komentarzy.</value>
+	    </data>
+	<data name="Games_Details_Comments_Success" xml:space="preserve">
+	        <value>Komentarz został dodany.</value>
+	    </data>
+	<data name="Games_Details_Comments_Error" xml:space="preserve">
+	        <value>Nie udało się zapisać komentarza. Spróbuj ponownie.</value>
+	    </data>
+	<data name="Games_Details_Comments_Anonymous" xml:space="preserve">
+	        <value>Anonimowy gracz</value>
+	    </data>
 	<data name="Games_Details_InviteHeading">
 		<value>Zaproś znajomego</value>
 	</data>
@@ -2979,12 +3006,18 @@
 	<data name="Chat_FabLabel" xml:space="preserve">
         <value>Wiadomości</value>
     </data>
-        <data name="Chat_ActiveHeading" xml:space="preserve">
-        <value>Znajomi</value>
-    </data>
-        <data name="Chat_ArchivedHeading" xml:space="preserve">
-        <value>Archiwum</value>
-    </data>
+	<data name="Chat_ActiveHeading" xml:space="preserve">
+	        <value>Znajomi</value>
+	    </data>
+	<data name="Chat_UsersHeading" xml:space="preserve">
+	        <value>Użytkownicy</value>
+	    </data>
+	<data name="Chat_UsersEmpty" xml:space="preserve">
+	        <value>Brak rozmów</value>
+	    </data>
+	<data name="Chat_ArchivedHeading" xml:space="preserve">
+	        <value>Archiwum</value>
+	    </data>
         <data name="Chat_ArchivedEmpty" xml:space="preserve">
         <value>Brak zarchiwizowanych wątków</value>
     </data>

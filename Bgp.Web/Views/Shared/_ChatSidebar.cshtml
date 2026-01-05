@@ -239,6 +239,15 @@
                         </div>
                     </form>
                 </div>
+                <section class="chat-panel__section" data-chat-section="users">
+                    <div class="chat-panel__section-header">
+                        <button type="button" class="chat-panel__section-toggle" data-chat-section-toggle>
+                            <span>@L["Chat_UsersHeading"].Value</span>
+                        </button>
+                    </div>
+                    <ul class="chat-contacts chat-contacts--users" data-chat-users></ul>
+                    <p class="chat-empty" data-chat-users-empty>@L["Chat_UsersEmpty"].Value</p>
+                </section>
                 <section class="chat-panel__section" data-chat-section="active">
                     <div class="chat-panel__section-header">
                         <button type="button" class="chat-panel__section-toggle" data-chat-section-toggle>

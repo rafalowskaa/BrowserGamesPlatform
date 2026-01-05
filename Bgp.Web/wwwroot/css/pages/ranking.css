@@ -14,7 +14,7 @@
 .ranking-header {
     display: grid;
     grid-template-columns: 1fr auto;
-    align-items: center;
+    align-items: flex-end;
     gap: var(--space-3);
     margin-bottom: var(--space-3);
 }
@@ -39,24 +39,26 @@
 
 .ranking-header h2 {
     margin: 0;
-    font-size: calc(3.3rem * var(--ranking-scale));
+    font-size: calc(3.8rem * var(--ranking-scale));
 }
 
 .ranking-controls {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
     gap: var(--space-3) var(--space-4);
     width: 100%;
+    justify-content: space-between;
 }
 
 .ranking-controls__inputs {
     display: flex;
     gap: var(--space-5);
     column-gap: var(--space-5);
-    align-items: center;
+    align-items: flex-end;
     flex-wrap: wrap;
     min-width: 0;
+    flex: 1 1 100%;
 }
 
     .ranking-controls__inputs .ranking-control {
@@ -174,6 +176,7 @@
 .leaderboard__col--player {
     min-width: 18rem;
     width: 26%;
+    text-align: left;
 }
 
 .leaderboard__col--most-played {
@@ -202,6 +205,7 @@
 .leaderboard__cell--player {
     width: 26%;
     text-align: left;
+    padding-left: 1.4rem;
 }
 
 .leaderboard__cell--tier {
@@ -225,6 +229,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    text-align: center;
 }
 
 .leaderboard__row {
@@ -770,6 +775,12 @@
         fill: currentColor;
     }
 
+.leaderboard__menu-placeholder {
+    display: inline-block;
+    width: 3.25rem;
+    height: 3.25rem;
+}
+
 .leaderboard__menu {
     position: absolute;
     background: rgba(15, 23, 42, 0.97);
@@ -821,7 +832,6 @@
 
 @media (min-width: 62rem) {
     .ranking-controls {
-        grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
     }
 
@@ -836,11 +846,12 @@
     }
 
     .ranking-controls {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: stretch;
     }
 
-    .ranking-controls__actions {
-        justify-content: flex-start;
+    .ranking-controls__inputs {
+        width: 100%;
     }
 
     .leaderboard__col--xp,
@@ -863,7 +874,6 @@
     .ranking-controls {
         width: 100%;
         justify-content: flex-start;
-        grid-template-columns: 1fr;
     }
 
     .ranking-controls__inputs {

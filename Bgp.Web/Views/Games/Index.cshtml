@@ -107,7 +107,16 @@
             @foreach (var g in Model.Games)
             {
                 <article class="game-card">
-                    <img src="@(string.IsNullOrWhiteSpace(g.CoverImagePath) ? "/img/placeholder.png" : g.CoverImagePath)" alt="cover" />
+                    @if (isAuthenticated)
+                    {
+                        <a asp-controller="Games" asp-action="Details" asp-route-slug="@g.Slug" class="game-card__media">
+                            <img src="@(string.IsNullOrWhiteSpace(g.CoverImagePath) ? "/img/placeholder.png" : g.CoverImagePath)" alt="cover" />
+                        </a>
+                    }
+                    else
+                    {
+                        <img src="@(string.IsNullOrWhiteSpace(g.CoverImagePath) ? "/img/placeholder.png" : g.CoverImagePath)" alt="cover" />
+                    }
                     <div class="game-card__body">
                         <h3>
                             @if (isAuthenticated)

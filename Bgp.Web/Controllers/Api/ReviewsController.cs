@@ -1,10 +1,13 @@
-﻿using System.Security.Claims;
+﻿using System.Collections.Generic;
+using System.Security.Claims;
+using System.Linq;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using Bgp.Web.Helpers;
 
 namespace Bgp.Web.Controllers.Api;
 
@@ -27,8 +30,23 @@ public class ReviewsController : ControllerBase
         var game = await _db.Games.Include(g => g.Reviews).FirstOrDefaultAsync(g => g.Id == gameId);
         if (game is null) return NotFound();
 
+        var userIds = game.Reviews.Select(r => r.UserId).Distinct().ToList();
+        var userLookup = userIds.Count == 0
+            ? new Dictionary<string, string>()
+            : await _db.Users
+                .Where(u => userIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
+                .ToDictionaryAsync(u => u.Id, u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id));
+
+        string ResolveAuthor(string uid)
+        {
+            return userLookup.TryGetValue(uid, out var name)
+                ? name
+                : DisplayNameFormatter.Format(null, null, null, uid);
+        }
+
         var items = game.Reviews.OrderByDescending(r => r.CreatedAtUtc)
-            .Select(r => new { r.Stars, r.Comment, r.CreatedAtUtc });
+            .Select(r => new { r.Stars, r.Comment, r.CreatedAtUtc, Author = ResolveAuthor(r.UserId) });
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userStars = string.IsNullOrEmpty(userId)

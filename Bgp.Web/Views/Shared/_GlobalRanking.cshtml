@@ -47,8 +47,6 @@
                         }
                     </select>
                 </label>
-            </div>
-            <div class="ranking-controls__actions">
                 <button type="button" class="ranking-control ranking-control--ghost ranking-control--jump" data-ranking-jump hidden>
                     <span>@Model.JumpToMeLabel</span>
                 </button>
@@ -178,18 +176,25 @@
                             </div>
                         </td>
                         <td class="leaderboard__cell leaderboard__cell--actions">
-                            <button type="button"
-                                    class="leaderboard__menu-btn"
-                                    aria-haspopup="true"
-                                    aria-expanded="false"
-                                    aria-label="@Model.ActionsMoreLabel"
-                                    data-ranking-menu>
-                                <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false" class="leaderboard__menu-icon">
-                                    <circle cx="12" cy="5" r="1.6"></circle>
-                                    <circle cx="12" cy="12" r="1.6"></circle>
-                                    <circle cx="12" cy="19" r="1.6"></circle>
-                                </svg>
-                            </button>
+                            @if (!entry.IsCurrentUser)
+                            {
+                                <button type="button"
+                                        class="leaderboard__menu-btn"
+                                        aria-haspopup="true"
+                                        aria-expanded="false"
+                                        aria-label="@Model.ActionsMoreLabel"
+                                        data-ranking-menu>
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false" class="leaderboard__menu-icon">
+                                        <circle cx="12" cy="5" r="1.6"></circle>
+                                        <circle cx="12" cy="12" r="1.6"></circle>
+                                        <circle cx="12" cy="19" r="1.6"></circle>
+                                    </svg>
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="leaderboard__menu-placeholder" aria-hidden="true"></span>
+                            }
                         </td>
                     </tr>
                 }

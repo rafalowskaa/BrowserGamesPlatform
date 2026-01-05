@@ -14,6 +14,9 @@
     const panel = document.getElementById('chatPanel');
     const closeBtn = panel ? panel.querySelector('[data-chat-close]') : null;
     const searchInput = panel ? panel.querySelector('[data-chat-search]') : null;
+    const usersList = panel ? panel.querySelector('[data-chat-users]') : null;
+    const usersEmpty = panel ? panel.querySelector('[data-chat-users-empty]') : null;
+    const usersEmptyDefault = usersEmpty ? usersEmpty.textContent : '';
     const friendsList = panel ? panel.querySelector('[data-chat-active]') : null;
     const friendsEmpty = panel ? panel.querySelector('[data-chat-active-empty]') : null;
     const archivedList = panel ? panel.querySelector('[data-chat-archived]') : null;
@@ -106,6 +109,7 @@
     let strangerMessage = '';
     let strangerMessageForced = false;
     let searchSectionSnapshot = null;
+    let usersRenderScheduled = false;
     const pendingPresence = new Map();
     const STORAGE_LAST_SEEN_KEY = 'bgp.chat.lastSeen';
     const STORAGE_PANEL_STATE_KEY = 'bgp.chat.panelState';
@@ -1812,6 +1816,7 @@
         Array.from(pendingPresence.entries()).forEach(([friendId, snapshot]) => {
             applyPresenceSnapshot(friendId, snapshot);
         });
+        requestUsersRender();
     }
 
     function announceMessage(message) {
@@ -2661,6 +2666,110 @@
         updateActiveEmptyState(visibleActive);
         updateArchivedEmptyState(visibleArchived);
         updateStrangerEmptyState(visibleStrangers);
+            requestUsersRender();
+        }
+
+        function requestUsersRender() {
+            if (usersRenderScheduled) {
+                return;
+            }
+            usersRenderScheduled = true;
+            const scheduler = (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function')
+                ? window.requestAnimationFrame
+                : (fn) => setTimeout(fn, 0);
+            scheduler(() => {
+                usersRenderScheduled = false;
+                renderUsersDirectory();
+            });
+        }
+
+        function renderUsersDirectory() {
+            if (!usersList) {
+                return;
+            }
+            usersList.innerHTML = '';
+            const entries = [];
+            friends.forEach((friend) => {
+                if (!friend) {
+                    return;
+                }
+                const matches = !searchTerm
+                    || (friend.displayName && friend.displayName.toLowerCase().includes(searchTerm))
+                    || (friend.userName && friend.userName.toLowerCase().includes(searchTerm))
+                    || (friend.statusMessage && friend.statusMessage.toLowerCase().includes(searchTerm));
+                if (!matches) {
+                    return;
+                }
+                const conversation = getConversation(friend.userId);
+                const lastSeen = getLastSeenEntry(friend.userId);
+                const lastSeenMs = lastSeen?.sentAtUtc ? (toUtcDate(lastSeen.sentAtUtc)?.getTime() || 0) : 0;
+                const lastActive = conversation?.latestSentAtMs || lastSeenMs || 0;
+                entries.push({ friend, conversation, lastActive });
+            });
+
+            entries.sort((a, b) => {
+                const diff = (b.lastActive || 0) - (a.lastActive || 0);
+                if (diff !== 0) {
+                    return diff;
+                }
+                const nameA = (a.friend.displayName || a.friend.userName || a.friend.userId || '').toLowerCase();
+                const nameB = (b.friend.displayName || b.friend.userName || b.friend.userId || '').toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+
+            const fragment = document.createDocumentFragment();
+            entries.forEach(entry => {
+                const friend = entry.friend;
+                const li = document.createElement('li');
+                li.className = 'chat-contact';
+
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'chat-contact__button';
+                button.dataset.chatFriend = friend.userId;
+                button.addEventListener('click', () => openConversation(friend.userId, friend.displayName));
+
+                const avatar = document.createElement('span');
+                avatar.className = 'chat-contact__avatar';
+                avatar.setAttribute('aria-hidden', 'true');
+                buildAvatarImage(avatar, friend.avatarUrl || '', friend.displayName || friend.userId || '');
+                const statusDot = document.createElement('span');
+                statusDot.className = 'chat-status-dot';
+                statusDot.dataset.friendDot = '';
+                avatar.appendChild(statusDot);
+                applyStatusDot(statusDot, friend);
+
+                const meta = document.createElement('span');
+                meta.className = 'chat-contact__meta';
+
+                const name = document.createElement('span');
+                name.className = 'chat-contact__name';
+                name.textContent = friend.displayName || friend.userName || friend.userId;
+                meta.appendChild(name);
+
+                const status = document.createElement('span');
+                status.className = 'chat-contact__status';
+                if (entry.conversation && entry.conversation.latestSentAtMs) {
+                    status.textContent = formatDayFromDate(new Date(entry.conversation.latestSentAtMs));
+                } else {
+                    status.textContent = presenceLabel(friend);
+                }
+                meta.appendChild(status);
+
+                button.appendChild(avatar);
+                button.appendChild(meta);
+                li.appendChild(button);
+                fragment.appendChild(li);
+            });
+
+            usersList.appendChild(fragment);
+            if (usersEmpty) {
+                const emptyText = searchTerm && strings.noMatches
+                    ? strings.noMatches
+                    : (usersEmptyDefault || usersEmpty.textContent || '');
+                usersEmpty.textContent = emptyText;
+                usersEmpty.style.display = entries.length > 0 ? 'none' : 'block';
+            }
     }
 
     function updateActiveEmptyState(count) {
@@ -3295,6 +3404,7 @@
         updateUnreadBadge();
         applyPendingPresence();
         ordered.forEach((friend) => flushPendingMessages(friend.userId));
+        requestUsersRender();
     }
 
     function renderRequests(incoming, outgoing) {
@@ -4507,6 +4617,7 @@
         if (timestamp && (!conversation.latestSentAtMs || timestamp > conversation.latestSentAtMs)) {
             conversation.latestSentAtMs = timestamp;
             conversation.latestMessageId = message.id || conversation.latestMessageId || null;
+            requestUsersRender();
             return;
         }
         if (!conversation.latestMessageId && message.id) {
@@ -5258,6 +5369,7 @@
                     friendsEmpty.style.display = 'block';
                 }
                 updateUnreadBadge();
+                requestUsersRender();
             }
         })();
 
