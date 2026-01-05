@@ -64,6 +64,32 @@
         return labels.Count == 0 ? L["Games_Details_Category_Unspecified"].Value : string.Join(", ", labels);
     }
 
+    var categoryLabels = GameMetadataOptions.CategoryDefinitions
+        .Where(def => (game.Categories & def.Category) != 0)
+        .Select(def => L[def.ResourceKey].Value)
+        .Where(label => !string.IsNullOrWhiteSpace(label))
+        .ToList();
+
+    if (categoryLabels.Count == 0)
+    {
+        categoryLabels.Add(L["Games_Details_Category_Unspecified"].Value);
+    }
+
+    var heroSubtitle = !string.IsNullOrWhiteSpace(game.Description)
+        ? (game.Description!.Length > 160 ? string.Concat(game.Description.AsSpan(0, 160).TrimEnd(), "…") : game.Description)
+        : L["Games_Details_PlaySubheading"].Value;
+
+    var lastUpdated = game.UpdatedAtUtc ?? game.CreatedAtUtc;
+
+    var trimmedRules = game.Rules?.Trim() ?? string.Empty;
+    var rulesPreview = trimmedRules.Length > 240
+        ? string.Concat(trimmedRules.AsSpan(0, 240).TrimEnd(), "…")
+        : trimmedRules;
+    var encodedRules = HtmlEncoder.Default.Encode(trimmedRules).Replace("\n", "<br />");
+    var ruleLines = trimmedRules
+        .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Take(6)
+        .ToList();
 
     var config = new
     {
@@ -121,234 +147,456 @@
         }
     };
 }
-<h2>@game.Title</h2>
-@if (!string.IsNullOrWhiteSpace(game.Description))
-{
-    <p>@game.Description</p>
-}
-
-<div class="game-meta-panel">
-    <div><strong>@L["Games_Details_Modes"].Value</strong><span>@FormatModes(game.Modes)</span></div>
-    <div><strong>@L["Games_Details_Categories"].Value</strong><span>@FormatCategories(game.Categories)</span></div>
-    <div><strong>@L["Games_Details_CurrentPlayers_Label"].Value</strong><span data-current-players>@Model.ActivePlayerCount</span></div>
-    @if (approvedTags.Any())
-    {
-        <div class="game-tags">
-            <strong>@L["Games_Details_Tags"].Value</strong>
-            <div class="tag-list">
-                @foreach (var tag in approvedTags)
-                {
-                    <span class="badge subtle">@tag</span>
-                }
+<div class="game-hub">
+    <header class="game-hero panel">
+        <div class="game-hero__info">
+            <div class="game-hero__eyebrow">
+                <span class="badge subtle">@L["Games_Details_Categories"].Value</span>
+                <span class="game-hero__categories">@string.Join(" • ", categoryLabels)</span>
             </div>
-        </div>
-    }
-</div>
+            <h1 class="game-hero__title">@game.Title</h1>
+            <p class="game-hero__subtitle">@heroSubtitle</p>
 
-<section class="panel game-rating" data-rating-panel data-reviews-url="@Url.Content($"/api/games/{game.Id}/reviews")">
-    <header class="panel__header">
-        <div>
-            <h3>@L["Games_Details_Rating_Title"].Value</h3>
-            <p class="muted">@L["Games_Details_Rating_Subtitle"].Value</p>
-        </div>
-    </header>
-    <div class="game-rating__content">
-        <div class="game-rating__summary">
-            <p class="game-rating__value">
-                <span class="game-rating__average" data-rating-average>@Model.AverageRating.ToString("0.0")</span>
-                <span class="game-rating__out-of">/ 5</span>
-            </p>
-            <p class="muted" data-rating-count>
-                @(Model.ReviewCount > 0
-                                ? string.Format(L["Games_Details_Rating_Count"].Value, Model.ReviewCount)
-                                : L["Games_Details_Rating_None"].Value)
-            </p>
-        </div>
-        <div class="game-rating__form" data-rating-form>
-            <p class="game-rating__label">@L["Games_Details_Rating_YourRating"].Value</p>
-            <div class="star-rating star-rating--input" data-rating-input data-user-rating="@(Model.UserRating ?? 0)">
-                @for (var star = 1; star <= 5; star++)
-                {
-                    var selected = Model.UserRating.HasValue && Model.UserRating.Value >= star;
-                    <button type="button"
-                            class="star-rating__star @(selected ? "is-filled" : string.Empty)"
-                            data-star-value="@star"
-                            aria-pressed="@(selected.ToString().ToLowerInvariant())"
-                            aria-label="@string.Format(L["Games_Details_Rating_StarLabel"].Value, star)">
-                        ★
-                    </button>
-                }
+            <div class="game-hero__chips">
+                <span class="chip chip--pill">Puzzle</span>
+                <span class="chip chip--pill">Strategy</span>
+                <span class="chip chip--pill">@L["Dashboard_Games_Category_Board"].Value</span>
             </div>
-            <p class="game-rating__message muted" data-rating-feedback hidden></p>
-        </div>
-    </div>
-</section>
 
-<section class="panel game-play" data-game-config>
-    <header class="panel__header">
-        <div>
-            <h3>@L["Games_Details_PlayHeading"].Value</h3>
-            <p class="muted">@L["Games_Details_PlaySubheading"].Value</p>
-        </div>
-    </header>
-
-    <div class="game-play__content">
-        <div class="game-play__modes" data-mode-selector>
-            <h4>@L["Games_Details_ModeHeading"].Value</h4>
-            <div class="mode-options">
-                @for (var i = 0; i < availableModes.Count; i++)
-                {
-                    var def = availableModes[i];
-                    var optionId = $"mode_{(int)def.Mode}";
-                    <label for="@optionId" class="mode-option">
-                        <input type="radio" name="game-mode" id="@optionId" value="@((int)def.Mode)" @(i == 0 ? "checked" : string.Empty) />
-                        <span>@L[def.ResourceKey].Value</span>
-                    </label>
-                }
-            </div>
-        </div>
-
-        @if (!string.IsNullOrWhiteSpace(game.Rules))
-        {
-            var trimmedRules = game.Rules.Trim();
-            var rulesPreview = trimmedRules.Length > 240
-            ? string.Concat(trimmedRules.AsSpan(0, 240).TrimEnd(), "…")
-            : trimmedRules;
-            var encodedRules = HtmlEncoder.Default.Encode(trimmedRules).Replace("\n", "<br />");
-            <div class="game-play__rules">
-                <div class="game-play__rules-header">
-                    <h4>@L["Games_Details_Rules_Heading"].Value</h4>
-                    <button type="button" class="btn-outline btn-compact" data-rules-open>
-                        @L["Games_Details_Rules_Heading"].Value
-                    </button>
+            <div class="game-hero__meta">
+                <div class="meta-item">
+                    <span class="meta-label">@L["Games_Details_Modes"].Value</span>
+                    <strong>@FormatModes(game.Modes)</strong>
                 </div>
-                <p class="game-play__rules-preview">@rulesPreview</p>
+                <div class="meta-item">
+                    <span class="meta-label">@L["Games_Details_CurrentPlayers_Label"].Value</span>
+                    <strong data-current-players>@Model.ActivePlayerCount</strong>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Ostatnia aktualizacja</span>
+                    <strong>@lastUpdated.ToLocalTime().ToString("d")</strong>
+                </div>
             </div>
-            <div class="modal-backdrop" data-rules-modal hidden>
-                <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="gameRulesTitle">
-                    <div class="modal-dialog__content">
-                        <header class="game-rules__header">
-                            <h3 id="gameRulesTitle">@L["Games_Details_Rules_Heading"].Value</h3>
-                            <button type="button" class="btn-icon modal-dialog__close" data-rules-close aria-label="@L["Dashboard_Profile_Action_Cancel"].Value">✕</button>
-                        </header>
-                        <div class="modal-dialog__message game-rules__body">
-                            @Html.Raw(encodedRules)
-                        </div>
-                        <div class="modal-dialog__actions">
-                            <button type="button" class="btn-primary btn-compact" data-rules-close>@L["Dashboard_Profile_Action_Cancel"].Value</button>
+
+            @if (approvedTags.Any())
+            {
+                <div class="game-hero__tags">
+                    @foreach (var tag in approvedTags)
+                    {
+                        <span class="chip chip--ghost">#@tag</span>
+                    }
+                </div>
+            }
+        </div>
+
+        <aside class="game-hero__actions">
+            <section class="panel game-rating game-rating--quick" data-rating-panel data-reviews-url="@Url.Content($"/api/games/{game.Id}/reviews")">
+                <header class="panel__header">
+                    <div>
+                        <h3>@L["Games_Details_Rating_Title"].Value</h3>
+                        <p class="muted">@L["Games_Details_Rating_Subtitle"].Value</p>
+                    </div>
+                </header>
+                <div class="game-rating__content">
+                    <div class="game-rating__summary">
+                        <p class="game-rating__value">
+                            <span class="game-rating__average" data-rating-average>@Model.AverageRating.ToString("0.0")</span>
+                            <span class="game-rating__out-of">/ 5</span>
+                        </p>
+                        <p class="muted" data-rating-count>
+                            @(Model.ReviewCount > 0
+                                                        ? string.Format(L["Games_Details_Rating_Count"].Value, Model.ReviewCount)
+                                                        : L["Games_Details_Rating_None"].Value)
+                        </p>
+                        <div class="game-rating__badges">
+                            <span class="chip chip--pill">@L["Games_Details_Rating_YourRating"].Value</span>
+                            <span class="chip chip--pill">@L["Games_Details_InviteHeading"].Value</span>
                         </div>
                     </div>
+                    <div class="game-rating__form" data-rating-form>
+                        <p class="game-rating__label">@L["Games_Details_Rating_YourRating"].Value</p>
+                        <div class="star-rating star-rating--input" data-rating-input data-user-rating="@(Model.UserRating ?? 0)">
+                            @for (var star = 1; star <= 5; star++)
+                            {
+                                var selected = Model.UserRating.HasValue && Model.UserRating.Value >= star;
+                                <button type="button"
+                                        class="star-rating__star @(selected ? "is-filled" : string.Empty)"
+                                        data-star-value="@star"
+                                        aria-pressed="@(selected.ToString().ToLowerInvariant())"
+                                        aria-label="@string.Format(L["Games_Details_Rating_StarLabel"].Value, star)">
+                                    ★
+                                </button>
+                            }
+                        </div>
+                        <p class="game-rating__message muted" data-rating-feedback hidden></p>
+                    </div>
+                    <div class="game-hero__cta">
+                        <a class="btn-primary btn-lg" href="#play-card">@L["Home_Hero_Cta_Play"].Value</a>
+                        <button class="btn-secondary btn-ghost" type="button">Udostępnij</button>
+                    </div>
                 </div>
-            </div>
-        }
+            </section>
+        </aside>
+    </header>
 
-        @if (webOption is not null)
-        {
-            <div class="game-play__launch">
-                <button class="btn-primary" type="button" data-game-start>@L["Games_Details_StartGeneric"].Value</button>
-                <p class="muted" data-game-start-hint>@L["Games_Details_WebHint"].Value</p>
-                <button class="btn-secondary" type="button" data-game-cancel hidden>@L["Games_Details_Matchmaking_Cancel"].Value</button>
-                <div class="player" hidden data-game-player>
-                    <div class="player__stage" data-game-stage>
-                        <div class="player__viewport" data-game-viewer>
-                            <div class="player__canvas" data-game-canvas>
-                                <iframe src="about:blank" title="@game.Title" loading="lazy" allow="fullscreen" allowfullscreen scrolling="no" data-game-frame></iframe>
+    <div class="game-layout">
+        <div class="game-layout__main">
+            <section id="play-card" class="panel game-play" data-game-config>
+                <header class="panel__header game-play__header">
+                    <div>
+                        <h3>@L["Games_Details_PlayHeading"].Value</h3>
+                        <p class="muted">@L["Games_Details_PlaySubheading"].Value</p>
+                    </div>
+                    <div class="game-play__labels">
+                        <span class="chip chip--ghost">@L["Games_Details_ModeHeading"].Value</span>
+                        <span class="chip chip--ghost">@L["Games_Details_DisplayFit"].Value</span>
+                    </div>
+                </header>
+
+                <div class="game-play__content">
+                    <div class="game-play__modes" data-mode-selector>
+                        <div class="segmented-tabs" role="tablist" aria-label="@L["Games_Details_ModeHeading"].Value">
+                            @for (var i = 0; i < availableModes.Count; i++)
+                            {
+                                var def = availableModes[i];
+                                var optionId = $"mode_{(int)def.Mode}";
+                                <label for="@optionId" class="segmented-tabs__option">
+                                    <input type="radio" name="game-mode" id="@optionId" value="@((int)def.Mode)" @(i == 0 ? "checked" : string.Empty) />
+                                    <span>@L[def.ResourceKey].Value</span>
+                                </label>
+                            }
+                        </div>
+                        <p class="muted">@L["Games_Details_ModeHeading"].Value</p>
+                    </div>
+
+                    <div class="game-play__grid">
+                        <div class="game-play__panel game-play__panel--primary">
+                            <div class="play-options play-options--solo">
+                                <div class="play-options__header">
+                                    <div>
+                                        <p class="eyebrow">@L["Games_Details_StartSingle"].Value</p>
+                                        <h4>@L["Home_Hero_Cta_Play"].Value</h4>
+                                    </div>
+                                    <span class="chip chip--pill">@L["Games_Details_Rules_Heading"].Value</span>
+                                </div>
+                                <div class="play-options__form">
+                                    <label>
+                                        <span>@L["Dashboard_Profile_Action_Save"].Value</span>
+                                        <select>
+                                            <option>Normalny</option>
+                                            <option>Szybki</option>
+                                            <option>Turniejowy</option>
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <span>Tempo ruchu</span>
+                                        <select>
+                                            <option>30s</option>
+                                            <option>60s</option>
+                                            <option>90s</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div class="play-options__actions">
+                                    <button class="btn-primary btn-lg" type="button" data-game-start>@L["Games_Details_StartGeneric"].Value</button>
+                                    <p class="muted" data-game-start-hint>@L["Games_Details_WebHint"].Value</p>
+                                    <button class="btn-secondary" type="button" data-game-cancel hidden>@L["Games_Details_Matchmaking_Cancel"].Value</button>
+                                </div>
+                            </div>
+
+                            @if (downloadOptions.Any())
+                            {
+                                <div class="game-play__downloads">
+                                    <h4>@L["Games_Details_DownloadHeading"].Value</h4>
+                                    <ul class="download-list">
+                                        @foreach (var download in downloadOptions)
+                                        {
+                                            <li>
+                                                <a class="btn-secondary" href="@download.Url" download>@download.Label</a>
+                                                @if (!string.IsNullOrWhiteSpace(download.Description))
+                                                {
+                                                    var platformKey = $"Games_Details_Platform_{download.Description}";
+                                                    var platformLabel = L[platformKey].Value;
+                                                    <span class="muted">@platformLabel</span>
+                                                }
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                            else if (webOption is null)
+                            {
+                                <p class="alert">@L["Details_NoBuild"].Value</p>
+                            }
+                        </div>
+                        <div class="game-play__panel game-play__panel--multi">
+                            <div class="play-options play-options--multiplayer">
+                                <div class="play-options__header">
+                                    <div>
+                                        <p class="eyebrow">@L["Games_Details_StartMulti"].Value</p>
+                                        <h4>@L["Games_Details_Matchmaking_Searching"].Value</h4>
+                                    </div>
+                                    <span class="chip chip--ghost">@L["Games_Details_InviteHeading"].Value</span>
+                                </div>
+                                <div class="play-options__cards">
+                                    <div class="play-card">
+                                        <div class="play-card__body">
+                                            <p class="eyebrow">@L["Games_Details_Matchmaking_Searching"].Value</p>
+                                            <h5>@L["Games_Details_Matchmaking_Searching"].Value</h5>
+                                            <p class="muted">@L["Games_Details_Matchmaking_Starting"].Value</p>
+                                        </div>
+                                        <button class="btn-secondary btn-compact" type="button" data-game-start>@L["Games_Details_StartMulti"].Value</button>
+                                    </div>
+                                    <div class="play-card">
+                                        <div class="play-card__body">
+                                            <p class="eyebrow">@L["Games_Details_InviteHeading"].Value</p>
+                                            <h5>Prywatny pokój</h5>
+                                            <p class="muted">@L["Games_Details_InviteDescription"].Value</p>
+                                            <div class="room-code">
+                                                <span>KOD</span>
+                                                <strong>ABCD-1234</strong>
+                                                <button type="button" class="btn-ghost">@L["Games_Details_InviteSend"].Value</button>
+                                            </div>
+                                        </div>
+                                        <button class="btn-primary btn-compact" type="button">@L["Games_Details_InviteSend"].Value</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="player__controls" data-game-controls hidden>
-                            <button class="btn-secondary" type="button" data-game-scale-fit>@L["Games_Details_DisplayFit"].Value</button>
-                            <label class="player__scale" data-game-scale-label>
-                                <span>@L["Games_Details_DisplayScaleLabel"].Value</span>
-                                <input type="range"
-                                       min="0.5"
-                                       max="2.25"
-                                       step="0.05"
-                                       value="1"
-                                       data-game-scale-range
-                                       title="@L["Games_Details_DisplayScaleHint"].Value"
-                                       aria-describedby="game-scale-value" />
-                            </label>
-                            <span class="player__scale-value" id="game-scale-value" data-game-scale-value>100%</span>
-                        </div>
-                        <button class="player__fullscreen" type="button" data-game-fullscreen aria-pressed="false" data-state="enter">
-                            <span data-game-fullscreen-enter>@L["Games_Details_Fullscreen"].Value</span>
-                            <span data-game-fullscreen-exit hidden>@L["Games_Details_ExitFullscreen"].Value</span>
-                        </button>
                     </div>
-                </div>
-            </div>
-        }
-        else
-        {
-            <p class="alert">@L["Games_Details_NoWebBuild"].Value</p>
-        }
-
-        @if (downloadOptions.Any())
-        {
-            <div class="game-play__downloads">
-                <h4>@L["Games_Details_DownloadHeading"].Value</h4>
-                <ul class="download-list">
-                    @foreach (var download in downloadOptions)
+                    @if (!string.IsNullOrWhiteSpace(game.Rules))
                     {
-                        <li>
-                            <a class="btn-secondary" href="@download.Url" download>@download.Label</a>
-                            @if (!string.IsNullOrWhiteSpace(download.Description))
-                            {
-                                var platformKey = $"Games_Details_Platform_{download.Description}";
-                                var platformLabel = L[platformKey].Value;
-                                <span class="muted">@platformLabel</span>
-                            }
-                        </li>
+                        <div class="game-play__rules">
+                            <div class="game-play__rules-header">
+                                <div>
+                                    <p class="eyebrow">@L["Games_Details_Rules_Heading"].Value</p>
+                                    <h4>@L["Games_Details_Rules_Heading"].Value</h4>
+                                </div>
+                                <button type="button" class="btn-outline btn-compact" data-rules-open>
+                                    @L["Games_Details_Rules_Heading"].Value
+                                </button>
+                            </div>
+                            <div class="rules-grid">
+                                <ul class="rules-bullets">
+                                    @if (ruleLines.Any())
+                                    {
+                                        foreach (var line in ruleLines)
+                                        {
+                                            <li>@line</li>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <li>@rulesPreview</li>
+                                    }
+                                </ul>
+                                <div class="rules-accordion">
+                                    <details open>
+                                        <summary>Podstawy</summary>
+                                        <p>@rulesPreview</p>
+                                    </details>
+                                    <details>
+                                        <summary>Bicie</summary>
+                                        <p>@rulesPreview</p>
+                                    </details>
+                                    <details>
+                                        <summary>Królowa</summary>
+                                        <p>@rulesPreview</p>
+                                    </details>
+                                    <details>
+                                        <summary>Remis</summary>
+                                        <p>@rulesPreview</p>
+                                    </details>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-backdrop" data-rules-modal hidden>
+                            <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="gameRulesTitle">
+                                <div class="modal-dialog__content">
+                                    <header class="game-rules__header">
+                                        <h3 id="gameRulesTitle">@L["Games_Details_Rules_Heading"].Value</h3>
+                                        <button type="button" class="btn-icon modal-dialog__close" data-rules-close aria-label="@L["Dashboard_Profile_Action_Cancel"].Value">✕</button>
+                                    </header>
+                                    <div class="modal-dialog__message game-rules__body">
+                                        @Html.Raw(encodedRules)
+                                    </div>
+                                    <div class="modal-dialog__actions">
+                                        <button type="button" class="btn-primary btn-compact" data-rules-close>@L["Dashboard_Profile_Action_Cancel"].Value</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     }
-                </ul>
-            </div>
-        }
-        else if (webOption is null)
-        {
-            <p class="alert">@L["Details_NoBuild"].Value</p>
-        }
 
-        @if ((game.Modes & (GameMode.MultiplayerRealtime | GameMode.MultiplayerAsync)) != GameMode.None)
-        {
-            <div class="game-play__invite" data-invite-panel hidden>
-                <h4>@L["Games_Details_InviteHeading"].Value</h4>
-                <p>@L["Games_Details_InviteDescription"].Value</p>
-                <label class="sr-only" for="inviteFriendSelect">@L["Games_Details_InviteSelect"].Value</label>
-                <select id="inviteFriendSelect" data-invite-select>
-                    <option value="">@L["Games_Details_InviteSelect"].Value</option>
-                </select>
-                <button class="btn-primary" type="button" data-invite-send>@L["Games_Details_InviteSend"].Value</button>
-                <p class="muted" data-invite-empty>@L["Games_Details_InviteEmpty"].Value</p>
-            </div>
-        }
-    </div>
-    <script type="application/json" id="gameDetailsConfig">@Html.Raw(JsonSerializer.Serialize(config))</script>
-</section>
+                    @if (webOption is not null)
+                    {
+                        <div class="game-window">
+                            <div class="game-window__header">
+                                <div>
+                                    <p class="eyebrow">@L["Games_Details_PlayHeading"].Value</p>
+                                    <h4>@L["Games_Details_DisplayFit"].Value</h4>
+                                </div>
+                                <div class="game-window__controls">
+                                    <button class="btn-ghost btn-compact" type="button" data-game-scale-fit>@L["Games_Details_DisplayFit"].Value</button>
+                                    <button class="btn-ghost btn-compact" type="button" data-game-fullscreen>
+                                        <span data-game-fullscreen-enter>@L["Games_Details_Fullscreen"].Value</span>
+                                        <span data-game-fullscreen-exit hidden>@L["Games_Details_ExitFullscreen"].Value</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="game-window__player">
+                                <div class="player" hidden data-game-player>
+                                    <div class="player__stage" data-game-stage>
+                                        <div class="player__viewport" data-game-viewer>
+                                            <div class="player__canvas" data-game-canvas>
+                                                <iframe src="about:blank" title="@game.Title" loading="lazy" allow="fullscreen" allowfullscreen scrolling="no" data-game-frame></iframe>
+                                            </div>
+                                        </div>
+                                        <div class="player__controls" data-game-controls hidden>
+                                            <button class="btn-secondary" type="button" data-game-scale-fit>@L["Games_Details_DisplayFit"].Value</button>
+                                            <label class="player__scale" data-game-scale-label>
+                                                <span>@L["Games_Details_DisplayScaleLabel"].Value</span>
+                                                <input type="range"
+                                                       min="0.5"
+                                                       max="2.25"
+                                                       step="0.05"
+                                                       value="1"
+                                                       data-game-scale-range
+                                                       title="@L["Games_Details_DisplayScaleHint"].Value"
+                                                       aria-describedby="game-scale-value" />
+                                            </label>
+                                            <span class="player__scale-value" id="game-scale-value" data-game-scale-value>100%</span>
+                                        </div>
+                                        <button class="player__fullscreen" type="button" data-game-fullscreen aria-pressed="false" data-state="enter">
+                                            <span data-game-fullscreen-enter>@L["Games_Details_Fullscreen"].Value</span>
+                                            <span data-game-fullscreen-exit hidden>@L["Games_Details_ExitFullscreen"].Value</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="muted game-window__placeholder">@L["Games_Details_PlaySubheading"].Value</p>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="alert">@L["Games_Details_NoWebBuild"].Value</p>
+                    }
 
-<section class="panel game-comments" data-comments data-comments-url="@Url.Content($"/api/games/{game.Id}/reviews")">
-    <header class="panel__header">
-        <div>
-            <h3>@L["Games_Details_Comments_Title"].Value</h3>
-            <p class="muted">@L["Games_Details_Comments_Subtitle"].Value</p>
+                    @if ((game.Modes & (GameMode.MultiplayerRealtime | GameMode.MultiplayerAsync)) != GameMode.None)
+                    {
+                        <div class="game-play__invite" data-invite-panel hidden>
+                            <h4>@L["Games_Details_InviteHeading"].Value</h4>
+                            <p>@L["Games_Details_InviteDescription"].Value</p>
+                            <label class="sr-only" for="inviteFriendSelect">@L["Games_Details_InviteSelect"].Value</label>
+                            <select id="inviteFriendSelect" data-invite-select>
+                                <option value="">@L["Games_Details_InviteSelect"].Value</option>
+                            </select>
+                            <button class="btn-primary" type="button" data-invite-send>@L["Games_Details_InviteSend"].Value</button>
+                            <p class="muted" data-invite-empty>@L["Games_Details_InviteEmpty"].Value</p>
+                        </div>
+                    }
+                </div>
+                <script type="application/json" id="gameDetailsConfig">@Html.Raw(JsonSerializer.Serialize(config))</script>
+            </section>
         </div>
-    </header>
-    <div class="game-comments__body">
-        <form class="game-comments__form" data-comment-form>
-            <label class="sr-only" for="gameComment">@L["Games_Details_Comments_Label"].Value</label>
-            <textarea id="gameComment"
-                      data-comment-input
-                      maxlength="2000"
-                      placeholder="@L["Games_Details_Comments_Placeholder"].Value"></textarea>
-            <div class="game-comments__actions">
-                <span class="game-comments__hint">@L["Games_Details_Comments_Placeholder"].Value</span>
-                <button type="submit" class="btn-primary btn-compact" data-comment-submit>@L["Games_Details_Comments_Submit"].Value</button>
-            </div>
-            <p class="game-comments__feedback muted" data-comment-feedback hidden></p>
-        </form>
-        <ul class="game-comments__list" data-comments-list></ul>
-        <p class="game-comments__empty" data-comments-empty hidden>@L["Games_Details_Comments_Empty"].Value</p>
+
+        <aside class="game-layout__side">
+            @if ((game.Modes & (GameMode.MultiplayerRealtime | GameMode.MultiplayerAsync)) != GameMode.None)
+            {
+                <section class="panel invite-panel">
+                    <header class="panel__header">
+                        <div>
+                            <h3>@L["Games_Details_InviteHeading"].Value</h3>
+                            <p class="muted">@L["Games_Details_InviteDescription"].Value</p>
+                        </div>
+                        <button class="btn-secondary btn-compact" type="button">@L["Games_Details_InviteSend"].Value</button>
+                    </header>
+                    <div class="invite-panel__body">
+                        <div class="invite-inline">
+                            <label class="sr-only" for="inviteFriendSelectInline">@L["Games_Details_InviteSelect"].Value</label>
+                            <select id="inviteFriendSelectInline">
+                                <option>@L["Games_Details_InviteSelect"].Value</option>
+                            </select>
+                            <button class="btn-primary btn-compact" type="button">@L["Games_Details_InviteSend"].Value</button>
+                        </div>
+                        <div class="invite-tabs">
+                            <div class="invite-tab">
+                                <h4>@L["Chat_Strangers"].Value</h4>
+                                <p class="muted">@L["Games_Details_InviteDescription"].Value</p>
+                                <button class="btn-secondary btn-compact" type="button">@L["Games_Details_InviteSend"].Value</button>
+                            </div>
+                            <div class="invite-tab invite-tab--link">
+                                <h4>@L["Chat_Invite"].Value</h4>
+                                <div class="invite-link">
+                                    <code>https://play.grid/@game.Slug</code>
+                                    <button class="btn-ghost" type="button">@L["Games_Details_InviteSend"].Value</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(game.Rules))
+            {
+                <section class="panel rules-panel">
+                    <header class="panel__header">
+                        <div>
+                            <h3>@L["Games_Details_Rules_Heading"].Value</h3>
+                            <p class="muted">Skrót zasad</p>
+                        </div>
+                    </header>
+                    <div class="rules-panel__body">
+                        <ul class="rules-panel__list">
+                            @if (ruleLines.Any())
+                            {
+                                foreach (var line in ruleLines)
+                                {
+                                    <li>@line</li>
+                                }
+                            }
+                            else
+                            {
+                                <li>@rulesPreview</li>
+                            }
+                        </ul>
+                        <button class="btn-outline btn-compact" type="button" data-rules-open>@L["Games_Details_Rules_Heading"].Value</button>
+                    </div>
+                </section>
+            }
+        </aside>
     </div>
-</section>
+
+    <section class="panel game-comments" data-comments data-comments-url="@Url.Content($"/api/games/{game.Id}/reviews")">
+        <header class="panel__header game-comments__header">
+            <div>
+                <h3>@L["Games_Details_Comments_Title"].Value</h3>
+                <p class="muted">@L["Games_Details_Comments_Subtitle"].Value</p>
+            </div>
+            <div class="comment-filters">
+                <button class="chip chip--ghost" type="button">Top</button>
+                <button class="chip chip--ghost" type="button">Najnowsze</button>
+                <button class="chip chip--ghost" type="button">5★</button>
+            </div>
+        </header>
+        <div class="game-comments__body">
+            <form class="game-comments__form" data-comment-form>
+                <label class="sr-only" for="gameComment">@L["Games_Details_Comments_Label"].Value</label>
+                <textarea id="gameComment"
+                          data-comment-input
+                          maxlength="2000"
+                          placeholder="@L["Games_Details_Comments_Placeholder"].Value"></textarea>
+                <div class="game-comments__actions">
+                    <span class="game-comments__hint">@L["Games_Details_Comments_Placeholder"].Value</span>
+                    <button type="submit" class="btn-primary btn-compact" data-comment-submit>@L["Games_Details_Comments_Submit"].Value</button>
+                </div>
+                <p class="game-comments__feedback muted" data-comment-feedback hidden></p>
+            </form>
+            <ul class="game-comments__list" data-comments-list></ul>
+            <p class="game-comments__empty" data-comments-empty hidden>@L["Games_Details_Comments_Empty"].Value</p>
+        </div>
+    </section>
+</div>
 
 @section Scripts {
     

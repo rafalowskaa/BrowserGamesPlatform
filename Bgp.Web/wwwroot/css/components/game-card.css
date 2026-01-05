@@ -317,6 +317,18 @@
         border-color: var(--border-strong);
     }
 
+.game-card-guest__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    text-indent: -9999px;
+}
+
+    .game-card-guest__overlay:focus-visible {
+        outline: 3px solid rgba(59, 130, 246, 0.6);
+        outline-offset: 3px;
+    }
+
 .game-card-guest__media {
     position: relative;
     overflow: hidden;

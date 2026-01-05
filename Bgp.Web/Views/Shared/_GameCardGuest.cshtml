@@ -15,6 +15,9 @@
 }
 
 <article class="game-card-guest" data-game-card>
+    <a class="game-card-guest__overlay" href="@targetUrl" aria-label="@Model.Title">
+        <span class="sr-only">@Model.Title</span>
+    </a>
     <div class="@mediaClass">
         <a class="game-card-guest__cover" href="@targetUrl" aria-label="@Model.Title">
             <span class="sr-only">@Model.Title</span>

@@ -1768,11 +1768,19 @@
         if (!dotEl) {
             return;
         }
-        const presenceState = (!friend.isInvisible && friend.presence === PRESENCE_AVAILABLE)
-            ? 'online'
-            : 'offline';
+
+        let presenceState = 'offline';
+        if (!friend.isInvisible && friend.presence === PRESENCE_AVAILABLE) {
+            presenceState = 'online';
+        } else if (!friend.isInvisible && friend.presence === PRESENCE_AWAY) {
+            presenceState = 'away';
+        } else if (!friend.isInvisible && friend.presence === PRESENCE_DND) {
+            presenceState = 'dnd';
+        } else if (friend.isInvisible) {
+            presenceState = 'invisible';
+        }
         dotEl.classList.remove('is-online', 'is-away', 'is-offline', 'is-invisible', 'is-dnd');
-        dotEl.classList.add(presenceState === 'online' ? 'is-online' : 'is-offline');
+        dotEl.classList.add(`is-${presenceState}`);
 
         const host = dotEl.closest('.chat-contact, .chat-window, .chat-status-toggle');
         if (host) {
@@ -5298,7 +5306,7 @@
                             statusMessage: row.statusMessage,
                             presence: normalizedPresence,
                             isInvisible: !!row.isInvisible,
-                            isFriend: true,
+                            isFriend: false,
                             isConversationOnly: true,
                             isArchived: isThreadArchived(row.userId),
                             keepArchived: shouldKeepArchived(row.userId),
