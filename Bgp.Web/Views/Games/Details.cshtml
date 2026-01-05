@@ -91,14 +91,11 @@
         .Take(6)
         .ToList();
 
-        var heroTags = approvedTags.Any()
-        ? approvedTags.Take(3).ToList()
-        : new List<string> { "Puzzle", "Strategy", L["Dashboard_Games_Category_Board"].Value };
-
-    var roomCode = "ABCD-1234";
+    var heroTags = approvedTags.Any()
+    ? approvedTags.Take(4).ToList()
+    : categoryLabels.Take(4).ToList();
 
     var shareLink = Url.Action("Details", "Games", new { slug = game.Slug }, Context.Request?.Scheme) ?? $"https://play.grid/{game.Slug}";
-
 
     var config = new
     {
@@ -156,313 +153,198 @@
         }
     };
 }
-<div class="game-hub" data-game-config>
+<div class="game-hub game-hub--player" data-game-config>
     <div class="game-hub__backdrop"></div>
     <div class="game-hub__container">
-        <div class="game-hero">
-            <section class="card glass identity-card">
-                <div class="identity-card__breadcrumb" aria-label="@L["Games_Details_Categories"].Value">
-                    <ol>
-                        <li>@L["Games_Details_Categories"].Value</li>
-                        @foreach (var tag in heroTags)
-                        {
-                            <li>@tag</li>
-                        }
-                    </ol>
+        <header class="game-header card glass">
+            <div class="game-header__main">
+                <p class="eyebrow">@L["Games_Details_Categories"].Value</p>
+                <h1 class="game-header__title">@game.Title</h1>
+                <p class="game-header__subtitle">@heroSubtitle</p>
+                <div class="game-header__tags">
+                    @foreach (var tag in heroTags)
+                    {
+                        <span class="chip chip--pill">@tag</span>
+                    }
                 </div>
-                <div class="identity-card__header">
-                    <div>
-                        <p class="eyebrow">@L["Games_Details_Categories"].Value</p>
-                        <h1 class="identity-card__title">@game.Title</h1>
-                        <p class="identity-card__subtitle">@heroSubtitle</p>
-                    </div>
-                    <div class="identity-card__meta">
-                        <div class="metric-chip">
-                            <span class="metric-chip__label">@L["Games_Details_Modes"].Value</span>
-                            <span class="metric-chip__value">@FormatModes(game.Modes)</span>
-                        </div>
-                        <div class="metric-chip">
-                            <span class="metric-chip__label">@L["Games_Details_CurrentPlayers_Label"].Value</span>
-                            <span class="metric-chip__value" data-current-players>@Model.ActivePlayerCount</span>
-                        </div>
-                        <div class="metric-chip">
-                            <span class="metric-chip__label">@L["Games_Details_LastUpdated"].Value</span>
-                            <span class="metric-chip__value">@lastUpdated.ToLocalTime().ToString("d")</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="identity-card__chips">
-                    <div class="chip-row">
-                        @foreach (var tag in heroTags)
-                            {
-                                <span class="chip chip--pill">@tag</span>
-                            }
-                    </div>
-                    <div class="chip-row chip-row--ghost">
-                        <span class="chip chip--ghost">@FormatModes(game.Modes)</span>
-                        <span class="chip chip--ghost">@FormatCategories(game.Categories)</span>
-                    </div>
-                </div>
-            </section>
-            <aside class="card glass quick-card" aria-labelledby="quick-actions-title">
-                <header class="quick-card__header">
-                    <div>
-                        <p class="eyebrow">@L["Games_Details_Rating_Header"].Value</p>
-                        <h2 id="quick-actions-title">@L["Games_Details_QuickActions_Title"].Value</h2>
-                    </div>
-                    <button class="icon-button" type="button" aria-label="@L["Games_Details_Favorite_Add"].Value">
-                        <span aria-hidden="true">❤</span>
-                    </button>
-                </header>
-                <div class="quick-card__stats" data-rating-panel data-reviews-url="@Url.Content($"/api/games/{game.Id}/reviews")">
-                    <div class="rating-summary">
-                        <div class="rating-summary__value" aria-label="@L["Games_Details_Rating_AverageLabel"].Value">
-                            <span data-rating-average>@Model.AverageRating.ToString("0.0")</span>
-                            <span class="rating-summary__out">/5</span>
-                        </div>
-                        <p class="rating-summary__count" data-rating-count>
-                            @(Model.ReviewCount > 0
-                           ? string.Format(L["Games_Details_Rating_Count"].Value, Model.ReviewCount)
-                           : L["Games_Details_Rating_None"].Value)
-                        </p>
-                    </div>
-                    <div class="rating-input">
-                        <p>@L["Games_Details_Rating_YourRating"].Value</p>
-                        <div class="star-rating star-rating--input" data-rating-input data-user-rating="@(Model.UserRating ?? 0)">
-                            @for (var star = 1; star <= 5; star++)
-                            {
-                                var selected = Model.UserRating.HasValue && Model.UserRating.Value >= star;
-                                <button type="button"
-                                        class="star-rating__star @(selected ? "is-filled" : string.Empty)"
-                                        data-star-value="@star"
-                                        aria-pressed="@(selected.ToString().ToLowerInvariant())"
-                                        aria-label="@string.Format(L["Games_Details_Rating_StarLabel"].Value, star)">
-                                    ★
-                                </button>
-                            }
-                        </div>
-                        <p class="game-rating__message muted" data-rating-feedback hidden></p>
-                    </div>
-                </div>
-                    <div class="quick-card__actions">
-                    <button class="btn-primary btn-lg" type="button" data-game-start data-start-dynamic="true">@L["Games_Details_StartGeneric"].Value</button>
-                        <div class="quick-card__secondary">
-                        <button class="btn-ghost" type="button" data-copy-link data-copy-text="@shareLink">@L["Games_Details_Share"].Value</button>
-                            <button class="btn-ghost" type="button" data-rules-open>@L["Games_Details_Rules_Heading"].Value</button>
-                    </div>
-                    </div>
-                </aside>
             </div>
+            <dl class="game-header__meta">
+                <div>
+                    <dt>@L["Games_Details_Modes"].Value</dt>
+                    <dd>@FormatModes(game.Modes)</dd>
+                </div>
+                <div>
+                    <dt>@L["Games_Details_Categories"].Value</dt>
+                    <dd>@FormatCategories(game.Categories)</dd>
+                </div>
+                <div>
+                    <dt>@L["Admin_Games_Metadata_Author"].Value</dt>
+                    <dd>@(Model.OwnerName ?? game.CreatedByUserId.ToUpperInvariant())</dd>
+                </div>
+                <div>
+                    <dt>@L["Games_Details_LastUpdated"].Value</dt>
+                    <dd>@lastUpdated.ToLocalTime().ToString("d")</dd>
+                    </div>
+                </div>
+            </dl>
+            </header>
 
-            <div class="game-grid">
-                <div class="game-grid__main">
-                    <section class="card glass play-card" id="play-card">
-                        <header class="section-header">
-                            <div>
+            <div class="game-layout">
+                <section class="card glass play-card" id="play-card">
+                    <header class="play-card__header">
+                        <div>
                             <p class="eyebrow">@L["Games_Details_PlayHeading"].Value</p>
-                                <h2>@L["Games_Details_PlayHeading"].Value</h2>
-                            </div>
-                        <div class="segmented" role="tablist" aria-label="@L["Games_Details_ModeHeading"].Value">
+                            <h2>@L["Games_Details_PlayHeading"].Value</h2>
+                            <p class="muted">@L["Games_Details_PlaySubheading"].Value</p>
+                        </div>
+                        <div class="mode-selector" data-mode-selector role="group" aria-label="@L["Games_Details_ModeHeading"].Value">
                             @for (var i = 0; i < availableModes.Count; i++)
                             {
                                 var def = availableModes[i];
                                 var optionId = $"mode_{(int)def.Mode}";
-                                    <label class="segmented__option" for="@optionId">
+                                <label class="mode-pill" for="@optionId">
                                     <input type="radio" name="game-mode" id="@optionId" value="@((int)def.Mode)" @(i == 0 ? "checked" : string.Empty) />
                                     <span>@L[def.ResourceKey].Value</span>
                                 </label>
                             }
-                        </div>
-                    </header>
+                            </div>
+            </header>
 
-                        <div class="mode-panels">
-                            <div class="mode-panel" data-mode-panel="1">
-                                <div class="mode-panel__controls">
-                                    <label>
-                                    <span>@L["Games_Details_Difficulty_Label"].Value</span>
-                                        <select>
-                                        <option>@L["Games_Details_Difficulty_Normal"].Value</option>
-                                        <option>@L["Games_Details_Difficulty_Easy"].Value</option>
-                                        <option>@L["Games_Details_Difficulty_Hard"].Value</option>
-                                        </select>
-                                    </label>
-                                    <label>
-                                    <span>@L["Games_Details_TurnTimer_Label"].Value</span>
-                                        <select>
-                                            <option>30s</option>
-                                            <option>60s</option>
-                                        <option>@L["Games_Details_TurnTimer_NoLimit"].Value</option>
-                                        </select>
-                                    </label>
-                                </div>
-                                <div class="mode-panel__cta">
-                                <button class="btn-primary btn-lg" type="button" data-game-start data-start-dynamic="true">@L["Games_Details_StartSingle"].Value</button>
-                                    <p class="muted" data-game-start-hint>@L["Games_Details_PlaySubheading"].Value</p>
-                            </div>
+            @if (webOption is not null)
+                {
+                    <div class="play-card__actions">
+                        <div class="play-card__buttons">
+                            <button class="btn-primary" type="button" data-game-start data-start-dynamic="true">@L["Games_Details_StartGeneric"].Value</button>
+                            <button class="btn-secondary" type="button" data-game-cancel hidden>@L["Games_Details_Matchmaking_Cancel"].Value</button>
                         </div>
-                            <div class="mode-panel" data-mode-panel="2">
-                                <div class="multiplayer-grid">
-                                    <article class="play-tile">
-                                        <div class="play-tile__header">
-                                        <p class="eyebrow">@L["Games_Details_QuickMatch_Title"].Value</p>
-                                        <span class="badge subtle">@L["Games_Details_Matchmaking_Label"].Value</span>
-                                    </div>
-                                        <p class="play-tile__status" data-match-status>@L["Games_Details_Matchmaking_Searching"].Value</p>
-                                    <button class="btn-primary btn-lg" type="button" data-game-start data-start-dynamic="true">@L["Games_Details_Matchmaking_Start"].Value</button>
-                                        <p class="muted">@L["Games_Details_Matchmaking_Starting"].Value</p>
-                                        <button class="btn-secondary" type="button" data-game-cancel hidden>@L["Games_Details_Matchmaking_Cancel"].Value</button>
-                                    </article>
-                                    <article class="play-tile">
-                                        <div class="play-tile__header">
-                                        <p class="eyebrow">@L["Games_Details_PrivateRoom_Title"].Value</p>
-                                        <span class="badge subtle">@L["Games_Details_PrivateRoom_InviteLabel"].Value</span>
-                                    </div>
-                                        <div class="room-block">
-                                            <div class="room-block__row">
-                                                <div>
-                                                <p class="muted">@L["Games_Details_Room_CodeLabel"].Value</p>
-                                                    <strong>@roomCode</strong>
-                                                </div>
-                                            <button type="button" class="btn-ghost" data-copy-room data-copy-text="@roomCode">@L["Games_Details_CopyCode"].Value</button>
-                                        </div>
-                                            <div class="room-block__row">
-                                                <div>
-                                                <p class="muted">@L["Games_Details_Room_LinkLabel"].Value</p>
-                                                    <strong>@shareLink</strong>
-                                                </div>
-                                            <button type="button" class="btn-ghost" data-copy-link data-copy-text="@shareLink">@L["Games_Details_CopyLink"].Value</button>
-                                    </div>
-                                        </div>
-                                    <button class="btn-primary btn-lg" type="button" data-invite-open>@L["Games_Details_InviteAction"].Value</button>
-                                    <p class="muted">@L["Games_Details_InviteDescription"].Value</p>
-                                    </article>
-                            </div>
-                        </div>
+                     <p class="muted" data-game-start-hint>@L["Games_Details_WebHint"].Value</p>
                     </div>
-                    </section>
 
-                    <section class="card glass game-window" aria-labelledby="game-window-title">
-                        <header class="section-header">
-                            <div>
-                            <p class="eyebrow">@L["Games_Details_GameWindow_Eyebrow"].Value</p>
-                                <h2 id="game-window-title">@L["Games_Details_DisplayFit"].Value</h2>
-                        </div>
-                            <div class="game-window__controls" data-game-controls hidden>
-                            <button class="btn-ghost btn-compact" type="button" data-game-scale-fit>@L["Games_Details_DisplayFit"].Value</button>
-                                <button class="btn-ghost btn-compact" type="button" data-game-fullscreen>
-                                <span data-game-fullscreen-enter>@L["Games_Details_Fullscreen"].Value</span>
+                       <div class="play-card__player">
+                        <div class="player" hidden data-game-player>
+                            <div class="player__stage" data-game-stage>
+                                <div class="player__viewport" data-game-viewer>
+                                    <div class="player__canvas" data-game-canvas>
+                                        <iframe src="about:blank" title="@game.Title" loading="lazy" allow="fullscreen" allowfullscreen scrolling="no" data-game-frame></iframe>
+                                    </div>
+                                </div>
+                                <div class="player__controls" data-game-controls hidden>
+                                    <button class="btn-secondary" type="button" data-game-scale-fit>@L["Games_Details_DisplayFit"].Value</button>
+                                    <label class="player__scale" data-game-scale-label>
+                                        <span>@L["Games_Details_DisplayScaleLabel"].Value</span>
+                                        <input type="range"
+                                               min="0.5"
+                                               max="2.25"
+                                               step="0.05"
+                                               value="1"
+                                               data-game-scale-range
+                                               title="@L["Games_Details_DisplayScaleHint"].Value"
+                                               aria-describedby="game-scale-value" />
+                                    </label>
+                                    <span class="player__scale-value" id="game-scale-value" data-game-scale-value>100%</span>
+                                </div>
+                                 <button class="player__fullscreen" type="button" data-game-fullscreen aria-pressed="false" data-state="enter">
+                                    <span data-game-fullscreen-enter>@L["Games_Details_Fullscreen"].Value</span>
                                     <span data-game-fullscreen-exit hidden>@L["Games_Details_ExitFullscreen"].Value</span>
                                 </button>
-                                <label class="player__scale" data-game-scale-label>
-                                <span>@L["Games_Details_DisplayScaleLabel"].Value</span>
-                                    <input type="range"
-                                           min="0.5"
-                                           max="2.25"
-                                           step="0.05"
-                                           value="1"
-                                           data-game-scale-range
-                                           title="@L["Games_Details_DisplayScaleHint"].Value"
-                                           aria-describedby="game-scale-value" />
-                                    <span class="player__scale-value" id="game-scale-value" data-game-scale-value>100%</span>
-                                </label>
-                        </div>
-                        </header>
-                        <div class="game-window__body">
-                            <div class="player" hidden data-game-player>
-                                <div class="player__stage" data-game-stage>
-                                    <div class="player__viewport" data-game-viewer>
-                                        <div class="player__canvas" data-game-canvas>
-                                            <iframe src="about:blank" title="@game.Title" loading="lazy" allow="fullscreen" allowfullscreen scrolling="no" data-game-frame></iframe>
-                                    </div>
-                                </div>
-                                    <button class="player__fullscreen" type="button" data-game-fullscreen aria-pressed="false" data-state="enter">
-                                        <span data-game-fullscreen-enter>@L["Games_Details_Fullscreen"].Value</span>
-                                        <span data-game-fullscreen-exit hidden>@L["Games_Details_ExitFullscreen"].Value</span>
-                                    </button>
+                                
                             </div>
                         </div>
-                            <div class="game-window__placeholder" data-game-placeholder>
-                            <p>@L["Games_Details_PlayPlaceholder"].Value</p>
-                                <p class="muted">@L["Games_Details_PlaySubheading"].Value</p>
+                             </div>
+                            }
+                            else
+                            {
+                                <p class="alert">@L["Games_Details_NoWebBuild"].Value</p>
+                            }
+
+                @if (downloadOptions.Any())
+                {
+                    <div class="play-card__downloads">
+                        <h3>@L["Games_Details_DownloadHeading"].Value</h3>
+                        <ul class="download-list">
+                            @foreach (var download in downloadOptions)
+                            {
+                                <li>
+                                    <a class="btn-secondary" href="@download.Url" download>@download.Label</a>
+                                    @if (!string.IsNullOrWhiteSpace(download.Description))
+                                    {
+                                        var platformKey = $"Games_Details_Platform_{download.Description}";
+                                        var platformLabel = L[platformKey].Value;
+                                        <span class="muted">@platformLabel</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </section>
+
+            <aside class="side-card card glass">
+                <div class="meta-list">
+                    <div class="meta-list__item">
+                        <span class="meta-list__label">@L["Dashboard_Games_Status"].Value</span>
+                        <span class="meta-list__value">@L[$"Dashboard_Games_Status_{game.ApprovalStatus}"].Value</span>
+                    </div>
+                    <div class="meta-list__item">
+                        <span class="meta-list__label">@L["Games_Details_CurrentPlayers_Label"].Value</span>
+                        <span class="meta-list__value" data-current-players>@Model.ActivePlayerCount</span>
+                    </div>
+                    <div class="meta-list__item">
+                        <span class="meta-list__label">@L["Games_Details_Modes"].Value</span>
+                        <span class="meta-list__value">@FormatModes(game.Modes)</span>
+                    </div>
+                <div class="meta-list__item">
+                        <span class="meta-list__label">@L["Games_Details_Categories"].Value</span>
+                        <span class="meta-list__value">@FormatCategories(game.Categories)</span>
+                    </div>
+                    @if (approvedTags.Any())
+                    {
+                        <div class="meta-list__item meta-list__item--stacked">
+                            <span class="meta-list__label">@L["Games_Details_Tags"].Value</span>
+                            <div class="meta-tags">
+                                @foreach (var tag in approvedTags)
+                                {
+                                    <span class="badge subtle">@tag</span>
+                                }
+                           </div>
                         </div>
-                        </div>
-                    </section>
+                        }
                 </div>
 
-                <aside class="game-grid__side">
-                    <section class="card glass invite-card">
-                        <header class="section-header">
-                        <div>
-                            <p class="eyebrow">@L["Games_Details_InviteHeading"].Value</p>
-                                <h2>@L["Games_Details_InviteHeading"].Value</h2>
-                            <p class="muted">@L["Games_Details_InviteDescription"].Value</p>
-                        </div>
-                        <button class="btn-primary" type="button" data-invite-open>@L["Games_Details_InviteAction"].Value</button>
-                    </header>
-                        <div class="invite-card__last">
-                            <div>
-                            <p class="muted">@L["Games_Details_Invite_LastCode"].Value</p>
-                                <strong>@roomCode</strong>
-                        </div>
-                        <button type="button" class="btn-ghost" data-copy-room data-copy-text="@roomCode">@L["Games_Details_CopyCode"].Value</button>
-                        </div>
-                        <div class="invite-card__last">
-                            <div>
-                            <p class="muted">@L["Games_Details_Invite_LastLink"].Value</p>
-                                <strong>@shareLink</strong>
-                            </div>
-                        <button type="button" class="btn-ghost" data-copy-link data-copy-text="@shareLink">@L["Games_Details_CopyLink"].Value</button>
+                <div class="share-block">
+                    <p class="eyebrow">@L["Games_Details_InviteHeading"].Value</p>
+                    <h3>@L["Games_Details_InviteDescription"].Value</h3>
+                    <div class="share-block__actions">
+                        <button type="button" class="btn-primary" data-copy-link data-copy-text="@shareLink">@L["Games_Details_Share"].Value</button>
+                        <a class="btn-secondary" href="@shareLink">@L["Games_Details_InviteAction"].Value</a>
                     </div>
-                </section>
-                    @if (!string.IsNullOrWhiteSpace(game.Rules))
-                    {
-                        <section class="card glass rules-card">
-                            <header class="section-header">
-                                <div>
-                                <p class="eyebrow">@L["Games_Details_Rules_Heading"].Value</p>
-                                    <h2>@L["Games_Details_Rules_Heading"].Value</h2>
-                                </div>
-                            <button type="button" class="btn-outline btn-compact" data-rules-open>@L["Games_Details_Rules_ViewFull"].Value</button>
-                            </header>
-                            <div class="rules-card__tldr">
-                            <h3>@L["Games_Details_Rules_Tldr"].Value</h3>
-                                <ul>
-                                    @if (ruleLines.Any())
-                                {
-                                        foreach (var line in ruleLines.Take(5))
-                                        {
-                                            <li>@line</li>
-                                        }
-                                }
-                            else
-                                {
-                                    <li>@rulesPreview</li>
-                                }
-                            </ul>
-                        </div>
-                        <div class="rules-card__accordion">
-                            <details open>
-                                <summary>@L["Games_Details_Rules_SectionBasics"].Value</summary>
-                                <p>@rulesPreview</p>
-                            </details>
-                            <details>
-                                <summary>@L["Games_Details_Rules_SectionCapture"].Value</summary>
-                                <p>@rulesPreview</p>
-                            </details>
-                            <details>
-                                <summary>@L["Games_Details_Rules_SectionQueen"].Value</summary>
-                                <p>@rulesPreview</p>
-                            </details>
-                            <details>
-                                <summary>@L["Games_Details_Rules_SectionDraw"].Value</summary>
-                                <p>@rulesPreview</p>
-                            </details>
-                        </div>
-                        <div class="rules-card__diagram" aria-hidden="true"></div>
-                    </section>
-                }
+                </div>
             </aside>
         </div>
+        @if (!string.IsNullOrWhiteSpace(trimmedRules))
+        {
+            <section class="card glass rules-card">
+                <header class="section-header">
+                    <div>
+                        <p class="eyebrow">@L["Games_Details_Rules_Heading"].Value</p>
+                        <h2>@L["Games_Details_Rules_Heading"].Value</h2>
+                        <p class="muted">@rulesPreview</p>
+                    </div>
+                </header>
+                <div class="rules-card__content">
+                    @if (ruleLines.Any())
+                    {
+                        <ul class="rules-card__list">
+                            @foreach (var line in ruleLines)
+                            {
+                                <li>@line</li>
+                            }
+                        </ul>
+                    }
+                    <div class="rules-card__body">@Html.Raw(encodedRules)</div>
+                </div>
+            </section>
+        }
 
         <section class="card glass comments" data-comments data-comments-url="@Url.Content($"/api/games/{game.Id}/reviews")">
             <header class="comments__header">
@@ -471,114 +353,52 @@
                     <h2>@L["Games_Details_Comments_Title"].Value</h2>
                     <p class="muted">@L["Games_Details_Comments_Subtitle"].Value</p>
                 </div>
-                <div class="comments__controls">
-                    <div class="segmented segmented--compact" role="tablist" aria-label="@L["Games_Details_Comments_Title"].Value">
-                        <button type="button" class="segmented__option is-active">@L["Games_Details_Comments_SortTop"].Value</button>
-                        <button type="button" class="segmented__option">@L["Games_Details_Comments_SortNewest"].Value</button>
+                 <div class="comment-rating" data-rating-panel data-reviews-url="@Url.Content($"/api/games/{game.Id}/reviews")">
+                    <div class="comment-rating__summary">
+                        <span class="comment-rating__value" data-rating-average>@Model.AverageRating.ToString("0.0")</span>
+                        <span class="comment-rating__out">/5</span>
+                        <p class="rating-summary__count" data-rating-count>
+                            @(Model.ReviewCount > 0
+                                ? string.Format(L["Games_Details_Rating_Count"].Value, Model.ReviewCount)
+                                : L["Games_Details_Rating_None"].Value)
+                        </p>
                     </div>
-                    <div class="filter-chips">
-                        <button type="button" class="chip chip--ghost">5★</button>
-                        <button type="button" class="chip chip--ghost">4★</button>
-                        <button type="button" class="chip chip--ghost">@L["Games_Details_Comments_FilterWithText"].Value</button>
+                    <div class="star-rating star-rating--input" data-rating-input data-user-rating="@(Model.UserRating ?? 0)">
+                        @for (var star = 1; star <= 5; star++)
+                        {
+                            var selected = Model.UserRating.HasValue && Model.UserRating.Value >= star;
+                            <button type="button"
+                                    class="star-rating__star @(selected ? "is-filled" : string.Empty)"
+                                    data-star-value="@star"
+                                    aria-pressed="@(selected.ToString().ToLowerInvariant())"
+                                    aria-label="@string.Format(L["Games_Details_Rating_StarLabel"].Value, star)">
+                                ★
+                            </button>
+                        }
                     </div>
+                    <p class="game-rating__message muted" data-rating-feedback hidden></p>
                 </div>
             </header>
             <div class="comments__body">
                 <form class="comment-composer" data-comment-form>
-                    <div class="comment-composer__rating">
-                        <p>@L["Games_Details_Rating_YourRating"].Value</p>
-                        <div class="star-rating star-rating--input" aria-label="@L["Games_Details_Rating_YourRating"].Value">
-
-                            @for (var star = 1; star <= 5; star++)
-                            {
-                                    <button type="button" class="star-rating__star" aria-label="@string.Format(L["Games_Details_Rating_StarLabel"].Value, star)">★</button>
-                            }
-                            </div>
-                    </div>
-                        <label class="sr-only" for="gameComment">@L["Games_Details_Comments_Label"].Value</label>
-                        <textarea id="gameComment"
+                     <label class="sr-only" for="gameComment">@L["Games_Details_Comments_Label"].Value</label>
+                    <textarea id="gameComment"
                               data-comment-input
                               maxlength="2000"
                               placeholder="@L["Games_Details_Comments_Placeholder"].Value"></textarea>
-                        <div class="comment-composer__actions">
-                            <span class="comments__hint">@L["Games_Details_Comments_Placeholder"].Value</span>
+                       <div class="comment-composer__actions">
+                        <span class="comments__hint">@L["Games_Details_Comments_Placeholder"].Value</span>
                         <button type="submit" class="btn-primary" data-comment-submit>@L["Games_Details_Comments_Submit"].Value</button>
-                        </div>
-                        <p class="game-comments__feedback muted" data-comment-feedback hidden></p>
-                    </form>
-                    <ul class="game-comments__list" data-comments-list></ul>
-                    <p class="game-comments__empty" data-comments-empty hidden>@L["Games_Details_Comments_Empty"].Value</p>
-                </div>
-            </section>
-    </div>
-
-        <div class="invite-modal" data-invite-modal hidden>
-            <div class="invite-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="inviteModalTitle">
-                <header class="invite-modal__header">
-                    <div>
-                    <p class="eyebrow">@L["Games_Details_PlayHeading"].Value</p>
-                    <h3 id="inviteModalTitle">@L["Games_Details_InviteHeading"].Value</h3>
-                    </div>
-                <button type="button" class="icon-button" data-invite-close aria-label="@L["Chat_Close"].Value">✕</button>
-                </header>
-                <div class="invite-modal__tabs" role="tablist">
-                <button type="button" class="invite-tab is-active" data-invite-tab="friends">@L["Games_Details_Invite_TabFriends"].Value</button>
-                <button type="button" class="invite-tab" data-invite-tab="link">@L["Games_Details_Invite_TabLink"].Value</button>
-                <button type="button" class="invite-tab" data-invite-tab="code">@L["Games_Details_Invite_TabCode"].Value</button>
+                         </div>
+                    <p class="game-comments__feedback muted" data-comment-feedback hidden></p>
+                </form>
+                <ul class="game-comments__list" data-comments-list></ul>
+                <p class="game-comments__empty" data-comments-empty hidden>@L["Games_Details_Comments_Empty"].Value</p>
             </div>
-                <div class="invite-modal__panels">
-                    <div class="invite-panel is-active" data-invite-panel="friends" data-invite-panel-root>
-                        <div class="invite-search">
-                        <input type="search" data-invite-search placeholder="@L["Chat_SearchPlaceholder"].Value" />
-                        </div>
-                        <select data-invite-select class="sr-only">
-                            <option value="">@L["Games_Details_InviteSelect"].Value</option>
-                        </select>
-                        <div class="invite-list" data-invite-list></div>
-                        <p class="invite-empty" data-invite-empty hidden>@L["Games_Details_InviteEmpty"].Value</p>
-                    </div>
-                    <div class="invite-panel" data-invite-panel="link">
-                    <label class="sr-only" for="inviteLinkField">@L["Games_Details_Invite_LinkLabel"].Value</label>
-                        <div class="copy-row">
-                            <input id="inviteLinkField" type="text" readonly value="@shareLink" data-invite-link />
-                        <button type="button" class="btn-secondary" data-copy-link data-copy-text="@shareLink">@L["Games_Details_CopyLink"].Value</button>
-                        </div>
-                    <button type="button" class="btn-ghost">@L["Games_Details_Share"].Value</button>
-                    </div>
-                    <div class="invite-panel" data-invite-panel="code">
-                        <div class="room-code-display">
-                            <strong>@roomCode</strong>
-                        <button type="button" class="btn-secondary" data-copy-room data-copy-text="@roomCode">@L["Games_Details_CopyCode"].Value</button>
-                        </div>
-                    <p class="muted">@L["Games_Details_Invite_ShareHint"].Value</p>
-                    </div>
-            </div>
-            </div>
-        </div>
-
-        <div class="mobile-cta" aria-hidden="true">
-        <button class="btn-primary" type="button" data-game-start data-start-dynamic="true">@L["Games_Details_StartGeneric"].Value</button>
-        <button class="btn-ghost" type="button" data-invite-open aria-label="@L["Games_Details_InviteAction"].Value">➕</button>
-        </div>
-
-        <div class="modal-backdrop" data-rules-modal hidden>
-            <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="gameRulesTitle">
-                <div class="modal-dialog__content">
-                    <header class="game-rules__header">
-                        <h3 id="gameRulesTitle">@L["Games_Details_Rules_Heading"].Value</h3>
-                        <button type="button" class="btn-icon modal-dialog__close" data-rules-close aria-label="@L["Dashboard_Profile_Action_Cancel"].Value">✕</button>
-                    </header>
-                    <div class="modal-dialog__message game-rules__body">
-                        @Html.Raw(encodedRules)
-                </div>
-                    <div class="modal-dialog__actions">
-                        <button type="button" class="btn-primary btn-compact" data-rules-close>@L["Dashboard_Profile_Action_Cancel"].Value</button>
-                    </div>
-                </div>
-        </div>
-        </div>
+       </section>
 
         <script type="application/json" id="gameDetailsConfig">@Html.Raw(JsonSerializer.Serialize(config))</script>
+        </div>
 </div>
 
 @section Scripts {

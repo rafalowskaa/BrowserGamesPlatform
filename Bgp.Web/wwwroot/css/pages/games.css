@@ -414,31 +414,6 @@
     color: rgba(148, 163, 184, 0.85);
 }
 
-@@ -392,35 +392,443 @@ .game-comments__meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.75rem;
-    color: rgba(226, 232, 240, 0.92);
-    font-size: 0.95rem;
-}
-
-.game-comments__timestamp {
-    color: rgba(148, 163, 184, 0.8);
-    font-size: 0.875rem;
-}
-
-.game-comments__text {
-    margin: 0.35rem 0 0;
-    color: rgba(203, 213, 225, 0.95);
-    line-height: 1.6;
-}
-
-.game-comments__empty {
-    margin: 0;
-    color: rgba(148, 163, 184, 0.85);
-}
-
 .game-hub {
     display: flex;
     flex-direction: column;
