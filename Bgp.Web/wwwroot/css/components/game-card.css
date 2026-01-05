@@ -333,6 +333,18 @@
         border-radius: inherit;
     }
 
+.game-card-guest__cover {
+    position: absolute;
+    inset: 0;
+    display: block;
+}
+
+    .game-card-guest__cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
 .game-card-guest__media--placeholder {
     background: #3f475a;
 }

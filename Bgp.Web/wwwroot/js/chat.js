@@ -496,7 +496,8 @@
                             statusMessage: value.statusMessage || '',
                             presence: normalizePresence(value.presence),
                             isInvisible: !!value.isInvisible,
-                            unreadCount: Math.max(0, parseInt(value.unreadCount, 10) || 0)
+                            unreadCount: Math.max(0, parseInt(value.unreadCount, 10) || 0),
+                            hasConversationHistory: !!value.hasConversationHistory
                         }];
                     });
                 return new Map(entries);
@@ -516,13 +517,18 @@
                     if (!contact || !contact.userId) {
                         return;
                     }
+                    const hasHistory = !!contact.hasConversationHistory || (contact.unreadCount && contact.unreadCount > 0);
+                    if (!hasHistory) {
+                        return;
+                    }
                     payload[key] = {
                         displayName: contact.displayName || contact.userId,
                         avatarUrl: contact.avatarUrl || null,
                         statusMessage: contact.statusMessage || '',
                         presence: normalizePresence(contact.presence),
                         isInvisible: !!contact.isInvisible,
-                        unreadCount: Math.max(0, contact.unreadCount || 0)
+                        unreadCount: Math.max(0, contact.unreadCount || 0),
+                        hasConversationHistory: hasHistory
                     };
                 });
                 window.localStorage.setItem(STORAGE_STRANGERS_KEY, JSON.stringify(payload));
@@ -550,7 +556,8 @@
                     isFriend: false,
                     isArchived: false,
                     keepArchived: false,
-                    lastNotifiedMessageId: null
+                    lastNotifiedMessageId: null,
+                    hasConversationHistory: contact.hasConversationHistory === true
                 };
                 hydrated.displayName = contact.displayName || hydrated.displayName || hydrated.userId;
                 hydrated.avatarUrl = contact.avatarUrl || hydrated.avatarUrl || null;
@@ -561,6 +568,7 @@
                 hydrated.isFriend = false;
                 hydrated.isArchived = false;
                 hydrated.keepArchived = false;
+                hydrated.hasConversationHistory = contact.hasConversationHistory === true || hydrated.unreadCount > 0;
                 setFriend(hydrated);
                 setStrangerContact(hydrated.userId, hydrated);
                 updateFriendVisual(hydrated);
@@ -2657,7 +2665,7 @@
                     } else {
                         visibleActive++;
                     }
-                } else {
+                } else if (hasConversationHistory(friend)) {
                     visibleStrangers++;
                 }
             }
@@ -2667,6 +2675,49 @@
         updateArchivedEmptyState(visibleArchived);
         updateStrangerEmptyState(visibleStrangers);
             requestUsersRender();
+        }
+
+        function hasConversationHistory(friend) {
+            if (!friend) {
+                return false;
+            }
+            if (friend.hasConversationHistory || friend.isConversationOnly) {
+                return true;
+            }
+            if ((friend.unreadCount || 0) > 0) {
+                return true;
+            }
+            const stored = getStrangerContact(friend.userId);
+            if (stored && stored.hasConversationHistory) {
+                return true;
+            }
+            const lastSeen = getLastSeenEntry(friend.userId);
+            if (lastSeen && lastSeen.sentAtUtc) {
+                return true;
+            }
+            const conversation = getConversation(friend.userId);
+            return !!(conversation && conversation.messages && conversation.messages.size > 0);
+        }
+
+        function markConversationHistory(friendId) {
+            const friend = getFriend(friendId);
+            if (!friend) {
+                return;
+            }
+            if (!friend.hasConversationHistory) {
+                friend.hasConversationHistory = true;
+                setFriend(friend);
+            }
+            const stored = getStrangerContact(friendId);
+            if (stored && !stored.hasConversationHistory) {
+                stored.hasConversationHistory = true;
+                setStrangerContact(friendId, stored);
+            }
+            if (!friend.isFriend) {
+                ensureStrangerContact(friend, { hasHistory: true });
+            } else {
+                requestUsersRender();
+            }
         }
 
         function requestUsersRender() {
@@ -2691,6 +2742,9 @@
             const entries = [];
             friends.forEach((friend) => {
                 if (!friend) {
+                    return;
+                }
+                if (friend.isFriend || !hasConversationHistory(friend)) {
                     return;
                 }
                 const matches = !searchTerm
@@ -2816,8 +2870,8 @@
         updateStrangerEmptyState();
     }
 
-    function ensureStrangerContact(friend) {
-        if (!friend || !strangersList) {
+        function ensureStrangerContact(friend, options = {}) {
+            if (!friend) {
             return;
         }
         let contact = getStrangerContact(friend.userId);
@@ -2834,14 +2888,18 @@
             contact.unreadCount = typeof contact.unreadCount === 'number' ? contact.unreadCount : (friend.unreadCount || 0);
         }
         contact.displayName = contact.displayName || contact.userName || contact.userId;
-        if (!contact.element) {
+            const hasHistory = options.hasHistory === true || friend.hasConversationHistory === true || contact.hasConversationHistory === true;
+            contact.hasConversationHistory = hasHistory;
+            if (!contact.element && strangersList) {
             contact.element = createFriendElement(contact, { ghost: true });
         }
         contact.isFriend = false;
         setStrangerContact(contact.userId, contact);
         setFriend(contact);
         updateFriendVisual(contact);
-        renderStrangerContacts();
+            if (strangersList) {
+                renderStrangerContacts();
+            }
         applyFriendFilter();
         updateUnreadBadge();
     }
@@ -5031,6 +5089,7 @@
         if (!friend) {
             return;
         }
+        markConversationHistory(friendId);
         const conversation = ensureConversation(friendId, { focus: false, autoRead: false });
         if (!conversation) {
             return;
@@ -5234,6 +5293,7 @@
                 const accepted = [];
                 const incoming = [];
                 const outgoing = [];
+                const priorChats = [];
                 const seenFriendIds = new Set();
                 data.forEach((row) => {
                     const normalizedPresence = row.isInvisible ? PRESENCE_OFFLINE : normalizePresence(row.presence);
@@ -5253,7 +5313,8 @@
                             isConversationOnly: true,
                             isArchived: isThreadArchived(row.userId),
                             keepArchived: shouldKeepArchived(row.userId),
-                            lastNotifiedMessageId: null
+                            lastNotifiedMessageId: null,
+                            hasConversationHistory: true
                         };
                         contact.displayName = row.displayName || contact.displayName || row.userId;
                         contact.userName = row.userName || contact.userName || null;
@@ -5262,12 +5323,17 @@
                         contact.presence = normalizedPresence;
                         contact.isInvisible = !!row.isInvisible;
                         contact.unreadCount = unreadCount;
-                        contact.isFriend = true;
+                        contact.isFriend = false;
                         contact.isConversationOnly = true;
+                        contact.hasConversationHistory = true;
                         contact.isArchived = isThreadArchived(row.userId);
+                        if (contact.element && contact.element.parentElement) {
+                            contact.element.remove();
+                        }
+                        contact.element = null;
                         contact.keepArchived = shouldKeepArchived(row.userId);
                         setFriend(contact);
-                        accepted.push(contact);
+                        priorChats.push(contact);
                         seenFriendIds.add(key);
                         return;
                     }
@@ -5315,6 +5381,7 @@
 
                 incomingRequests = incoming || [];
                 outgoingRequests = outgoing || [];
+                priorChats.forEach((contact) => ensureStrangerContact(contact, { hasHistory: true }));
 
                 friends.forEach((friend, key) => {
                     if (friend && friend.isFriend && !seenFriendIds.has(key)) {

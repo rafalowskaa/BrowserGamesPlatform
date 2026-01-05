@@ -46,15 +46,15 @@
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: var(--space-3) var(--space-4);
+    gap: var(--space-2) var(--space-3);
     width: 100%;
     justify-content: space-between;
 }
 
 .ranking-controls__inputs {
     display: flex;
-    gap: var(--space-5);
-    column-gap: var(--space-5);
+    gap: var(--space-2);
+    column-gap: var(--space-2);
     align-items: flex-end;
     flex-wrap: wrap;
     min-width: 0;
@@ -62,7 +62,7 @@
 }
 
     .ranking-controls__inputs .ranking-control {
-        flex: 1 1 20rem;
+        flex: 1 1 14rem;
     }
 
 .ranking-controls__actions {
@@ -76,7 +76,7 @@
     flex-direction: column;
     gap: 0.35rem;
     color: #cbd5e1;
-    font-size: calc(1.58rem * var(--ranking-scale));
+    font-size: calc(1.35rem * var(--ranking-scale));
 }
 
     .ranking-control > span:not(.sr-only) {
@@ -91,9 +91,10 @@
         border: 1px solid rgba(148, 163, 184, 0.25);
         border-radius: 0.8rem;
         color: #e2e8f0;
-        padding: 0.95rem 1.4rem;
-        min-width: 16rem;
-        font-size: calc(1.58rem * var(--ranking-scale));
+        padding: 0.7rem 1.15rem;
+        min-width: 12rem;
+        font-size: calc(1.35rem * var(--ranking-scale));
+        min-height: 2.75rem;
     }
 
         .ranking-control input:focus-visible,
@@ -124,8 +125,8 @@
     }
 
 .ranking-control--jump {
-    margin-left: auto;
-    padding-inline: 1.6rem;
+    margin-left: 0;
+    padding-inline: 1.2rem;
 }
 
 .leaderboard-table-wrap {
@@ -176,7 +177,7 @@
 .leaderboard__col--player {
     min-width: 18rem;
     width: 26%;
-    text-align: left;
+    text-align: center;
 }
 
 .leaderboard__col--most-played {
@@ -719,6 +720,9 @@
 }
 
 .leaderboard__cell--actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     text-align: center;
 }
 
@@ -736,9 +740,10 @@
     border-radius: 999px;
     width: 3.25rem;
     height: 3.25rem;
-    display: grid;
-    place-items: center;
-    margin: 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
     cursor: pointer;
     transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     box-shadow: none;
