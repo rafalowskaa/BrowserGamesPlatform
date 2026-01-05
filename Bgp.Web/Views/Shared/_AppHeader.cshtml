@@ -85,12 +85,6 @@
                            asp-action="Index"
                            asp-route-tab="games"
                            role="menuitem">@L["Navigation_Submit_Game"].Value</a>
-                        <a class="user-menu__item"
-                           asp-controller="Dashboard"
-                           asp-action="Index"
-                           asp-route-tab="profile"
-                           asp-route-panel="preferences"
-                           role="menuitem">@L["Navigation_Settings"].Value</a>
                         @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
                         {
                             <a class="user-menu__item" asp-controller="AdminUi" asp-action="Users" role="menuitem">@L["Navigation_Admin"].Value</a>

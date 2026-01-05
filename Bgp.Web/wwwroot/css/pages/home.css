@@ -902,9 +902,14 @@
     }
 
 .home-community {
-    margin-top: var(--space-6);
+    margin-top: var(--space-7);
     display: flex;
     justify-content: center;
+}
+
+.home-guest__section--facts + .home-community,
+.home-facts-section + .home-community {
+    margin-top: calc(var(--space-7) * 1.25);
 }
 
 .community-panel {

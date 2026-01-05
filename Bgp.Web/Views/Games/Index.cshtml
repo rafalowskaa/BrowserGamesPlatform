@@ -106,27 +106,17 @@
         <div class="grid games-grid">
             @foreach (var g in Model.Games)
             {
+                var detailsUrl = Url.Action("Details", "Games", new { slug = g.Slug }) ?? "#";
                 <article class="game-card">
-                    @if (isAuthenticated)
-                    {
-                        <a asp-controller="Games" asp-action="Details" asp-route-slug="@g.Slug" class="game-card__media">
-                            <img src="@(string.IsNullOrWhiteSpace(g.CoverImagePath) ? "/img/placeholder.png" : g.CoverImagePath)" alt="cover" />
-                        </a>
-                    }
-                    else
-                    {
+                    <a class="game-card__overlay" href="@detailsUrl">
+                        <span class="sr-only">@g.Title</span>
+                    </a>
+                    <div class="game-card__media">
                         <img src="@(string.IsNullOrWhiteSpace(g.CoverImagePath) ? "/img/placeholder.png" : g.CoverImagePath)" alt="cover" />
-                    }
+                    </div>
                     <div class="game-card__body">
                         <h3>
-                            @if (isAuthenticated)
-                            {
-                                <a asp-controller="Games" asp-action="Details" asp-route-slug="@g.Slug">@g.Title</a>
-                            }
-                            else
-                            {
-                                <span>@g.Title</span>
-                            }
+                            <span>@g.Title</span>
                         </h3>
                         <p class="game-card__rating" data-rating-value="@g.AverageRating">@L["Games_Index_Rating"].Value: @($"{g.AverageRating:0.0}")</p>
                         <p class="game-card__stat" data-current-players="@g.ActivePlayerCount">@FormatPlayers(g.ActivePlayerCount)</p>

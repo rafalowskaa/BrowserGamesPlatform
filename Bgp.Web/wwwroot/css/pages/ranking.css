@@ -332,12 +332,15 @@
 }
 
 .leaderboard__cell--position,
-.leaderboard__cell--player,
 .leaderboard__cell--tier,
 .leaderboard__cell--status,
 .leaderboard__cell--level,
 .leaderboard__cell--xp {
     text-align: center;
+}
+
+.leaderboard__cell--player {
+    text-align: left;
 }
 
 .leaderboard__cell--player,

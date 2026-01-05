@@ -1768,25 +1768,11 @@
         if (!dotEl) {
             return;
         }
-        const presenceState = friend.isInvisible
-            ? 'invisible'
-            : (friend.presence === PRESENCE_AVAILABLE
-                ? 'online'
-                : (friend.presence === PRESENCE_AWAY
-                    ? 'away'
-                    : (friend.presence === PRESENCE_DND ? 'dnd' : 'offline')));
+        const presenceState = (!friend.isInvisible && friend.presence === PRESENCE_AVAILABLE)
+            ? 'online'
+            : 'offline';
         dotEl.classList.remove('is-online', 'is-away', 'is-offline', 'is-invisible', 'is-dnd');
-        if (presenceState === 'invisible') {
-            dotEl.classList.add('is-invisible');
-        } else if (presenceState === 'online') {
-            dotEl.classList.add('is-online');
-        } else if (presenceState === 'away') {
-            dotEl.classList.add('is-away');
-        } else if (presenceState === 'dnd') {
-            dotEl.classList.add('is-dnd');
-        } else {
-            dotEl.classList.add('is-offline');
-        }
+        dotEl.classList.add(presenceState === 'online' ? 'is-online' : 'is-offline');
 
         const host = dotEl.closest('.chat-contact, .chat-window, .chat-status-toggle');
         if (host) {
@@ -2888,7 +2874,10 @@
             contact.unreadCount = typeof contact.unreadCount === 'number' ? contact.unreadCount : (friend.unreadCount || 0);
         }
         contact.displayName = contact.displayName || contact.userName || contact.userId;
-            const hasHistory = options.hasHistory === true || friend.hasConversationHistory === true || contact.hasConversationHistory === true;
+            const hasHistory = options.hasHistory === true
+                || friend.hasConversationHistory === true
+                || contact.hasConversationHistory === true
+                || hasConversationHistory(friend);
             contact.hasConversationHistory = hasHistory;
             if (!contact.element && strangersList) {
             contact.element = createFriendElement(contact, { ghost: true });
