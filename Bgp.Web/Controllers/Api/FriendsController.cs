@@ -10,6 +10,7 @@ using Bgp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Bgp.Web.Helpers;
+using Bgp.Web.Hubs;
 using Microsoft.EntityFrameworkCore;
 using Bgp.Web.Models;
 using Microsoft.Extensions.Localization;
@@ -154,9 +155,14 @@ public class FriendsController : ControllerBase
             ? NormalizeStatus(profile.StatusMessage)
             : null;
 
-        UserPresenceStatus ResolvePresence(string id) => profileLookup.TryGetValue(id, out var profile)
-            ? profile.PresenceStatus
-            : UserPresenceStatus.Offline;
+        UserPresenceStatus ResolvePresence(string id)
+        {
+            var presence = profileLookup.TryGetValue(id, out var profile)
+                ? profile.PresenceStatus
+                : UserPresenceStatus.Offline;
+
+            return ChatHub.HasActiveConnection(id) ? presence : UserPresenceStatus.Offline;
+        }
 
         bool ResolveInvisible(string id) => profileLookup.TryGetValue(id, out var profile) && profile.IsInvisible;
 
@@ -420,6 +426,11 @@ public class FriendsController : ControllerBase
             return DisplayNameFormatter.Format(displayName, email, userName, id);
         }
 
+        UserPresenceStatus ResolvePresence(string userId, UserPresenceStatus presence)
+        {
+            return ChatHub.HasActiveConnection(userId) ? presence : UserPresenceStatus.Offline;
+        }
+
         var formattedResults = results
             .GroupBy(u => u.Id)
             .Select(g => g.First())
@@ -435,7 +446,7 @@ public class FriendsController : ControllerBase
                     u.AvatarUrl,
                     relation.Item1,
                     relation.Item2,
-                    u.PresenceStatus,
+                    ResolvePresence(u.Id, u.PresenceStatus),
                     u.IsInvisible,
                     NormalizeStatusMessage(u.StatusMessage));
             });

@@ -28,6 +28,16 @@ public class ChatHub : Hub
 
     private string? UserId => Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
+    public static bool HasActiveConnection(string? userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return false;
+        }
+
+        return ConnectionCounts.TryGetValue(userId, out var count) && count > 0;
+    }
+
     public override async Task OnConnectedAsync()
     {
         if (UserId is not null)

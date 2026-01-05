@@ -17,12 +17,21 @@
         return;
     }
 
-    const startButton = container.querySelector('[data-game-start]');
+    const startButtons = Array.from(container.querySelectorAll('[data-game-start]'));
+    const dynamicStartButtons = startButtons.filter(btn => btn.dataset.startDynamic === 'true');
     const startHint = container.querySelector('[data-game-start-hint]');
     const cancelButton = container.querySelector('[data-game-cancel]');
     const playerContainer = container.querySelector('[data-game-player]');
     const frame = container.querySelector('[data-game-frame]');
     const modeInputs = container.querySelectorAll('input[name="game-mode"]');
+    const modePanels = container.querySelectorAll('[data-mode-panel]');
+    const inviteModal = document.querySelector('[data-invite-modal]');
+    const inviteOpeners = Array.from(container.querySelectorAll('[data-invite-open]'));
+    const inviteCloser = inviteModal ? inviteModal.querySelector('[data-invite-close]') : null;
+    const inviteTabs = inviteModal ? Array.from(inviteModal.querySelectorAll('[data-invite-tab]')) : [];
+    const inviteTabPanels = inviteModal ? Array.from(inviteModal.querySelectorAll('[data-invite-panel]')) : [];
+    const inviteList = inviteModal ? inviteModal.querySelector('[data-invite-list]') : null;
+    const inviteSearch = inviteModal ? inviteModal.querySelector('[data-invite-search]') : null;
 
     const startHintDefault = startHint ? (startHint.textContent || '') : '';
     let selectedModeValue = modeInputs.length > 0 ? modeInputs[0].value : '0';
@@ -133,11 +142,11 @@
     }
 
     function updateStartButtonLabel() {
-        if (!startButton) {
+        if (!dynamicStartButtons.length) {
             return;
         }
         const modeNumber = Number(selectedModeValue);
-        let label = config.startGeneric || startButton.textContent || 'Start';
+        let label = config.startGeneric || 'Start';
         if (modeNumber === 1 && config.startSingle) {
             label = config.startSingle;
         }
@@ -146,13 +155,15 @@
                 label = config.startMulti;
             }
         }
-        startButton.textContent = label;
+        dynamicStartButtons.forEach(button => {
+            button.textContent = label;
+        });
     }
 
     function setMatchmakingUi(active, hintMessage) {
-        if (startButton) {
-            startButton.disabled = active || !canLaunchWebGame();
-        }
+        startButtons.forEach(button => {
+            button.disabled = active || !canLaunchWebGame();
+        });
         if (cancelButton) {
             cancelButton.hidden = !active;
             cancelButton.disabled = false;
@@ -908,10 +919,36 @@
         }
     }
 
+    function syncModePanels() {
+        if (!modePanels.length) {
+            return;
+        }
+        let matched = false;
+        modePanels.forEach(panel => {
+            const target = panel.dataset.modePanel;
+            const isActive = String(target) === String(selectedModeValue);
+            matched = matched || isActive;
+            if (typeof panel.hidden === 'boolean') {
+                panel.hidden = !isActive;
+            } else if (isActive) {
+                panel.removeAttribute('hidden');
+            } else {
+                panel.setAttribute('hidden', 'hidden');
+            }
+            panel.classList.toggle('is-active', isActive);
+        });
+        if (!matched && modePanels.length) {
+            const first = modePanels[0];
+            first.hidden = false;
+            first.classList.add('is-active');
+        }
+    }
+
     modeInputs.forEach(function (input) {
         input.addEventListener('change', function (event) {
             selectedModeValue = event.target.value;
             updateStartButtonLabel();
+            syncModePanels();
             if (!needsMatchmaking(Number(selectedModeValue)) && (matchmakingAbort || activeTicketId)) {
                 cancelMatchmaking({ silent: true }).catch(err => console.error(err));
             }
@@ -919,22 +956,27 @@
     });
 
     updateStartButtonLabel();
+    syncModePanels();
 
-    if (startButton) {
+    if (startButtons.length) {
         if (!canLaunchWebGame()) {
-            startButton.disabled = true;
+            startButtons.forEach(button => {
+                button.disabled = true;
+            });
             if (startHint) {
                 startHint.hidden = true;
             }
         }
         else {
-            startButton.addEventListener('click', function () {
-                const modeNumber = Number(selectedModeValue);
-                if (needsMatchmaking(modeNumber)) {
-                    startMatchmaking(modeNumber).catch(err => console.error(err));
-                } else {
-                    launchGame(modeNumber);
-                }
+            startButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const modeNumber = Number(selectedModeValue);
+                    if (needsMatchmaking(modeNumber)) {
+                        startMatchmaking(modeNumber).catch(err => console.error(err));
+                    } else {
+                        launchGame(modeNumber);
+                    }
+                });
             });
         }
     }
@@ -1282,17 +1324,101 @@
         });
     }
 
+    const presenceLabels = {
+        online: 'Dostępny',
+        available: 'Dostępny',
+        away: 'Zaraz wracam',
+        dnd: 'Nie przeszkadzać',
+        offline: 'Offline',
+        invisible: 'Niewidoczny'
+    };
+
     const invitePanel = container.querySelector('[data-invite-panel]');
     if (invitePanel && config.inviteTemplate) {
         const select = invitePanel.querySelector('[data-invite-select]');
         const sendButton = invitePanel.querySelector('[data-invite-send]');
         const emptyHint = invitePanel.querySelector('[data-invite-empty]');
         const placeholder = select ? (select.options[0]?.textContent || '') : '';
+        const inviteListHost = inviteList || invitePanel.querySelector('[data-invite-list]');
+        let cachedFriends = [];
 
-        async function loadFriends() {
-            if (!select || !sendButton) {
+        function presenceState(friend) {
+            const presence = Number(friend.presence);
+            if (friend.isInvisible) {
+                return 'invisible';
+            }
+            if (presence === 0) {
+                return 'online';
+            }
+            if (presence === 1) {
+                return 'away';
+            }
+            if (presence === 3) {
+                return 'dnd';
+            }
+            return 'offline';
+        }
+
+        function presenceLabel(friend) {
+            const state = presenceState(friend);
+            return presenceLabels[state] || presenceLabels.available;
+        }
+
+        function renderInviteList(term) {
+            if (!inviteListHost) {
                 return;
             }
+            const filter = (term || '').trim().toLowerCase();
+            inviteListHost.innerHTML = '';
+            const filtered = cachedFriends.filter(friend => {
+                const name = (friend.displayName || friend.userName || friend.userId || '').toLowerCase();
+                return !filter || name.includes(filter);
+            });
+            if (!filtered.length) {
+                if (emptyHint) {
+                    emptyHint.hidden = false;
+                }
+                return;
+            }
+            if (emptyHint) {
+                emptyHint.hidden = true;
+            }
+            const frag = document.createDocumentFragment();
+            filtered.forEach(friend => {
+                const row = document.createElement('div');
+                row.className = 'invite-list__item';
+                const meta = document.createElement('div');
+                meta.className = 'invite-list__meta';
+
+                const dot = document.createElement('span');
+                dot.className = 'invite-list__dot';
+                dot.classList.add(`is-${presenceState(friend)}`);
+                meta.appendChild(dot);
+
+                const name = document.createElement('div');
+                name.className = 'invite-list__name';
+                name.textContent = friend.displayName || friend.userName || friend.userId;
+                meta.appendChild(name);
+
+                const status = document.createElement('span');
+                status.className = 'invite-list__status';
+                status.textContent = presenceLabel(friend);
+                meta.appendChild(status);
+
+                const action = document.createElement('button');
+                action.type = 'button';
+                action.className = 'btn-primary btn-compact';
+                action.textContent = 'Wyślij zaproszenie';
+                action.addEventListener('click', () => sendInvite(friend.userId));
+
+                row.appendChild(meta);
+                row.appendChild(action);
+                frag.appendChild(row);
+            });
+            inviteListHost.appendChild(frag);
+        }
+
+        async function loadFriends() {
             try {
                 const res = await fetch('/api/friends', { credentials: 'include' });
                 if (!res.ok) {
@@ -1303,49 +1429,40 @@
                     ? data.filter(f => Number(f.status) === 1 && !f.outgoingRequest)
                     : [];
 
-                select.innerHTML = '';
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.textContent = placeholder;
-                select.appendChild(defaultOption);
+                cachedFriends = accepted;
 
-                accepted.forEach(friend => {
-                    const option = document.createElement('option');
-                    option.value = friend.userId;
-                    option.textContent = friend.displayName || friend.userId;
-                    select.appendChild(option);
-                });
+                if (select) {
+                    select.innerHTML = '';
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = placeholder;
+                    select.appendChild(defaultOption);
 
-                if (accepted.length > 0) {
-                    invitePanel.hidden = false;
-                    if (emptyHint) {
-                        emptyHint.hidden = true;
-                    }
-                    if (sendButton) {
-                        sendButton.disabled = false;
-                    }
+                    accepted.forEach(friend => {
+                        const option = document.createElement('option');
+                        option.value = friend.userId;
+                        option.textContent = friend.displayName || friend.userId;
+                        select.appendChild(option);
+                    });
                 }
-                else {
-                    invitePanel.hidden = false;
-                    if (emptyHint) {
-                        emptyHint.hidden = false;
-                    }
-                    if (sendButton) {
-                        sendButton.disabled = true;
-                    }
+
+                if (sendButton) {
+                    sendButton.disabled = accepted.length === 0;
                 }
+
+                renderInviteList(inviteSearch ? inviteSearch.value : '');
+                invitePanel.hidden = false;
             } catch (err) {
                 console.error(err);
             }
         }
 
-        async function sendInvite() {
-            if (!select || !sendButton) {
-                return;
-            }
-            const target = select.value;
+        async function sendInvite(targetOverride) {
+            const target = targetOverride || (select ? select.value : '');
             if (!target) {
-                select.focus();
+                if (select) {
+                    select.focus();
+                }
                 return;
             }
 
@@ -1356,7 +1473,9 @@
                 message = message.replace('{mode}', modeLabel || '');
             }
 
-            sendButton.disabled = true;
+            if (sendButton) {
+                sendButton.disabled = true;
+            }
             try {
                 const res = await fetch('/api/chat/messages', {
                     method: 'POST',
@@ -1381,14 +1500,118 @@
                     alert(config.inviteError);
                 }
             } finally {
-                sendButton.disabled = false;
+                if (sendButton) {
+                    sendButton.disabled = false;
+                }
             }
         }
 
-        if (sendButton) {
-            sendButton.addEventListener('click', sendInvite);
+        sendButton.addEventListener('click', () => sendInvite());
+    }
+
+    if (inviteSearch) {
+        inviteSearch.addEventListener('input', () => renderInviteList(inviteSearch.value));
+    }
+
+    function setActiveInviteTab(name) {
+        if (!inviteTabs.length || !inviteTabPanels.length) {
+            return;
         }
+        inviteTabs.forEach(tab => {
+            const isActive = tab.dataset.inviteTab === name;
+            tab.classList.toggle('is-active', isActive);
+            tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        inviteTabPanels.forEach(panel => {
+            const isActive = panel.dataset.invitePanel === name;
+            if (typeof panel.hidden === 'boolean') {
+                panel.hidden = !isActive;
+            } else {
+                panel.toggleAttribute('hidden', !isActive);
+            }
+            panel.classList.toggle('is-active', isActive);
+        });
+    }
+
+    function openInviteModal() {
+        if (!inviteModal) {
+            return;
+        }
+        inviteModal.hidden = false;
+        inviteModal.classList.add('is-open');
+        inviteModal.setAttribute('aria-hidden', 'false');
+        setActiveInviteTab('friends');
+        if (inviteSearch) {
+            inviteSearch.focus();
+        }
+        loadFriends().catch(err => console.error(err));
+    }
+
+    function closeInviteModal() {
+        if (!inviteModal) {
+            return;
+        }
+        inviteModal.hidden = true;
+        inviteModal.classList.remove('is-open');
+        inviteModal.setAttribute('aria-hidden', 'true');
+    }
+
+    inviteTabs.forEach(tab => {
+        tab.addEventListener('click', () => setActiveInviteTab(tab.dataset.inviteTab));
+    });
+
+    inviteOpeners.forEach(opener => opener.addEventListener('click', (event) => {
+        event.preventDefault();
+        openInviteModal();
+    }));
+
+    if (inviteModal) {
+        inviteModal.addEventListener('click', (event) => {
+            if (event.target === inviteModal) {
+                closeInviteModal();
+            }
+        });
+    }
+    if (inviteCloser) {
+        inviteCloser.addEventListener('click', closeInviteModal);
+    }
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && inviteModal && !inviteModal.hidden) {
+            closeInviteModal();
+        }
+    });
 
         loadFriends().catch(err => console.error(err));
     }
-})();
+function setupCopyButtons() {
+    const copyButtons = Array.from(document.querySelectorAll('[data-copy-link], [data-copy-room], [data-copy-text]'));
+    copyButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const explicit = button.dataset.copyText;
+            let value = explicit;
+            if (!value) {
+                const input = button.closest('.copy-row')?.querySelector('input, textarea') || button.previousElementSibling?.querySelector('strong');
+                value = input && input.value ? input.value : (input && input.textContent ? input.textContent : '');
+            }
+            if (!value) {
+                return;
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(value).then(() => showCopyToast(button)).catch(() => showCopyToast(button));
+            } else {
+                showCopyToast(button);
+            }
+        });
+    });
+}
+
+function showCopyToast(button) {
+    const original = button.textContent;
+    button.textContent = 'Skopiowano!';
+    setTimeout(() => {
+        button.textContent = original;
+    }, 1400);
+}
+
+setupCopyButtons();
+}) ();

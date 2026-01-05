@@ -6,6 +6,7 @@
     var coverClass = $"game-card__image-wrapper{(hasCoverImage ? string.Empty : " game-card__image-wrapper--placeholder")}";
 }
 <article class="game-card" data-game-card>
+    <a asp-controller="Games" asp-action="Details" asp-route-slug="@Model.Slug" class="game-card__overlay" aria-label="@Model.Title"></a>
     <div class="game-card__media">
         <a asp-controller="Games" asp-action="Details" asp-route-slug="@Model.Slug" class="game-card__link" aria-label="@Model.Title">
             <div class="@coverClass">

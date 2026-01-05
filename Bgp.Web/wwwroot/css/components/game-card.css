@@ -297,6 +297,24 @@
     }
 }
 
+.game-card {
+    position: relative;
+}
+
+.game-card__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    text-indent: -9999px;
+    background: transparent;
+    border: 0;
+}
+
+    .game-card__overlay:focus-visible {
+        outline: 3px solid rgba(59, 130, 246, 0.65);
+        outline-offset: 2px;
+    }
+
 .game-card-guest {
     position: relative;
     display: flex;
