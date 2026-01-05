@@ -97,7 +97,7 @@
 
     var roomCode = "ABCD-1234";
 
-    var shareLink = Url.Action(\"Details\", \"Games\", new { slug = game.Slug }, Context.Request?.Scheme) ?? $\"https://play.grid/{game.Slug}\";
+    var shareLink = Url.Action("Details", "Games", new { slug = game.Slug }, Context.Request?.Scheme) ?? $"https://play.grid/{game.Slug}";
 
 
     var config = new
