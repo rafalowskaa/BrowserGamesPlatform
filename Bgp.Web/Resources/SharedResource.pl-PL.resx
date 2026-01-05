@@ -2389,6 +2389,129 @@
 	<data name="Games_Details_Platform_Android">
 		<value>Android</value>
 	</data>
+	<data name="Games_Details_LastUpdated">
+		<value>Ostatnia aktualizacja</value>
+	</data>
+	<data name="Games_Details_Rating_Header">
+		<value>Oceny</value>
+	</data>
+	<data name="Games_Details_QuickActions_Title">
+		<value>Panel skrótów</value>
+	</data>
+	<data name="Games_Details_Favorite_Add">
+		<value>Dodaj do ulubionych</value>
+	</data>
+	<data name="Games_Details_Rating_AverageLabel">
+		<value>Średnia ocena</value>
+	</data>
+	<data name="Games_Details_Share">
+		<value>Udostępnij</value>
+	</data>
+	<data name="Games_Details_Difficulty_Label">
+		<value>Poziom trudności</value>
+	</data>
+	<data name="Games_Details_Difficulty_Normal">
+		<value>Normalny</value>
+	</data>
+	<data name="Games_Details_Difficulty_Easy">
+		<value>Łatwy</value>
+	</data>
+	<data name="Games_Details_Difficulty_Hard">
+		<value>Trudny</value>
+	</data>
+	<data name="Games_Details_TurnTimer_Label">
+		<value>Tempo ruchu</value>
+	</data>
+	<data name="Games_Details_TurnTimer_NoLimit">
+		<value>Bez limitu</value>
+	</data>
+	<data name="Games_Details_QuickMatch_Title">
+		<value>Szybki mecz</value>
+	</data>
+	<data name="Games_Details_Matchmaking_Label">
+		<value>Dobieranie graczy</value>
+	</data>
+	<data name="Games_Details_Matchmaking_Start">
+		<value>Szukaj przeciwnika</value>
+	</data>
+	<data name="Games_Details_PrivateRoom_Title">
+		<value>Prywatny pokój</value>
+	</data>
+	<data name="Games_Details_PrivateRoom_InviteLabel">
+		<value>Zaproszenie</value>
+	</data>
+	<data name="Games_Details_Room_CodeLabel">
+		<value>Kod pokoju</value>
+	</data>
+	<data name="Games_Details_Room_LinkLabel">
+		<value>Link do pokoju</value>
+	</data>
+	<data name="Games_Details_CopyCode">
+		<value>Kopiuj kod</value>
+	</data>
+	<data name="Games_Details_CopyLink">
+		<value>Kopiuj link</value>
+	</data>
+	<data name="Games_Details_InviteAction">
+		<value>Zaproś znajomego</value>
+	</data>
+	<data name="Games_Details_GameWindow_Eyebrow">
+		<value>Okno gry</value>
+	</data>
+	<data name="Games_Details_PlayPlaceholder">
+		<value>Wybierz tryb i kliknij Zagraj</value>
+	</data>
+	<data name="Games_Details_Invite_LastCode">
+		<value>Ostatni kod</value>
+	</data>
+	<data name="Games_Details_Invite_LastLink">
+		<value>Ostatni link</value>
+	</data>
+	<data name="Games_Details_Rules_ViewFull">
+		<value>Pokaż pełne zasady</value>
+	</data>
+	<data name="Games_Details_Rules_Tldr">
+		<value>TL;DR</value>
+	</data>
+	<data name="Games_Details_Rules_SectionBasics">
+		<value>Podstawy</value>
+	</data>
+	<data name="Games_Details_Rules_SectionCapture">
+		<value>Bicie</value>
+	</data>
+	<data name="Games_Details_Rules_SectionQueen">
+		<value>Królowa</value>
+	</data>
+	<data name="Games_Details_Rules_SectionDraw">
+		<value>Remis</value>
+	</data>
+	<data name="Games_Details_Comments_Community">
+		<value>Społeczność</value>
+	</data>
+	<data name="Games_Details_Comments_SortTop">
+		<value>Top</value>
+	</data>
+	<data name="Games_Details_Comments_SortNewest">
+		<value>Najnowsze</value>
+	</data>
+	<data name="Games_Details_Comments_FilterWithText">
+		<value>Z tekstem</value>
+	</data>
+	<data name="Games_Details_Invite_TabFriends">
+		<value>Znajomi</value>
+	</data>
+	<data name="Games_Details_Invite_TabLink">
+		<value>Link</value>
+	</data>
+	<data name="Games_Details_Invite_TabCode">
+		<value>Kod pokoju</value>
+	</data>
+	<data name="Games_Details_Invite_LinkLabel">
+		<value>Link do gry</value>
+	</data>
+	<data name="Games_Details_Invite_ShareHint">
+		<value>Udostępnij kod i rozpocznij grę razem.</value>
+	</data>
 	<data name="Dashboard_Friends_ViewProfile">
 		<value>Podgląd profilu</value>
 	</data>

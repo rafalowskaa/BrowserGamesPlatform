@@ -2494,6 +2494,129 @@
 	<data name="Games_Details_Platform_Android">
 		<value>Android</value>
 	</data>
+	<data name="Games_Details_LastUpdated">
+		<value>Last updated</value>
+	</data>
+	<data name="Games_Details_Rating_Header">
+		<value>Ratings</value>
+	</data>
+	<data name="Games_Details_QuickActions_Title">
+		<value>Quick actions</value>
+	</data>
+	<data name="Games_Details_Favorite_Add">
+		<value>Add to favorites</value>
+	</data>
+	<data name="Games_Details_Rating_AverageLabel">
+		<value>Average rating</value>
+	</data>
+	<data name="Games_Details_Share">
+		<value>Share</value>
+	</data>
+	<data name="Games_Details_Difficulty_Label">
+		<value>Difficulty</value>
+	</data>
+	<data name="Games_Details_Difficulty_Normal">
+		<value>Normal</value>
+	</data>
+	<data name="Games_Details_Difficulty_Easy">
+		<value>Easy</value>
+	</data>
+	<data name="Games_Details_Difficulty_Hard">
+		<value>Hard</value>
+	</data>
+	<data name="Games_Details_TurnTimer_Label">
+		<value>Turn timer</value>
+	</data>
+	<data name="Games_Details_TurnTimer_NoLimit">
+		<value>No limit</value>
+	</data>
+	<data name="Games_Details_QuickMatch_Title">
+		<value>Quick match</value>
+	</data>
+	<data name="Games_Details_Matchmaking_Label">
+		<value>Matchmaking</value>
+	</data>
+	<data name="Games_Details_Matchmaking_Start">
+		<value>Find opponent</value>
+	</data>
+	<data name="Games_Details_PrivateRoom_Title">
+		<value>Private room</value>
+	</data>
+	<data name="Games_Details_PrivateRoom_InviteLabel">
+		<value>Invitation</value>
+	</data>
+	<data name="Games_Details_Room_CodeLabel">
+		<value>Room code</value>
+	</data>
+	<data name="Games_Details_Room_LinkLabel">
+		<value>Room link</value>
+	</data>
+	<data name="Games_Details_CopyCode">
+		<value>Copy code</value>
+	</data>
+	<data name="Games_Details_CopyLink">
+		<value>Copy link</value>
+	</data>
+	<data name="Games_Details_InviteAction">
+		<value>Invite a friend</value>
+	</data>
+	<data name="Games_Details_GameWindow_Eyebrow">
+		<value>Game window</value>
+	</data>
+	<data name="Games_Details_PlayPlaceholder">
+		<value>Choose a mode and hit Play</value>
+	</data>
+	<data name="Games_Details_Invite_LastCode">
+		<value>Last code</value>
+	</data>
+	<data name="Games_Details_Invite_LastLink">
+		<value>Last link</value>
+	</data>
+	<data name="Games_Details_Rules_ViewFull">
+		<value>Show full rules</value>
+	</data>
+	<data name="Games_Details_Rules_Tldr">
+		<value>TL;DR</value>
+	</data>
+	<data name="Games_Details_Rules_SectionBasics">
+		<value>Basics</value>
+	</data>
+	<data name="Games_Details_Rules_SectionCapture">
+		<value>Capturing</value>
+	</data>
+	<data name="Games_Details_Rules_SectionQueen">
+		<value>Queen</value>
+	</data>
+	<data name="Games_Details_Rules_SectionDraw">
+		<value>Draw</value>
+	</data>
+	<data name="Games_Details_Comments_Community">
+		<value>Community</value>
+	</data>
+	<data name="Games_Details_Comments_SortTop">
+		<value>Top</value>
+	</data>
+	<data name="Games_Details_Comments_SortNewest">
+		<value>Newest</value>
+	</data>
+	<data name="Games_Details_Comments_FilterWithText">
+		<value>With text</value>
+	</data>
+	<data name="Games_Details_Invite_TabFriends">
+		<value>Friends</value>
+	</data>
+	<data name="Games_Details_Invite_TabLink">
+		<value>Link</value>
+	</data>
+	<data name="Games_Details_Invite_TabCode">
+		<value>Room code</value>
+	</data>
+	<data name="Games_Details_Invite_LinkLabel">
+		<value>Game link</value>
+	</data>
+	<data name="Games_Details_Invite_ShareHint">
+		<value>Share the code and start playing together.</value>
+	</data>
 	<data name="Dashboard_Friends_ViewProfile">
 		<value>View profile</value>
 	</data>
