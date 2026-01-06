@@ -22,6 +22,53 @@ namespace Bgp.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Bgp.Domain.Entities.ActivityLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ActorUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid?>("CommentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("GameId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("GameSlug")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<Guid?>("InviteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int?>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TargetUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAtUtc");
+
+                    b.ToTable("ActivityLogs");
+                });
+
             modelBuilder.Entity("Bgp.Domain.Entities.ChatMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -230,6 +277,34 @@ namespace Bgp.Infrastructure.Migrations
                     b.HasIndex("GameId", "Type", "Locale", "SortOrder");
 
                     b.ToTable("GameAssets");
+                });
+
+            modelBuilder.Entity("Bgp.Domain.Entities.GameCommentReaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Reaction")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ReviewId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReviewId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("GameCommentReactions");
                 });
 
             modelBuilder.Entity("Bgp.Domain.Entities.GameInvite", b =>
@@ -1059,6 +1134,17 @@ namespace Bgp.Infrastructure.Migrations
                     b.Navigation("Game");
                 });
 
+            modelBuilder.Entity("Bgp.Domain.Entities.GameCommentReaction", b =>
+                {
+                    b.HasOne("Bgp.Domain.Entities.GameReview", "Review")
+                        .WithMany("Reactions")
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Review");
+                });
+
             modelBuilder.Entity("Bgp.Domain.Entities.GameLocale", b =>
                 {
                     b.HasOne("Bgp.Domain.Entities.Game", "Game")
@@ -1203,6 +1289,11 @@ namespace Bgp.Infrastructure.Migrations
                     b.Navigation("Tags");
 
                     b.Navigation("Versions");
+                });
+
+            modelBuilder.Entity("Bgp.Domain.Entities.GameReview", b =>
+                {
+                    b.Navigation("Reactions");
                 });
 #pragma warning restore 612, 618
         }
