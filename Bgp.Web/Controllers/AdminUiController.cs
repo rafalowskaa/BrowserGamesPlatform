@@ -1529,6 +1529,7 @@ public class AdminUiController : Controller
 
         TempData["AdminGamesSuccess"] = "Admin_Games_Delete_Success";
         return RedirectToAction(nameof(Games));
+    }
 
 
 
@@ -1634,4 +1635,4 @@ public async Task<IActionResult> Logs(string? search = null, ActivityLogType? ty
         return View(vm);
     }
 }
-}
+
