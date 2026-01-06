@@ -32,6 +32,63 @@
     </data>
 	<data name="Navigation_ChatToggleTitle" xml:space="preserve">
         <value>Open chat</value>
+		</data>
+	<data name="Admin_Nav_Logs" xml:space="preserve">
+        <value>Logs</value>
+    </data>
+	<data name="Admin_Logs_Title" xml:space="preserve">
+        <value>Logs</value>
+    </data>
+	<data name="Admin_Logs_Subtitle" xml:space="preserve">
+        <value>Monitor actions taken across the platform.</value>
+    </data>
+	<data name="Admin_Logs_Filter_SearchLabel" xml:space="preserve">
+        <value>User / text</value>
+    </data>
+	<data name="Admin_Logs_Filter_SearchPlaceholder" xml:space="preserve">
+        <value>Search by user or content</value>
+    </data>
+	<data name="Admin_Logs_Filter_TypeLabel" xml:space="preserve">
+        <value>Type</value>
+    </data>
+	<data name="Admin_Logs_Filter_Type_All" xml:space="preserve">
+        <value>All</value>
+    </data>
+	<data name="Admin_Logs_Filter_GameLabel" xml:space="preserve">
+        <value>Game</value>
+    </data>
+	<data name="Admin_Logs_Filter_GamePlaceholder" xml:space="preserve">
+        <value>Game slug or title</value>
+    </data>
+	<data name="Admin_Logs_Filter_Submit" xml:space="preserve">
+        <value>Filter</value>
+    </data>
+	<data name="Admin_Logs_Filter_Reset" xml:space="preserve">
+        <value>Clear</value>
+    </data>
+	<data name="Admin_Logs_Table_Date" xml:space="preserve">
+        <value>Date</value>
+    </data>
+	<data name="Admin_Logs_Table_Type" xml:space="preserve">
+        <value>Type</value>
+    </data>
+	<data name="Admin_Logs_Table_User" xml:space="preserve">
+        <value>User</value>
+    </data>
+	<data name="Admin_Logs_Table_Target" xml:space="preserve">
+        <value>Target</value>
+    </data>
+	<data name="Admin_Logs_Table_Game" xml:space="preserve">
+        <value>Game</value>
+    </data>
+	<data name="Admin_Logs_Table_Description" xml:space="preserve">
+        <value>Description</value>
+    </data>
+	<data name="Admin_Logs_Rating_Label" xml:space="preserve">
+        <value>Rating:</value>
+    </data>
+	<data name="Admin_Logs_Empty" xml:space="preserve">
+        <value>No logs to display.</value>
     </data>
 	<data name="Language_Polish" xml:space="preserve">
         <value>Polish</value>

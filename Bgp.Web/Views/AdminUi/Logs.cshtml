@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="~/css/pages/admin.css" asp-append-version="true" />
 }
 @{
-    ViewData["Title"] = "Logi";
+    ViewData["Title"] = L["Admin_Logs_Title"].Value;
     var types = Enum.GetValues<ActivityLogType>();
     string FormatType(ActivityLogType type) => type.ToString();
 }
@@ -14,26 +14,26 @@
         <a class="admin-nav__item" asp-action="Games">@L["Admin_Nav_Games"].Value</a>
         <a class="admin-nav__item" asp-action="Content">@L["Admin_Nav_Content"].Value</a>
         <a class="admin-nav__item" asp-action="Reports">@L["Admin_Nav_Reports"].Value</a>
-        <a class="admin-nav__item active" asp-action="Logs">Logi</a>
+        <a class="admin-nav__item active" asp-action="Logs">@L["Admin_Nav_Logs"].Value</a>
     </nav>
 
     <section class="admin-reports">
         <header class="admin-reports__header">
             <div>
-                <h1>Logi</h1>
-                <p class="admin-reports__subtitle">Podgląd zdarzeń na stronie</p>
+                <h1>@L["Admin_Logs_Title"].Value</h1>
+                <p class="admin-reports__subtitle">@L["Admin_Logs_Subtitle"].Value</p>
             </div>
         </header>
 
         <form method="get" class="admin-reports__filters">
             <label class="filter-item">
-                <span>Użytkownik / treść</span>
-                <input type="search" name="search" value="@Model.Search" placeholder="Szukaj po użytkowniku lub treści" />
+                <span>@L["Admin_Logs_Filter_SearchLabel"].Value</span>
+                <input type="search" name="search" value="@Model.Search" placeholder="@L["Admin_Logs_Filter_SearchPlaceholder"].Value" />
             </label>
             <label class="filter-item">
-                <span>Typ</span>
+                <span>@L["Admin_Logs_Filter_TypeLabel"].Value</span>
                 <select name="type">
-                    <option value="">Wszystkie</option>
+                    <option value="">@L["Admin_Logs_Filter_Type_All"].Value</option>
                     @foreach (var t in types)
                     {
                         var selectedValue = Model.Type == t ? "selected" : null;
@@ -42,14 +42,14 @@
                 </select>
             </label>
             <label class="filter-item">
-                <span>Gra</span>
-                <input type="search" name="game" value="@Model.Game" placeholder="Slug lub tytuł gry" />
+                <span>@L["Admin_Logs_Filter_GameLabel"].Value</span>
+                <input type="search" name="game" value="@Model.Game" placeholder="@L["Admin_Logs_Filter_GamePlaceholder"].Value" />
             </label>
             <div class="filter-actions">
-                <button type="submit" class="btn-primary btn-compact">Filtruj</button>
+                <button type="submit" class="btn-primary btn-compact">@L["Admin_Logs_Filter_Submit"].Value</button>
                 @if (!string.IsNullOrWhiteSpace(Model.Search) || Model.Type.HasValue || !string.IsNullOrWhiteSpace(Model.Game))
                 {
-                    <a class="btn-outline btn-compact" asp-action="Logs">Wyczyść</a>
+                    <a class="btn-outline btn-compact" asp-action="Logs">@L["Admin_Logs_Filter_Reset"].Value</a>
                 }
             </div>
         </form>
@@ -58,12 +58,12 @@
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>Data</th>
-                        <th>Typ</th>
-                        <th>Użytkownik</th>
-                        <th>Cel</th>
-                        <th>Gra</th>
-                        <th>Opis</th>
+                        <th>@L["Admin_Logs_Table_Date"].Value</th>
+                        <th>@L["Admin_Logs_Table_Type"].Value</th>
+                        <th>@L["Admin_Logs_Table_User"].Value</th>
+                        <th>@L["Admin_Logs_Table_Target"].Value</th>
+                        <th>@L["Admin_Logs_Table_Game"].Value</th>
+                        <th>@L["Admin_Logs_Table_Description"].Value</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -109,7 +109,7 @@
                                     <div>@(string.IsNullOrWhiteSpace(log.Message) ? "-" : log.Message)</div>
                                     @if (log.Rating.HasValue)
                                     {
-                                        <div class="muted">Ocena: @log.Rating</div>
+                                        <div class="muted">@L["Admin_Logs_Rating_Label"].Value @log.Rating</div>
                                     }
                                 </td>
                             </tr>
@@ -118,7 +118,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="6" class="empty">Brak logów do wyświetlenia</td>
+                            <td colspan="6" class="empty">@L["Admin_Logs_Empty"].Value</td>
                         </tr>
                     }
                 </tbody>

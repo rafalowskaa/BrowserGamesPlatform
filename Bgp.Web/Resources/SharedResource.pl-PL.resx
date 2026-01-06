@@ -811,8 +811,65 @@
 	<data name="Admin_Nav_Reports" xml:space="preserve">
     <value>Zgłoszenia</value>
 		</data>
+	<data name="Admin_Nav_Logs" xml:space="preserve">
+    <value>Logi</value>
+  </data>
 	<data name="Admin_Nav_Content" xml:space="preserve">
     <value>Treści</value>
+  </data>
+	<data name="Admin_Logs_Title" xml:space="preserve">
+    <value>Logi</value>
+  </data>
+	<data name="Admin_Logs_Subtitle" xml:space="preserve">
+    <value>Podgląd zdarzeń na stronie.</value>
+  </data>
+	<data name="Admin_Logs_Filter_SearchLabel" xml:space="preserve">
+    <value>Użytkownik / treść</value>
+  </data>
+	<data name="Admin_Logs_Filter_SearchPlaceholder" xml:space="preserve">
+    <value>Szukaj po użytkowniku lub treści</value>
+  </data>
+	<data name="Admin_Logs_Filter_TypeLabel" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+	<data name="Admin_Logs_Filter_Type_All" xml:space="preserve">
+    <value>Wszystkie</value>
+  </data>
+	<data name="Admin_Logs_Filter_GameLabel" xml:space="preserve">
+    <value>Gra</value>
+  </data>
+	<data name="Admin_Logs_Filter_GamePlaceholder" xml:space="preserve">
+    <value>Slug lub tytuł gry</value>
+  </data>
+	<data name="Admin_Logs_Filter_Submit" xml:space="preserve">
+    <value>Filtruj</value>
+  </data>
+	<data name="Admin_Logs_Filter_Reset" xml:space="preserve">
+    <value>Wyczyść</value>
+  </data>
+	<data name="Admin_Logs_Table_Date" xml:space="preserve">
+    <value>Data</value>
+  </data>
+	<data name="Admin_Logs_Table_Type" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+	<data name="Admin_Logs_Table_User" xml:space="preserve">
+    <value>Użytkownik</value>
+  </data>
+	<data name="Admin_Logs_Table_Target" xml:space="preserve">
+    <value>Cel</value>
+  </data>
+	<data name="Admin_Logs_Table_Game" xml:space="preserve">
+    <value>Gra</value>
+  </data>
+	<data name="Admin_Logs_Table_Description" xml:space="preserve">
+    <value>Opis</value>
+  </data>
+	<data name="Admin_Logs_Rating_Label" xml:space="preserve">
+    <value>Ocena:</value>
+  </data>
+	<data name="Admin_Logs_Empty" xml:space="preserve">
+    <value>Brak logów do wyświetlenia</value>
   </data>
 	<data name="Admin_Content_Title" xml:space="preserve">
     <value>Zawartość strony głównej</value>
