@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Bgp.Web.Helpers;
 using Bgp.Web.Hubs;
+using Bgp.Web.Services;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Bgp.Web.Models;
 using Microsoft.Extensions.Localization;
@@ -25,10 +27,14 @@ public class FriendsController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly IStringLocalizer<SharedResource> _localizer;
-    public FriendsController(AppDbContext db, IStringLocalizer<SharedResource> localizer)
+    private readonly IHubContext<ChatHub> _hub;
+    private readonly IActivityLogger _logger;
+    public FriendsController(AppDbContext db, IStringLocalizer<SharedResource> localizer, IHubContext<ChatHub> hub, IActivityLogger logger)
     {
         _db = db;
         _localizer = localizer;
+        _hub = hub;
+        _logger = logger;
     }
 
     private string? UserId =>
@@ -476,6 +482,14 @@ public class FriendsController : ControllerBase
             Status = FriendshipStatus.Pending
         });
         await _db.SaveChangesAsync();
+        await _logger.LogAsync(ActivityLogType.FriendRequestSent, uid, log =>
+        {
+            log.TargetUserId = dto.TargetUserId;
+        });
+        await _hub.Clients.Group($"user-{dto.TargetUserId}").SendAsync("FriendRequestReceived", new
+        {
+            from_user_id = uid
+        });
         return Ok();
     }
 
@@ -492,6 +506,15 @@ public class FriendsController : ControllerBase
         fr.Status = FriendshipStatus.Accepted;
         fr.UpdatedAtUtc = DateTime.UtcNow;
         await _db.SaveChangesAsync();
+        await _logger.LogAsync(ActivityLogType.FriendRequestAccepted, uid, log =>
+        {
+            log.TargetUserId = requesterId;
+        });
+        await _hub.Clients.Group($"user-{requesterId}").SendAsync("FriendRequestAccepted", new
+        {
+            from_user_id = requesterId,
+            to_user_id = uid
+        });
         return Ok();
     }
 

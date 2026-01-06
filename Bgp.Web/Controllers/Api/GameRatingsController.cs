@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
 using Bgp.Infrastructure.Persistence;
+using Bgp.Domain.Enums;
+using Bgp.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +14,12 @@ namespace Bgp.Web.Controllers.Api;
 public class GameRatingsController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly IActivityLogger _logger;
 
-    public GameRatingsController(AppDbContext db)
+    public GameRatingsController(AppDbContext db, IActivityLogger logger)
     {
         _db = db;
+        _logger = logger;
     }
 
     public class RatingDto
@@ -94,6 +98,11 @@ public class GameRatingsController : ControllerBase
         }
 
         await _db.SaveChangesAsync();
+        await _logger.LogAsync(ActivityLogType.RatingSubmitted, userId, log =>
+        {
+            log.GameId = gameId;
+            log.Rating = dto.Value;
+        });
         return Ok(new { value = dto.Value });
     }
 }

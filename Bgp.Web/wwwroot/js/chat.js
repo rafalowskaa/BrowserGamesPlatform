@@ -5490,6 +5490,16 @@
 
         connection.on('MessagesRead', handleMessagesRead);
 
+        connection.on('FriendRequestReceived', (payload) => {
+            announceMessage(strings.newMessage || 'New friend request');
+            loadFriends();
+        });
+
+        connection.on('FriendRequestAccepted', (payload) => {
+            announceMessage(strings.accept || 'Friend request accepted');
+            loadFriends();
+        });
+
         connection.on('PresenceUpdated', (payload) => {
             if (!payload || !payload.userId) {
                 return;

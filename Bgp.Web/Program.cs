@@ -40,6 +40,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IPresenceNotifier, PresenceNotifier>();
 builder.Services.AddScoped<IChatMessageService, ChatMessageService>();
 builder.Services.AddScoped<IGameContentResolver, GameContentResolver>();
+builder.Services.AddScoped<IActivityLogger, ActivityLogger>();
 builder.Services.AddScoped<HomeContentService>();
 builder.Services.AddScoped<GlobalRankingService>();
 builder.Services.AddSingleton<IMatchmakingService, InMemoryMatchmakingService>();

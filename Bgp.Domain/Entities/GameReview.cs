@@ -19,5 +19,7 @@ public class GameReview
     [MaxLength(2000)]
     public string? Comment { get; set; }
 
+    public ICollection<GameCommentReaction> Reactions { get; set; } = new List<GameCommentReaction>();
+
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }

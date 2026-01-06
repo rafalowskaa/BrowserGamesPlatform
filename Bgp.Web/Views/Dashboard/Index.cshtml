@@ -440,9 +440,12 @@
                 <div class="grid">
                     @foreach (var game in Model.Games)
                     {
-                        <article class="card">
+                        <article class="card card--link">
                             <a asp-controller="Games" asp-action="Details" asp-route-slug="@game.Slug" class="card__media-link">
                                 <img src="@(game.CoverImagePath ?? "/img/placeholder.png")" alt="cover" />
+                            </a>
+                            <a asp-controller="Games" asp-action="Details" asp-route-slug="@game.Slug" class="card__hit">
+                                <span class="sr-only">@game.Title</span>
                             </a>
                             <h3><a asp-controller="Games" asp-action="Details" asp-route-slug="@game.Slug">@game.Title</a></h3>
                             <p>@string.Format(L["Dashboard_Games_Rating"].Value, $"{game.AverageRating:0.0}")</p>

@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using Bgp.Domain.Entities;
 using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Persistence;
+using Bgp.Web.Services;
 using Bgp.Web.Resources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,11 +19,13 @@ public class GameSessionsController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly IStringLocalizer<SharedResource> _localizer;
+    private readonly IActivityLogger _logger;
 
-    public GameSessionsController(AppDbContext db, IStringLocalizer<SharedResource> localizer)
+    public GameSessionsController(AppDbContext db, IStringLocalizer<SharedResource> localizer, IActivityLogger logger)
     {
         _db = db;
         _localizer = localizer;
+        _logger = logger;
     }
 
     public class CreateSessionRequest
@@ -81,6 +84,13 @@ public class GameSessionsController : ControllerBase
         });
 
         await _db.SaveChangesAsync();
+
+        await _logger.LogAsync(ActivityLogType.GameSessionCreated, userId, log =>
+        {
+            log.GameId = gameId;
+            log.InviteId = null;
+            log.TargetUserId = null;
+        });
 
         var joinUrl = Url.Action("Details", "Games", new { slug = game.Slug, tab = "play", sessionId = session.Id, token }, Request.Scheme);
 

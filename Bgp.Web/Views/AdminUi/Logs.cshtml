@@ -1,0 +1,128 @@
+﻿@using Bgp.Domain.Enums
+@model Bgp.Web.Models.AdminLogsViewModel
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/admin.css" asp-append-version="true" />
+}
+@{
+    ViewData["Title"] = "Logi";
+    var types = Enum.GetValues<ActivityLogType>();
+    string FormatType(ActivityLogType type) => type.ToString();
+}
+<section class="admin-section">
+    <nav class="admin-nav">
+        <a class="admin-nav__item" asp-action="Users">@L["Admin_Nav_Users"].Value</a>
+        <a class="admin-nav__item" asp-action="Games">@L["Admin_Nav_Games"].Value</a>
+        <a class="admin-nav__item" asp-action="Content">@L["Admin_Nav_Content"].Value</a>
+        <a class="admin-nav__item" asp-action="Reports">@L["Admin_Nav_Reports"].Value</a>
+        <a class="admin-nav__item active" asp-action="Logs">Logi</a>
+    </nav>
+
+    <section class="admin-reports">
+        <header class="admin-reports__header">
+            <div>
+                <h1>Logi</h1>
+                <p class="admin-reports__subtitle">Podgląd zdarzeń na stronie</p>
+            </div>
+        </header>
+
+        <form method="get" class="admin-reports__filters">
+            <label class="filter-item">
+                <span>Użytkownik / treść</span>
+                <input type="search" name="search" value="@Model.Search" placeholder="Szukaj po użytkowniku lub treści" />
+            </label>
+            <label class="filter-item">
+                <span>Typ</span>
+                <select name="type">
+                    <option value="">Wszystkie</option>
+                    @foreach (var t in types)
+                    {
+                        var selectedValue = Model.Type == t ? "selected" : null;
+                        <option value="@((int)t)" selected="@selectedValue">@FormatType(t)</option>
+                    }
+                </select>
+            </label>
+            <label class="filter-item">
+                <span>Gra</span>
+                <input type="search" name="game" value="@Model.Game" placeholder="Slug lub tytuł gry" />
+            </label>
+            <div class="filter-actions">
+                <button type="submit" class="btn-primary btn-compact">Filtruj</button>
+                @if (!string.IsNullOrWhiteSpace(Model.Search) || Model.Type.HasValue || !string.IsNullOrWhiteSpace(Model.Game))
+                {
+                    <a class="btn-outline btn-compact" asp-action="Logs">Wyczyść</a>
+                }
+            </div>
+        </form>
+
+        <div class="table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Typ</th>
+                        <th>Użytkownik</th>
+                        <th>Cel</th>
+                        <th>Gra</th>
+                        <th>Opis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Logs.Any())
+                    {
+                        foreach (var log in Model.Logs)
+                        {
+                            <tr>
+                                <td><span class="badge">@log.CreatedAtUtc.ToLocalTime().ToString("g")</span></td>
+                                <td><span class="status status-open">@FormatType(log.Type)</span></td>
+                                <td>
+                                    <strong>@(log.ActorDisplayName ?? log.ActorUserId ?? "-")</strong>
+                                    @if (!string.IsNullOrWhiteSpace(log.ActorUserId))
+                                    {
+                                        <div class="muted">@log.ActorUserId</div>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(log.TargetDisplayName) || !string.IsNullOrWhiteSpace(log.TargetUserId))
+                                    {
+                                        <strong>@(log.TargetDisplayName ?? log.TargetUserId)</strong>
+                                        @if (!string.IsNullOrWhiteSpace(log.TargetUserId))
+                                        {
+                                            <div class="muted">@log.TargetUserId</div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (log.GameSlug is not null)
+                                    {
+                                        <a asp-controller="Games" asp-action="Details" asp-route-slug="@log.GameSlug">@log.GameSlug</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div>@(string.IsNullOrWhiteSpace(log.Message) ? "-" : log.Message)</div>
+                                    @if (log.Rating.HasValue)
+                                    {
+                                        <div class="muted">Ocena: @log.Rating</div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="empty">Brak logów do wyświetlenia</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

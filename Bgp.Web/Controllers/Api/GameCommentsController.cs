@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Bgp.Domain.Enums;
+using Bgp.Web.Services;
 
 namespace Bgp.Web.Controllers.Api;
 
@@ -17,13 +19,15 @@ public class GameCommentsController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly IStringLocalizer<SharedResource> _localizer;
+    private readonly IActivityLogger _logger;
 
     private static readonly TimeSpan CommentCooldown = TimeSpan.FromSeconds(30);
 
-    public GameCommentsController(AppDbContext db, IStringLocalizer<SharedResource> localizer)
+    public GameCommentsController(AppDbContext db, IStringLocalizer<SharedResource> localizer, IActivityLogger logger)
     {
         _db = db;
         _localizer = localizer;
+        _logger = logger;
     }
 
     public class CommentRequest
@@ -44,9 +48,12 @@ public class GameCommentsController : ControllerBase
             return NotFound();
         }
 
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         var query = _db.GameReviews
             .AsNoTracking()
             .Where(r => r.GameId == gameId && !string.IsNullOrWhiteSpace(r.Comment))
+            .Include(r => r.Reactions)
             .OrderByDescending(r => r.CreatedAtUtc);
 
         var total = await query.CountAsync();
@@ -68,7 +75,17 @@ public class GameCommentsController : ControllerBase
             id = item.Id,
             text = HtmlEncoder.Default.Encode(item.Comment ?? string.Empty),
             created_at = item.CreatedAtUtc,
-            author = userLookup.TryGetValue(item.UserId, out var name) ? name : DisplayNameFormatter.Format(null, null, null, item.UserId)
+            author = userLookup.TryGetValue(item.UserId, out var name) ? name : DisplayNameFormatter.Format(null, null, null, item.UserId),
+            likes = item.Reactions.Count(r => r.Reaction == CommentReactionType.Like),
+            dislikes = item.Reactions.Count(r => r.Reaction == CommentReactionType.Dislike),
+            user_vote = string.IsNullOrEmpty(userId)
+                ? null
+                : item.Reactions.FirstOrDefault(r => r.UserId == userId)?.Reaction switch
+                {
+                    CommentReactionType.Like => "like",
+                    CommentReactionType.Dislike => "dislike",
+                    _ => null
+                }
         });
 
         return Ok(new
@@ -129,6 +146,12 @@ public class GameCommentsController : ControllerBase
         existingRating.CreatedAtUtc = now;
 
         await _db.SaveChangesAsync();
+        await _logger.LogAsync(ActivityLogType.CommentAdded, userId, log =>
+        {
+            log.GameId = gameId;
+            log.CommentId = existingRating.Id;
+            log.Message = request.Text.Trim();
+        });
 
         return Created(string.Empty, new
         {
@@ -136,5 +159,108 @@ public class GameCommentsController : ControllerBase
             text = HtmlEncoder.Default.Encode(existingRating.Comment ?? string.Empty),
             created_at = existingRating.CreatedAtUtc
         });
+    }
+    public class ReactionRequest
+    {
+        [Required]
+        public string Value { get; set; } = string.Empty;
+    }
+
+    [Authorize]
+    [HttpPost("{commentId:guid}/reactions")]
+    public async Task<ActionResult> React(Guid gameId, Guid commentId, [FromBody] ReactionRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        var review = await _db.GameReviews
+            .Include(r => r.Reactions)
+            .FirstOrDefaultAsync(r => r.Id == commentId && r.GameId == gameId && !string.IsNullOrEmpty(r.Comment));
+
+        if (review is null)
+        {
+            return NotFound();
+        }
+
+        var value = request.Value?.ToLowerInvariant();
+        var reaction = value switch
+        {
+            "like" => CommentReactionType.Like,
+            "dislike" => CommentReactionType.Dislike,
+            _ => CommentReactionType.None
+        };
+
+        if (reaction == CommentReactionType.None)
+        {
+            return BadRequest(new { code = "invalid_reaction" });
+        }
+
+        var existing = review.Reactions.FirstOrDefault(r => r.UserId == userId);
+        if (existing is null)
+        {
+            existing = new Domain.Entities.GameCommentReaction
+            {
+                ReviewId = review.Id,
+                UserId = userId,
+                Reaction = reaction,
+                CreatedAtUtc = DateTime.UtcNow
+            };
+            review.Reactions.Add(existing);
+            _db.GameCommentReactions.Add(existing);
+        }
+        else
+        {
+            existing.Reaction = reaction;
+        }
+
+        await _db.SaveChangesAsync();
+
+        await _logger.LogAsync(
+            reaction == CommentReactionType.Like ? ActivityLogType.CommentLiked : ActivityLogType.CommentDisliked,
+            userId,
+            log =>
+            {
+                log.GameId = gameId;
+                log.CommentId = commentId;
+            });
+
+        var likes = review.Reactions.Count(r => r.Reaction == CommentReactionType.Like);
+        var dislikes = review.Reactions.Count(r => r.Reaction == CommentReactionType.Dislike);
+
+        return Ok(new
+        {
+            likes,
+            dislikes,
+            userVote = value
+        });
+    }
+
+    [Authorize(Roles = "Admin,Moderator")]
+    [HttpDelete("{commentId:guid}")]
+    public async Task<ActionResult> Delete(Guid gameId, Guid commentId)
+    {
+        var review = await _db.GameReviews
+            .Include(r => r.Reactions)
+            .FirstOrDefaultAsync(r => r.Id == commentId && r.GameId == gameId);
+        if (review is null)
+        {
+            return NotFound();
+        }
+
+        _db.GameCommentReactions.RemoveRange(review.Reactions);
+        review.Comment = null;
+        await _db.SaveChangesAsync();
+
+        var actor = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        await _logger.LogAsync(ActivityLogType.CommentDeleted, actor, log =>
+        {
+            log.GameId = gameId;
+            log.CommentId = commentId;
+        });
+
+        return NoContent();
     }
 }

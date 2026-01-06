@@ -16,6 +16,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<GameVersion> GameVersions => Set<GameVersion>();
     public DbSet<Score> Scores => Set<Score>();
     public DbSet<GameReview> GameReviews => Set<GameReview>();
+    public DbSet<GameCommentReaction> GameCommentReactions => Set<GameCommentReaction>();
+    public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
     public DbSet<MatchSession> MatchSessions => Set<MatchSession>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<GameTag> GameTags => Set<GameTag>();
@@ -179,6 +181,24 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(x => x.Game)
             .WithMany(g => g.Reviews)
             .HasForeignKey(x => x.GameId);
+
+        b.Entity<GameCommentReaction>()
+            .HasOne(x => x.Review)
+            .WithMany(r => r.Reactions)
+            .HasForeignKey(x => x.ReviewId);
+
+        b.Entity<GameCommentReaction>()
+            .HasIndex(x => new { x.ReviewId, x.UserId })
+            .IsUnique();
+        b.Entity<GameCommentReaction>()
+            .Property(x => x.Reaction)
+            .HasConversion<int>();
+
+        b.Entity<ActivityLog>()
+            .HasIndex(x => x.CreatedAtUtc);
+        b.Entity<ActivityLog>()
+            .Property(x => x.Type)
+            .HasConversion<int>();
 
         b.Entity<Score>()
             .HasOne(x => x.Game)

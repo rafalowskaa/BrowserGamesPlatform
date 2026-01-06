@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Bgp.Web.Services;
 
 namespace Bgp.Web.Controllers.Api;
 
@@ -19,14 +20,16 @@ public class GameInvitesController : ControllerBase
     private readonly AppDbContext _db;
     private readonly IHubContext<InvitesHub> _hub;
     private readonly IStringLocalizer<SharedResource> _localizer;
+    private readonly IActivityLogger _logger;
 
     private static readonly TimeSpan InviteWindow = TimeSpan.FromMinutes(5);
 
-    public GameInvitesController(AppDbContext db, IHubContext<InvitesHub> hub, IStringLocalizer<SharedResource> localizer)
+    public GameInvitesController(AppDbContext db, IHubContext<InvitesHub> hub, IStringLocalizer<SharedResource> localizer, IActivityLogger logger)
     {
         _db = db;
         _hub = hub;
         _localizer = localizer;
+        _logger = logger;
     }
 
     public class InviteRequest
@@ -77,6 +80,12 @@ public class GameInvitesController : ControllerBase
 
         _db.GameInvites.Add(invite);
         await _db.SaveChangesAsync();
+        await _logger.LogAsync(ActivityLogType.GameInviteSent, userId, log =>
+        {
+            log.InviteId = invite.Id;
+            log.TargetUserId = request.FriendId;
+            log.GameId = session.GameId;
+        });
 
         await _hub.Clients.Group($"user-{request.FriendId}")
             .SendAsync("InviteReceived", new
@@ -137,6 +146,12 @@ public class GameInvitesController : ControllerBase
         }
 
         await _db.SaveChangesAsync();
+        await _logger.LogAsync(ActivityLogType.GameInviteAccepted, userId, log =>
+        {
+            log.InviteId = invite.Id;
+            log.TargetUserId = invite.FromUserId;
+            log.GameId = session.GameId;
+        });
 
         var joinUrl = Url.Action("Details", "Games", new { slug = (await _db.Games.Where(g => g.Id == session.GameId).Select(g => g.Slug).FirstOrDefaultAsync()), tab = "play", sessionId = session.Id, token = session.Token }, Request.Scheme);
 

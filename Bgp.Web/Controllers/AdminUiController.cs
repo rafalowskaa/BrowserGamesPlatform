@@ -1529,5 +1529,109 @@ public class AdminUiController : Controller
 
         TempData["AdminGamesSuccess"] = "Admin_Games_Delete_Success";
         return RedirectToAction(nameof(Games));
+
+
+
+public async Task<IActionResult> Logs(string? search = null, ActivityLogType? type = null, string? game = null, int page = 1)
+    {
+        const int pageSize = 100;
+        var query = _db.ActivityLogs.AsNoTracking();
+
+        if (type.HasValue)
+        {
+            query = query.Where(l => l.Type == type.Value);
+        }
+
+        List<Guid>? gameIds = null;
+        if (!string.IsNullOrWhiteSpace(game))
+        {
+            var term = game.Trim();
+            gameIds = await _db.Games
+                .Where(g => EF.Functions.Like(g.Slug, $"%{term}%") || EF.Functions.Like(g.Title, $"%{term}%"))
+                .Select(g => g.Id)
+                .ToListAsync();
+            if (gameIds.Count > 0)
+            {
+                query = query.Where(l => l.GameId.HasValue && gameIds.Contains(l.GameId.Value));
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+            query = query.Where(l =>
+                (l.ActorUserId != null && EF.Functions.Like(l.ActorUserId, $"%{term}%")) ||
+                (l.TargetUserId != null && EF.Functions.Like(l.TargetUserId, $"%{term}%")) ||
+                (l.Message != null && EF.Functions.Like(l.Message, $"%{term}%")));
+        }
+
+        var total = await query.CountAsync();
+        page = Math.Max(1, page);
+        var items = await query
+            .OrderByDescending(l => l.CreatedAtUtc)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var userIds = items
+            .SelectMany(l => new[] { l.ActorUserId, l.TargetUserId })
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct()
+            .ToList();
+
+        var userLookup = userIds.Count == 0
+            ? new Dictionary<string, string>()
+            : await _db.Users
+                .Where(u => userIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
+                .ToDictionaryAsync(u => u.Id, u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id));
+
+        var gameLookup = items
+            .Where(l => l.GameId.HasValue)
+            .Select(l => l.GameId!.Value)
+            .Distinct()
+            .ToDictionary(id => id, id => string.Empty);
+
+        if (gameLookup.Count > 0)
+        {
+            var ids = gameLookup.Keys.ToList();
+            var games = await _db.Games
+                .Where(g => ids.Contains(g.Id))
+                .Select(g => new { g.Id, g.Slug })
+                .ToListAsync();
+            foreach (var g in games)
+            {
+                gameLookup[g.Id] = g.Slug;
+            }
+        }
+
+        var logs = items.Select(item => new AdminLogRowViewModel
+        {
+            Id = item.Id,
+            CreatedAtUtc = item.CreatedAtUtc,
+            Type = item.Type,
+            ActorUserId = item.ActorUserId,
+            TargetUserId = item.TargetUserId,
+            ActorDisplayName = item.ActorUserId != null && userLookup.TryGetValue(item.ActorUserId, out var actorName) ? actorName : item.ActorUserId,
+            TargetDisplayName = item.TargetUserId != null && userLookup.TryGetValue(item.TargetUserId, out var targetName) ? targetName : item.TargetUserId,
+            GameId = item.GameId,
+            GameSlug = item.GameId.HasValue && gameLookup.TryGetValue(item.GameId.Value, out var slug) ? slug : null,
+            Rating = item.Rating,
+            Message = item.Message
+        }).ToList();
+
+        var vm = new AdminLogsViewModel
+        {
+            Logs = logs,
+            Search = search,
+            Type = type,
+            Game = game,
+            Page = page,
+            PageSize = pageSize,
+            Total = total
+        };
+
+        return View(vm);
     }
+}
 }

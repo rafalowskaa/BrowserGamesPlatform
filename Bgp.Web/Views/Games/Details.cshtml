@@ -112,6 +112,8 @@
             {
                 fetchUrl = Url.Content($"/api/games/{game.Id}/comments"),
                 submitUrl = Url.Content($"/api/games/{game.Id}/comments"),
+                reactionUrlTemplate = Url.Content($"/api/games/{game.Id}/comments/{{commentId}}/reactions"),
+                deleteTemplate = Url.Content($"/api/games/{game.Id}/comments/{{commentId}}"),
                 pageSize = 20
             },
             invites = new
@@ -371,9 +373,9 @@
                             <div class="distribution-row">
                                 <span>@star★</span>
                                 <div class="bar">
-                                    <span style="width:@pct%" aria-hidden="true"></span>
+                                <span style="width:@pct%" aria-hidden="true" data-rating-bar="@star"></span>
                                 </div>
-                                <span class="muted">@count</span>
+                                <span class="muted" data-rating-count-star="@star">@count</span>
                             </div>
                         }
                         </div>
@@ -407,6 +409,23 @@
                         <p class="muted" data-comment-feedback hidden></p>
                     </form>
                         <ul class="comment-list" data-comments-list></ul>
+                        <template data-comment-template>
+                            <li data-comment>
+                                <div class="meta">
+                                    <span data-comment-author></span>
+                                    <span data-comment-created></span>
+                                </div>
+                                <p data-comment-body></p>
+                                <div class="comment-actions">
+                                    <button type="button" class="btn-ghost" data-comment-like aria-label="@L["Games_Details_Comments_Success"].Value">👍 <span data-comment-like-count>0</span></button>
+                                    <button type="button" class="btn-ghost" data-comment-dislike aria-label="@L["Games_Details_Comments_Error"].Value">👎 <span data-comment-dislike-count>0</span></button>
+                                    @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
+                                    {
+                                        <button type="button" class="btn-link text-danger" data-comment-delete>@L["Admin_Reports_Actions"].Value</button>
+                                    }
+                                </div>
+                            </li>
+                        </template>
                         <p class="muted" data-comments-empty hidden>@L["Games_Details_Comments_Empty"].Value</p>
                 <div class="comments-pagination">
                     <button type="button" class="btn-secondary" data-comments-load-more>@L["Games_Details_Matchmaking_Starting"].Value</button>

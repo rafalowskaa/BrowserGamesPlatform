@@ -734,6 +734,21 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
+.card--link {
+    position: relative;
+}
+
+.card__hit {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+}
+
+    .card__hit:focus-visible {
+        outline: 2px solid #38bdf8;
+        outline-offset: 2px;
+    }
+
 .home-panel__empty {
     margin: 0;
     color: var(--color-text-subtle);

@@ -34,6 +34,8 @@
     const ratingAverage = ratingPanel?.querySelector('[data-rating-average]');
     const ratingCount = ratingPanel?.querySelector('[data-rating-count]');
     const ratingFeedback = ratingPanel?.querySelector('[data-rating-feedback]');
+    const ratingBars = ratingPanel ? Array.from(ratingPanel.querySelectorAll('[data-rating-bar]')) : [];
+    const ratingBarCounts = ratingPanel ? Array.from(ratingPanel.querySelectorAll('[data-rating-count-star]')) : [];
     const commentsContainer = root.querySelector('[data-comments]');
     const commentsList = commentsContainer?.querySelector('[data-comments-list]');
     const commentsEmpty = commentsContainer?.querySelector('[data-comments-empty]');
@@ -41,6 +43,7 @@
     const commentForm = commentsContainer?.querySelector('[data-comment-form]');
     const commentInput = commentsContainer?.querySelector('[data-comment-input]');
     const commentFeedback = commentsContainer?.querySelector('[data-comment-feedback]');
+    const commentTemplate = commentsContainer?.querySelector('[data-comment-template]');
     const rulesContent = root.querySelector('[data-rules-content]');
     const rulesToc = root.querySelector('[data-rules-toc]');
     const inviteModal = document.querySelector('[data-invite-modal]');
@@ -57,6 +60,8 @@
     let isLoadingComments = false;
     let userRating = Number(config.ratings?.user_rating ?? 0);
     let inviteConnection = null;
+    const commentReactions = new Map();
+    const commentVotes = new Map();
 
     initialize();
 
@@ -280,13 +285,14 @@
             const avg = Number(data.avg ?? data.Avg ?? 0);
             const count = Number(data.count ?? data.Count ?? 0);
             const user = Number(data.user_rating ?? data.userRating ?? data.UserStars ?? 0);
-            updateRatingUI(avg, count, user);
+            const distribution = data.distribution || data.Distribution || {};
+            updateRatingUI(avg, count, user, distribution);
         } catch (err) {
             console.error(err);
         }
     }
 
-    function updateRatingUI(avg, count, user) {
+    function updateRatingUI(avg, count, user, distribution = {}) {
         userRating = Number.isFinite(user) ? user : 0;
         if (ratingAverage && Number.isFinite(avg)) {
             ratingAverage.textContent = avg.toFixed(1);
@@ -295,6 +301,21 @@
             ratingCount.textContent = count > 0
                 ? formatTemplate(config.text?.ratingCount || '{0}', count)
                 : (config.text?.noRating || '');
+        }
+        if (ratingBars.length) {
+            ratingBars.forEach(bar => {
+                const star = Number(bar.dataset.ratingBar);
+                const total = Object.values(distribution).reduce((acc, val) => acc + Number(val || 0), 0) || count;
+                const value = distribution?.[star] ?? 0;
+                const pct = total > 0 ? Math.round((Number(value) / total) * 100) : 0;
+                bar.style.width = `${pct}%`;
+            });
+        }
+        if (ratingBarCounts.length) {
+            ratingBarCounts.forEach(el => {
+                const star = Number(el.dataset.ratingCountStar);
+                el.textContent = distribution?.[star] ?? 0;
+            });
         }
         starButtons.forEach(btn => {
             const value = Number(btn.dataset.starValue);
@@ -358,6 +379,11 @@
             const data = await res.json();
             const items = Array.isArray(data.items) ? data.items : [];
             if (page === 1) {
+                commentReactions.clear();
+                commentVotes.clear();
+            }
+            mergeCommentReactions(items);
+            if (page === 1) {
                 commentsList.innerHTML = '';
             }
             renderComments(items, page > 1);
@@ -388,6 +414,20 @@
         if (!commentsList) return;
         const fragment = document.createDocumentFragment();
         items.forEach(item => {
+            const node = buildCommentNode(item);
+            if (node) {
+                fragment.appendChild(node);
+            }
+        });
+
+        if (!append) {
+            commentsList.innerHTML = '';
+        }
+        commentsList.appendChild(fragment);
+    }
+
+    function buildCommentNode(item) {
+        if (!commentTemplate) {
             const li = document.createElement('li');
             const meta = document.createElement('div');
             meta.className = 'meta';
@@ -400,13 +440,119 @@
             const body = document.createElement('p');
             body.innerHTML = (item.text || '').replace(/\n/g, '<br />');
             li.append(meta, body);
-            fragment.appendChild(li);
-        });
-
-        if (!append) {
-            commentsList.innerHTML = '';
+            return li;
         }
-        commentsList.appendChild(fragment);
+
+        const clone = commentTemplate.content.cloneNode(true);
+        const rootEl = clone.querySelector('[data-comment]');
+        if (!rootEl) return null;
+        const id = item.id || item.Id;
+        rootEl.dataset.commentId = id;
+        const author = clone.querySelector('[data-comment-author]');
+        const created = clone.querySelector('[data-comment-created]');
+        const body = clone.querySelector('[data-comment-body]');
+        const likeBtn = clone.querySelector('[data-comment-like]');
+        const dislikeBtn = clone.querySelector('[data-comment-dislike]');
+        const likeCount = clone.querySelector('[data-comment-like-count]');
+        const dislikeCount = clone.querySelector('[data-comment-dislike-count]');
+        const deleteBtn = clone.querySelector('[data-comment-delete]');
+
+        if (author) {
+            author.textContent = item.author || item.user_id || config.text?.anonymous || '';
+        }
+        if (created) {
+            created.textContent = formatDate(item.created_at || item.createdAt || item.createdAtUtc);
+        }
+        if (body) {
+            body.innerHTML = (item.text || '').replace(/\n/g, '<br />');
+        }
+
+        const reactions = commentReactions.get(id) || { likes: 0, dislikes: 0 };
+        const vote = commentVotes.get(id) || null;
+        if (likeCount) likeCount.textContent = reactions.likes;
+        if (dislikeCount) dislikeCount.textContent = reactions.dislikes;
+        likeBtn?.classList.toggle('is-active', vote === 'like');
+        dislikeBtn?.classList.toggle('is-active', vote === 'dislike');
+
+        likeBtn?.addEventListener('click', () => submitReaction(id, 'like'));
+        dislikeBtn?.addEventListener('click', () => submitReaction(id, 'dislike'));
+        deleteBtn?.addEventListener('click', () => deleteComment(id));
+
+        return clone;
+    }
+
+    function mergeCommentReactions(items) {
+        items.forEach(item => {
+            const id = item.id || item.Id;
+            if (!id) return;
+            commentReactions.set(id, {
+                likes: Number(item.likes ?? item.Likes ?? 0),
+                dislikes: Number(item.dislikes ?? item.Dislikes ?? 0)
+            });
+            if (item.user_vote || item.userVote) {
+                commentVotes.set(id, item.user_vote || item.userVote);
+            }
+        });
+    }
+
+    async function submitReaction(commentId, value) {
+        if (!config.comments?.reactionUrlTemplate) return;
+        const url = config.comments.reactionUrlTemplate.replace('{commentId}', commentId);
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ value })
+            });
+            if (!res.ok) throw new Error('Reaction failed');
+            const data = await res.json();
+            commentReactions.set(commentId, {
+                likes: Number(data.likes ?? 0),
+                dislikes: Number(data.dislikes ?? 0)
+            });
+            commentVotes.set(commentId, data.userVote || value);
+            refreshCommentUi(commentId);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function refreshCommentUi(commentId) {
+        if (!commentsList) return;
+        const node = commentsList.querySelector(`[data-comment][data-comment-id="${commentId}"]`);
+        if (!node) return;
+        const likes = commentReactions.get(commentId) || { likes: 0, dislikes: 0 };
+        const vote = commentVotes.get(commentId) || null;
+        const likeBtn = node.querySelector('[data-comment-like]');
+        const dislikeBtn = node.querySelector('[data-comment-dislike]');
+        const likeCount = node.querySelector('[data-comment-like-count]');
+        const dislikeCount = node.querySelector('[data-comment-dislike-count]');
+        if (likeCount) likeCount.textContent = likes.likes;
+        if (dislikeCount) dislikeCount.textContent = likes.dislikes;
+        likeBtn?.classList.toggle('is-active', vote === 'like');
+        dislikeBtn?.classList.toggle('is-active', vote === 'dislike');
+    }
+
+    async function deleteComment(commentId) {
+        if (!config.comments?.deleteTemplate) return;
+        try {
+            const res = await fetch(config.comments.deleteTemplate.replace('{commentId}', commentId), {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (!res.ok && res.status !== 404) throw new Error('Delete failed');
+            commentReactions.delete(commentId);
+            commentVotes.delete(commentId);
+            const node = commentsList?.querySelector(`[data-comment][data-comment-id="${commentId}"]`);
+            node?.remove();
+            if (!commentsList?.children.length) {
+                commentsEmpty?.removeAttribute('hidden');
+            }
+        } catch (err) {
+            console.error(err);
+        }
+
     }
 
     async function submitComment() {
