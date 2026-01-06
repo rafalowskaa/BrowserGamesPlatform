@@ -607,22 +607,40 @@
     function buildRulesToc() {
         if (!rulesContent || !rulesToc) return;
         const headings = Array.from(rulesContent.querySelectorAll('h1, h2, h3'));
-        const items = headings.length ? headings : [rulesContent];
         const frag = document.createDocumentFragment();
-        items.forEach((heading, idx) => {
-            const text = heading.textContent?.trim() || config.text?.rulesEmpty || '';
-            const id = heading.id || `rule-section-${idx}`;
-            heading.id = id;
+
+        if (!headings.length) {
             const li = document.createElement('li');
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.textContent = text;
+            btn.textContent = config.text?.rulesHeading || config.text?.rulesEmpty || '';
             btn.addEventListener('click', () => {
-                document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                rulesContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
             li.appendChild(btn);
             frag.appendChild(li);
-        });
+
+        } else {
+            headings.forEach((heading, idx) => {
+                const text = heading.textContent?.trim() || config.text?.rulesEmpty || '';
+                const id = heading.id || `rule-section-${idx}`;
+                heading.id = id;
+                const li = document.createElement('li');
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = text;
+                btn.addEventListener('click', () => {
+                    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                li.appendChild(btn);
+                frag.appendChild(li);
+            });
+        }
+
+        if (!frag.childNodes.length) {
+            return;
+        }
+
         rulesToc.innerHTML = '';
         rulesToc.appendChild(frag);
     }

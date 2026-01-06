@@ -75,6 +75,24 @@
             ? L["Games_Details_Rules_Heading"].Value
             : (Model.DisplayRules!.Length > 180 ? string.Concat(Model.DisplayRules.AsSpan(0, 180).TrimEnd(), "…") : Model.DisplayRules);
 
+        string FormatRules(string? rules)
+        {
+            if (string.IsNullOrWhiteSpace(rules))
+            {
+                return string.Empty;
+            }
+
+            var sanitized = HtmlEncoder.Default.Encode(rules.Replace("\r\n", "\n"));
+            var paragraphs = sanitized
+                .Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(block => $"<p>{block.Replace("\n", "<br />")}</p>")
+                .ToList();
+
+            return paragraphs.Count == 0 ? string.Empty : string.Join(Environment.NewLine, paragraphs);
+        }
+
+        var formattedRules = FormatRules(Model.DisplayRules);
+
         var ratingDistribution = Model.RatingDistribution ?? new Dictionary<int, int>();
         var totalRatings = Model.ReviewCount;
 
@@ -151,7 +169,8 @@
                 ratingCount = L["Games_Details_Rating_Count"].Value,
                 ratingLabel = L["Games_Details_Rating_YourRating"].Value,
                 starLabel = L["Games_Details_Rating_StarLabel"].Value,
-                rulesEmpty = L["Games_Details_Rules_Heading"].Value
+                rulesEmpty = L["Games_Details_Rules_Heading"].Value,
+                rulesHeading = L["Games_Details_Tab_Rules"].Value
             }
         };
     }
@@ -334,9 +353,9 @@
                         <p class="muted">@rulesPreview</p>
                     </header>
                     <div class="rich-text" data-rules-content>
-                        @if (!string.IsNullOrWhiteSpace(Model.DisplayRules))
+                        @if (!string.IsNullOrWhiteSpace(formattedRules))
                         {
-                            @Html.Raw(HtmlEncoder.Default.Encode(Model.DisplayRules).Replace("\n", "<br />"))
+                            @Html.Raw(formattedRules)
                         }
                         else
                         {

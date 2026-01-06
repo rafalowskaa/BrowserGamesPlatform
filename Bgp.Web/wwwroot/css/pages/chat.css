@@ -42,9 +42,9 @@
     top: var(--chat-offset-top);
     bottom: auto;
     align-items: flex-start;
-    justify-content: flex-start;
+    justify-content: flex-end;
     gap: var(--chat-panel-gap);
-    width: min(calc(100vw - (var(--chat-gutter) * 2)), 1600px);
+    width: auto;
     max-width: min(calc(100vw - (var(--chat-gutter) * 2)), 1600px);
     opacity: 0;
     pointer-events: none;
@@ -59,6 +59,9 @@
 .chat-dock.is-open .chat-workspace {
     opacity: 1;
     transform: translateY(0);
+}
+
+.chat-workspace > * {
     pointer-events: auto;
 }
 
