@@ -12,13 +12,14 @@
         return;
     }
 
-    const root = configScript.closest('.game-details');
+    const root = configScript.closest('[data-game-config]') || document.querySelector('[data-game-config]');
     if (!root) {
         return;
     }
 
     const tabs = Array.from(root.querySelectorAll('[data-tab]'));
     const panels = Array.from(root.querySelectorAll('[data-tab-panel]'));
+    const tabTargets = Array.from(root.querySelectorAll('[data-tab-target]'));
     const copyButtons = Array.from(root.querySelectorAll('[data-copy-link], [data-copy-text]'));
     const playButtons = Array.from(root.querySelectorAll('[data-play-now]'));
     const playerFrame = root.querySelector('[data-game-frame]');
@@ -61,12 +62,14 @@
 
     function initialize() {
         setupTabs();
+        setupTabTargets();
         setupCopy();
         setupPlay();
         setupRating();
         setupComments();
         setupInvites();
         buildRulesToc();
+        hydrateSessionFromUrl();
     }
 
     function setupTabs() {
@@ -75,6 +78,17 @@
             tab.addEventListener('click', () => {
                 const target = tab.dataset.tab;
                 setActiveTab(target, true);
+            });
+        });
+    }
+
+    function setupTabTargets() {
+        tabTargets.forEach(target => {
+            target.addEventListener('click', () => {
+                const tab = target.dataset.tabTarget;
+                if (tab) {
+                    setActiveTab(tab, true);
+                }
             });
         });
     }
@@ -97,14 +111,39 @@
     function setupCopy() {
         const copiedText = config.text?.copied || '';
         copyButtons.forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', async () => {
                 const value = button.dataset.copyText || '';
                 if (!value) return;
-                navigator.clipboard?.writeText(value).finally(() => showCopyToast(button, copiedText));
+                try {
+                    if (button.hasAttribute('data-copy-link') && navigator.share) {
+                        await navigator.share({ url: value });
+                    } else if (navigator.clipboard?.writeText) {
+                        await navigator.clipboard.writeText(value);
+                    } else {
+                        fallbackCopyText(value);
+                    }
+                } catch (err) {
+                    console.error('Copy/share failed', err);
+                } finally {
+                    showCopyToast(button, copiedText);
+                }
             });
        
         });
     }
+
+    function fallbackCopyText(value) {
+        const textarea = document.createElement('textarea');
+        textarea.value = value;
+        textarea.setAttribute('readonly', 'readonly');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+    }
+
     function showCopyToast(button, text) {
         if (!text) return;
         const original = button.textContent;
@@ -121,7 +160,10 @@
 
     function setupPlay() {
         playButtons.forEach(btn => {
-            btn.addEventListener('click', () => startSession(selectedMode()));
+            btn.addEventListener('click', () => {
+                setActiveTab('play', true);
+                startSession(selectedMode());
+            });
         });
         retryButton?.addEventListener('click', () => startSession(selectedMode()));
 
@@ -133,6 +175,30 @@
         });
 
         fullscreenButton?.addEventListener('click', () => toggleFullscreen());
+    }
+
+    function hydrateSessionFromUrl() {
+        if (!config.play?.hasWeb || !config.play?.webUrl || !playerFrame) return;
+        const params = new URLSearchParams(window.location.search);
+        const sessionId = params.get('sessionId');
+        const token = params.get('token');
+        const mode = Number(params.get('mode'));
+
+        if (!sessionId) return;
+
+        currentSessionId = sessionId;
+        currentToken = token;
+
+        const modeValue = Number.isFinite(mode) && mode > 0 ? mode : selectedMode();
+        playerFrame.src = buildGameUrl(modeValue, sessionId, token);
+        setPlayerStatus('ready', config.text?.playReady);
+        setActiveTab('play', false);
+
+        params.delete('token');
+        params.delete('mode');
+        const cleaned = params.toString();
+        const newUrl = `${window.location.pathname}${cleaned ? `?${cleaned}` : ''}`;
+        window.history.replaceState({}, '', newUrl);
     }
 
 
