@@ -161,12 +161,17 @@ public class GamesController : Controller
         var g = await _db.Games
             .Include(x => x.Versions)
             .Include(x => x.Tags)
+            .Include(x => x.Locales)
+            .Include(x => x.Assets)
             .FirstOrDefaultAsync(x => x.Slug == slug && x.ApprovalStatus == GameApprovalStatus.Approved);
 
         if (g is null)
         {
             return NotFound();
         }
+
+        var currentLocale = CultureInfo.CurrentUICulture.Name;
+        var locale = g.ResolveLocale(currentLocale);
 
         var latest = g.Versions.OrderByDescending(v => v.PublishedAtUtc).FirstOrDefault();
         var playOptions = _contentResolver.Resolve(latest?.ContentPath);
@@ -179,9 +184,8 @@ public class GamesController : Controller
             .Distinct()
             .CountAsync();
 
-        var ratingStats = await _db.GameReviews
-            .AsNoTracking()
-            .Where(r => r.GameId == g.Id)
+        var reviewsQuery = _db.GameReviews.AsNoTracking().Where(r => r.GameId == g.Id);
+        var ratingStats = await reviewsQuery
             .GroupBy(_ => 1)
             .Select(group => new
             {
@@ -189,6 +193,13 @@ public class GamesController : Controller
                 Count = group.Count()
             })
             .FirstOrDefaultAsync();
+        var distributionRaw = await reviewsQuery
+            .GroupBy(r => r.Stars)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        var distribution = Enumerable.Range(1, 5)
+            .ToDictionary(v => v, v => distributionRaw.FirstOrDefault(d => d.Key == v)?.Count ?? 0);
 
         int? userRating = null;
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -203,9 +214,20 @@ public class GamesController : Controller
         var vm = new GameDetailsViewModel
         {
             Game = g,
+            Locale = locale,
             PlayOptions = playOptions,
+            DisplayTitle = locale?.Title ?? g.Title,
+            DisplayDescription = locale?.Description ?? g.Description,
+            DisplayRules = locale?.RulesContent ?? g.Rules,
+            CurrentLocale = currentLocale,
+            DefaultLocale = g.DefaultLocale,
+            BannerUrl = g.ResolveAsset(GameAssetType.Banner, currentLocale),
+            ThumbnailUrl = g.ResolveAsset(GameAssetType.Thumbnail, currentLocale) ?? g.CoverImagePath,
+            GalleryUrls = g.ResolveGallery(currentLocale),
+            Assets = g.Assets.ToList(),
             AverageRating = ratingStats?.Average ?? 0,
             ReviewCount = ratingStats?.Count ?? 0,
+            RatingDistribution = distribution,
             UserRating = userRating,
             ActivePlayerCount = activePlayers
         };

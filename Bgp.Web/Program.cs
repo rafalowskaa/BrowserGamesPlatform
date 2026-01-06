@@ -283,6 +283,7 @@ app.MapControllers();
 
 // Hubs
 app.MapHub<ChatHub>("/hubs/chat");
+app.MapHub<InvitesHub>("/hubs/invites");
 
 // MVC
 app.MapControllerRoute(

@@ -39,7 +39,7 @@ public class ScoresController : ControllerBase
             UserId = userId,
             CreatedAtUtc = _time.UtcNow,
             ExpiresAtUtc = _time.UtcNow.AddMinutes(10),
-            EphemeralKey = key
+            Token = key
         };
         _db.MatchSessions.Add(session);
         await _db.SaveChangesAsync();
@@ -58,7 +58,7 @@ public class ScoresController : ControllerBase
         if (session is null) return BadRequest("Nieprawidłowa sesja.");
         if (session.Used || session.ExpiresAtUtc < _time.UtcNow) return BadRequest("Sesja wygasła lub została użyta.");
 
-        var sig = _signer.ComputeSignature(session.EphemeralKey, session.Id, req.Score);
+        var sig = _signer.ComputeSignature(session.Token, session.Id, req.Score);
         if (!string.Equals(sig, req.Signature, StringComparison.Ordinal))
             return BadRequest("Nieprawidłowy podpis wyniku.");
 

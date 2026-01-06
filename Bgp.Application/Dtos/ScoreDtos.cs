@@ -3,7 +3,7 @@ using Bgp.Domain.Enums;
 
 namespace Bgp.Application.Dtos;
 
-public record StartSessionResponse(Guid SessionId, string EphemeralKey, DateTime ExpiresAtUtc);
+public record StartSessionResponse(Guid SessionId, string Token, DateTime ExpiresAtUtc);
 
 public class SubmitScoreRequest
 {

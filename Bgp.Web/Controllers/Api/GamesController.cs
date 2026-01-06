@@ -7,6 +7,7 @@ using Bgp.Application.Interfaces;
 using Bgp.Domain.Entities;
 using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Persistence;
+using Bgp.Web.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -50,11 +51,13 @@ public class GamesController : ControllerBase
     }
 
     [HttpGet("{slug}")]
-    public async Task<ActionResult<object>> GetBySlug(string slug)
+    public async Task<ActionResult<object>> GetBySlug(string slug, [FromQuery] string? lang = null)
     {
         var g = await _db.Games
             .Include(x => x.Versions)
             .Include(x => x.Reviews)
+            .Include(x => x.Locales)
+            .Include(x => x.Assets)
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Slug == slug && x.ApprovalStatus == GameApprovalStatus.Approved);
 
@@ -62,12 +65,23 @@ public class GamesController : ControllerBase
 
         var latest = g.Versions.OrderByDescending(v => v.PublishedAtUtc).FirstOrDefault();
 
+        var requestedLocale = string.IsNullOrWhiteSpace(lang)
+            ? System.Globalization.CultureInfo.CurrentUICulture.Name
+            : lang;
+
+        var locale = g.ResolveLocale(requestedLocale);
+        var banner = g.ResolveAsset(Domain.Enums.GameAssetType.Banner, locale?.Locale ?? requestedLocale);
+        var thumb = g.ResolveAsset(Domain.Enums.GameAssetType.Thumbnail, locale?.Locale ?? requestedLocale) ?? g.CoverImagePath;
+        var gallery = g.ResolveGallery(locale?.Locale ?? requestedLocale);
+
         return Ok(new
         {
             g.Id,
-            g.Title,
             g.Slug,
-            g.Description,
+            defaultLocale = g.DefaultLocale,
+            locale = locale?.Locale ?? requestedLocale ?? g.DefaultLocale,
+            title = locale?.Title ?? g.Title,
+            description = locale?.Description ?? g.Description,
             g.Modes,
             g.Categories,
             g.CoverImagePath,
@@ -75,7 +89,14 @@ public class GamesController : ControllerBase
             PlayUrl = latest?.ContentPath is null ? null : $"{latest.ContentPath.TrimEnd('/')}/index.html",
             AvgRating = g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0,
             ReviewsCount = g.Reviews.Count,
-            Tags = g.Tags.Where(t => t.IsApproved).OrderBy(t => t.Value).Select(t => t.Value).ToList()
+            Tags = g.Tags.Where(t => t.IsApproved).OrderBy(t => t.Value).Select(t => t.Value).ToList(),
+            UpdatedAt = g.UpdatedAtUtc ?? g.CreatedAtUtc,
+            Assets = new
+            {
+                banner,
+                thumbnail = thumb,
+                gallery
+            }
         });
     }
 

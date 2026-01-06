@@ -3365,4 +3365,43 @@
 	<data name="GlobalRanking_Empty" xml:space="preserve">
     <value>Brak graczy dla wybranych filtrów.</value>
   </data>
+	<data name="Games_Details_Tab_Overview" xml:space="preserve">
+    <value>Przegląd</value>
+  </data>
+	<data name="Games_Details_Tab_Play" xml:space="preserve">
+    <value>Graj</value>
+  </data>
+	<data name="Games_Details_Tab_Rules" xml:space="preserve">
+    <value>Zasady</value>
+  </data>
+	<data name="Games_Details_Tab_Reviews" xml:space="preserve">
+    <value>Oceny i komentarze</value>
+  </data>
+	<data name="Games_Details_Play_Theater" xml:space="preserve">
+    <value>Tryb kinowy</value>
+  </data>
+	<data name="Games_Details_Play_ExitTheater" xml:space="preserve">
+    <value>Zakończ tryb kinowy</value>
+  </data>
+	<data name="Games_Details_Copy_Success" xml:space="preserve">
+    <value>Skopiowano</value>
+  </data>
+	<data name="Games_Details_InviteEmpty" xml:space="preserve">
+    <value>Brak znajomych do zaproszenia</value>
+  </data>
+	<data name="Games_Details_InviteSearch" xml:space="preserve">
+    <value>Szukaj znajomych</value>
+  </data>
+	<data name="Games_Details_InviteClose" xml:space="preserve">
+    <value>Zamknij okno zaproszeń</value>
+  </data>
+	<data name="Games_Details_Gallery" xml:space="preserve">
+    <value>Galeria</value>
+  </data>
+	<data name="Games_Details_Rules_Toc" xml:space="preserve">
+    <value>Spis treści</value>
+  </data>
+	<data name="Games_Details_Rules_Updated" xml:space="preserve">
+    <value>Ostatnia aktualizacja</value>
+  </data>
 </root>

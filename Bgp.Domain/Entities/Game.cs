@@ -11,6 +11,9 @@ public class Game : IAggregateRoot
     [Required, MaxLength(120)]
     public string Title { get; set; } = string.Empty;
 
+    [MaxLength(10)]
+    public string DefaultLocale { get; set; } = "en-US";
+
     [Required, MaxLength(140)]
     public string Slug { get; set; } = string.Empty; // unikalny
 
@@ -49,4 +52,6 @@ public class Game : IAggregateRoot
     public ICollection<GameReview> Reviews { get; set; } = new List<GameReview>();
     public ICollection<Score> Scores { get; set; } = new List<Score>();
     public ICollection<GameTag> Tags { get; set; } = new List<GameTag>();
+    public ICollection<GameLocale> Locales { get; set; } = new List<GameLocale>();
+    public ICollection<GameAsset> Assets { get; set; } = new List<GameAsset>();
 }

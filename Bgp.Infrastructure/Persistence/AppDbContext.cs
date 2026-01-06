@@ -19,6 +19,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<MatchSession> MatchSessions => Set<MatchSession>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<GameTag> GameTags => Set<GameTag>();
+    public DbSet<GameLocale> GameLocales => Set<GameLocale>();
+    public DbSet<GameAsset> GameAssets => Set<GameAsset>();
+    public DbSet<GameInvite> GameInvites => Set<GameInvite>();
+    public DbSet<SessionPlayer> SessionPlayers => Set<SessionPlayer>();
     public DbSet<HomeFact> HomeFacts => Set<HomeFact>();
     public DbSet<HomeEvent> HomeEvents => Set<HomeEvent>();
     public DbSet<HomeFeaturedGame> HomeFeaturedGames => Set<HomeFeaturedGame>();
@@ -106,6 +110,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasDefaultValue(GameMode.Singleplayer);
 
         b.Entity<Game>()
+           .Property(x => x.DefaultLocale)
+           .HasMaxLength(10)
+           .HasDefaultValue("en-US");
+
+        b.Entity<Game>()
             .HasIndex(x => x.Slug)
             .IsUnique();
 
@@ -129,6 +138,33 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(t => t.GameId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        b.Entity<GameLocale>()
+            .HasIndex(x => new { x.GameId, x.Locale })
+            .IsUnique();
+
+        b.Entity<GameLocale>()
+            .Property(x => x.Locale)
+            .HasMaxLength(10)
+            .IsRequired();
+
+        b.Entity<GameLocale>()
+            .Property(x => x.Title)
+            .HasMaxLength(160)
+            .IsRequired();
+
+        b.Entity<GameAsset>()
+            .Property(x => x.Type)
+            .HasConversion<int>()
+            .IsRequired();
+
+        b.Entity<GameAsset>()
+            .Property(x => x.Url)
+            .HasMaxLength(1024)
+            .IsRequired();
+
+        b.Entity<GameAsset>()
+            .HasIndex(x => new { x.GameId, x.Type, x.Locale, x.SortOrder });
+
         b.Entity<GameTag>()
             .Property(t => t.Value)
             .HasMaxLength(40)
@@ -151,8 +187,34 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         b.Entity(typeof(Score)).HasIndex(nameof(Score.GameId), nameof(Score.UserId));
         b.Entity(typeof(MatchSession)).HasIndex(nameof(MatchSession.GameId), nameof(MatchSession.UserId));
+        b.Entity<MatchSession>()
+            .Property(x => x.Mode)
+            .HasConversion<int>();
+        b.Entity<MatchSession>()
+            .Property(x => x.Token)
+            .HasMaxLength(128)
+            .IsRequired();
+        b.Entity<MatchSession>()
+            .Property(x => x.WsUrl)
+            .HasMaxLength(256);
 
-        // --- Friends / Chat / Reports ---
+        b.Entity<SessionPlayer>()
+            .HasIndex(x => new { x.SessionId, x.UserId })
+            .IsUnique();
+
+        b.Entity<SessionPlayer>()
+            .Property(x => x.Role)
+            .HasMaxLength(24)
+            .HasDefaultValue("player");
+
+        b.Entity<GameInvite>()
+            .Property(x => x.Status)
+            .HasConversion<int>();
+
+        b.Entity<GameInvite>()
+            .HasIndex(x => new { x.SessionId, x.ToUserId, x.Status });
+
+
         b.Entity<Friendship>()
             .HasIndex(x => new { x.RequesterId, x.AddresseeId })
             .IsUnique();

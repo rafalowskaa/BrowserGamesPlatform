@@ -1,407 +1,438 @@
-﻿@using System.Text.Encodings.Web
-@using System.Text.Json
-@using Bgp.Domain.Enums
-@using Bgp.Web.Helpers
-@model Bgp.Web.Models.GameDetailsViewModel
-@section Styles {
-    <link rel="stylesheet" href="~/css/pages/player.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/pages/game-hub.css" asp-append-version="true" />
-}
-@{
-    var game = Model.Game;
-    ViewData["Title"] = game.Title;
-
-    var playOptions = Model.PlayOptions ?? Array.Empty<Bgp.Web.Models.GamePlayOptionViewModel>();
-    var webOption = playOptions.FirstOrDefault(o => string.Equals(o.Kind, "web", StringComparison.OrdinalIgnoreCase));
-    var downloadOptions = playOptions
-        .Where(o => string.Equals(o.Kind, "download", StringComparison.OrdinalIgnoreCase))
-        .ToList();
-
-    var approvedTags = game.Tags?.Where(t => t.IsApproved)
-        .Select(t => t.Value)
-        .OrderBy(t => t)
-        .ToList() ?? new List<string>();
-
-    var availableModes = GameMetadataOptions.ModeDefinitions
-        .Where(def => (game.Modes & def.Mode) != 0)
-        .ToList();
-
-    if (availableModes.Count == 0)
-    {
-        availableModes = GameMetadataOptions.ModeDefinitions
-            .Where(def => def.Mode == GameMode.Singleplayer)
-            .ToList();
+﻿    @using System.Text.Encodings.Web
+    @using System.Text.Json
+    @using Bgp.Domain.Enums
+    @using Bgp.Web.Helpers
+    @model Bgp.Web.Models.GameDetailsViewModel
+    @section Styles {
+        <link rel="stylesheet" href="~/css/pages/game-details-v2.css" asp-append-version="true" />
     }
-    string FormatModes(GameMode modes)
-    {
-        if (modes == GameMode.None)
-        {
-            return L["Games_Details_Mode_Unspecified"].Value;
-        }
+    @{
+        var game = Model.Game;
+        ViewData["Title"] = Model.DisplayTitle ?? game.Title;
 
-        var labels = GameMetadataOptions.ModeDefinitions
-            .Where(def => (modes & def.Mode) != 0)
-            .Select(def => L[def.ResourceKey].Value)
-            .Where(label => !string.IsNullOrWhiteSpace(label))
+        var playOptions = Model.PlayOptions ?? Array.Empty<Bgp.Web.Models.GamePlayOptionViewModel>();
+        var webOption = playOptions.FirstOrDefault(o => string.Equals(o.Kind, "web", StringComparison.OrdinalIgnoreCase));
+        var downloadOptions = playOptions
+            .Where(o => string.Equals(o.Kind, "download", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        return labels.Count == 0 ? L["Games_Details_Mode_Unspecified"].Value : string.Join(", ", labels);
-    }
-
-    string FormatCategories(GameCategory categories)
-    {
-        if (categories == GameCategory.None)
-        {
-            return L["Games_Details_Category_Unspecified"].Value;
-        }
-
-        var labels = GameMetadataOptions.CategoryDefinitions
-            .Where(def => (categories & def.Category) != 0)
-            .Select(def => L[def.ResourceKey].Value)
-            .Where(label => !string.IsNullOrWhiteSpace(label))
+        var availableModes = GameMetadataOptions.ModeDefinitions
+            .Where(def => (game.Modes & def.Mode) != 0)
             .ToList();
-
-        return labels.Count == 0 ? L["Games_Details_Category_Unspecified"].Value : string.Join(", ", labels);
-    }
-
-    var categoryLabels = GameMetadataOptions.CategoryDefinitions
-        .Where(def => (game.Categories & def.Category) != 0)
-        .Select(def => L[def.ResourceKey].Value)
-        .Where(label => !string.IsNullOrWhiteSpace(label))
-        .ToList();
-
-    if (categoryLabels.Count == 0)
-    {
-        categoryLabels.Add(L["Games_Details_Category_Unspecified"].Value);
-    }
-
-    var heroSubtitle = !string.IsNullOrWhiteSpace(game.Description)
-        ? (game.Description!.Length > 160 ? string.Concat(game.Description.AsSpan(0, 160).TrimEnd(), "…") : game.Description)
-        : L["Games_Details_PlaySubheading"].Value;
-
-    var lastUpdated = game.UpdatedAtUtc ?? game.CreatedAtUtc;
-
-    var trimmedRules = game.Rules?.Trim() ?? string.Empty;
-    var rulesPreview = trimmedRules.Length > 240
-        ? string.Concat(trimmedRules.AsSpan(0, 240).TrimEnd(), "…")
-        : trimmedRules;
-    var encodedRules = HtmlEncoder.Default.Encode(trimmedRules).Replace("\n", "<br />");
-    var ruleLines = trimmedRules
-        .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        .Take(6)
-        .ToList();
-
-    var heroTags = approvedTags.Any()
-    ? approvedTags.Take(4).ToList()
-    : categoryLabels.Take(4).ToList();
-
-    var shareLink = Url.Action("Details", "Games", new { slug = game.Slug }, Context.Request?.Scheme) ?? $"https://play.grid/{game.Slug}";
-
-    var config = new
-    {
-        gameId = game.Id,
-        hasWeb = webOption is not null,
-        webUrl = webOption?.Url,
-        gameTitle = game.Title,
-        gameMetadata = webOption is not null ? new
+        if (availableModes.Count == 0)
         {
-            nativeWidth = webOption.NativeWidth,
-            nativeHeight = webOption.NativeHeight,
-            aspectRatio = webOption.AspectRatio
-        } : null,
-        fullScreenLabel = L["Games_Details_Fullscreen"].Value,
-        fullScreenExitLabel = L["Games_Details_ExitFullscreen"].Value,
-        fullScreenUnavailable = L["Games_Details_FullscreenUnavailable"].Value,
-        modes = availableModes.Select(def => new { value = (int)def.Mode, label = L[def.ResourceKey].Value }).ToList(),
-        inviteTemplate = L["Games_Details_InviteTemplate"].Value,
-        inviteSuccess = L["Games_Details_InviteSuccess"].Value,
-        inviteError = L["Games_Details_InviteError"].Value,
-        startSingle = L["Games_Details_StartSingle"].Value,
-        startMulti = L["Games_Details_StartMulti"].Value,
-        startGeneric = L["Games_Details_StartGeneric"].Value,
-        matchSearching = L["Games_Details_Matchmaking_Searching"].Value,
-        matchFound = L["Games_Details_Matchmaking_Found"].Value,
-        matchStarting = L["Games_Details_Matchmaking_Starting"].Value,
-        matchError = L["Games_Details_Matchmaking_Error"].Value,
-        matchCancel = L["Games_Details_Matchmaking_Cancel"].Value,
-        matchCancelled = L["Games_Details_Matchmaking_Cancelled"].Value,
-        rating = new
-        {
-            average = Model.AverageRating,
-            count = Model.ReviewCount,
-            user = Model.UserRating,
-            submitUrl = Url.Content($"/api/games/{game.Id}/reviews")
-        },
-        ratingMessages = new
-        {
-            success = L["Games_Details_Rating_Success"].Value,
-            error = L["Games_Details_Rating_Error"].Value,
-            none = L["Games_Details_Rating_None"].Value,
-            count = L["Games_Details_Rating_Count"].Value,
-            label = L["Games_Details_Rating_YourRating"].Value
-        },
-        ratingStarLabel = L["Games_Details_Rating_StarLabel"].Value,
-        activePlayers = Model.ActivePlayerCount,
-        comments = new
-        {
-            fetchUrl = Url.Content($"/api/games/{game.Id}/reviews"),
-            success = L["Games_Details_Comments_Success"].Value,
-            error = L["Games_Details_Comments_Error"].Value,
-            emptyLabel = L["Games_Details_Comments_Empty"].Value,
-            placeholder = L["Games_Details_Comments_Placeholder"].Value,
-            anonymous = L["Games_Details_Comments_Anonymous"].Value
+            availableModes = GameMetadataOptions.ModeDefinitions
+                .Where(def => def.Mode == GameMode.Singleplayer)
+                .ToList();
         }
-    };
-}
-<div class="game-hub game-hub--player" data-game-config>
-    <div class="game-hub__backdrop"></div>
-    <div class="game-hub__container">
-        <header class="game-header card glass">
-            <div class="game-header__main">
-                <p class="eyebrow">@L["Games_Details_Categories"].Value</p>
-                <h1 class="game-header__title">@game.Title</h1>
-                <p class="game-header__subtitle">@heroSubtitle</p>
-                <div class="game-header__tags">
-                    @foreach (var tag in heroTags)
-                    {
-                        <span class="chip chip--pill">@tag</span>
-                    }
+        string FormatModes(GameMode modes)
+        {
+            if (modes == GameMode.None)
+            {
+                return L["Games_Details_Mode_Unspecified"].Value;
+            }
+
+            var labels = GameMetadataOptions.ModeDefinitions
+                .Where(def => (modes & def.Mode) != 0)
+                .Select(def => L[def.ResourceKey].Value)
+                .Where(label => !string.IsNullOrWhiteSpace(label))
+                .ToList();
+
+            return labels.Count == 0 ? L["Games_Details_Mode_Unspecified"].Value : string.Join(", ", labels);
+        }
+
+        string FormatCategories(GameCategory categories)
+        {
+            if (categories == GameCategory.None)
+            {
+                return L["Games_Details_Category_Unspecified"].Value;
+            }
+
+            var labels = GameMetadataOptions.CategoryDefinitions
+                .Where(def => (categories & def.Category) != 0)
+                .Select(def => L[def.ResourceKey].Value)
+                .Where(label => !string.IsNullOrWhiteSpace(label))
+                .ToList();
+
+            return labels.Count == 0 ? L["Games_Details_Category_Unspecified"].Value : string.Join(", ", labels);
+        }
+
+        var heroSubtitle = !string.IsNullOrWhiteSpace(Model.DisplayDescription)
+            ? (Model.DisplayDescription!.Length > 200 ? string.Concat(Model.DisplayDescription.AsSpan(0, 200).TrimEnd(), "…") : Model.DisplayDescription)
+            : L["Games_Details_PlaySubheading"].Value;
+
+        var activeTab = string.IsNullOrWhiteSpace(Context.Request.Query["tab"]) ? "overview" : Context.Request.Query["tab"].ToString().ToLowerInvariant();
+        if (activeTab != "play" && activeTab != "rules" && activeTab != "reviews" && activeTab != "overview")
+        {
+            activeTab = "overview";
+        }
+
+        var shareLink = Url.Action("Details", "Games", new { slug = game.Slug, tab = activeTab }, Context.Request?.Scheme) ?? $"https://play.grid/{game.Slug}";
+        var bannerUrl = Model.BannerUrl ?? Model.ThumbnailUrl ?? game.CoverImagePath ?? Url.Content("~/img/branding/og-playgrid.png");
+        var thumbUrl = Model.ThumbnailUrl ?? Model.BannerUrl ?? game.CoverImagePath ?? Url.Content("~/img/branding/logo-playgrid.svg");
+        var gallery = Model.GalleryUrls ?? Array.Empty<string>();
+        var rulesPreview = string.IsNullOrWhiteSpace(Model.DisplayRules)
+            ? L["Games_Details_Rules_Heading"].Value
+            : (Model.DisplayRules!.Length > 180 ? string.Concat(Model.DisplayRules.AsSpan(0, 180).TrimEnd(), "…") : Model.DisplayRules);
+
+        var ratingDistribution = Model.RatingDistribution ?? new Dictionary<int, int>();
+        var totalRatings = Model.ReviewCount;
+
+        var config = new
+        {
+            gameId = game.Id,
+            slug = game.Slug,
+            locale = Model.CurrentLocale,
+            defaultLocale = Model.DefaultLocale,
+            tab = activeTab,
+            assets = new
+            {
+                banner = bannerUrl,
+                thumbnail = thumbUrl,
+                gallery
+            },
+            play = new
+            {
+                hasWeb = webOption is not null,
+                webUrl = webOption?.Url,
+                sessionUrl = Url.Content($"/api/games/{game.Id}/sessions"),
+                modes = availableModes.Select(def => new { value = (int)def.Mode, label = L[def.ResourceKey].Value }).ToList(),
+                inviteHub = Url.Content("~/hubs/invites")
+            },
+            rules = new
+            {
+                fetchUrl = Url.Content($"/api/games/{game.Id}/rules")
+            },
+            ratings = new
+            {
+                fetchUrl = Url.Content($"/api/games/{game.Id}/ratings"),
+                submitUrl = Url.Content($"/api/games/{game.Id}/ratings")
+            },
+            comments = new
+            {
+                fetchUrl = Url.Content($"/api/games/{game.Id}/comments"),
+                submitUrl = Url.Content($"/api/games/{game.Id}/comments"),
+                pageSize = 20
+            },
+            invites = new
+            {
+                createTemplate = Url.Content("/api/sessions/{sessionId}/invites"),
+                acceptTemplate = Url.Content("/api/invites/{inviteId}/accept"),
+                hubUrl = Url.Content("~/hubs/invites")
+            },
+            text = new
+            {
+                playNow = L["Games_Details_StartGeneric"].Value,
+                playError = L["Games_Details_Matchmaking_Error"].Value,
+                playLoading = L["Games_Details_Matchmaking_Searching"].Value,
+                playReady = L["Games_Details_Matchmaking_Starting"].Value,
+                playTheater = L["Games_Details_Play_Theater"].Value,
+                playExitTheater = L["Games_Details_Play_ExitTheater"].Value,
+                fullscreen = L["Games_Details_Fullscreen"].Value,
+                exitFullscreen = L["Games_Details_ExitFullscreen"].Value,
+                share = L["Games_Details_Share"].Value,
+                copied = L["Games_Details_Copy_Success"].Value,
+                inviteTitle = L["Games_Details_InviteHeading"].Value,
+                inviteEmpty = L["Games_Details_InviteEmpty"].Value,
+                inviteSearch = L["Games_Details_InviteSearch"].Value,
+                inviteSend = L["Games_Details_InviteAction"].Value,
+                inviteSuccess = L["Games_Details_InviteSuccess"].Value,
+                inviteError = L["Games_Details_InviteError"].Value,
+                ratingSuccess = L["Games_Details_Rating_Success"].Value,
+                ratingError = L["Games_Details_Rating_Error"].Value,
+                commentSuccess = L["Games_Details_Comments_Success"].Value,
+                commentError = L["Games_Details_Comments_Error"].Value,
+                commentPlaceholder = L["Games_Details_Comments_Placeholder"].Value,
+                emptyComments = L["Games_Details_Comments_Empty"].Value,
+                anonymous = L["Games_Details_Comments_Anonymous"].Value,
+                noRating = L["Games_Details_Rating_None"].Value,
+                ratingCount = L["Games_Details_Rating_Count"].Value,
+                ratingLabel = L["Games_Details_Rating_YourRating"].Value,
+                starLabel = L["Games_Details_Rating_StarLabel"].Value,
+                rulesEmpty = L["Games_Details_Rules_Heading"].Value
+            }
+        };
+    }
+    <div class="game-details" data-game-config>
+        <div class="game-hero" style="--hero-image:url('@bannerUrl');">
+            <div class="game-hero__overlay"></div>
+            <div class="game-hero__content">
+                <div class="game-hero__eyebrow">@L["Games_Details_Categories"].Value</div>
+                <h1 class="game-hero__title">@Model.DisplayTitle</h1>
+                <p class="game-hero__subtitle">@heroSubtitle</p>
+                <div class="game-hero__actions">
+                    <button type="button" class="btn-primary" data-play-now data-tab-target="play">@L["Games_Details_StartGeneric"].Value</button>
+                    <button type="button" class="btn-secondary" data-invite-open>@L["Games_Details_InviteAction"].Value</button>
+                    <button type="button" class="btn-ghost" data-copy-link data-copy-text="@shareLink">@L["Games_Details_Share"].Value</button>
+                </div>
+                <div class="game-hero__facts">
+                    <span class="chip">@FormatModes(game.Modes)</span>
+                    <span class="chip">@FormatCategories(game.Categories)</span>
+                    <span class="chip">@L["Games_Details_LastUpdated"].Value: @(game.UpdatedAtUtc ?? game.CreatedAtUtc).ToLocalTime().ToString("d")</span>
+                    <span class="chip">
+                        @L["Games_Details_Rating_Count"].Value.Replace("{0}", Model.ReviewCount.ToString())
+                        <strong>@Model.AverageRating.ToString("0.0")</strong>
+                    </span>
                 </div>
             </div>
-            <dl class="game-header__meta">
-                <div>
-                    <dt>@L["Games_Details_Modes"].Value</dt>
-                    <dd>@FormatModes(game.Modes)</dd>
+            <div class="game-hero__media">
+                <div class="game-hero__thumb">
+                    <img src="@thumbUrl" alt="@Model.DisplayTitle" loading="lazy" />
                 </div>
-                <div>
-                    <dt>@L["Games_Details_Categories"].Value</dt>
-                    <dd>@FormatCategories(game.Categories)</dd>
-                </div>
-                <div>
-                    <dt>@L["Admin_Games_Metadata_Author"].Value</dt>
-                    <dd>@(Model.OwnerName ?? game.CreatedByUserId.ToUpperInvariant())</dd>
-                </div>
-                <div>
-                    <dt>@L["Games_Details_LastUpdated"].Value</dt>
-                    <dd>@lastUpdated.ToLocalTime().ToString("d")</dd>
-                    </div>
-                </div>
-            </dl>
-            </header>
-
-            <div class="game-layout">
-                <section class="card glass play-card" id="play-card">
-                    <header class="play-card__header">
-                        <div>
-                            <p class="eyebrow">@L["Games_Details_PlayHeading"].Value</p>
-                            <h2>@L["Games_Details_PlayHeading"].Value</h2>
-                            <p class="muted">@L["Games_Details_PlaySubheading"].Value</p>
-                        </div>
-                        <div class="mode-selector" data-mode-selector role="group" aria-label="@L["Games_Details_ModeHeading"].Value">
-                            @for (var i = 0; i < availableModes.Count; i++)
-                            {
-                                var def = availableModes[i];
-                                var optionId = $"mode_{(int)def.Mode}";
-                                <label class="mode-pill" for="@optionId">
-                                    <input type="radio" name="game-mode" id="@optionId" value="@((int)def.Mode)" @(i == 0 ? "checked" : string.Empty) />
-                                    <span>@L[def.ResourceKey].Value</span>
-                                </label>
-                            }
-                            </div>
-            </header>
-
-            @if (webOption is not null)
+                @if (gallery.Any())
                 {
-                    <div class="play-card__actions">
-                        <div class="play-card__buttons">
-                            <button class="btn-primary" type="button" data-game-start data-start-dynamic="true">@L["Games_Details_StartGeneric"].Value</button>
-                            <button class="btn-secondary" type="button" data-game-cancel hidden>@L["Games_Details_Matchmaking_Cancel"].Value</button>
-                        </div>
-                     <p class="muted" data-game-start-hint>@L["Games_Details_WebHint"].Value</p>
+                    <div class="game-hero__gallery">
+                        @foreach (var item in gallery.Take(3))
+                        {
+                            <img src="@item" alt="@Model.DisplayTitle" loading="lazy" />
+                        }
                     </div>
+                }
+            </div>
+        </div>
 
-                       <div class="play-card__player">
-                        <div class="player" hidden data-game-player>
-                            <div class="player__stage" data-game-stage>
-                                <div class="player__viewport" data-game-viewer>
-                                    <div class="player__canvas" data-game-canvas>
-                                        <iframe src="about:blank" title="@game.Title" loading="lazy" allow="fullscreen" allowfullscreen scrolling="no" data-game-frame></iframe>
-                                    </div>
-                                </div>
-                                <div class="player__controls" data-game-controls hidden>
-                                    <button class="btn-secondary" type="button" data-game-scale-fit>@L["Games_Details_DisplayFit"].Value</button>
-                                    <label class="player__scale" data-game-scale-label>
-                                        <span>@L["Games_Details_DisplayScaleLabel"].Value</span>
-                                        <input type="range"
-                                               min="0.5"
-                                               max="2.25"
-                                               step="0.05"
-                                               value="1"
-                                               data-game-scale-range
-                                               title="@L["Games_Details_DisplayScaleHint"].Value"
-                                               aria-describedby="game-scale-value" />
-                                    </label>
-                                    <span class="player__scale-value" id="game-scale-value" data-game-scale-value>100%</span>
-                                </div>
-                                 <button class="player__fullscreen" type="button" data-game-fullscreen aria-pressed="false" data-state="enter">
-                                    <span data-game-fullscreen-enter>@L["Games_Details_Fullscreen"].Value</span>
-                                    <span data-game-fullscreen-exit hidden>@L["Games_Details_ExitFullscreen"].Value</span>
-                                </button>
-                                
-                            </div>
-                        </div>
-                             </div>
+        <nav class="game-tabs" data-tab-bar>
+            <button type="button" class="game-tab @(activeTab == "overview" ? "is-active" : string.Empty)" data-tab="overview">@L["Games_Details_Tab_Overview"].Value</button>
+            <button type="button" class="game-tab @(activeTab == "play" ? "is-active" : string.Empty)" data-tab="play">@L["Games_Details_Tab_Play"].Value</button>
+            <button type="button" class="game-tab @(activeTab == "rules" ? "is-active" : string.Empty)" data-tab="rules">@L["Games_Details_Tab_Rules"].Value</button>
+            <button type="button" class="game-tab @(activeTab == "reviews" ? "is-active" : string.Empty)" data-tab="reviews">@L["Games_Details_Tab_Reviews"].Value</button>
+        </nav>
+
+        <section class="game-tab-panel @(activeTab == "overview" ? "is-active" : string.Empty)" data-tab-panel="overview" @(activeTab == "overview" ? "" : "hidden")>
+            <div class="grid two-columns">
+                <div class="card">
+                    <header class="section-header">
+                        <p class="eyebrow">@L["Games_Details_PlayHeading"].Value</p>
+                        <h2>@L["Games_Details_Tab_Overview"].Value</h2>
+                        <p class="muted">@heroSubtitle</p>
+                    </header>
+                    <div class="rich-text">
+                        @if (!string.IsNullOrWhiteSpace(Model.DisplayDescription))
+                        {
+                            <p>@Model.DisplayDescription</p>
+                        }
+                        else
+                        {
+                            <p class="muted">@L["Games_Details_PlaySubheading"].Value</p>
+                        }
+                    </div>
+                    <div class="quick-facts">
+                    <div>
+                        <span class="label">@L["Games_Details_Modes"].Value</span>
+                        <strong>@FormatModes(game.Modes)</strong>
+                    </div>
+                    <div>
+                        <span class="label">@L["Games_Details_Categories"].Value</span>
+                        <strong>@FormatCategories(game.Categories)</strong>
+                    </div>
+                    <div>
+                        <span class="label">@L["Games_Details_CurrentPlayers_Label"].Value</span>
+                        <strong data-current-players>@Model.ActivePlayerCount</strong>
+                    </div>
+                    </div>
+                    </div>
+                    <div class="card gallery-card">
+                        <header class="section-header">
+                            <p class="eyebrow">@L["Games_Details_Gallery"].Value</p>
+                            <h2>@L["Games_Details_Gallery"].Value</h2>
+                            <p class="muted">@L["Games_Details_InviteDescription"].Value</p>
+                        </header>
+                        <div class="gallery-grid" data-gallery>
+                            @if (gallery.Any())
+                            {
+                                foreach (var item in gallery)
+                                {
+                                    <figure class="gallery-item">
+                                        <img src="@item" alt="@Model.DisplayTitle" loading="lazy" />
+                                    </figure>
+                                }
                             }
                             else
                             {
-                                <p class="alert">@L["Games_Details_NoWebBuild"].Value</p>
+                                <div class="empty">@L["Games_Details_Comments_Empty"].Value</div>
                             }
+                    </div>
+                    </div>
+                    </div>
+                </section>
 
-                @if (downloadOptions.Any())
-                {
-                    <div class="play-card__downloads">
-                        <h3>@L["Games_Details_DownloadHeading"].Value</h3>
-                        <ul class="download-list">
-                            @foreach (var download in downloadOptions)
-                            {
-                                <li>
-                                    <a class="btn-secondary" href="@download.Url" download>@download.Label</a>
-                                    @if (!string.IsNullOrWhiteSpace(download.Description))
+                <section class="game-tab-panel @(activeTab == "play" ? "is-active" : string.Empty)" data-tab-panel="play" @(activeTab == "play" ? "" : "hidden")>
+                    <div class="card play-shell">
+                        <div class="play-shell__header">
+                    <div>
+                        <p class="eyebrow">@L["Games_Details_PlayHeading"].Value</p>
+                    <h2>@L["Games_Details_PlayHeading"].Value</h2>
+                    <p class="muted">@L["Games_Details_PlaySubheading"].Value</p>
+                    </div>
+                <div class="play-controls">
+                    <div class="mode-selector" role="group" aria-label="@L["Games_Details_ModeHeading"].Value">
+                        @for (var i = 0; i < availableModes.Count; i++)
+                        {
+                            var def = availableModes[i];
+                            var optionId = $"mode_{(int)def.Mode}";
+                            <label class="mode-pill" for="@optionId">
+                                <input type="radio" name="game-mode" id="@optionId" value="@((int)def.Mode)" @(i == 0 ? "checked" : string.Empty) />
+                                <span>@L[def.ResourceKey].Value</span>
+                            </label>
+                        }
+                        </div>
+                    <button type="button" class="btn-secondary" data-theater-toggle>@L["Games_Details_Play_Theater"].Value</button>
+                    <button type="button" class="btn-secondary" data-invite-open>@L["Games_Details_InviteAction"].Value</button>
+                </div>
+            </div>
+            <div class="play-shell__player" data-player-shell data-state="idle">
+                <div class="player-status" data-player-status>
+                    <span data-player-status-text>@L["Games_Details_Matchmaking_Searching"].Value</span>
+                    <button type="button" class="btn-ghost" data-retry hidden>@L["Games_Details_Matchmaking_Starting"].Value</button>
+                </div>
+                <div class="player-frame" data-player-frame>
+                    <iframe src="about:blank" title="@Model.DisplayTitle" loading="lazy" allow="fullscreen" allowfullscreen data-game-frame></iframe>
+                </div>
+                <div class="player-actions">
+                    <button type="button" class="btn-primary" data-play-now>@L["Games_Details_StartGeneric"].Value</button>
+                    <button type="button" class="btn-secondary" data-fullscreen>@L["Games_Details_Fullscreen"].Value</button>
+                </div>
+                <p class="muted" data-player-hint>@L["Games_Details_WebHint"].Value</p>
+            </div>
+
+               @if (downloadOptions.Any())
+            {
+                <div class="download-list">
+                    <h3>@L["Games_Details_DownloadHeading"].Value</h3>
+                    <ul>
+                        @foreach (var download in downloadOptions)
+                        {
+                            <li>
+                                <a class="btn-secondary" href="@download.Url" download>@download.Label</a>
+                                @if (!string.IsNullOrWhiteSpace(download.Description))
                                     {
                                         var platformKey = $"Games_Details_Platform_{download.Description}";
                                         var platformLabel = L[platformKey].Value;
                                         <span class="muted">@platformLabel</span>
                                     }
-                                </li>
-                            }
+                            </li>
+                        }
                         </ul>
                     </div>
                 }
-            </section>
-
-            <aside class="side-card card glass">
-                <div class="meta-list">
-                    <div class="meta-list__item">
-                        <span class="meta-list__label">@L["Dashboard_Games_Status"].Value</span>
-                        <span class="meta-list__value">@L[$"Dashboard_Games_Status_{game.ApprovalStatus}"].Value</span>
-                    </div>
-                    <div class="meta-list__item">
-                        <span class="meta-list__label">@L["Games_Details_CurrentPlayers_Label"].Value</span>
-                        <span class="meta-list__value" data-current-players>@Model.ActivePlayerCount</span>
-                    </div>
-                    <div class="meta-list__item">
-                        <span class="meta-list__label">@L["Games_Details_Modes"].Value</span>
-                        <span class="meta-list__value">@FormatModes(game.Modes)</span>
-                    </div>
-                <div class="meta-list__item">
-                        <span class="meta-list__label">@L["Games_Details_Categories"].Value</span>
-                        <span class="meta-list__value">@FormatCategories(game.Categories)</span>
-                    </div>
-                    @if (approvedTags.Any())
-                    {
-                        <div class="meta-list__item meta-list__item--stacked">
-                            <span class="meta-list__label">@L["Games_Details_Tags"].Value</span>
-                            <div class="meta-tags">
-                                @foreach (var tag in approvedTags)
-                                {
-                                    <span class="badge subtle">@tag</span>
-                                }
-                           </div>
-                        </div>
-                        }
                 </div>
+        </section>
 
-                <div class="share-block">
-                    <p class="eyebrow">@L["Games_Details_InviteHeading"].Value</p>
-                    <h3>@L["Games_Details_InviteDescription"].Value</h3>
-                    <div class="share-block__actions">
-                        <button type="button" class="btn-primary" data-copy-link data-copy-text="@shareLink">@L["Games_Details_Share"].Value</button>
-                        <a class="btn-secondary" href="@shareLink">@L["Games_Details_InviteAction"].Value</a>
-                    </div>
-                </div>
-            </aside>
-        </div>
-        @if (!string.IsNullOrWhiteSpace(trimmedRules))
-        {
-            <section class="card glass rules-card">
-                <header class="section-header">
-                    <div>
+    <section class="game-tab-panel @(activeTab == "rules" ? "is-active" : string.Empty)" data-tab-panel="rules" @(activeTab == "rules" ? "" : "hidden")>
+        <div class="grid two-columns">
+            <aside class="card rules-toc">
+                <h3>@L["Games_Details_Rules_Toc"].Value</h3>
+                <ul data-rules-toc></ul>
+                <p class="muted">@L["Games_Details_Rules_Updated"].Value: @(game.UpdatedAtUtc ?? game.CreatedAtUtc).ToLocalTime().ToString("g")</p>
+                </aside>
+            <article class="card rules-body">
+                    <header class="section-header">
                         <p class="eyebrow">@L["Games_Details_Rules_Heading"].Value</p>
-                        <h2>@L["Games_Details_Rules_Heading"].Value</h2>
+                        <h2>@L["Games_Details_Tab_Rules"].Value</h2>
                         <p class="muted">@rulesPreview</p>
+                    </header>
+                    <div class="rich-text" data-rules-content>
+                        @if (!string.IsNullOrWhiteSpace(Model.DisplayRules))
+                        {
+                            @Html.Raw(HtmlEncoder.Default.Encode(Model.DisplayRules).Replace("\n", "<br />"))
+                        }
+                        else
+                        {
+                            <p class="muted">@L["Games_Details_Rules_Heading"].Value</p>
+                        }
+                    </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="game-tab-panel reviews-panel @(activeTab == "reviews" ? "is-active" : string.Empty)" data-tab-panel="reviews" @(activeTab == "reviews" ? "" : "hidden")>
+        <div class="card">
+            <header class="section-header reviews-header">
+                    <div>
+                        <p class="eyebrow">@L["Games_Details_Comments_Community"].Value</p>
+                        <h2>@L["Games_Details_Tab_Reviews"].Value</h2>
+                        <p class="muted">@L["Games_Details_Comments_Subtitle"].Value</p>
+                    </div>
+                <div class="rating-summary" data-rating-summary>
+                    <div class="rating-value">
+                        <span data-rating-average>@Model.AverageRating.ToString("0.0")</span>
+                        <span class="out-of">/5</span>
+                    </div>
+                    <p class="muted" data-rating-count>
+                        @(Model.ReviewCount > 0
+                                                ? string.Format(L["Games_Details_Rating_Count"].Value, Model.ReviewCount)
+                                                : L["Games_Details_Rating_None"].Value)
+                    </p>
+                    <div class="rating-distribution">
+                        @for (var star = 5; star >= 1; star--)
+                        {
+                            var count = ratingDistribution.TryGetValue(star, out var value) ? value : 0;
+                            var pct = totalRatings > 0 ? Math.Round((double)count / totalRatings * 100) : 0;
+                            <div class="distribution-row">
+                                <span>@star★</span>
+                                <div class="bar">
+                                    <span style="width:@pct%" aria-hidden="true"></span>
+                                </div>
+                                <span class="muted">@count</span>
+                            </div>
+                        }
+                        </div>
+                        <div class="star-rating star-rating--input" data-rating-input data-user-rating="@(Model.UserRating ?? 0)">
+                            @for (var star = 1; star <= 5; star++)
+                            {
+                                var selected = Model.UserRating.HasValue && Model.UserRating.Value >= star;
+                                <button type="button"
+                                        class="star-rating__star @(selected ? "is-filled" : string.Empty)"
+                                        data-star-value="@star"
+                                        aria-pressed="@(selected.ToString().ToLowerInvariant())"
+                                        aria-label="@string.Format(L["Games_Details_Rating_StarLabel"].Value, star)">
+                                    ★
+                                </button>
+                            }
+                        </div>
+                        <p class="muted" data-rating-feedback hidden></p>
                     </div>
                 </header>
-                <div class="rules-card__content">
-                    @if (ruleLines.Any())
-                    {
-                        <ul class="rules-card__list">
-                            @foreach (var line in ruleLines)
-                            {
-                                <li>@line</li>
-                            }
-                        </ul>
-                    }
-                    <div class="rules-card__body">@Html.Raw(encodedRules)</div>
+                <div class="reviews-body" data-comments>
+                    <form class="comment-composer" data-comment-form>
+                         <label class="sr-only" for="gameComment">@L["Games_Details_Comments_Label"].Value</label>
+                        <textarea id="gameComment"
+                                  data-comment-input
+                                  maxlength="2000"
+                                  placeholder="@L["Games_Details_Comments_Placeholder"].Value"></textarea>
+                           <div class="comment-composer__actions">
+                            <span class="comments__hint">@L["Games_Details_Comments_Placeholder"].Value</span>
+                            <button type="submit" class="btn-primary" data-comment-submit>@L["Games_Details_Comments_Submit"].Value</button>
+                    </div>
+                        <p class="muted" data-comment-feedback hidden></p>
+                    </form>
+                        <ul class="comment-list" data-comments-list></ul>
+                        <p class="muted" data-comments-empty hidden>@L["Games_Details_Comments_Empty"].Value</p>
+                <div class="comments-pagination">
+                    <button type="button" class="btn-secondary" data-comments-load-more>@L["Games_Details_Matchmaking_Starting"].Value</button>
+                </div>
+                </div>
                 </div>
             </section>
-        }
-
-        <section class="card glass comments" data-comments data-comments-url="@Url.Content($"/api/games/{game.Id}/reviews")">
-            <header class="comments__header">
-                <div>
-                    <p class="eyebrow">@L["Games_Details_Comments_Community"].Value</p>
-                    <h2>@L["Games_Details_Comments_Title"].Value</h2>
-                    <p class="muted">@L["Games_Details_Comments_Subtitle"].Value</p>
-                </div>
-                 <div class="comment-rating" data-rating-panel data-reviews-url="@Url.Content($"/api/games/{game.Id}/reviews")">
-                    <div class="comment-rating__summary">
-                        <span class="comment-rating__value" data-rating-average>@Model.AverageRating.ToString("0.0")</span>
-                        <span class="comment-rating__out">/5</span>
-                        <p class="rating-summary__count" data-rating-count>
-                            @(Model.ReviewCount > 0
-                                ? string.Format(L["Games_Details_Rating_Count"].Value, Model.ReviewCount)
-                                : L["Games_Details_Rating_None"].Value)
-                        </p>
-                    </div>
-                    <div class="star-rating star-rating--input" data-rating-input data-user-rating="@(Model.UserRating ?? 0)">
-                        @for (var star = 1; star <= 5; star++)
-                        {
-                            var selected = Model.UserRating.HasValue && Model.UserRating.Value >= star;
-                            <button type="button"
-                                    class="star-rating__star @(selected ? "is-filled" : string.Empty)"
-                                    data-star-value="@star"
-                                    aria-pressed="@(selected.ToString().ToLowerInvariant())"
-                                    aria-label="@string.Format(L["Games_Details_Rating_StarLabel"].Value, star)">
-                                ★
-                            </button>
-                        }
-                    </div>
-                    <p class="game-rating__message muted" data-rating-feedback hidden></p>
-                </div>
-            </header>
-            <div class="comments__body">
-                <form class="comment-composer" data-comment-form>
-                     <label class="sr-only" for="gameComment">@L["Games_Details_Comments_Label"].Value</label>
-                    <textarea id="gameComment"
-                              data-comment-input
-                              maxlength="2000"
-                              placeholder="@L["Games_Details_Comments_Placeholder"].Value"></textarea>
-                       <div class="comment-composer__actions">
-                        <span class="comments__hint">@L["Games_Details_Comments_Placeholder"].Value</span>
-                        <button type="submit" class="btn-primary" data-comment-submit>@L["Games_Details_Comments_Submit"].Value</button>
-                         </div>
-                    <p class="game-comments__feedback muted" data-comment-feedback hidden></p>
-                </form>
-                <ul class="game-comments__list" data-comments-list></ul>
-                <p class="game-comments__empty" data-comments-empty hidden>@L["Games_Details_Comments_Empty"].Value</p>
-            </div>
-       </section>
-
-        <script type="application/json" id="gameDetailsConfig">@Html.Raw(JsonSerializer.Serialize(config))</script>
         </div>
-</div>
 
-@section Scripts {
+        <div class="invite-modal" data-invite-modal hidden aria-hidden="true" role="dialog">
+            <div class="invite-modal__dialog">
+                <header class="invite-modal__header">
+                    <h3>@L["Games_Details_InviteHeading"].Value</h3>
+                    <button type="button" class="btn-ghost" data-invite-close aria-label="@L["Games_Details_InviteClose"].Value">✕</button>
+                </header>
+                <div class="invite-modal__body">
+                    <label class="sr-only" for="inviteSearch">@L["Games_Details_InviteSearch"].Value</label>
+                    <input id="inviteSearch" type="search" placeholder="@L["Games_Details_InviteSearch"].Value" data-invite-search />
+                    <div class="invite-list" data-invite-list></div>
+                    <p class="muted" data-invite-empty hidden>@L["Games_Details_InviteEmpty"].Value</p>
+                </div>
+            </div>
+    </div>
+<script type="application/json" id="gameDetailsConfig">@Html.Raw(JsonSerializer.Serialize(config))</script>
+
+    @section Scripts {
     
-    <script src="~/js/game-details.js" asp-append-version="true"></script>
-}
+        <script src="~/js/game-details.js" asp-append-version="true"></script>
+    }

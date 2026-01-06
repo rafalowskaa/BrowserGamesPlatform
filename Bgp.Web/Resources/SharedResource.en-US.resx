@@ -3444,4 +3444,43 @@
 	<data name="GlobalRanking_Empty" xml:space="preserve">
     <value>No players found.</value>
   </data>
+	<data name="Games_Details_Tab_Overview" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+	<data name="Games_Details_Tab_Play" xml:space="preserve">
+    <value>Play</value>
+  </data>
+	<data name="Games_Details_Tab_Rules" xml:space="preserve">
+    <value>Rules</value>
+  </data>
+	<data name="Games_Details_Tab_Reviews" xml:space="preserve">
+    <value>Reviews</value>
+  </data>
+	<data name="Games_Details_Play_Theater" xml:space="preserve">
+    <value>Theater mode</value>
+  </data>
+	<data name="Games_Details_Play_ExitTheater" xml:space="preserve">
+    <value>Exit theater</value>
+  </data>
+	<data name="Games_Details_Copy_Success" xml:space="preserve">
+    <value>Copied</value>
+  </data>
+	<data name="Games_Details_InviteEmpty" xml:space="preserve">
+    <value>No friends available to invite</value>
+  </data>
+	<data name="Games_Details_InviteSearch" xml:space="preserve">
+    <value>Search friends</value>
+  </data>
+	<data name="Games_Details_InviteClose" xml:space="preserve">
+    <value>Close invite panel</value>
+  </data>
+	<data name="Games_Details_Gallery" xml:space="preserve">
+    <value>Gallery</value>
+  </data>
+	<data name="Games_Details_Rules_Toc" xml:space="preserve">
+    <value>Table of contents</value>
+  </data>
+	<data name="Games_Details_Rules_Updated" xml:space="preserve">
+    <value>Last updated</value>
+  </data>
 </root>

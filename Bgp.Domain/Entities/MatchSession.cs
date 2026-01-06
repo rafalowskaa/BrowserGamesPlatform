@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Bgp.Domain.Enums;
 
 namespace Bgp.Domain.Entities;
 
@@ -12,12 +13,16 @@ public class MatchSession
     [Required]
     public string UserId { get; set; } = string.Empty;
 
+    public GameMode Mode { get; set; } = GameMode.Singleplayer;
+
+    [MaxLength(256)]
+    public string? WsUrl { get; set; }
+
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime ExpiresAtUtc { get; set; } = DateTime.UtcNow.AddMinutes(10);
 
-    // Krótkotrwały klucz HMAC do podpisywania wyniku (przechowywany jawnie ~10 min)
     [Required, MaxLength(128)]
-    public string EphemeralKey { get; set; } = string.Empty;
+    public string Token { get; set; } = string.Empty;
 
     public bool Used { get; set; } = false;
 }
