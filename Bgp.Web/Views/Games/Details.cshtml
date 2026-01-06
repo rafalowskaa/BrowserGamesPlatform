@@ -70,7 +70,7 @@
         var shareLink = Url.Action("Details", "Games", new { slug = game.Slug, tab = activeTab }, Context.Request?.Scheme) ?? $"https://play.grid/{game.Slug}";
         var bannerUrl = Model.BannerUrl ?? Model.ThumbnailUrl ?? game.CoverImagePath ?? Url.Content("~/img/branding/og-playgrid.png");
         var thumbUrl = Model.ThumbnailUrl ?? Model.BannerUrl ?? game.CoverImagePath ?? Url.Content("~/img/branding/logo-playgrid.svg");
-        var gallery = Model.GalleryUrls ?? Array.Empty<string>();
+        var gallery = Array.Empty<string>();
         var rulesPreview = string.IsNullOrWhiteSpace(Model.DisplayRules)
             ? L["Games_Details_Rules_Heading"].Value
             : (Model.DisplayRules!.Length > 180 ? string.Concat(Model.DisplayRules.AsSpan(0, 180).TrimEnd(), "…") : Model.DisplayRules);
@@ -163,6 +163,7 @@
                 commentSuccess = L["Games_Details_Comments_Success"].Value,
                 commentError = L["Games_Details_Comments_Error"].Value,
                 commentPlaceholder = L["Games_Details_Comments_Placeholder"].Value,
+                commentDeleteConfirm = L["Admin_Reports_Actions"].Value,
                 emptyComments = L["Games_Details_Comments_Empty"].Value,
                 anonymous = L["Games_Details_Comments_Anonymous"].Value,
                 noRating = L["Games_Details_Rating_None"].Value,
@@ -200,15 +201,7 @@
                 <div class="game-hero__thumb">
                     <img src="@thumbUrl" alt="@Model.DisplayTitle" loading="lazy" />
                 </div>
-                @if (gallery.Any())
-                {
-                    <div class="game-hero__gallery">
-                        @foreach (var item in gallery.Take(3))
-                        {
-                            <img src="@item" alt="@Model.DisplayTitle" loading="lazy" />
-                        }
-                    </div>
-                }
+                
             </div>
         </div>
 

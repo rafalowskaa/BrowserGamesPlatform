@@ -94,7 +94,7 @@ public class GameRatingsController : ControllerBase
         }
         else
         {
-            existing.Stars = dto.Value;
+            return Conflict(new { code = "rating_locked", message = "You have already rated this game." });
         }
 
         await _db.SaveChangesAsync();

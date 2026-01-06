@@ -536,6 +536,10 @@
 
     async function deleteComment(commentId) {
         if (!config.comments?.deleteTemplate) return;
+        const confirmMessage = config.text?.commentDeleteConfirm || 'Are you sure you want to delete this comment?';
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
         try {
             const res = await fetch(config.comments.deleteTemplate.replace('{commentId}', commentId), {
                 method: 'DELETE',
