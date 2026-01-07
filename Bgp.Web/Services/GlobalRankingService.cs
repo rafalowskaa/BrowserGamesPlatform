@@ -61,6 +61,7 @@ public class GlobalRankingService
 
         var reviews = await _db.GameReviews
             .AsNoTracking()
+            .Where(r => r.IsRating)
             .GroupBy(r => r.UserId)
             .Select(g => new { g.Key, Count = g.Count() })
             .ToDictionaryAsync(g => g.Key, g => g.Count, cancellationToken);

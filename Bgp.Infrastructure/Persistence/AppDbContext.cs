@@ -182,6 +182,23 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .WithMany(g => g.Reviews)
             .HasForeignKey(x => x.GameId);
 
+        b.Entity<GameReview>()
+            .HasIndex(x => new { x.GameId, x.UserId, x.IsRating });
+
+        b.Entity<GameReview>()
+            .HasOne(x => x.ReplyTo)
+            .WithMany()
+            .HasForeignKey(x => x.ReplyToReviewId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<GameReview>()
+            .Property(x => x.IsRating)
+            .HasDefaultValue(true);
+
+        b.Entity<GameReview>()
+            .Property(x => x.Stars)
+            .HasDefaultValue(0);
+
         b.Entity<GameCommentReaction>()
             .HasOne(x => x.Review)
             .WithMany(r => r.Reactions)

@@ -58,6 +58,7 @@
     let currentToken = null;
     let currentPage = 1;
     let isLoadingComments = false;
+    let commentReplyTarget = null;
     let userRating = Number(config.ratings?.user_rating ?? 0);
     let inviteConnection = null;
     const commentReactions = new Map();
@@ -456,6 +457,10 @@
         const likeCount = clone.querySelector('[data-comment-like-count]');
         const dislikeCount = clone.querySelector('[data-comment-dislike-count]');
         const deleteBtn = clone.querySelector('[data-comment-delete]');
+        const editBtn = clone.querySelector('[data-comment-edit]');
+        const quoteBtn = clone.querySelector('[data-comment-quote]');
+        const quoteBlock = clone.querySelector('[data-comment-quote-block]');
+        const quoteText = clone.querySelector('[data-comment-quote-text]');
 
         if (author) {
             author.textContent = item.author || item.user_id || config.text?.anonymous || '';
@@ -465,6 +470,15 @@
         }
         if (body) {
             body.innerHTML = (item.text || '').replace(/\n/g, '<br />');
+        }
+
+        if (quoteBlock) {
+            if (item.reply_preview) {
+                quoteText.textContent = item.reply_preview;
+                quoteBlock.hidden = false;
+            } else {
+                quoteBlock.hidden = true;
+            }
         }
 
         const reactions = commentReactions.get(id) || { likes: 0, dislikes: 0 };
@@ -477,6 +491,8 @@
         likeBtn?.addEventListener('click', () => submitReaction(id, 'like'));
         dislikeBtn?.addEventListener('click', () => submitReaction(id, 'dislike'));
         deleteBtn?.addEventListener('click', () => deleteComment(id));
+        editBtn?.addEventListener('click', () => editComment(id, item.text));
+        quoteBtn?.addEventListener('click', () => startQuote(id, item.text));
 
         return clone;
     }
@@ -559,6 +575,43 @@
 
     }
 
+    function startQuote(commentId, text) {
+        if (!commentInput) return;
+        commentReplyTarget = commentId;
+        const clean = (text || '').trim();
+        if (clean) {
+            commentInput.value = `> ${clean}\n`;
+        }
+        commentInput.focus();
+    }
+
+    async function editComment(commentId, text) {
+        if (!config.comments?.updateTemplate) return;
+        const promptLabel = config.text?.commentEditConfirm || 'Edit comment';
+        const updated = window.prompt(promptLabel, text || '');
+        if (updated === null) return;
+        const trimmed = updated.trim();
+        if (!trimmed) {
+            setCommentFeedback(config.text?.commentError || '', true);
+            return;
+        }
+        try {
+            const res = await fetch(config.comments.updateTemplate.replace('{commentId}', commentId), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ text: trimmed })
+            });
+            if (!res.ok) throw new Error('Edit failed');
+            const data = await res.json();
+            await loadComments(1);
+            setCommentFeedback(config.text?.commentSuccess || '', false);
+        } catch (err) {
+            console.error(err);
+            setCommentFeedback(config.text?.commentError || '', true);
+        }
+    }
+
     async function submitComment() {
         if (!config.comments?.submitUrl || !commentInput) return;
         const text = (commentInput.value || '').trim();
@@ -574,11 +627,12 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ text })
+                body: JSON.stringify({ text, replyTo: commentReplyTarget })
             });
 
             if (!res.ok) throw new Error('Comment failed');
             commentInput.value = '';
+            commentReplyTarget = null;
             setCommentFeedback(config.text?.commentSuccess || '', false);
             await loadComments(1);
             await fetchRatings();

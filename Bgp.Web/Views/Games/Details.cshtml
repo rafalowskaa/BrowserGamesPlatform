@@ -132,7 +132,8 @@
                 submitUrl = Url.Content($"/api/games/{game.Id}/comments"),
                 reactionUrlTemplate = Url.Content($"/api/games/{game.Id}/comments/{{commentId}}/reactions"),
                 deleteTemplate = Url.Content($"/api/games/{game.Id}/comments/{{commentId}}"),
-                pageSize = 20
+                updateTemplate = Url.Content($"/api/games/{game.Id}/comments/{{commentId}}"),
+                pageSize = 10
             },
             invites = new
             {
@@ -163,7 +164,9 @@
                 commentSuccess = L["Games_Details_Comments_Success"].Value,
                 commentError = L["Games_Details_Comments_Error"].Value,
                 commentPlaceholder = L["Games_Details_Comments_Placeholder"].Value,
-                commentDeleteConfirm = L["Admin_Reports_Actions"].Value,
+                commentDeleteConfirm = L["Games_Details_Comments_DeleteConfirm"].Value,
+                commentEditConfirm = L["Games_Details_Comments_EditConfirm"].Value,
+                commentQuote = L["Games_Details_Comments_Quote"].Value,
                 emptyComments = L["Games_Details_Comments_Empty"].Value,
                 anonymous = L["Games_Details_Comments_Anonymous"].Value,
                 noRating = L["Games_Details_Rating_None"].Value,
@@ -427,20 +430,26 @@
                                     <span data-comment-author></span>
                                     <span data-comment-created></span>
                                 </div>
+                                <blockquote class="comment-quote" data-comment-quote-block hidden>
+                                    <span class="comment-quote__label">@L["Games_Details_Comments_Quote"].Value:</span>
+                                    <p data-comment-quote-text></p>
+                                </blockquote>
                                 <p data-comment-body></p>
                                 <div class="comment-actions">
                                     <button type="button" class="btn-ghost" data-comment-like aria-label="@L["Games_Details_Comments_Success"].Value">👍 <span data-comment-like-count>0</span></button>
                                     <button type="button" class="btn-ghost" data-comment-dislike aria-label="@L["Games_Details_Comments_Error"].Value">👎 <span data-comment-dislike-count>0</span></button>
+                                    <button type="button" class="btn-link" data-comment-quote>@L["Games_Details_Comments_Quote"].Value</button>
                                     @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
                                     {
-                                        <button type="button" class="btn-link text-danger" data-comment-delete>@L["Admin_Reports_Actions"].Value</button>
+                                        <button type="button" class="btn-link" data-comment-edit>@L["Games_Details_Comments_Edit"].Value</button>
+                                        <button type="button" class="btn-link text-danger" data-comment-delete>@L["Games_Details_Comments_Delete"].Value</button>
                                     }
                                 </div>
                             </li>
                         </template>
                         <p class="muted" data-comments-empty hidden>@L["Games_Details_Comments_Empty"].Value</p>
                 <div class="comments-pagination">
-                    <button type="button" class="btn-secondary" data-comments-load-more>@L["Games_Details_Matchmaking_Starting"].Value</button>
+                    <button type="button" class="btn-secondary" data-comments-load-more>@L["Games_Details_Comments_LoadMore"].Value</button>
                 </div>
                 </div>
                 </div>

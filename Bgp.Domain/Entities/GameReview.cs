@@ -13,11 +13,16 @@ public class GameReview
     [Required]
     public string UserId { get; set; } = string.Empty;
 
-    [Range(1, 5)]
+    [Range(0, 5)]
     public int Stars { get; set; }
+
+    public bool IsRating { get; set; } = true;
 
     [MaxLength(2000)]
     public string? Comment { get; set; }
+
+    public Guid? ReplyToReviewId { get; set; }
+    public GameReview? ReplyTo { get; set; }
 
     public ICollection<GameCommentReaction> Reactions { get; set; } = new List<GameCommentReaction>();
 

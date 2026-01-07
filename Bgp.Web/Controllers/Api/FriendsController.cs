@@ -641,7 +641,7 @@ public class FriendsController : ControllerBase
 
         var reviewCounts = await _db.GameReviews
             .AsNoTracking()
-            .Where(r => ids.Contains(r.UserId))
+            .Where(r => ids.Contains(r.UserId) && r.IsRating)
             .GroupBy(r => r.UserId)
             .Select(g => new { g.Key, Count = g.Count() })
             .ToListAsync();

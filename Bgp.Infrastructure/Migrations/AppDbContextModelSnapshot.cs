@@ -399,16 +399,28 @@ namespace Bgp.Infrastructure.Migrations
                     b.Property<Guid>("GameId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("IsRating")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<Guid?>("ReplyToReviewId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("Stars")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GameId");
+                    b.HasIndex("ReplyToReviewId");
+
+                    b.HasIndex("GameId", "UserId", "IsRating");
 
                     b.ToTable("GameReviews");
                 });
@@ -1164,7 +1176,14 @@ namespace Bgp.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Bgp.Domain.Entities.GameReview", "ReplyTo")
+                        .WithMany()
+                        .HasForeignKey("ReplyToReviewId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Game");
+
+                    b.Navigation("ReplyTo");
                 });
 
             modelBuilder.Entity("Bgp.Domain.Entities.GameTag", b =>

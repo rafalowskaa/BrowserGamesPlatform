@@ -30,7 +30,8 @@ public class ReviewsController : ControllerBase
         var game = await _db.Games.Include(g => g.Reviews).FirstOrDefaultAsync(g => g.Id == gameId);
         if (game is null) return NotFound();
 
-        var userIds = game.Reviews.Select(r => r.UserId).Distinct().ToList();
+        var ratingReviews = game.Reviews.Where(r => r.IsRating).ToList();
+        var userIds = ratingReviews.Select(r => r.UserId).Distinct().ToList();
         var userLookup = userIds.Count == 0
             ? new Dictionary<string, string>()
             : await _db.Users
@@ -45,18 +46,18 @@ public class ReviewsController : ControllerBase
                 : DisplayNameFormatter.Format(null, null, null, uid);
         }
 
-        var items = game.Reviews.OrderByDescending(r => r.CreatedAtUtc)
+        var items = ratingReviews.OrderByDescending(r => r.CreatedAtUtc)
             .Select(r => new { r.Stars, r.Comment, r.CreatedAtUtc, Author = ResolveAuthor(r.UserId) });
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userStars = string.IsNullOrEmpty(userId)
             ? (int?)null
-            : game.Reviews.FirstOrDefault(r => r.UserId == userId)?.Stars;
+            : ratingReviews.FirstOrDefault(r => r.UserId == userId)?.Stars;
 
         return Ok(new
         {
-            Avg = game.Reviews.Any() ? game.Reviews.Average(r => r.Stars) : 0,
-            Count = game.Reviews.Count,
+            Avg = ratingReviews.Any() ? ratingReviews.Average(r => r.Stars) : 0,
+            Count = ratingReviews.Count,
             Items = items,
             UserStars = userStars
         });
@@ -70,10 +71,10 @@ public class ReviewsController : ControllerBase
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
         if (!await _db.Games.AnyAsync(g => g.Id == gameId)) return NotFound();
 
-        var existing = await _db.GameReviews.FirstOrDefaultAsync(r => r.GameId == gameId && r.UserId == userId);
+        var existing = await _db.GameReviews.FirstOrDefaultAsync(r => r.GameId == gameId && r.UserId == userId && r.IsRating);
         if (existing is null)
         {
-            var r = new GameReview { GameId = gameId, UserId = userId, Stars = dto.Stars, Comment = dto.Comment };
+            var r = new GameReview { GameId = gameId, UserId = userId, Stars = dto.Stars, Comment = dto.Comment, IsRating = true };
             _db.GameReviews.Add(r);
         }
         else

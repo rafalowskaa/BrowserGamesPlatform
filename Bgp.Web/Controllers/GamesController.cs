@@ -76,7 +76,7 @@ public class GamesController : Controller
                 g.Description,
                 g.Modes,
                 g.Categories,
-                AverageRating = g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0.0,
+                AverageRating = g.Reviews.Any(r => r.IsRating) ? g.Reviews.Where(r => r.IsRating).Average(r => r.Stars) : 0.0,
                 Tags = g.Tags
                     .Where(t => t.IsApproved)
                     .OrderBy(t => t.Value)
@@ -184,7 +184,7 @@ public class GamesController : Controller
             .Distinct()
             .CountAsync();
 
-        var reviewsQuery = _db.GameReviews.AsNoTracking().Where(r => r.GameId == g.Id);
+        var reviewsQuery = _db.GameReviews.AsNoTracking().Where(r => r.GameId == g.Id && r.IsRating);
         var ratingStats = await reviewsQuery
             .GroupBy(_ => 1)
             .Select(group => new
@@ -206,7 +206,7 @@ public class GamesController : Controller
         if (!string.IsNullOrEmpty(userId))
         {
             userRating = await _db.GameReviews
-                .Where(r => r.GameId == g.Id && r.UserId == userId)
+                .Where(r => r.GameId == g.Id && r.UserId == userId && r.IsRating)
                 .Select(r => (int?)r.Stars)
                 .FirstOrDefaultAsync();
         }

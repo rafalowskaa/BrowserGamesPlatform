@@ -41,7 +41,7 @@ public class GameRatingsController : ControllerBase
         }
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var reviews = game.Reviews.ToList();
+        var reviews = game.Reviews.Where(r => r.IsRating).ToList();
         var avg = reviews.Count > 0 ? reviews.Average(r => r.Stars) : 0;
         var distribution = Enumerable.Range(1, 5)
             .ToDictionary(v => v, v => reviews.Count(r => r.Stars == v));
@@ -80,7 +80,7 @@ public class GameRatingsController : ControllerBase
             return BadRequest(new { code = "invalid_rating", message = "Rating must be between 1 and 5." });
         }
 
-        var existing = await _db.GameReviews.FirstOrDefaultAsync(r => r.GameId == gameId && r.UserId == userId);
+        var existing = await _db.GameReviews.FirstOrDefaultAsync(r => r.GameId == gameId && r.UserId == userId && r.IsRating);
         if (existing is null)
         {
             _db.GameReviews.Add(new Domain.Entities.GameReview
@@ -89,7 +89,8 @@ public class GameRatingsController : ControllerBase
                 UserId = userId,
                 Stars = dto.Value,
                 Comment = null,
-                CreatedAtUtc = DateTime.UtcNow
+                CreatedAtUtc = DateTime.UtcNow,
+                IsRating = true
             });
         }
         else
