@@ -974,7 +974,8 @@ public class DashboardController : Controller
             var actorName = log.ActorUserId != null && notificationActors.TryGetValue(log.ActorUserId, out var name)
                 ? name
                 : Localize("Dashboard_Friends_Unknown");
-            var hasGame = log.GameId.HasValue && notificationGames.TryGetValue(log.GameId.Value, out var game);
+            (string Title, string Slug) game = default;
+            var hasGame = log.GameId.HasValue && notificationGames.TryGetValue(log.GameId.Value, out game);
             var gameTitle = hasGame ? game.Title : string.Empty;
 
             return log.Type switch
