@@ -43,6 +43,10 @@
             </form>
         </div>
         <div class="app-header__end">
+            @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
+            {
+                <span class="app-header__admin-label">@L["Navigation_AdminPanel"].Value</span>
+            }
             <div class="language-switcher" role="group" aria-label="@L["Language_Switcher_Label"].Value">
                 <a class="lang-toggle@(currentCulture == "pl-PL" ? " active" : string.Empty)" asp-controller="Language" asp-action="Set" asp-route-culture="pl-PL" asp-route-returnUrl="@Model?.ReturnUrl" title="@L["Language_Polish"].Value">
                     <img src="~/img/flags/flag_pl.png" alt="@L["Language_Polish"].Value" width="28" height="20" loading="lazy" decoding="async" />

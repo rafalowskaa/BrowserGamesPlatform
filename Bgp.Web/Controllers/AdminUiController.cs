@@ -1533,10 +1533,25 @@ public class AdminUiController : Controller
 
 
 
-public async Task<IActionResult> Logs(string? search = null, ActivityLogType? type = null, string? game = null, int page = 1)
+    public async Task<IActionResult> Logs(string? search = null, ActivityLogType? type = null, string? game = null, DateTime? dateFrom = null, DateTime? dateTo = null, int page = 1)
     {
         const int pageSize = 100;
         var query = _db.ActivityLogs.AsNoTracking();
+
+        DateTime? fromUtc = null;
+        if (dateFrom.HasValue)
+        {
+            fromUtc = DateTime.SpecifyKind(dateFrom.Value.Date, DateTimeKind.Local).ToUniversalTime();
+            query = query.Where(l => l.CreatedAtUtc >= fromUtc.Value);
+        }
+
+        DateTime? toUtc = null;
+        if (dateTo.HasValue)
+        {
+            var localEnd = dateTo.Value.Date.AddDays(1).AddTicks(-1);
+            toUtc = DateTime.SpecifyKind(localEnd, DateTimeKind.Local).ToUniversalTime();
+            query = query.Where(l => l.CreatedAtUtc <= toUtc.Value);
+        }
 
         if (type.HasValue)
         {
@@ -1627,6 +1642,8 @@ public async Task<IActionResult> Logs(string? search = null, ActivityLogType? ty
             Search = search,
             Type = type,
             Game = game,
+            DateFrom = dateFrom,
+            DateTo = dateTo,
             Page = page,
             PageSize = pageSize,
             Total = total

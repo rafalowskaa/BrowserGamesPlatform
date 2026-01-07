@@ -6,7 +6,9 @@
 @{
     ViewData["Title"] = L["Admin_Logs_Title"].Value;
     var types = Enum.GetValues<ActivityLogType>();
-    string FormatType(ActivityLogType type) => type.ToString();
+    string FormatType(ActivityLogType type) => L[$"Admin_Logs_Type_{type}"].Value;
+    var dateFromValue = Model.DateFrom?.ToString("yyyy-MM-dd");
+    var dateToValue = Model.DateTo?.ToString("yyyy-MM-dd");
 }
 <section class="admin-section">
     <nav class="admin-nav">
@@ -50,9 +52,18 @@
                 <span>@L["Admin_Logs_Filter_GameLabel"].Value</span>
                 <input type="search" name="game" value="@Model.Game" placeholder="@L["Admin_Logs_Filter_GamePlaceholder"].Value" />
             </label>
+            <label class="filter-item">
+                <span>@L["Admin_Logs_Filter_DateFromLabel"].Value</span>
+                <input type="date" name="dateFrom" value="@dateFromValue" />
+            </label>
+            <label class="filter-item">
+                <span>@L["Admin_Logs_Filter_DateToLabel"].Value</span>
+                <input type="date" name="dateTo" value="@dateToValue" />
+            </label>
             <div class="filter-actions">
                 <button type="submit" class="btn-primary btn-compact">@L["Admin_Logs_Filter_Submit"].Value</button>
-                @if (!string.IsNullOrWhiteSpace(Model.Search) || Model.Type.HasValue || !string.IsNullOrWhiteSpace(Model.Game))
+
+                @if (!string.IsNullOrWhiteSpace(Model.Search) || Model.Type.HasValue || !string.IsNullOrWhiteSpace(Model.Game) || Model.DateFrom.HasValue || Model.DateTo.HasValue)
                 {
                     <a class="btn-outline btn-compact" asp-action="Logs">@L["Admin_Logs_Filter_Reset"].Value</a>
                 }

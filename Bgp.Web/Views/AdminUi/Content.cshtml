@@ -65,25 +65,14 @@
         }
     </div>
 
-    <div class="admin-home-grid">
-        <aside class="admin-home-grid__column admin-home-grid__column--nav">
-            <div class="admin-home-nav" role="navigation" aria-label="@L["Admin_Content_HomeNav_AriaLabel"].Value">
-                <div class="admin-home-nav__title">@L["Admin_Content_HomeNav_Title"].Value</div>
-                <ul>
-                    <li><button type="button" class="admin-home-nav__item is-active" data-admin-section-button="#feature">@L["Admin_Content_HomeNav_Feature"].Value</button></li>
-                    <li><button type="button" class="admin-home-nav__item" data-admin-section-button="#facts">@L["Admin_Content_HomeNav_Facts"].Value</button></li>
-                    <li><button type="button" class="admin-home-nav__item" data-admin-section-button="#events">@L["Admin_Content_HomeNav_Events"].Value</button></li>
-                    <li><button type="button" class="admin-home-nav__item" data-admin-section-button="#layout">@L["Admin_Content_HomeNav_Layout"].Value</button></li>
-                </ul>
-            </div>
-            <div class="admin-home-history">
-                <h3>@L["Admin_Content_History_Title"].Value</h3>
-                <p>@L["Admin_Content_History_Description"].Value</p>
-                <button type="button" class="btn-secondary btn-small" disabled>@L["Admin_Content_History_Button"].Value</button>
-            </div>
-        </aside>
-
+    <div class="admin-home-grid admin-home-grid--tabs">
         <div class="admin-home-grid__column admin-home-grid__column--editor">
+            <div class="admin-tabs admin-tabs--content" role="tablist" aria-label="@L["Admin_Content_HomeNav_AriaLabel"].Value">
+                <button type="button" class="admin-tab active" data-admin-section-button="#feature">@L["Admin_Content_HomeNav_Feature"].Value</button>
+                <button type="button" class="admin-tab" data-admin-section-button="#facts">@L["Admin_Content_HomeNav_Facts"].Value</button>
+                <button type="button" class="admin-tab" data-admin-section-button="#events">@L["Admin_Content_HomeNav_Events"].Value</button>
+                <button type="button" class="admin-tab" data-admin-section-button="#layout">@L["Admin_Content_HomeNav_Layout"].Value</button>
+            </div>
             <div class="admin-editor-toolbar">
                 <div class="admin-editor-toolbar__primary">
                     <button type="button" class="btn-primary btn-small">@L["Admin_Content_Toolbar_Add"].Value</button>
@@ -528,6 +517,12 @@
                     }
                 </div>
             </section>
+
+            <div class="admin-home-history">
+                <h3>@L["Admin_Content_History_Title"].Value</h3>
+                <p>@L["Admin_Content_History_Description"].Value</p>
+                <button type="button" class="btn-secondary btn-small" disabled>@L["Admin_Content_History_Button"].Value</button>
+            </div>
         </div>
 
         <aside class="admin-home-grid__column admin-home-grid__column--preview">

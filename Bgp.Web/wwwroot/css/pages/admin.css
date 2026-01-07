@@ -1282,6 +1282,10 @@ html[data-theme='light'] .admin-section {
     align-items: start;
 }
 
+.admin-home-grid--tabs {
+    grid-template-columns: minmax(0, 2fr) minmax(22rem, 1.2fr);
+}
+
 .admin-home-grid__column {
     position: relative;
 }
@@ -1340,6 +1344,10 @@ html[data-theme='light'] .admin-section {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+.admin-tabs--content {
+    margin-bottom: 1rem;
 }
 
 .admin-editor-toolbar {

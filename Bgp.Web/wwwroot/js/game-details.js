@@ -50,6 +50,17 @@
     const commentQuoteClear = commentsContainer?.querySelector('[data-comment-quote-clear]');
     const rulesContent = root.querySelector('[data-rules-content]');
     const rulesToc = root.querySelector('[data-rules-toc]');
+    const rulesPreview = root.querySelector('[data-rules-preview]');
+    const rulesEditor = root.querySelector('[data-rules-editor]');
+    const rulesEditButton = root.querySelector('[data-rules-edit]');
+    const rulesActions = root.querySelector('[data-rules-actions]');
+    const rulesInput = root.querySelector('[data-rules-input]');
+    const rulesFeedback = root.querySelector('[data-rules-feedback]');
+    const rankingPanel = root.querySelector('[data-game-ranking]');
+    const rankingList = rankingPanel?.querySelector('[data-ranking-entries]');
+    const rankingListWrapper = rankingPanel?.querySelector('[data-ranking-list]');
+    const rankingEmpty = rankingPanel?.querySelector('[data-ranking-empty]');
+    const rankingLoading = rankingPanel?.querySelector('[data-ranking-loading]');
     const inviteModal = document.querySelector('[data-invite-modal]');
     const inviteOpeners = Array.from(root.querySelectorAll('[data-invite-open]'));
     const inviteCloser = inviteModal?.querySelector('[data-invite-close]');
@@ -65,6 +76,8 @@
     let commentReplyTarget = null;
     let userRating = Number(config.ratings?.user_rating ?? 0);
     let inviteConnection = null;
+    let ratingFeedbackTimer = null;
+    let rankingLoaded = false;
     const commentReactions = new Map();
     const commentVotes = new Map();
 
@@ -77,6 +90,7 @@
         setupPlay();
         setupRating();
         setupComments();
+        setupRulesEditor();
         setupInvites();
         buildRulesToc();
         hydrateSessionFromUrl();
@@ -111,6 +125,9 @@
             panel.classList.toggle('is-active', isActive);
             panel.toggleAttribute('hidden', !isActive);
         });
+        if (currentTab === 'ranking') {
+            loadRanking();
+        }
         if (pushState) {
             const url = new URL(window.location.href);
             url.searchParams.set('tab', currentTab);
@@ -359,9 +376,190 @@
 
     function setRatingFeedback(message, isError) {
         if (!ratingFeedback) return;
+        if (ratingFeedbackTimer) {
+            clearTimeout(ratingFeedbackTimer);
+            ratingFeedbackTimer = null;
+        }
         ratingFeedback.textContent = message || '';
         ratingFeedback.hidden = !message;
         ratingFeedback.classList.toggle('is-error', !!isError);
+        if (message) {
+            ratingFeedbackTimer = setTimeout(() => {
+                ratingFeedback.hidden = true;
+                ratingFeedback.textContent = '';
+                ratingFeedback.classList.remove('is-error');
+                ratingFeedbackTimer = null;
+            }, 3500);
+        }
+    }
+
+    function setupRulesEditor() {
+        if (!rulesEditor || !rulesEditButton || !rulesInput || !rulesActions || !rulesContent) {
+            return;
+        }
+
+        let originalText = rulesInput.value || '';
+
+        const enterEditMode = () => {
+            rulesInput.hidden = false;
+            rulesInput.focus();
+            rulesActions.hidden = false;
+            rulesEditButton.hidden = true;
+            rulesContent.hidden = true;
+        };
+
+        const exitEditMode = (restore) => {
+            if (restore) {
+                rulesInput.value = originalText;
+            }
+            rulesInput.hidden = true;
+            rulesActions.hidden = true;
+            rulesEditButton.hidden = false;
+            rulesContent.hidden = false;
+        };
+
+        rulesEditButton.addEventListener('click', () => {
+            enterEditMode();
+        });
+
+        rulesActions.querySelector('[data-rules-cancel]')?.addEventListener('click', () => {
+            setRulesFeedback('');
+            exitEditMode(true);
+        });
+
+        rulesActions.querySelector('[data-rules-save]')?.addEventListener('click', async () => {
+            if (!config.rules?.updateUrl) {
+                setRulesFeedback(config.text?.rulesSaveError || '', true);
+                return;
+            }
+            const content = rulesInput.value.trim();
+            if (!content) {
+                setRulesFeedback(config.text?.rulesSaveError || '', true);
+                return;
+            }
+            try {
+                const res = await fetch(config.rules.updateUrl, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        content,
+                        locale: config.rules?.locale || config.locale || ''
+                    })
+                });
+                if (!res.ok) {
+                    throw new Error('Failed to save rules');
+                }
+                updateRulesContent(content);
+                originalText = content;
+                setRulesFeedback(config.text?.rulesSaved || '', false);
+                exitEditMode(false);
+            } catch (err) {
+                console.error(err);
+                setRulesFeedback(config.text?.rulesSaveError || '', true);
+            }
+        });
+    }
+
+    function updateRulesContent(text) {
+        if (!rulesContent) {
+            return;
+        }
+
+        rulesContent.innerHTML = '';
+        const blocks = text
+            .replace(/\r\n/g, '\n')
+            .split(/\n{2,}/)
+            .map(block => block.trim())
+            .filter(Boolean);
+
+        if (blocks.length === 0) {
+            const emptyText = config.text?.rulesEmpty || '';
+            if (emptyText) {
+                const empty = document.createElement('p');
+                empty.className = 'muted';
+                empty.textContent = emptyText;
+                rulesContent.appendChild(empty);
+            }
+            return;
+        }
+
+        const frag = document.createDocumentFragment();
+        blocks.forEach(block => {
+            const p = document.createElement('p');
+            const lines = block.split('\n');
+            lines.forEach((line, idx) => {
+                if (idx > 0) {
+                    p.appendChild(document.createElement('br'));
+                }
+                p.appendChild(document.createTextNode(line));
+            });
+            frag.appendChild(p);
+        });
+        rulesContent.appendChild(frag);
+
+        if (rulesPreview) {
+            const summary = text.length > 180 ? `${text.slice(0, 180).trimEnd()}…` : text;
+            rulesPreview.textContent = summary || config.text?.rulesEmpty || '';
+        }
+        buildRulesToc();
+    }
+
+    function setRulesFeedback(message, isError) {
+        if (!rulesFeedback) {
+            return;
+        }
+        rulesFeedback.textContent = message || '';
+        rulesFeedback.hidden = !message;
+        rulesFeedback.classList.toggle('is-error', !!isError);
+    }
+
+    async function loadRanking() {
+        if (rankingLoaded || !rankingPanel || !rankingList || !config.leaderboard?.fetchUrl) {
+            return;
+        }
+        rankingLoaded = true;
+        rankingLoading?.removeAttribute('hidden');
+        try {
+            const res = await fetch(`${config.leaderboard.fetchUrl}?top=10`, { credentials: 'include' });
+            if (!res.ok) {
+                throw new Error('Failed to load ranking');
+            }
+            const rows = await res.json();
+            if (!Array.isArray(rows) || rows.length === 0) {
+                rankingEmpty?.removeAttribute('hidden');
+                return;
+            }
+            rankingList.innerHTML = '';
+            rows.forEach((row, index) => {
+                const name = row.userName || row.user_name || row.UserName || '—';
+                const score = Number(row.bestScore ?? row.best_score ?? row.BestScore ?? 0);
+
+                const item = document.createElement('li');
+                const position = document.createElement('span');
+                position.className = 'leaderboard__position';
+                position.textContent = `#${index + 1}`;
+
+                const player = document.createElement('span');
+                player.className = 'leaderboard__name';
+                player.textContent = name;
+
+                const value = document.createElement('span');
+                value.className = 'leaderboard__score';
+                value.textContent = Number.isFinite(score) ? score.toLocaleString() : '0';
+
+                item.appendChild(position);
+                item.appendChild(player);
+                item.appendChild(value);
+                rankingList.appendChild(item);
+            });
+            rankingListWrapper?.removeAttribute('hidden');
+        } catch (err) {
+            console.error(err);
+            rankingEmpty?.removeAttribute('hidden');
+        } finally {
+            rankingLoading?.setAttribute('hidden', 'hidden');
+        }
     }
 
     function setupComments() {

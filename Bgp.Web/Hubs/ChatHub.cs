@@ -38,6 +38,14 @@ public class ChatHub : Hub
         return ConnectionCounts.TryGetValue(userId, out var count) && count > 0;
     }
 
+    public static IReadOnlyCollection<string> GetOnlineUserIds()
+    {
+        return ConnectionCounts
+            .Where(entry => entry.Value > 0)
+            .Select(entry => entry.Key)
+            .ToArray();
+    }
+
     public override async Task OnConnectedAsync()
     {
         if (UserId is not null)

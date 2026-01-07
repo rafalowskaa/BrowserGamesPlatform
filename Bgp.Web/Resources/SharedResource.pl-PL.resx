@@ -345,6 +345,9 @@
     </data>
 	<data name="Navigation_Admin" xml:space="preserve">
         <value>Administrator</value>
+		</data>
+	<data name="Navigation_AdminPanel" xml:space="preserve">
+        <value>PANEL ZARZĄDZANIA</value>
     </data>
 	<data name="Dashboard_Title" xml:space="preserve">
         <value>Panel gracza</value>
@@ -885,6 +888,12 @@
   </data>
 	<data name="Admin_Logs_Filter_GamePlaceholder" xml:space="preserve">
     <value>Slug lub tytuł gry</value>
+		</data>
+	<data name="Admin_Logs_Filter_DateFromLabel" xml:space="preserve">
+    <value>Data od</value>
+  </data>
+	<data name="Admin_Logs_Filter_DateToLabel" xml:space="preserve">
+    <value>Data do</value>
   </data>
 	<data name="Admin_Logs_Filter_Submit" xml:space="preserve">
     <value>Filtruj</value>
@@ -913,6 +922,54 @@
 	<data name="Admin_Logs_Table_Actions" xml:space="preserve">
         <value>Akcje</value>
     </data>
+	<data name="Admin_Logs_Type_Unknown" xml:space="preserve">
+    <value>Nieznany</value>
+  </data>
+	<data name="Admin_Logs_Type_FriendRequestSent" xml:space="preserve">
+    <value>Wysłano zaproszenie do znajomych</value>
+  </data>
+	<data name="Admin_Logs_Type_FriendRequestAccepted" xml:space="preserve">
+    <value>Zaakceptowano zaproszenie do znajomych</value>
+  </data>
+	<data name="Admin_Logs_Type_FriendRequestDeclined" xml:space="preserve">
+    <value>Odrzucono zaproszenie do znajomych</value>
+  </data>
+	<data name="Admin_Logs_Type_FriendBlocked" xml:space="preserve">
+    <value>Zablokowano znajomego</value>
+  </data>
+	<data name="Admin_Logs_Type_FriendUnblocked" xml:space="preserve">
+    <value>Odblokowano znajomego</value>
+  </data>
+	<data name="Admin_Logs_Type_CommentAdded" xml:space="preserve">
+    <value>Dodano komentarz</value>
+  </data>
+	<data name="Admin_Logs_Type_CommentDeleted" xml:space="preserve">
+    <value>Usunięto komentarz</value>
+  </data>
+	<data name="Admin_Logs_Type_CommentLiked" xml:space="preserve">
+    <value>Polubiono komentarz</value>
+  </data>
+	<data name="Admin_Logs_Type_CommentDisliked" xml:space="preserve">
+    <value>Dodano niechęć do komentarza</value>
+  </data>
+	<data name="Admin_Logs_Type_RatingSubmitted" xml:space="preserve">
+    <value>Dodano ocenę</value>
+  </data>
+	<data name="Admin_Logs_Type_GameInviteSent" xml:space="preserve">
+    <value>Wysłano zaproszenie do gry</value>
+  </data>
+	<data name="Admin_Logs_Type_GameInviteAccepted" xml:space="preserve">
+    <value>Zaakceptowano zaproszenie do gry</value>
+  </data>
+	<data name="Admin_Logs_Type_GameSessionCreated" xml:space="preserve">
+    <value>Utworzono sesję gry</value>
+  </data>
+	<data name="Admin_Logs_Type_ReportUpdated" xml:space="preserve">
+    <value>Aktualizacja zgłoszenia</value>
+  </data>
+	<data name="Admin_Logs_Type_AdminAction" xml:space="preserve">
+    <value>Akcja administratora</value>
+  </data>
 	<data name="Admin_Logs_Rating_Label" xml:space="preserve">
      <value>Ocena:</value>
     </data>
@@ -3401,6 +3458,21 @@
     </data>
 	<data name="Dashboard_Games_Rules_Label" xml:space="preserve">
     <value>Zasady gry</value>
+		</data>
+	<data name="Games_Details_Rules_Edit" xml:space="preserve">
+    <value>Edytuj zasady</value>
+  </data>
+	<data name="Games_Details_Rules_Save" xml:space="preserve">
+    <value>Zapisz zasady</value>
+  </data>
+	<data name="Games_Details_Rules_Cancel" xml:space="preserve">
+    <value>Anuluj</value>
+  </data>
+	<data name="Games_Details_Rules_Saved" xml:space="preserve">
+    <value>Zasady zostały zapisane.</value>
+  </data>
+	<data name="Games_Details_Rules_SaveError" xml:space="preserve">
+    <value>Nie udało się zapisać zasad.</value>
   </data>
 	<data name="Dashboard_Games_Rules_Hint" xml:space="preserve">
     <value>Opisz, jak grać, jak wygrać i czego unikać. Tekst może być dowolnie długi.</value>
@@ -3520,6 +3592,24 @@
   </data>
 	<data name="Games_Details_Tab_Reviews" xml:space="preserve">
     <value>Oceny i komentarze</value>
+		</data>
+	<data name="Games_Details_Tab_Ranking" xml:space="preserve">
+    <value>Ranking</value>
+  </data>
+	<data name="Games_Details_Ranking_Title" xml:space="preserve">
+    <value>Ranking gry</value>
+  </data>
+	<data name="Games_Details_Ranking_Subtitle" xml:space="preserve">
+    <value>Najlepsze wyniki w tej grze</value>
+  </data>
+	<data name="Games_Details_Ranking_Empty" xml:space="preserve">
+    <value>Brak wyników do wyświetlenia.</value>
+  </data>
+	<data name="Games_Details_Ranking_Loading" xml:space="preserve">
+    <value>Ładowanie rankingu...</value>
+  </data>
+	<data name="Games_Details_Ranking_Download" xml:space="preserve">
+    <value>Pobierz ranking</value>
   </data>
 	<data name="Games_Details_Play_Theater" xml:space="preserve">
     <value>Tryb kinowy</value>

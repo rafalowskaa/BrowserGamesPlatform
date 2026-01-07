@@ -390,11 +390,27 @@
         if (!buttons.get('invite') || buttons.get('invite').hasAttribute('hidden')) {
             return;
         }
-        if (window.bgpChat && typeof window.bgpChat.openWithMessage === 'function') {
-            window.bgpChat.openWithMessage(userId, strings.displayName || userId, strings.inviteMessage || '');
-        } else if (window.bgpChat && typeof window.bgpChat.open === 'function') {
-            window.bgpChat.open(userId, strings.displayName || userId);
+        const openInvite = () => {
+            if (window.bgpChat && typeof window.bgpChat.openWithMessage === 'function') {
+                window.bgpChat.openWithMessage(userId, strings.displayName || userId, strings.inviteMessage || '');
+                return true;
+            }
+            if (window.bgpChat && typeof window.bgpChat.open === 'function') {
+                window.bgpChat.open(userId, strings.displayName || userId);
+                return true;
+            }
+            return false;
+        };
+
+        if (openInvite()) {
+            return;
         }
+
+        setTimeout(() => {
+            if (!openInvite()) {
+                showToast(strings.error || 'Unable to open chat.', 'error');
+            }
+        }, 300);
     }
 
     const actionHandlers = {

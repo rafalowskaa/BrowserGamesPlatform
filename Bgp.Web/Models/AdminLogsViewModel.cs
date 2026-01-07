@@ -30,6 +30,11 @@ public class AdminLogsViewModel
 
     public string? Game { get; init; }
 
+    [Display(Name = "DateFrom")]
+    public DateTime? DateFrom { get; init; }
+
+    [Display(Name = "DateTo")]
+    public DateTime? DateTo { get; init; }
     public int Page { get; init; } = 1;
     public int PageSize { get; init; } = 50;
     public int Total { get; init; }

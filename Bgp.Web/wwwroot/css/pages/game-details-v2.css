@@ -357,6 +357,41 @@
     color: #e2e8f0;
 }
 
+.rules-editor {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border-radius: 0.85rem;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    background: rgba(15, 23, 42, 0.35);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.rules-editor__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.rules-editor__actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.rules-editor__input {
+    min-height: 180px;
+    width: 100%;
+    background: #0f172a;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 0.75rem;
+    color: #e2e8f0;
+    padding: 0.75rem;
+    font-family: inherit;
+    resize: vertical;
+}
+
 .rating-summary {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -521,8 +556,14 @@
 .comment-actions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.6rem;
     margin-top: 0.5rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    background: rgba(15, 23, 42, 0.4);
+    width: fit-content;
 }
 
     .comment-actions .btn-ghost {
@@ -531,7 +572,62 @@
         padding: 0.35rem 0.6rem;
         color: #cbd5e1;
         background: transparent;
+        transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
     }
+
+    .comment-actions .btn-link {
+        color: #cbd5e1;
+        padding: 0.2rem 0.35rem;
+        border-radius: 999px;
+        transition: color 0.2s ease, background 0.2s ease;
+    }
+
+        .comment-actions .btn-link:hover,
+        .comment-actions .btn-link:focus-visible {
+            color: #e2e8f0;
+            background: rgba(148, 163, 184, 0.15);
+        }
+
+.ranking-panel .leaderboard {
+    margin-top: 0.75rem;
+}
+
+.ranking-panel .leaderboard__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+}
+
+    .ranking-panel .leaderboard__list li {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 0.75rem;
+        align-items: center;
+        padding: 0.55rem 0.85rem;
+        border-radius: 0.75rem;
+        background: rgba(15, 23, 42, 0.4);
+        color: #f8fafc;
+        font-variant-numeric: tabular-nums;
+    }
+
+.ranking-panel .leaderboard__position {
+    font-weight: 700;
+    color: #93c5fd;
+}
+
+.ranking-panel .leaderboard__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ranking-panel .leaderboard__score {
+    font-weight: 600;
+    color: #bae6fd;
+    text-align: right;
+}
 
         .comment-actions .btn-ghost.is-active {
             border-color: rgba(34, 197, 94, 0.6);

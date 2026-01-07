@@ -7,6 +7,7 @@ using Bgp.Web.Resources;
 using Bgp.Web.ViewModels;
 using GameSummaryViewModel = Bgp.Web.ViewModels.GameSummaryViewModel;
 using Bgp.Web.Services;
+using Bgp.Web.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -226,7 +227,10 @@ public class HomeController : Controller
     private async Task<CommunityMetricsViewModel> BuildCommunityMetricsAsync()
     {
         var gamesCount = await _db.Games.CountAsync(g => g.ApprovalStatus == GameApprovalStatus.Approved);
-        var onlinePlayers = await _db.Users.CountAsync(u => !u.IsInvisible && u.PresenceStatus != UserPresenceStatus.Offline);
+        var onlineUserIds = ChatHub.GetOnlineUserIds();
+        var onlinePlayers = onlineUserIds.Count == 0
+            ? 0
+            : await _db.Users.CountAsync(u => onlineUserIds.Contains(u.Id) && !u.IsInvisible && u.PresenceStatus != UserPresenceStatus.Offline);
         var playersCount = await _db.Users.CountAsync();
 
         return new CommunityMetricsViewModel

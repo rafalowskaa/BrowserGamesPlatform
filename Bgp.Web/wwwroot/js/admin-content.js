@@ -18,8 +18,8 @@
     sectionButtons.forEach((button, index) => {
 
         button.addEventListener('click', () => {
-            sectionButtons.forEach((btn) => btn.classList.remove('is-active'));
-            button.classList.add('is-active');
+            sectionButtons.forEach((btn) => btn.classList.remove('is-active', 'active'));
+            button.classList.add('is-active', 'active');
             const targetSelector = button.getAttribute('data-admin-section-button');
             if (targetSelector) {
                 activateSection(targetSelector);

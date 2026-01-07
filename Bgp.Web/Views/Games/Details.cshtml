@@ -61,8 +61,10 @@
             ? (Model.DisplayDescription!.Length > 200 ? string.Concat(Model.DisplayDescription.AsSpan(0, 200).TrimEnd(), "…") : Model.DisplayDescription)
             : L["Games_Details_PlaySubheading"].Value;
 
+        var updatedAtLocal = (game.UpdatedAtUtc ?? game.CreatedAtUtc).ToLocalTime();
+
         var activeTab = string.IsNullOrWhiteSpace(Context.Request.Query["tab"]) ? "overview" : Context.Request.Query["tab"].ToString().ToLowerInvariant();
-        if (activeTab != "play" && activeTab != "rules" && activeTab != "reviews" && activeTab != "overview")
+        if (activeTab != "play" && activeTab != "rules" && activeTab != "reviews" && activeTab != "ranking" && activeTab != "overview")
         {
             activeTab = "overview";
         }
@@ -119,7 +121,9 @@
             },
             rules = new
             {
-                fetchUrl = Url.Content($"/api/games/{game.Id}/rules")
+                fetchUrl = Url.Content($"/api/games/{game.Id}/rules"),
+                updateUrl = Url.Content($"/api/games/{game.Id}/rules"),
+                locale = Model.CurrentLocale
             },
             ratings = new
             {
@@ -134,6 +138,11 @@
                 deleteTemplate = Url.Content($"/api/games/{game.Id}/comments/{{commentId}}"),
                 updateTemplate = Url.Content($"/api/games/{game.Id}/comments/{{commentId}}"),
                 pageSize = 10
+            },
+            leaderboard = new
+            {
+                fetchUrl = Url.Content($"/api/games/{game.Id}/leaderboard"),
+                exportUrl = Url.Content($"/api/games/{game.Id}/leaderboard/export")
             },
             invites = new
             {
@@ -176,7 +185,17 @@
                 ratingLabel = L["Games_Details_Rating_YourRating"].Value,
                 starLabel = L["Games_Details_Rating_StarLabel"].Value,
                 rulesEmpty = L["Games_Details_Rules_Heading"].Value,
-                rulesHeading = L["Games_Details_Tab_Rules"].Value
+                rulesHeading = L["Games_Details_Tab_Rules"].Value,
+                rulesEdit = L["Games_Details_Rules_Edit"].Value,
+                rulesSave = L["Games_Details_Rules_Save"].Value,
+                rulesCancel = L["Games_Details_Rules_Cancel"].Value,
+                rulesSaved = L["Games_Details_Rules_Saved"].Value,
+                rulesSaveError = L["Games_Details_Rules_SaveError"].Value,
+                rankingTitle = L["Games_Details_Ranking_Title"].Value,
+                rankingSubtitle = L["Games_Details_Ranking_Subtitle"].Value,
+                rankingEmpty = L["Games_Details_Ranking_Empty"].Value,
+                rankingLoading = L["Games_Details_Ranking_Loading"].Value,
+                rankingDownload = L["Games_Details_Ranking_Download"].Value
             }
         };
     }
@@ -195,7 +214,10 @@
                 <div class="game-hero__facts">
                     <span class="chip">@FormatModes(game.Modes)</span>
                     <span class="chip">@FormatCategories(game.Categories)</span>
-                    <span class="chip">@L["Games_Details_LastUpdated"].Value: @(game.UpdatedAtUtc ?? game.CreatedAtUtc).ToLocalTime().ToString("d")</span>
+                    <span class="chip">
+                        @L["Games_Details_LastUpdated"].Value
+                        <time datetime="@updatedAtLocal.ToString("o")" title="@updatedAtLocal.ToString("f")">@updatedAtLocal.ToString("dd.MM.yyyy")</time>
+                    </span>
                     <span class="chip">
                         @L["Games_Details_Rating_Count"].Value.Replace("{0}", Model.ReviewCount.ToString())
                         <strong>@Model.AverageRating.ToString("0.0")</strong>
@@ -215,6 +237,7 @@
             <button type="button" class="game-tab @(activeTab == "play" ? "is-active" : string.Empty)" data-tab="play">@L["Games_Details_Tab_Play"].Value</button>
             <button type="button" class="game-tab @(activeTab == "rules" ? "is-active" : string.Empty)" data-tab="rules">@L["Games_Details_Tab_Rules"].Value</button>
             <button type="button" class="game-tab @(activeTab == "reviews" ? "is-active" : string.Empty)" data-tab="reviews">@L["Games_Details_Tab_Reviews"].Value</button>
+            <button type="button" class="game-tab @(activeTab == "ranking" ? "is-active" : string.Empty)" data-tab="ranking">@L["Games_Details_Tab_Ranking"].Value</button>
         </nav>
 
         <section class="game-tab-panel @(activeTab == "overview" ? "is-active" : string.Empty)" data-tab-panel="overview" @(activeTab == "overview" ? "" : "hidden")>
@@ -320,8 +343,22 @@
                     <header class="section-header">
                         <p class="eyebrow">@L["Games_Details_Rules_Heading"].Value</p>
                         <h2>@L["Games_Details_Tab_Rules"].Value</h2>
-                        <p class="muted">@rulesPreview</p>
+                       <p class="muted" data-rules-preview>@rulesPreview</p>
                     </header>
+                    @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
+                    {
+                        <div class="rules-editor" data-rules-editor>
+                            <div class="rules-editor__toolbar">
+                                <button type="button" class="btn-ghost btn-compact" data-rules-edit>@L["Games_Details_Rules_Edit"].Value</button>
+                                <div class="rules-editor__actions" data-rules-actions hidden>
+                                    <button type="button" class="btn-secondary btn-compact" data-rules-cancel>@L["Games_Details_Rules_Cancel"].Value</button>
+                                    <button type="button" class="btn-primary btn-compact" data-rules-save>@L["Games_Details_Rules_Save"].Value</button>
+                                </div>
+                            </div>
+                            <textarea class="rules-editor__input" data-rules-input hidden>@Model.DisplayRules</textarea>
+                            <p class="muted" data-rules-feedback hidden></p>
+                        </div>
+                    }
                     <div class="rich-text" data-rules-content>
                         @if (!string.IsNullOrWhiteSpace(formattedRules))
                         {
@@ -434,7 +471,24 @@
                 </div>
                 </div>
                 </div>
-            </section>
+        </section>
+
+        <section class="game-tab-panel ranking-panel @(activeTab == "ranking" ? "is-active" : string.Empty)" data-tab-panel="ranking" @(activeTab == "ranking" ? "" : "hidden")>
+            <div class="card" data-game-ranking>
+                <header class="section-header ranking-header">
+                    <div>
+                        <p class="eyebrow">@L["Games_Details_Ranking_Subtitle"].Value</p>
+                        <h2>@L["Games_Details_Ranking_Title"].Value</h2>
+                    </div>
+                    <a class="btn-ghost btn-compact" data-ranking-export href="@Url.Content($"/api/games/{game.Id}/leaderboard/export")">@L["Games_Details_Ranking_Download"].Value</a>
+                </header>
+                <p class="muted" data-ranking-loading>@L["Games_Details_Ranking_Loading"].Value</p>
+                <div class="leaderboard" data-ranking-list hidden>
+                    <ol class="leaderboard__list" data-ranking-entries></ol>
+                </div>
+                <p class="muted" data-ranking-empty hidden>@L["Games_Details_Ranking_Empty"].Value</p>
+            </div>
+        </section>
         </div>
 
         <div class="invite-modal" data-invite-modal hidden aria-hidden="true" role="dialog">
