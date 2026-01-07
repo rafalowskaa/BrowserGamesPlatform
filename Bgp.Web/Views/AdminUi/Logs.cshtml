@@ -134,7 +134,7 @@
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@log.Id" />
                                         <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-                                        <button type="submit" class="btn-link text-danger" onclick="return confirm('@L["Admin_Logs_Delete_Confirm"].Value');">
+                                        <button type="submit" class="btn-link text-danger admin-log-action" onclick="return confirm('@L["Admin_Logs_Delete_Confirm"].Value');">
                                             @L["Admin_Logs_Delete"].Value
                                         </button>
                                     </form>

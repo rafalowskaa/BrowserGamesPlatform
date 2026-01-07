@@ -72,6 +72,7 @@
                 <button type="button" class="admin-tab" data-admin-section-button="#facts">@L["Admin_Content_HomeNav_Facts"].Value</button>
                 <button type="button" class="admin-tab" data-admin-section-button="#events">@L["Admin_Content_HomeNav_Events"].Value</button>
                 <button type="button" class="admin-tab" data-admin-section-button="#layout">@L["Admin_Content_HomeNav_Layout"].Value</button>
+                <button type="button" class="admin-tab" data-admin-section-button="#preview">@L["Admin_Content_Preview_Title"].Value</button>
             </div>
             <div class="admin-editor-toolbar">
                 <div class="admin-editor-toolbar__primary">
@@ -506,7 +507,7 @@
                             <button type="button" class="admin-editor-card__handle" data-dnd-handle aria-label="@L["Admin_Content_Aria_DragSection"].Value">⋮⋮</button>
                             <div class="admin-layout-item__body">
                                 <strong>@layoutSection.name</strong>
-                                <span class="muted">@string.Format(L["Admin_Content_Layout_Position"].Value, layoutSection.index + 1)</span>
+                                <span class="muted admin-order-indicator" data-order-template="@L["Admin_Content_Layout_Position"].Value">@string.Format(L["Admin_Content_Layout_Position"].Value, layoutSection.index + 1)</span>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" checked />
@@ -523,23 +524,29 @@
                 <p>@L["Admin_Content_History_Description"].Value</p>
                 <button type="button" class="btn-secondary btn-small" disabled>@L["Admin_Content_History_Button"].Value</button>
             </div>
-        </div>
-
-        <aside class="admin-home-grid__column admin-home-grid__column--preview">
-            <div class="admin-preview">
-                <header class="admin-preview__header">
-                    <h3>@L["Admin_Content_Preview_Title"].Value</h3>
+            <section id="preview" class="admin-editor-section" data-admin-section hidden>
+                <header>
+                    <div>
+                        <p class="admin-editor-section__eyebrow">@L["Admin_Content_Preview_Title"].Value</p>
+                        <h2>@L["Admin_Content_Preview_Title"].Value</h2>
+                        <p class="muted">@L["Admin_Content_Preview_Description"].Value</p>
+                    </div>
                     
                 </header>
-                <div class="admin-preview__frame" data-preview-frame>
-                    <iframe src="@previewUrl" title="@L["Admin_Content_Preview_IframeTitle"].Value" data-admin-preview></iframe>
+                <div class="admin-preview">
+                    <header class="admin-preview__header">
+                        <h3>@L["Admin_Content_Preview_Title"].Value</h3>
+                    </header>
+                    <div class="admin-preview__frame" data-preview-frame>
+                        <iframe src="@previewUrl" title="@L["Admin_Content_Preview_IframeTitle"].Value" data-admin-preview></iframe>
+                    </div>
+                    <footer>
+                        <p class="muted">@L["Admin_Content_Preview_Description"].Value</p>
+                        <button type="button" class="btn-secondary btn-small">@L["Admin_Content_Preview_Refresh"].Value</button>
+                    </footer>
                 </div>
-                <footer>
-                    <p class="muted">@L["Admin_Content_Preview_Description"].Value</p>
-                    <button type="button" class="btn-secondary btn-small">@L["Admin_Content_Preview_Refresh"].Value</button>
-                </footer>
-            </div>
-        </aside>
+            </section>
+        </div>
     </div>
 
     <div class="admin-sticky-actions">

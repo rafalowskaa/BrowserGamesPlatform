@@ -920,7 +920,7 @@ public class AdminUiController : Controller
         game.Title = title;
         game.Slug = normalizedSlug;
         game.Description = string.IsNullOrWhiteSpace(input.Description) ? null : input.Description.Trim();
-        game.Rules = string.IsNullOrWhiteSpace(input.Rules) ? null : input.Rules.Trim();
+        game.Rules = string.IsNullOrWhiteSpace(input.Rules) ? null : RulesContentHelper.SanitizeHtml(input.Rules);
         var manualCoverPath = string.IsNullOrWhiteSpace(input.CoverImagePath) ? null : input.CoverImagePath.Trim();
         game.CoverImagePath = uploadedCoverPath ?? manualCoverPath;
         game.Categories = categories == GameCategory.None ? GameCategory.Indie : categories;

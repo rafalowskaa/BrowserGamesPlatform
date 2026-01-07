@@ -45,7 +45,7 @@
         <div class="app-header__end">
             @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
             {
-                <span class="app-header__admin-label">@L["Navigation_AdminPanel"].Value</span>
+                <a class="app-header__admin-link" asp-controller="AdminUi" asp-action="Users">@L["Navigation_AdminPanel"].Value</a>
             }
             <div class="language-switcher" role="group" aria-label="@L["Language_Switcher_Label"].Value">
                 <a class="lang-toggle@(currentCulture == "pl-PL" ? " active" : string.Empty)" asp-controller="Language" asp-action="Set" asp-route-culture="pl-PL" asp-route-returnUrl="@Model?.ReturnUrl" title="@L["Language_Polish"].Value">
@@ -104,10 +104,7 @@
                            asp-action="Index"
                            asp-route-tab="ranking"
                            role="menuitem">@L["Navigation_Ranking"].Value</a>
-                        @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
-                        {
-                            <a class="user-menu__item user-menu__item--admin" asp-controller="AdminUi" asp-action="Users" role="menuitem">@L["Navigation_Admin"].Value</a>
-                        }
+                        
                         <form class="user-menu__item" asp-controller="Account" asp-action="Logout" method="post" role="none">
                             <button type="submit">@L["Navigation_Logout"].Value</button>
                         </form>

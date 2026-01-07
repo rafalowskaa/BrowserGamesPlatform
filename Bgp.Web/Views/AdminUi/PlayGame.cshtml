@@ -13,6 +13,7 @@
 
     var playOptions = Model.PlayOptions ?? Array.Empty<Bgp.Web.Models.GamePlayOptionViewModel>();
     var webOption = playOptions.FirstOrDefault(o => string.Equals(o.Kind, "web", StringComparison.OrdinalIgnoreCase));
+    var formattedRules = RulesContentHelper.FormatForDisplay(game.Rules);
     var downloadOptions = playOptions
         .Where(o => string.Equals(o.Kind, "download", StringComparison.OrdinalIgnoreCase))
         .ToList();
@@ -151,11 +152,11 @@
                 </div>
             </div>
 
-            @if (!string.IsNullOrWhiteSpace(game.Rules))
+            @if (!string.IsNullOrWhiteSpace(formattedRules))
             {
                 <div class="game-play__rules">
                     <h4>@L["Games_Details_Rules_Heading"].Value</h4>
-                    <pre class="game-play__rules-text">@game.Rules</pre>
+                    <div class="game-play__rules-text">@Html.Raw(formattedRules)</div>
                 </div>
             }
 

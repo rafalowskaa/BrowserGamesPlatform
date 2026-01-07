@@ -1,5 +1,4 @@
-﻿    @using System.Text.Encodings.Web
-    @using System.Text.Json
+﻿    @using System.Text.Json
     @using Bgp.Domain.Enums
     @using Bgp.Web.Helpers
     @model Bgp.Web.Models.GameDetailsViewModel
@@ -73,27 +72,13 @@
         var bannerUrl = Model.BannerUrl ?? Model.ThumbnailUrl ?? game.CoverImagePath ?? Url.Content("~/img/branding/og-playgrid.png");
         var thumbUrl = Model.ThumbnailUrl ?? Model.BannerUrl ?? game.CoverImagePath ?? Url.Content("~/img/branding/logo-playgrid.svg");
         var gallery = Array.Empty<string>();
-        var rulesPreview = string.IsNullOrWhiteSpace(Model.DisplayRules)
+        var rulesPlainText = RulesContentHelper.ToPlainText(Model.DisplayRules);
+        var rulesPreview = string.IsNullOrWhiteSpace(rulesPlainText)
             ? L["Games_Details_Rules_Heading"].Value
-            : (Model.DisplayRules!.Length > 180 ? string.Concat(Model.DisplayRules.AsSpan(0, 180).TrimEnd(), "…") : Model.DisplayRules);
+            : (rulesPlainText.Length > 180 ? string.Concat(rulesPlainText.AsSpan(0, 180).TrimEnd(), "…") : rulesPlainText);
 
-        string FormatRules(string? rules)
-        {
-            if (string.IsNullOrWhiteSpace(rules))
-            {
-                return string.Empty;
-            }
-
-            var sanitized = HtmlEncoder.Default.Encode(rules.Replace("\r\n", "\n"));
-            var paragraphs = sanitized
-                .Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(block => $"<p>{block.Replace("\n", "<br />")}</p>")
-                .ToList();
-
-            return paragraphs.Count == 0 ? string.Empty : string.Join(Environment.NewLine, paragraphs);
-        }
-
-        var formattedRules = FormatRules(Model.DisplayRules);
+        var formattedRules = RulesContentHelper.FormatForDisplay(Model.DisplayRules);
+        var editableRules = RulesContentHelper.FormatForEditor(Model.DisplayRules);
 
         var ratingDistribution = Model.RatingDistribution ?? new Dictionary<int, int>();
         var totalRatings = Model.ReviewCount;
@@ -347,17 +332,45 @@
                     </header>
                     @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
                     {
-                        <div class="rules-editor" data-rules-editor>
+                    <div class="rules-editor" data-rules-editor>
                             <div class="rules-editor__toolbar">
-                                <button type="button" class="btn-ghost btn-compact" data-rules-edit>@L["Games_Details_Rules_Edit"].Value</button>
+                            <button type="button" class="btn-ghost btn-compact rules-editor__edit" data-rules-edit>@L["Games_Details_Rules_Edit"].Value</button>
+                            <div class="rules-editor__tools" data-rules-toolbar hidden>
+                                <button type="button" class="rules-tool" data-rules-command="bold" aria-label="Bold">B</button>
+                                <button type="button" class="rules-tool" data-rules-command="italic" aria-label="Italic">I</button>
+                                <button type="button" class="rules-tool" data-rules-command="underline" aria-label="Underline">U</button>
+                                <button type="button" class="rules-tool" data-rules-command="insertUnorderedList" aria-label="List">•</button>
+                                <button type="button" class="rules-tool" data-rules-command="formatBlock" data-rules-value="h2" aria-label="Heading">H2</button>
+                                <div class="rules-tool__select">
+                                    <label class="sr-only" for="rulesFontSize">Size</label>
+                                    <select id="rulesFontSize" data-rules-size>
+                                        <option value="">Size</option>
+                                        <option value="rules-size-sm">Small</option>
+                                        <option value="rules-size-md">Normal</option>
+                                        <option value="rules-size-lg">Large</option>
+                                    </select>
+                                </div>
+                                <div class="rules-tool__select">
+                                    <label class="sr-only" for="rulesEmoji">Emoji</label>
+                                    <select id="rulesEmoji" data-rules-emoji>
+                                        <option value="">Emoji</option>
+                                        <option value="😀">😀</option>
+                                        <option value="🎯">🎯</option>
+                                        <option value="🔥">🔥</option>
+                                        <option value="⚡">⚡</option>
+                                        <option value="✅">✅</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="rules-tool" data-rules-image aria-label="Image">🖼️</button>
+                            </div>
                                 <div class="rules-editor__actions" data-rules-actions hidden>
                                     <button type="button" class="btn-secondary btn-compact" data-rules-cancel>@L["Games_Details_Rules_Cancel"].Value</button>
                                     <button type="button" class="btn-primary btn-compact" data-rules-save>@L["Games_Details_Rules_Save"].Value</button>
                                 </div>
-                            </div>
-                            <textarea class="rules-editor__input" data-rules-input hidden>@Model.DisplayRules</textarea>
+                                </div>
+                            <div class="rules-editor__input" data-rules-input contenteditable="true" role="textbox" aria-multiline="true" hidden>@Html.Raw(editableRules)</div>
                             <p class="muted" data-rules-feedback hidden></p>
-                        </div>
+                    </div>
                     }
                     <div class="rich-text" data-rules-content>
                         @if (!string.IsNullOrWhiteSpace(formattedRules))
@@ -405,20 +418,23 @@
                             </div>
                         }
                         </div>
-                        <div class="star-rating star-rating--input" data-rating-input data-user-rating="@(Model.UserRating ?? 0)">
-                            @for (var star = 1; star <= 5; star++)
-                            {
-                                var selected = Model.UserRating.HasValue && Model.UserRating.Value >= star;
-                                <button type="button"
-                                        class="star-rating__star @(selected ? "is-filled" : string.Empty)"
-                                        data-star-value="@star"
-                                        aria-pressed="@(selected.ToString().ToLowerInvariant())"
-                                        aria-label="@string.Format(L["Games_Details_Rating_StarLabel"].Value, star)">
-                                    ★
-                                </button>
-                            }
+                        <div class="rating-input">
+                            <div class="star-rating star-rating--input" data-rating-input data-user-rating="@(Model.UserRating ?? 0)">
+                                @for (var star = 1; star <= 5; star++)
+                                {
+                                    var selected = Model.UserRating.HasValue && Model.UserRating.Value >= star;
+                                    <button type="button"
+                                            class="star-rating__star @(selected ? "is-filled" : string.Empty)"
+                                            data-star-value="@star"
+                                            aria-pressed="@(selected.ToString().ToLowerInvariant())"
+                                            aria-label="@string.Format(L["Games_Details_Rating_StarLabel"].Value, star)">
+                                        ★
+                                    </button>
+                                }
+                            </div>
+                            <p class="muted rating-feedback" data-rating-feedback hidden></p>
                         </div>
-                        <p class="muted" data-rating-feedback hidden></p>
+
                     </div>
                 </header>
                 <div class="reviews-body" data-comments>
@@ -502,6 +518,7 @@
                     <input id="inviteSearch" type="search" placeholder="@L["Games_Details_InviteSearch"].Value" data-invite-search />
                     <div class="invite-list" data-invite-list></div>
                     <p class="muted" data-invite-empty hidden>@L["Games_Details_InviteEmpty"].Value</p>
+                    <p class="invite-status" data-invite-status hidden></p>
                 </div>
             </div>
     </div>

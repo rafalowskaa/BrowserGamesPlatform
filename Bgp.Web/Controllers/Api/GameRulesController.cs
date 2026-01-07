@@ -71,7 +71,7 @@ public class GameRulesController : ControllerBase
             return NotFound();
         }
 
-        var content = (request.Content ?? string.Empty).Trim();
+        var content = RulesContentHelper.SanitizeHtml((request.Content ?? string.Empty).Trim());
         if (string.IsNullOrWhiteSpace(content))
         {
             return BadRequest(new { code = "empty_rules", message = "Rules content cannot be empty." });

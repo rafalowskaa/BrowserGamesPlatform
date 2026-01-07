@@ -303,6 +303,18 @@
     line-height: 1.6;
 }
 
+.game-play__rules-text {
+    color: rgba(226, 232, 240, 0.92);
+    line-height: 1.6;
+}
+
+    .game-play__rules-text img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.5rem;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
 .game-rules__header {
     display: flex;
     align-items: center;

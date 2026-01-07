@@ -796,7 +796,7 @@ public class DashboardController : Controller
             Title = input.Title.Trim(),
             Slug = slug,
             Description = input.Description?.Trim(),
-            Rules = input.Rules?.Trim(),
+            Rules = string.IsNullOrWhiteSpace(input.Rules) ? null : RulesContentHelper.SanitizeHtml(input.Rules),
             CoverImagePath = coverPath,
             CreatedByUserId = user.Id,
             ApprovalStatus = GameApprovalStatus.Pending,

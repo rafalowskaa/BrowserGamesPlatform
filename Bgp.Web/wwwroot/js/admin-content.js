@@ -102,7 +102,10 @@
             });
             const indicator = item.querySelector('.admin-order-indicator');
             if (indicator) {
-                indicator.textContent = `Kolejność ${index + 1}`;
+                const template = indicator.getAttribute('data-order-template');
+                indicator.textContent = template
+                    ? template.replace('{0}', (index + 1).toString())
+                    : `Kolejność ${index + 1}`;
             }
         });
     };

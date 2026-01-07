@@ -55,6 +55,7 @@
     const rulesEditButton = root.querySelector('[data-rules-edit]');
     const rulesActions = root.querySelector('[data-rules-actions]');
     const rulesInput = root.querySelector('[data-rules-input]');
+    const rulesToolbar = root.querySelector('[data-rules-toolbar]');
     const rulesFeedback = root.querySelector('[data-rules-feedback]');
     const rankingPanel = root.querySelector('[data-game-ranking]');
     const rankingList = rankingPanel?.querySelector('[data-ranking-entries]');
@@ -67,6 +68,7 @@
     const inviteSearch = inviteModal?.querySelector('[data-invite-search]');
     const inviteList = inviteModal?.querySelector('[data-invite-list]');
     const inviteEmpty = inviteModal?.querySelector('[data-invite-empty]');
+    const inviteStatus = inviteModal?.querySelector('[data-invite-status]');
 
     let currentTab = config.tab || 'overview';
     let currentSessionId = null;
@@ -77,6 +79,7 @@
     let userRating = Number(config.ratings?.user_rating ?? 0);
     let inviteConnection = null;
     let ratingFeedbackTimer = null;
+    let inviteStatusTimer = null;
     let rankingLoaded = false;
     const commentReactions = new Map();
     const commentVotes = new Map();
@@ -394,26 +397,28 @@
     }
 
     function setupRulesEditor() {
-        if (!rulesEditor || !rulesEditButton || !rulesInput || !rulesActions || !rulesContent) {
+        if (!rulesEditor || !rulesEditButton || !rulesInput || !rulesActions || !rulesContent || !rulesToolbar) {
             return;
         }
 
-        let originalText = rulesInput.value || '';
+        let originalText = rulesInput.innerHTML || '';
 
         const enterEditMode = () => {
             rulesInput.hidden = false;
             rulesInput.focus();
             rulesActions.hidden = false;
+            rulesToolbar.hidden = false;
             rulesEditButton.hidden = true;
             rulesContent.hidden = true;
         };
 
         const exitEditMode = (restore) => {
             if (restore) {
-                rulesInput.value = originalText;
+                rulesInput.innerHTML = originalText;
             }
             rulesInput.hidden = true;
             rulesActions.hidden = true;
+            rulesToolbar.hidden = true;
             rulesEditButton.hidden = false;
             rulesContent.hidden = false;
         };
@@ -432,8 +437,9 @@
                 setRulesFeedback(config.text?.rulesSaveError || '', true);
                 return;
             }
-            const content = rulesInput.value.trim();
-            if (!content) {
+            const content = sanitizeRulesHtml(rulesInput.innerHTML || '');
+            const plainText = extractPlainText(content);
+            if (!plainText) {
                 setRulesFeedback(config.text?.rulesSaveError || '', true);
                 return;
             }
@@ -459,6 +465,49 @@
                 setRulesFeedback(config.text?.rulesSaveError || '', true);
             }
         });
+
+        rulesToolbar.querySelectorAll('[data-rules-command]').forEach(button => {
+            button.addEventListener('click', () => {
+                const command = button.dataset.rulesCommand;
+                if (!command) return;
+                const value = button.dataset.rulesValue;
+                rulesInput.focus();
+                if (command === 'formatBlock') {
+                    document.execCommand('formatBlock', false, value || 'p');
+                    return;
+                }
+                document.execCommand(command, false, value || undefined);
+            });
+        });
+
+        const sizeSelect = rulesToolbar.querySelector('[data-rules-size]');
+        sizeSelect?.addEventListener('change', () => {
+            if (!(sizeSelect instanceof HTMLSelectElement)) return;
+            const className = sizeSelect.value;
+            if (!className) return;
+            rulesInput.focus();
+            wrapSelectionWithSpan(className);
+            sizeSelect.value = '';
+        });
+
+        const emojiSelect = rulesToolbar.querySelector('[data-rules-emoji]');
+        emojiSelect?.addEventListener('change', () => {
+            if (!(emojiSelect instanceof HTMLSelectElement)) return;
+            const emoji = emojiSelect.value;
+            if (!emoji) return;
+            rulesInput.focus();
+            document.execCommand('insertText', false, emoji);
+            emojiSelect.value = '';
+        });
+
+        rulesToolbar.querySelector('[data-rules-image]')?.addEventListener('click', () => {
+            const url = window.prompt('Image URL');
+            if (!url) return;
+            const alt = window.prompt('Image description') || '';
+            rulesInput.focus();
+            const imgHtml = `<img src="${url}" alt="${alt}" />`;
+            document.execCommand('insertHTML', false, imgHtml);
+        });
     }
 
     function updateRulesContent(text) {
@@ -467,13 +516,8 @@
         }
 
         rulesContent.innerHTML = '';
-        const blocks = text
-            .replace(/\r\n/g, '\n')
-            .split(/\n{2,}/)
-            .map(block => block.trim())
-            .filter(Boolean);
-
-        if (blocks.length === 0) {
+        const sanitized = sanitizeRulesHtml(text);
+        if (!extractPlainText(sanitized)) {
             const emptyText = config.text?.rulesEmpty || '';
             if (emptyText) {
                 const empty = document.createElement('p');
@@ -484,22 +528,11 @@
             return;
         }
 
-        const frag = document.createDocumentFragment();
-        blocks.forEach(block => {
-            const p = document.createElement('p');
-            const lines = block.split('\n');
-            lines.forEach((line, idx) => {
-                if (idx > 0) {
-                    p.appendChild(document.createElement('br'));
-                }
-                p.appendChild(document.createTextNode(line));
-            });
-            frag.appendChild(p);
-        });
-        rulesContent.appendChild(frag);
+        rulesContent.innerHTML = sanitized;
 
         if (rulesPreview) {
-            const summary = text.length > 180 ? `${text.slice(0, 180).trimEnd()}…` : text;
+            const summaryText = extractPlainText(sanitized);
+            const summary = summaryText.length > 180 ? `${summaryText.slice(0, 180).trimEnd()}…` : summaryText;
             rulesPreview.textContent = summary || config.text?.rulesEmpty || '';
         }
         buildRulesToc();
@@ -969,6 +1002,7 @@
     function openInviteModal() {
         inviteModal.hidden = false;
         inviteModal.setAttribute('aria-hidden', 'false');
+        setInviteStatus('');
         loadFriends();
     }
 
@@ -1032,12 +1066,14 @@
     async function sendInvite(friendId) {
         if (!config.invites?.createTemplate) {
             setPlayerStatus('error', config.text?.inviteError);
+            setInviteStatus(config.text?.inviteError || '', true);
             return;
         }
         if (!currentSessionId) {
             const started = await startSession(selectedMode());
             if (!started || !currentSessionId) {
                 setPlayerStatus('error', config.text?.inviteError);
+                setInviteStatus(config.text?.inviteError || '', true);
                 return;
             }
         }
@@ -1050,13 +1086,146 @@
                 body: JSON.stringify({ friendId })
             });
 
-
             if (!res.ok) throw new Error('Invite failed');
             setPlayerStatus('ready', config.text?.inviteSuccess);
-            closeInviteModal();
+            setInviteStatus(config.text?.inviteSuccess || '', false);
         } catch (err) {
             console.error(err);
             setPlayerStatus('error', config.text?.inviteError);
+            setInviteStatus(config.text?.inviteError || '', true);
+        }
+
+    }
+
+    function setInviteStatus(message, isError) {
+        if (!inviteStatus) return;
+        if (inviteStatusTimer) {
+            clearTimeout(inviteStatusTimer);
+            inviteStatusTimer = null;
+        }
+        inviteStatus.textContent = message || '';
+        inviteStatus.hidden = !message;
+        inviteStatus.classList.toggle('is-error', !!isError);
+        if (message) {
+            inviteStatusTimer = setTimeout(() => {
+                inviteStatus.hidden = true;
+                inviteStatus.textContent = '';
+                inviteStatus.classList.remove('is-error');
+                inviteStatusTimer = null;
+            }, 3500);
+        }
+    }
+
+    function wrapSelectionWithSpan(className) {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return;
+        const range = selection.getRangeAt(0);
+        if (range.collapsed) return;
+        const span = document.createElement('span');
+        span.className = className;
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+        selection.removeAllRanges();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(span);
+        newRange.collapse(false);
+        selection.addRange(newRange);
+    }
+
+    function sanitizeRulesHtml(html) {
+        if (!html) return '';
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html');
+        const wrapper = doc.body.firstElementChild;
+        if (!wrapper) return '';
+        const allowedTags = new Set(['P', 'BR', 'DIV', 'STRONG', 'B', 'EM', 'I', 'U', 'S', 'UL', 'OL', 'LI', 'H1', 'H2', 'H3', 'H4', 'BLOCKQUOTE', 'SPAN', 'IMG', 'A']);
+        const allowedSpanClasses = new Set(['rules-size-sm', 'rules-size-md', 'rules-size-lg']);
+
+        const walk = doc.createTreeWalker(wrapper, NodeFilter.SHOW_ELEMENT, null);
+        const toRemove = [];
+        while (walk.nextNode()) {
+            const node = walk.currentNode;
+            if (!(node instanceof HTMLElement)) continue;
+            const tag = node.tagName.toUpperCase();
+            if (!allowedTags.has(tag)) {
+                toRemove.push(node);
+                continue;
+            }
+
+            Array.from(node.attributes).forEach(attr => {
+                const name = attr.name.toLowerCase();
+                if (name.startsWith('on') || name === 'style' || name === 'srcdoc') {
+                    node.removeAttribute(attr.name);
+                }
+            });
+
+            if (tag === 'SPAN') {
+                const className = node.getAttribute('class') || '';
+                const kept = className
+                    .split(' ')
+                    .map(val => val.trim())
+                    .filter(val => allowedSpanClasses.has(val));
+                if (kept.length) {
+                    node.setAttribute('class', kept.join(' '));
+                } else {
+                    node.removeAttribute('class');
+                }
+            } else if (tag === 'IMG') {
+                const src = node.getAttribute('src') || '';
+                if (!isSafeUrl(src)) {
+                    node.removeAttribute('src');
+                }
+                const allowed = new Set(['src', 'alt', 'title']);
+                Array.from(node.attributes).forEach(attr => {
+                    if (!allowed.has(attr.name.toLowerCase())) {
+                        node.removeAttribute(attr.name);
+                    }
+                });
+            } else if (tag === 'A') {
+                const href = node.getAttribute('href') || '';
+                if (!isSafeUrl(href)) {
+                    node.removeAttribute('href');
+                }
+                const allowed = new Set(['href', 'target', 'rel']);
+                Array.from(node.attributes).forEach(attr => {
+                    if (!allowed.has(attr.name.toLowerCase())) {
+                        node.removeAttribute(attr.name);
+                    }
+                });
+            } else {
+                Array.from(node.attributes).forEach(attr => node.removeAttribute(attr.name));
+            }
+        }
+
+        toRemove.forEach(node => {
+            const parent = node.parentNode;
+            if (!parent) return;
+            while (node.firstChild) {
+                parent.insertBefore(node.firstChild, node);
+            }
+            parent.removeChild(node);
+        });
+
+        return wrapper.innerHTML;
+    }
+
+    function extractPlainText(html) {
+        if (!html) return '';
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html');
+        return (doc.body.textContent || '').trim();
+    }
+
+    function isSafeUrl(value) {
+        if (!value) return false;
+        if (value.startsWith('data:image', 0)) return true;
+        if (value.startsWith('/') || value.startsWith('./') || value.startsWith('../')) return true;
+        try {
+            const url = new URL(value, window.location.origin);
+            return ['http:', 'https:', 'mailto:'].includes(url.protocol);
+        } catch {
+            return false;
         }
 
     }

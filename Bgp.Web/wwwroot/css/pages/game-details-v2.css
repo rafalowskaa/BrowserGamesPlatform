@@ -357,6 +357,13 @@
     color: #e2e8f0;
 }
 
+    .rules-body .rich-text img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
 .rules-editor {
     margin-bottom: 1rem;
     padding: 0.75rem;
@@ -373,11 +380,50 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.rules-editor__edit {
+    align-self: flex-start;
+    width: auto;
 }
 
 .rules-editor__actions {
     display: flex;
     gap: 0.5rem;
+}
+
+.rules-editor__tools {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.rules-tool {
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(15, 23, 42, 0.4);
+    color: #e2e8f0;
+    padding: 0.3rem 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+    .rules-tool:hover,
+    .rules-tool:focus-visible {
+        background: rgba(148, 163, 184, 0.2);
+        border-color: rgba(148, 163, 184, 0.4);
+    }
+
+.rules-tool__select select {
+    background: rgba(15, 23, 42, 0.4);
+    color: #e2e8f0;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 0.5rem;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.8rem;
 }
 
 .rules-editor__input {
@@ -390,6 +436,21 @@
     padding: 0.75rem;
     font-family: inherit;
     resize: vertical;
+    outline: none;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.rules-size-sm {
+    font-size: 0.9rem;
+}
+
+.rules-size-md {
+    font-size: 1rem;
+}
+
+.rules-size-lg {
+    font-size: 1.25rem;
 }
 
 .rating-summary {
@@ -439,6 +500,22 @@
     display: inline-flex;
     gap: 0.35rem;
 }
+
+.rating-input {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+}
+
+.rating-feedback {
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+    .rating-feedback.is-error {
+        color: #fca5a5;
+    }
 
 .star-rating__star {
     background: none;
@@ -580,6 +657,10 @@
         padding: 0.2rem 0.35rem;
         border-radius: 999px;
         transition: color 0.2s ease, background 0.2s ease;
+        text-decoration: none;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
     }
 
         .comment-actions .btn-link:hover,
@@ -659,6 +740,16 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     width: min(520px, 100%);
 }
+
+.invite-status {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: #a7f3d0;
+}
+
+    .invite-status.is-error {
+        color: #fca5a5;
+    }
 
 .invite-list {
     display: flex;
