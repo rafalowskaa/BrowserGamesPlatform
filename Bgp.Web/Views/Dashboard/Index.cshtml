@@ -27,6 +27,7 @@
         "GameCreated" => L["Dashboard_Success_Game"].Value,
         "DisplayNameRequested" => L["Dashboard_Success_DisplayNameRequested"].Value,
         "SessionsRevoked" => L["Dashboard_Success_Sessions"].Value,
+        "Dashboard_Notifications_Delete_Success" => L["Dashboard_Notifications_Delete_Success"].Value,
         _ => null
     };
     var includeProfileScripts = false;
@@ -86,6 +87,7 @@
         <a class="dashboard-nav__item@(activeTab == "stats" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="stats">@L["Dashboard_Stats_Tab"].Value</a>
         <a class="dashboard-nav__item@(activeTab == "games" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="games">@L["Dashboard_Games_AddTab"].Value</a>
         <a class="dashboard-nav__item@(activeTab == "friends" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="friends">@L["Dashboard_Friends_Tab"].Value</a>
+        <a class="dashboard-nav__item@(activeTab == "notifications" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="notifications">@L["Dashboard_Notifications_Tab"].Value</a>
         <a class="dashboard-nav__item@(activeTab == "ranking" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="ranking">@L["Dashboard_Ranking_Tab"].Value</a>
     </nav>
 
@@ -375,6 +377,7 @@
                         reportError = L["Dashboard_Friends_ReportError"].Value,
                         rankLabel = L["Dashboard_Friends_RankLabel"].Value,
                         rankUnknown = L["Dashboard_Friends_RankUnknown"].Value,
+                        playingGame = L["Dashboard_Friends_Playing"].Value,
                         viewProfile = L["Dashboard_Friends_ViewProfile"].Value,
                         block = L["Dashboard_Friends_Block"].Value,
                         blockConfirm = L["Dashboard_Friends_BlockConfirm"].Value,
@@ -388,6 +391,49 @@
 
                 }
                 <script type="application/json" id="friendStrings">@Html.Raw(JsonSerializer.Serialize(friendStrings))</script>
+            </section>
+            break;
+        case "notifications":
+            <section class="dashboard-panel notifications-panel">
+                <header class="panel-header">
+                    <div>
+                        <h2>@L["Dashboard_Notifications_Title"].Value</h2>
+                        <p>@L["Dashboard_Notifications_Subtitle"].Value</p>
+                    </div>
+                </header>
+                <ul class="notification-list" role="list">
+                    @if (Model.Notifications.Any())
+                    {
+                        foreach (var notification in Model.Notifications)
+                        {
+                            <li class="notification-item">
+                                @if (!string.IsNullOrWhiteSpace(notification.Link))
+                                {
+                                    <a class="notification-link" href="@notification.Link">
+                                        <span class="notification-text">@notification.Message</span>
+                                        <span class="notification-time">@notification.CreatedAtUtc.ToLocalTime().ToString("g")</span>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="notification-link">
+                                        <span class="notification-text">@notification.Message</span>
+                                        <span class="notification-time">@notification.CreatedAtUtc.ToLocalTime().ToString("g")</span>
+                                    </span>
+                                }
+                                <form asp-action="DeleteNotification" method="post" class="notification-remove">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@notification.Id" />
+                                    <button type="submit" class="btn-ghost" aria-label="@L["Dashboard_Notifications_Delete"].Value">✕</button>
+                                </form>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="notification-empty">@L["Dashboard_Notifications_Empty"].Value</li>
+                    }
+                </ul>
             </section>
             break;
              case "ranking":

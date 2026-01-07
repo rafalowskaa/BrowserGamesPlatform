@@ -427,6 +427,35 @@
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.comment-quote-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    border-left: 3px solid #38bdf8;
+    padding: 0.6rem 0.75rem;
+    border-radius: 10px;
+    background: rgba(30, 41, 59, 0.6);
+}
+
+.comment-quote-preview__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.comment-quote-preview__label {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    text-decoration: underline;
+}
+
+.comment-quote-preview__text {
+    margin: 0;
+    color: #e2e8f0;
+    font-style: italic;
+}
+
     .comment-composer textarea {
         width: 100%;
         min-height: 120px;
@@ -467,6 +496,23 @@
         color: #94a3b8;
         font-size: 0.9rem;
     }
+
+.comment-quote {
+    border-left: 3px solid rgba(56, 189, 248, 0.6);
+    padding-left: 0.75rem;
+    margin: 0.5rem 0 0.75rem;
+    color: #e2e8f0;
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 8px;
+}
+
+.comment-quote__label {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-decoration: underline;
+}
 
 .comment-actions {
     display: flex;

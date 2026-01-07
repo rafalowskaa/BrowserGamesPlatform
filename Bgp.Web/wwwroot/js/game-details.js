@@ -44,6 +44,10 @@
     const commentInput = commentsContainer?.querySelector('[data-comment-input]');
     const commentFeedback = commentsContainer?.querySelector('[data-comment-feedback]');
     const commentTemplate = commentsContainer?.querySelector('[data-comment-template]');
+    const commentQuotePreview = commentsContainer?.querySelector('[data-comment-quote-preview]');
+    const commentQuotePreviewText = commentsContainer?.querySelector('[data-comment-quote-preview-text]');
+    const commentQuotePreviewAuthor = commentsContainer?.querySelector('[data-comment-quote-author]');
+    const commentQuoteClear = commentsContainer?.querySelector('[data-comment-quote-clear]');
     const rulesContent = root.querySelector('[data-rules-content]');
     const rulesToc = root.querySelector('[data-rules-toc]');
     const inviteModal = document.querySelector('[data-invite-modal]');
@@ -365,7 +369,58 @@
             e.preventDefault();
             submitComment();
         });
+        commentQuoteClear?.addEventListener('click', () => clearQuotePreview(true));
         commentsLoadMore?.addEventListener('click', () => loadComments(currentPage + 1));
+    }
+
+    function decodeHtml(value) {
+        if (!value) {
+            return '';
+        }
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = value;
+        return textarea.value;
+    }
+
+    function setTextWithLineBreaks(element, value) {
+        if (!element) {
+            return;
+        }
+        const text = value ?? '';
+        element.innerHTML = '';
+        const lines = text.split(/\n/);
+        lines.forEach((line, index) => {
+            if (index > 0) {
+                element.appendChild(document.createElement('br'));
+            }
+            element.appendChild(document.createTextNode(line));
+        });
+    }
+
+    function renderQuotePreview(text, author) {
+        if (!commentQuotePreview || !commentQuotePreviewText) {
+            return;
+        }
+        const labelTemplate = config.text?.commentQuoteFrom || 'Quote from {0}';
+        const authorLabel = author ? labelTemplate.replace('{0}', author) : labelTemplate.replace('{0}', '');
+        if (commentQuotePreviewAuthor) {
+            commentQuotePreviewAuthor.textContent = authorLabel;
+        }
+        setTextWithLineBreaks(commentQuotePreviewText, text);
+        commentQuotePreview.hidden = false;
+    }
+
+    function clearQuotePreview(focusInput) {
+        commentReplyTarget = null;
+        if (commentInput) {
+            commentInput.value = '';
+        }
+        if (commentQuotePreview) {
+            commentQuotePreview.hidden = true;
+        }
+        if (focusInput && commentInput) {
+            commentInput.focus();
+        }
     }
 
     async function loadComments(page = 1) {
@@ -461,6 +516,7 @@
         const quoteBtn = clone.querySelector('[data-comment-quote]');
         const quoteBlock = clone.querySelector('[data-comment-quote-block]');
         const quoteText = clone.querySelector('[data-comment-quote-text]');
+        const quoteAuthor = clone.querySelector('[data-comment-quote-author]');
 
         if (author) {
             author.textContent = item.author || item.user_id || config.text?.anonymous || '';
@@ -468,13 +524,20 @@
         if (created) {
             created.textContent = formatDate(item.created_at || item.createdAt || item.createdAtUtc);
         }
+        const decodedBody = decodeHtml(item.text || '');
         if (body) {
-            body.innerHTML = (item.text || '').replace(/\n/g, '<br />');
+            setTextWithLineBreaks(body, decodedBody);
         }
 
         if (quoteBlock) {
             if (item.reply_preview) {
-                quoteText.textContent = item.reply_preview;
+                const decodedReply = decodeHtml(item.reply_preview);
+                setTextWithLineBreaks(quoteText, decodedReply);
+                if (quoteAuthor) {
+                    const labelTemplate = config.text?.commentQuoteFrom || 'Quote from {0}';
+                    const replyAuthor = item.reply_author || '';
+                    quoteAuthor.textContent = replyAuthor ? labelTemplate.replace('{0}', replyAuthor) : labelTemplate.replace('{0}', '');
+                }
                 quoteBlock.hidden = false;
             } else {
                 quoteBlock.hidden = true;
@@ -492,7 +555,7 @@
         dislikeBtn?.addEventListener('click', () => submitReaction(id, 'dislike'));
         deleteBtn?.addEventListener('click', () => deleteComment(id));
         editBtn?.addEventListener('click', () => editComment(id, item.text));
-        quoteBtn?.addEventListener('click', () => startQuote(id, item.text));
+        quoteBtn?.addEventListener('click', () => startQuote(id, decodedBody, item.author));
 
         return clone;
     }
@@ -575,12 +638,12 @@
 
     }
 
-    function startQuote(commentId, text) {
+    function startQuote(commentId, text, author) {
         if (!commentInput) return;
         commentReplyTarget = commentId;
         const clean = (text || '').trim();
         if (clean) {
-            commentInput.value = `> ${clean}\n`;
+            renderQuotePreview(clean, author);
         }
         commentInput.focus();
     }
@@ -632,7 +695,7 @@
 
             if (!res.ok) throw new Error('Comment failed');
             commentInput.value = '';
-            commentReplyTarget = null;
+            clearQuotePreview(false);
             setCommentFeedback(config.text?.commentSuccess || '', false);
             await loadComments(1);
             await fetchRatings();

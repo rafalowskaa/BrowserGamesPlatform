@@ -225,6 +225,10 @@
     font-size: 0.95rem;
 }
 
+.user-menu__item--admin {
+    font-weight: 700;
+}
+
     .user-menu__item button {
         background: none;
         border: none;

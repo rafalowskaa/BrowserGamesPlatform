@@ -2,9 +2,10 @@
 using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Identity;
 using Bgp.Infrastructure.Persistence;
+using Bgp.Web.Helpers;
 using Bgp.Web.Models;
-using Bgp.Web.Services;
 using Bgp.Web.Resources;
+using Bgp.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -19,7 +20,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using Bgp.Web.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -27,6 +27,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -523,26 +524,64 @@ public class DashboardController : Controller
             return await ReturnDashboardWithErrorsAsync(user, "profile", "security");
         }
 
+        var custom1 = string.IsNullOrWhiteSpace(input.SecurityQuestion1Custom) ? null : input.SecurityQuestion1Custom.Trim();
+        var custom2 = string.IsNullOrWhiteSpace(input.SecurityQuestion2Custom) ? null : input.SecurityQuestion2Custom.Trim();
+        var custom3 = string.IsNullOrWhiteSpace(input.SecurityQuestion3Custom) ? null : input.SecurityQuestion3Custom.Trim();
+
+        bool IsQuestionChanged(string? currentKey, string? currentCustom, string newKey, string? newCustom) =>
+            !string.Equals(currentKey ?? string.Empty, newKey ?? string.Empty, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(currentCustom ?? string.Empty, newCustom ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+
+        var question1Changed = IsQuestionChanged(user.SecurityQuestion1Key, user.SecurityQuestion1CustomPrompt, input.SecurityQuestion1, custom1);
+        var question2Changed = IsQuestionChanged(user.SecurityQuestion2Key, user.SecurityQuestion2CustomPrompt, input.SecurityQuestion2, custom2);
+        var question3Changed = IsQuestionChanged(user.SecurityQuestion3Key, user.SecurityQuestion3CustomPrompt, input.SecurityQuestion3, custom3);
+
+        var keepAnswer1 = input.HasExistingAnswer1 && string.Equals(input.SecurityAnswer1, SecurityAnswerHelper.MaskedToken, StringComparison.Ordinal);
+        var keepAnswer2 = input.HasExistingAnswer2 && string.Equals(input.SecurityAnswer2, SecurityAnswerHelper.MaskedToken, StringComparison.Ordinal);
+        var keepAnswer3 = input.HasExistingAnswer3 && string.Equals(input.SecurityAnswer3, SecurityAnswerHelper.MaskedToken, StringComparison.Ordinal);
+
+        if ((keepAnswer1 && question1Changed) || (!keepAnswer1 && string.IsNullOrWhiteSpace(input.SecurityAnswer1)))
+        {
+            ModelState.AddModelError(nameof(input.SecurityAnswer1), Localize("Auth_SecurityQuestions_Answer_Required"));
+        }
+        if ((keepAnswer2 && question2Changed) || (!keepAnswer2 && string.IsNullOrWhiteSpace(input.SecurityAnswer2)))
+        {
+            ModelState.AddModelError(nameof(input.SecurityAnswer2), Localize("Auth_SecurityQuestions_Answer_Required"));
+        }
+        if ((keepAnswer3 && question3Changed) || (!keepAnswer3 && string.IsNullOrWhiteSpace(input.SecurityAnswer3)))
+        {
+            ModelState.AddModelError(nameof(input.SecurityAnswer3), Localize("Auth_SecurityQuestions_Answer_Required"));
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "security");
+        }
+
         user.SecurityQuestion1Key = input.SecurityQuestion1;
-        user.SecurityQuestion1CustomPrompt = string.IsNullOrWhiteSpace(input.SecurityQuestion1Custom)
-            ? null
-            : input.SecurityQuestion1Custom.Trim();
+        user.SecurityQuestion1CustomPrompt = custom1;
+
         user.SecurityQuestion2Key = input.SecurityQuestion2;
-        user.SecurityQuestion2CustomPrompt = string.IsNullOrWhiteSpace(input.SecurityQuestion2Custom)
-            ? null
-            : input.SecurityQuestion2Custom.Trim();
+        user.SecurityQuestion2CustomPrompt = custom2;
+
         user.SecurityQuestion3Key = input.SecurityQuestion3;
-        user.SecurityQuestion3CustomPrompt = string.IsNullOrWhiteSpace(input.SecurityQuestion3Custom)
-            ? null
-            : input.SecurityQuestion3Custom.Trim();
+        user.SecurityQuestion3CustomPrompt = custom3;
 
-        var answer1 = SecurityAnswerHelper.Normalize(input.SecurityAnswer1);
-        var answer2 = SecurityAnswerHelper.Normalize(input.SecurityAnswer2);
-        var answer3 = SecurityAnswerHelper.Normalize(input.SecurityAnswer3);
-
-        user.SecurityQuestion1AnswerHash = _users.PasswordHasher.HashPassword(user, answer1);
-        user.SecurityQuestion2AnswerHash = _users.PasswordHasher.HashPassword(user, answer2);
-        user.SecurityQuestion3AnswerHash = _users.PasswordHasher.HashPassword(user, answer3);
+        if (!keepAnswer1)
+        {
+            var answer1 = SecurityAnswerHelper.Normalize(input.SecurityAnswer1);
+            user.SecurityQuestion1AnswerHash = _users.PasswordHasher.HashPassword(user, answer1);
+        }
+        if (!keepAnswer2)
+        {
+            var answer2 = SecurityAnswerHelper.Normalize(input.SecurityAnswer2);
+            user.SecurityQuestion2AnswerHash = _users.PasswordHasher.HashPassword(user, answer2);
+        }
+        if (!keepAnswer3)
+        {
+            var answer3 = SecurityAnswerHelper.Normalize(input.SecurityAnswer3);
+            user.SecurityQuestion3AnswerHash = _users.PasswordHasher.HashPassword(user, answer3);
+        }
 
         var updateResult = await _users.UpdateAsync(user);
         if (!updateResult.Succeeded)
@@ -558,6 +597,42 @@ public class DashboardController : Controller
         _logger.LogInformation("User {UserId} updated password recovery questions.", user.Id);
         TempData["DashboardSuccess"] = "RecoveryUpdated";
         return RedirectToAction(nameof(Index), new { tab = "profile", panel = "security" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteNotification(Guid id)
+    {
+        var user = await _users.GetUserAsync(User);
+        if (user is null)
+        {
+            return Challenge();
+        }
+
+        var log = await _db.ActivityLogs.FirstOrDefaultAsync(l => l.Id == id);
+        if (log is null)
+        {
+            return RedirectToAction(nameof(Index), new { tab = "notifications" });
+        }
+
+        var canDelete = string.Equals(log.TargetUserId, user.Id, StringComparison.Ordinal);
+        if (!canDelete && !string.IsNullOrWhiteSpace(log.ActorUserId))
+        {
+            canDelete = await _db.Friendships.AnyAsync(f =>
+                f.Status == FriendshipStatus.Accepted &&
+                ((f.RequesterId == user.Id && f.AddresseeId == log.ActorUserId) ||
+                 (f.AddresseeId == user.Id && f.RequesterId == log.ActorUserId)));
+        }
+
+        if (!canDelete)
+        {
+            return Forbid();
+        }
+
+        _db.ActivityLogs.Remove(log);
+        await _db.SaveChangesAsync();
+        TempData["DashboardSuccess"] = "Dashboard_Notifications_Delete_Success";
+        return RedirectToAction(nameof(Index), new { tab = "notifications" });
     }
 
     [HttpPost]
@@ -847,6 +922,112 @@ public class DashboardController : Controller
 
         var friendLeaderboards = await BuildFriendLeaderboardsAsync(user, friendIds, profileLookup);
 
+        var notificationTypes = new[]
+        {
+            ActivityLogType.FriendRequestSent,
+            ActivityLogType.FriendRequestAccepted,
+            ActivityLogType.GameInviteSent,
+            ActivityLogType.GameInviteAccepted,
+            ActivityLogType.CommentAdded,
+            ActivityLogType.RatingSubmitted
+        };
+
+        var notificationLogs = await _db.ActivityLogs
+            .AsNoTracking()
+            .Where(l => notificationTypes.Contains(l.Type)
+                        && (l.TargetUserId == user.Id
+                            || (l.ActorUserId != null && friendIds.Contains(l.ActorUserId))))
+            .OrderByDescending(l => l.CreatedAtUtc)
+            .Take(50)
+            .ToListAsync();
+
+        var notificationActorIds = notificationLogs
+            .Select(l => l.ActorUserId)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct()
+            .ToList();
+
+        var notificationActors = notificationActorIds.Count == 0
+            ? new Dictionary<string, string>()
+            : await _db.Users
+                .AsNoTracking()
+                .Where(u => notificationActorIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
+                .ToDictionaryAsync(u => u.Id, u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id));
+
+        var notificationGameIds = notificationLogs
+            .Where(l => l.GameId.HasValue)
+            .Select(l => l.GameId!.Value)
+            .Distinct()
+            .ToList();
+
+        var notificationGames = notificationGameIds.Count == 0
+            ? new Dictionary<Guid, (string Title, string Slug)>()
+            : await _db.Games
+                .AsNoTracking()
+                .Where(g => notificationGameIds.Contains(g.Id))
+                .Select(g => new { g.Id, g.Title, g.Slug })
+                .ToDictionaryAsync(g => g.Id, g => (g.Title, g.Slug));
+
+        string BuildNotificationMessage(ActivityLog log)
+        {
+            var actorName = log.ActorUserId != null && notificationActors.TryGetValue(log.ActorUserId, out var name)
+                ? name
+                : Localize("Dashboard_Friends_Unknown");
+            var hasGame = log.GameId.HasValue && notificationGames.TryGetValue(log.GameId.Value, out var game);
+            var gameTitle = hasGame ? game.Title : string.Empty;
+
+            return log.Type switch
+            {
+                ActivityLogType.FriendRequestSent => string.Format(Localize("Dashboard_Notifications_FriendRequest"), actorName),
+                ActivityLogType.FriendRequestAccepted => string.Format(Localize("Dashboard_Notifications_FriendAccepted"), actorName),
+                ActivityLogType.GameInviteSent => string.Format(Localize("Dashboard_Notifications_GameInvite"), actorName, gameTitle),
+                ActivityLogType.GameInviteAccepted => string.Format(Localize("Dashboard_Notifications_GameInviteAccepted"), actorName, gameTitle),
+                ActivityLogType.CommentAdded when log.TargetUserId == user.Id
+                    => string.Format(Localize("Dashboard_Notifications_CommentQuote"), actorName, gameTitle),
+                ActivityLogType.CommentAdded => string.Format(Localize("Dashboard_Notifications_CommentAdded"), actorName, gameTitle),
+                ActivityLogType.RatingSubmitted => string.Format(Localize("Dashboard_Notifications_Rating"), actorName, gameTitle),
+                _ => string.Format(Localize("Dashboard_Notifications_Generic"), actorName)
+            };
+        }
+
+        string? BuildNotificationLink(ActivityLog log)
+        {
+            if (log.Type is ActivityLogType.FriendRequestSent or ActivityLogType.FriendRequestAccepted)
+            {
+                return Url.Action(nameof(Index), new { tab = "friends" });
+            }
+
+            if (log.Type is ActivityLogType.GameInviteSent or ActivityLogType.GameInviteAccepted)
+            {
+                if (log.GameId.HasValue && notificationGames.TryGetValue(log.GameId.Value, out var game))
+                {
+                    return Url.Action("Details", "Games", new { slug = game.Slug, tab = "play" });
+                }
+                return Url.Action(nameof(Index), new { tab = "overview" });
+            }
+
+            if (log.Type is ActivityLogType.CommentAdded or ActivityLogType.RatingSubmitted)
+            {
+                if (log.GameId.HasValue && notificationGames.TryGetValue(log.GameId.Value, out var game))
+                {
+                    return Url.Action("Details", "Games", new { slug = game.Slug, tab = "reviews" });
+                }
+            }
+
+            return null;
+        }
+
+        var notifications = notificationLogs
+            .Select(log => new NotificationViewModel
+            {
+                Id = log.Id,
+                Message = BuildNotificationMessage(log),
+                Link = BuildNotificationLink(log),
+                CreatedAtUtc = log.CreatedAtUtc
+            })
+            .ToList();
+
         var stats = new DashboardStatsViewModel
         {
             UploadedGames = await _db.Games.CountAsync(g => g.CreatedByUserId == user.Id),
@@ -1005,10 +1186,16 @@ public class DashboardController : Controller
         {
             SecurityQuestion1 = user.SecurityQuestion1Key ?? string.Empty,
             SecurityQuestion1Custom = user.SecurityQuestion1CustomPrompt,
+            SecurityAnswer1 = string.IsNullOrWhiteSpace(user.SecurityQuestion1AnswerHash) ? string.Empty : SecurityAnswerHelper.MaskedToken,
+            HasSecurityAnswer1 = !string.IsNullOrWhiteSpace(user.SecurityQuestion1AnswerHash),
             SecurityQuestion2 = user.SecurityQuestion2Key ?? string.Empty,
             SecurityQuestion2Custom = user.SecurityQuestion2CustomPrompt,
+            SecurityAnswer2 = string.IsNullOrWhiteSpace(user.SecurityQuestion2AnswerHash) ? string.Empty : SecurityAnswerHelper.MaskedToken,
+            HasSecurityAnswer2 = !string.IsNullOrWhiteSpace(user.SecurityQuestion2AnswerHash),
             SecurityQuestion3 = user.SecurityQuestion3Key ?? string.Empty,
             SecurityQuestion3Custom = user.SecurityQuestion3CustomPrompt,
+            SecurityAnswer3 = string.IsNullOrWhiteSpace(user.SecurityQuestion3AnswerHash) ? string.Empty : SecurityAnswerHelper.MaskedToken,
+            HasSecurityAnswer3 = !string.IsNullOrWhiteSpace(user.SecurityQuestion3AnswerHash),
             SecurityQuestionOptions = recoveryOptions
         };
 
@@ -1040,7 +1227,8 @@ public class DashboardController : Controller
             NewGame = BuildEmptyCreateGameForm(),
             Friends = friendVms,
             FriendLeaderboards = friendLeaderboards,
-            GlobalRanking = await _globalRankingService.GetRankingAsync(user.Id)
+            GlobalRanking = await _globalRankingService.GetRankingAsync(user.Id),
+            Notifications = notifications
         };
     }
 

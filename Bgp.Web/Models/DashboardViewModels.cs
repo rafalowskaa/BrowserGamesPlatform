@@ -24,6 +24,15 @@ public class DashboardViewModel
     public IReadOnlyList<FriendViewModel> Friends { get; init; } = Array.Empty<FriendViewModel>();
     public FriendLeaderboardCollectionViewModel FriendLeaderboards { get; init; } = new();
     public GlobalRankingViewModel GlobalRanking { get; init; } = new();
+    public IReadOnlyList<NotificationViewModel> Notifications { get; init; } = Array.Empty<NotificationViewModel>();
+}
+
+public class NotificationViewModel
+{
+    public Guid Id { get; init; }
+    public string Message { get; init; } = string.Empty;
+    public string? Link { get; init; }
+    public DateTime CreatedAtUtc { get; init; }
 }
 
 public record GameSummaryViewModel(Guid Id, string Title, string Slug, string? CoverImagePath, double AverageRating, GameApprovalStatus ApprovalStatus, DateTime CreatedAtUtc, DateTime? RejectedAtUtc, string? ModerationNotes);
@@ -142,14 +151,17 @@ public class RecoverySettingsFormViewModel
     public string SecurityQuestion1 { get; set; } = string.Empty;
     public string? SecurityQuestion1Custom { get; set; }
     public string SecurityAnswer1 { get; set; } = string.Empty;
+    public bool HasSecurityAnswer1 { get; set; }
 
     public string SecurityQuestion2 { get; set; } = string.Empty;
     public string? SecurityQuestion2Custom { get; set; }
     public string SecurityAnswer2 { get; set; } = string.Empty;
+    public bool HasSecurityAnswer2 { get; set; }
 
     public string SecurityQuestion3 { get; set; } = string.Empty;
     public string? SecurityQuestion3Custom { get; set; }
     public string SecurityAnswer3 { get; set; } = string.Empty;
+    public bool HasSecurityAnswer3 { get; set; }
 
     public IReadOnlyList<SecurityQuestionOptionVm> SecurityQuestionOptions { get; set; } = Array.Empty<SecurityQuestionOptionVm>();
 }
@@ -299,27 +311,30 @@ public class UpdateRecoveryQuestionsInputModel : IValidatableObject
 
     public string? SecurityQuestion1Custom { get; set; }
 
-    [Required]
+
     [MinLength(3, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_SecurityQuestions_Answer_MinLength")]
     public string SecurityAnswer1 { get; set; } = string.Empty;
+    public bool HasExistingAnswer1 { get; set; }
 
     [Required]
     public string SecurityQuestion2 { get; set; } = string.Empty;
 
     public string? SecurityQuestion2Custom { get; set; }
 
-    [Required]
+
     [MinLength(3, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_SecurityQuestions_Answer_MinLength")]
     public string SecurityAnswer2 { get; set; } = string.Empty;
+    public bool HasExistingAnswer2 { get; set; }
 
     [Required]
     public string SecurityQuestion3 { get; set; } = string.Empty;
 
     public string? SecurityQuestion3Custom { get; set; }
 
-    [Required]
+
     [MinLength(3, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_SecurityQuestions_Answer_MinLength")]
     public string SecurityAnswer3 { get; set; } = string.Empty;
+    public bool HasExistingAnswer3 { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
@@ -334,6 +349,21 @@ public class UpdateRecoveryQuestionsInputModel : IValidatableObject
                 nameof(SecurityQuestion1), nameof(SecurityQuestion2), nameof(SecurityQuestion3)
             });
             yield break;
+        }
+
+        if (!HasExistingAnswer1 && string.IsNullOrWhiteSpace(SecurityAnswer1))
+        {
+            yield return new ValidationResult(Localize("Auth_SecurityQuestions_Answer_Required"), new[] { nameof(SecurityAnswer1) });
+        }
+
+        if (!HasExistingAnswer2 && string.IsNullOrWhiteSpace(SecurityAnswer2))
+        {
+            yield return new ValidationResult(Localize("Auth_SecurityQuestions_Answer_Required"), new[] { nameof(SecurityAnswer2) });
+        }
+
+        if (!HasExistingAnswer3 && string.IsNullOrWhiteSpace(SecurityAnswer3))
+        {
+            yield return new ValidationResult(Localize("Auth_SecurityQuestions_Answer_Required"), new[] { nameof(SecurityAnswer3) });
         }
 
         if (questionKeys.GroupBy(x => x).Any(g => g.Count() > 1))

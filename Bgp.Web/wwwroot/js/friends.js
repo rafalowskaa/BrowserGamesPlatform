@@ -24,6 +24,10 @@
         labels.viewProfile = 'View profile';
     }
 
+    if (!labels.playingGame) {
+        labels.playingGame = 'Playing {0}';
+    }
+
     function openProfile(userId, userName) {
         if (!userId && !userName) {
             return;
@@ -103,6 +107,13 @@
         nameEl.innerText = friend.displayName;
         meta.appendChild(nameEl);
 
+        if (friend.currentGameTitle) {
+            const gameEl = document.createElement('span');
+            gameEl.className = 'friend-game';
+            gameEl.innerText = labels.playingGame.replace('{0}', friend.currentGameTitle);
+            meta.appendChild(gameEl);
+        }
+
         if (options.showRank !== false) {
             const rankEl = document.createElement('span');
             rankEl.className = 'friend-rank';
@@ -164,7 +175,9 @@
             statusMessage: row.statusMessage ?? row.StatusMessage ?? null,
             presence: row.presence ?? row.Presence ?? 0,
             isInvisible: !!(row.isInvisible ?? row.IsInvisible),
-            unreadCount: Number.parseInt(row.unreadCount ?? row.UnreadCount ?? '0', 10) || 0
+            unreadCount: Number.parseInt(row.unreadCount ?? row.UnreadCount ?? '0', 10) || 0,
+            currentGameTitle: row.currentGameTitle ?? row.CurrentGameTitle ?? null,
+            currentGameSlug: row.currentGameSlug ?? row.CurrentGameSlug ?? null
         };
     }
 

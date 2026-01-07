@@ -124,6 +124,11 @@
     text-overflow: ellipsis;
 }
 
+.friend-game {
+    font-size: 0.8125rem;
+    color: #38bdf8;
+}
+
 .friend-rank {
     font-size: 0.8125rem;
     color: #94a3b8;

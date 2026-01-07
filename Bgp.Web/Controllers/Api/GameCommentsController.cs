@@ -67,7 +67,11 @@ public class GameCommentsController : ControllerBase
             .Take(pageSize)
             .ToListAsync();
 
-        var userIds = items.Select(i => i.UserId).Distinct().ToList();
+        var userIds = items
+             .Select(i => i.UserId)
+             .Concat(items.Where(i => i.ReplyTo != null).Select(i => i.ReplyTo!.UserId))
+             .Distinct()
+             .ToList();
         var userLookup = userIds.Count == 0
             ? new Dictionary<string, string>()
             : await _db.Users
@@ -87,6 +91,11 @@ public class GameCommentsController : ControllerBase
             reply_preview = item.ReplyTo is null
                 ? null
                 : HtmlEncoder.Default.Encode(item.ReplyTo.Comment ?? string.Empty),
+            reply_author = item.ReplyTo is null
+                ? null
+                : (userLookup.TryGetValue(item.ReplyTo.UserId, out var replyAuthor)
+                    ? replyAuthor
+                    : DisplayNameFormatter.Format(null, null, null, item.ReplyTo.UserId)),
             user_vote = string.IsNullOrEmpty(userId)
                 ? null
                 : item.Reactions.FirstOrDefault(r => r.UserId == userId)?.Reaction switch
@@ -168,6 +177,10 @@ public class GameCommentsController : ControllerBase
             log.GameId = gameId;
             log.CommentId = comment.Id;
             log.Message = request.Text.Trim();
+            if (replyTo is not null)
+            {
+                log.TargetUserId = replyTo.UserId;
+            }
         });
 
         return Created(string.Empty, new

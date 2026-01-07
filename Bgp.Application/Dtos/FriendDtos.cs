@@ -16,6 +16,8 @@ public record FriendDto(
     UserPresenceStatus Presence,
     bool IsInvisible,
     int UnreadCount,
+    string? CurrentGameTitle = null,
+    string? CurrentGameSlug = null,
     bool ConversationOnly = false);
 
 public record FriendSearchResultDto(

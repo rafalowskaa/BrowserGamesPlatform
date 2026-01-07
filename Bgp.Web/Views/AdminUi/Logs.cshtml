@@ -25,6 +25,11 @@
             </div>
         </header>
 
+        @if (TempData["AdminLogsSuccess"] is string successKey)
+        {
+            <div class="alert success">@L[successKey].Value</div>
+        }
+
         <form method="get" class="admin-reports__filters">
             <label class="filter-item">
                 <span>@L["Admin_Logs_Filter_SearchLabel"].Value</span>
@@ -64,6 +69,7 @@
                         <th>@L["Admin_Logs_Table_Target"].Value</th>
                         <th>@L["Admin_Logs_Table_Game"].Value</th>
                         <th>@L["Admin_Logs_Table_Description"].Value</th>
+                        <th>@L["Admin_Logs_Table_Actions"].Value</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -112,13 +118,23 @@
                                         <div class="muted">@L["Admin_Logs_Rating_Label"].Value @log.Rating</div>
                                     }
                                 </td>
+                                <td>
+                                    <form asp-action="DeleteLog" method="post" class="admin-table__actions">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@log.Id" />
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                        <button type="submit" class="btn-link text-danger" onclick="return confirm('@L["Admin_Logs_Delete_Confirm"].Value');">
+                                            @L["Admin_Logs_Delete"].Value
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         }
                     }
                     else
                     {
                         <tr>
-                            <td colspan="6" class="empty">@L["Admin_Logs_Empty"].Value</td>
+                            <td colspan="7" class="empty">@L["Admin_Logs_Empty"].Value</td>
                         </tr>
                     }
                 </tbody>

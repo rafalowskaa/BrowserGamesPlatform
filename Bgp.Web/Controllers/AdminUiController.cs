@@ -1634,5 +1634,26 @@ public async Task<IActionResult> Logs(string? search = null, ActivityLogType? ty
 
         return View(vm);
     }
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteLog(Guid id, string? returnUrl = null)
+    {
+        var log = await _db.ActivityLogs.FirstOrDefaultAsync(l => l.Id == id);
+        if (log is null)
+        {
+            return RedirectToAction(nameof(Logs));
+        }
+
+        _db.ActivityLogs.Remove(log);
+        await _db.SaveChangesAsync();
+        TempData["AdminLogsSuccess"] = "Admin_Logs_Delete_Success";
+
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
+        return RedirectToAction(nameof(Logs));
+    }
 }
 

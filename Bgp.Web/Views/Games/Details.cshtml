@@ -167,6 +167,8 @@
                 commentDeleteConfirm = L["Games_Details_Comments_DeleteConfirm"].Value,
                 commentEditConfirm = L["Games_Details_Comments_EditConfirm"].Value,
                 commentQuote = L["Games_Details_Comments_Quote"].Value,
+                commentQuoteFrom = L["Games_Details_Comments_QuoteFrom"].Value,
+                commentQuoteClear = L["Games_Details_Comments_QuoteClear"].Value,
                 emptyComments = L["Games_Details_Comments_Empty"].Value,
                 anonymous = L["Games_Details_Comments_Anonymous"].Value,
                 noRating = L["Games_Details_Rating_None"].Value,
@@ -233,44 +235,22 @@
                             <p class="muted">@L["Games_Details_PlaySubheading"].Value</p>
                         }
                     </div>
-                    <div class="quick-facts">
-                    <div>
-                        <span class="label">@L["Games_Details_Modes"].Value</span>
-                        <strong>@FormatModes(game.Modes)</strong>
+                        <div class="quick-facts">
+                            <div>
+                                <span class="label">@L["Games_Details_Modes"].Value</span>
+                                <strong>@FormatModes(game.Modes)</strong>
+                            </div>
+                            <div>
+                                <span class="label">@L["Games_Details_Categories"].Value</span>
+                                <strong>@FormatCategories(game.Categories)</strong>
+                            </div>
+                            <div>
+                                <span class="label">@L["Games_Details_CurrentPlayers_Label"].Value</span>
+                                <strong data-current-players>@Model.ActivePlayerCount</strong>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <span class="label">@L["Games_Details_Categories"].Value</span>
-                        <strong>@FormatCategories(game.Categories)</strong>
-                    </div>
-                    <div>
-                        <span class="label">@L["Games_Details_CurrentPlayers_Label"].Value</span>
-                        <strong data-current-players>@Model.ActivePlayerCount</strong>
-                    </div>
-                    </div>
-                    </div>
-                    <div class="card gallery-card">
-                        <header class="section-header">
-                            <p class="eyebrow">@L["Games_Details_Gallery"].Value</p>
-                            <h2>@L["Games_Details_Gallery"].Value</h2>
-                            <p class="muted">@L["Games_Details_InviteDescription"].Value</p>
-                        </header>
-                        <div class="gallery-grid" data-gallery>
-                            @if (gallery.Any())
-                            {
-                                foreach (var item in gallery)
-                                {
-                                    <figure class="gallery-item">
-                                        <img src="@item" alt="@Model.DisplayTitle" loading="lazy" />
-                                    </figure>
-                                }
-                            }
-                            else
-                            {
-                                <div class="empty">@L["Games_Details_Comments_Empty"].Value</div>
-                            }
-                    </div>
-                    </div>
-                    </div>
+        </div>
                 </section>
 
                 <section class="game-tab-panel @(activeTab == "play" ? "is-active" : string.Empty)" data-tab-panel="play" @(activeTab == "play" ? "" : "hidden")>
@@ -413,6 +393,13 @@
                 <div class="reviews-body" data-comments>
                     <form class="comment-composer" data-comment-form>
                          <label class="sr-only" for="gameComment">@L["Games_Details_Comments_Label"].Value</label>
+                    <div class="comment-quote-preview" data-comment-quote-preview hidden>
+                        <div class="comment-quote-preview__header">
+                            <span class="comment-quote-preview__label" data-comment-quote-author></span>
+                            <button type="button" class="btn-ghost btn-compact" data-comment-quote-clear aria-label="@L["Games_Details_Comments_QuoteClear"].Value">✕</button>
+                        </div>
+                        <p class="comment-quote-preview__text" data-comment-quote-preview-text></p>
+                    </div>
                         <textarea id="gameComment"
                                   data-comment-input
                                   maxlength="2000"
@@ -431,7 +418,7 @@
                                     <span data-comment-created></span>
                                 </div>
                                 <blockquote class="comment-quote" data-comment-quote-block hidden>
-                                    <span class="comment-quote__label">@L["Games_Details_Comments_Quote"].Value:</span>
+                                    <span class="comment-quote__label" data-comment-quote-author></span>
                                     <p data-comment-quote-text></p>
                                 </blockquote>
                                 <p data-comment-body></p>

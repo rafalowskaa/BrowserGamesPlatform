@@ -83,9 +83,21 @@
     </data>
 	<data name="Admin_Logs_Table_Description" xml:space="preserve">
         <value>Description</value>
+     </data>
+	<data name="Admin_Logs_Table_Actions" xml:space="preserve">
+        <value>Actions</value>
     </data>
 	<data name="Admin_Logs_Rating_Label" xml:space="preserve">
         <value>Rating:</value>
+    </data>
+	<data name="Admin_Logs_Delete" xml:space="preserve">
+        <value>Delete</value>
+    </data>
+	<data name="Admin_Logs_Delete_Confirm" xml:space="preserve">
+        <value>Delete this log entry?</value>
+    </data>
+	<data name="Admin_Logs_Delete_Success" xml:space="preserve">
+        <value>Log entry deleted.</value>
     </data>
 	<data name="Admin_Logs_Empty" xml:space="preserve">
         <value>No logs to display.</value>
@@ -261,731 +273,285 @@
 	<data name="Chat_ReadReceipt" xml:space="preserve">
 		<value>Read at {0}</value>
 	</data>
-
 	<data name="Chat_ReadReceipt_Label" xml:space="preserve">
 		<value>Read</value>
 	</data>
-
 	<data name="Chat_Receipt_Delivered" xml:space="preserve">
                 <value>Delivered</value>
         </data>
-
 	<data name="Chat_Status_Available" xml:space="preserve">
                 <value>Available</value>
         </data>
-
 	<data name="Chat_Status_Unavailable" xml:space="preserve">
 		<value>Busy</value>
 	</data>
-
 	<data name="Chat_Strangers" xml:space="preserve">
                 <value>Other players</value>
         </data>
-
 	<data name="Chat_Strangers_Prompt" xml:space="preserve">
                 <value>Start a conversation</value>
         </data>
-
 	<data name="Chat_Status_Invisible" xml:space="preserve">
                 <value>Invisible</value>
         </data>
-
 	<data name="Chat_Status_Away" xml:space="preserve">
                 <value>Be right back</value>
         </data>
-
 	<data name="Chat_Status_Dnd" xml:space="preserve">
 <value>Do not disturb</value>
 </data>
-
 	<data name="Chat_Status_Offline" xml:space="preserve">
 <value>Offline</value>
 </data>
-
 	<data name="Chat_Status_Unknown" xml:space="preserve">
                 <value>Offline</value>
         </data>
-
 	<data name="Chat_Status_Header" xml:space="preserve">
                 <value>Status</value>
         </data>
-
 	<data name="Chat_Status_MessageLabel" xml:space="preserve">
                 <value>Status message</value>
         </data>
-
 	<data name="Chat_Status_MessagePlaceholder" xml:space="preserve">
 <value>How's it going?</value>
 </data>
-
 	<data name="Chat_Status_PresenceLabel" xml:space="preserve">
                 <value>Availability</value>
         </data>
-
 	<data name="Chat_Status_InvisibleLabel" xml:space="preserve">
                 <value>Appear offline</value>
         </data>
-
 	<data name="Chat_Status_Save" xml:space="preserve">
                 <value>Update status</value>
         </data>
-
 	<data name="Chat_Status_Cancel" xml:space="preserve">
                 <value>Cancel</value>
         </data>
-
 	<data name="Chat_Status_Saved" xml:space="preserve">
                 <value>Status updated</value>
         </data>
-
 	<data name="Chat_Status_Error" xml:space="preserve">
                 <value>Updating status failed. Try again.</value>
         </data>
-
 	<data name="Chat_NewMessage_Notification" xml:space="preserve">
 		<value>New message</value>
 	</data>
-
 	<data name="Chat_Request_Accept" xml:space="preserve">
 		<value>Accept</value>
 	</data>
-
 	<data name="Chat_Request_Decline" xml:space="preserve">
 		<value>Decline</value>
 	</data>
-
 	<data name="Chat_Request_Pending" xml:space="preserve">
                 <value>Invitation sent</value>
         </data>
-
 	<data name="Chat_Sending" xml:space="preserve">
                 <value>Sending…</value>
         </data>
-
 	<data name="Chat_SendFailed" xml:space="preserve">
                 <value>Failed to send message</value>
         </data>
-
 	<data name="Chat_NoFriends" xml:space="preserve">
 		<value>No friends yet</value>
 	</data>
-
 	<data name="Chat_NoInvites" xml:space="preserve">
 		<value>No invitations</value>
 	</data>
-
 	<data name="Chat_NoMatches" xml:space="preserve">
                 <value>No friends match your search</value>
         </data>
-
 	<data name="Chat_NoStrangers" xml:space="preserve">
                 <value>No players match your search</value>
         </data>
-
 	<data name="Chat_Minimize" xml:space="preserve">
 		<value>Minimize chat window</value>
 	</data>
-
 	<data name="Chat_Restore" xml:space="preserve">
 		<value>Restore chat window</value>
 	</data>
-
 	<data name="Chat_CloseWindow" xml:space="preserve">
 		<value>Close chat window</value>
 	</data>
-
-
 	<data name="Admin_Reports_Title" xml:space="preserve">
-        
-        
-    
-        
         <value>Reports</value>
-        
-        
-  
-    
     </data>
-
-
-
-
-	<data name="Admin_Reports_Heading" xml:space="preserve">
-        
-        
-    
-        
+	<data name="Admin_Reports_Heading" xml:space="preserve"> 
         <value>Reports</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Admin_Reports_Date" xml:space="preserve">
-        
-        
-    
-        
         <value>Date</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Admin_Reports_Reporter" xml:space="preserve">
-        
-        
-    
-        
         <value>Reporter</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Admin_Reports_Target" xml:space="preserve">
-        
-        
-    
-        
         <value>Reported player</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Admin_Reports_Category" xml:space="preserve">
-        
-        
-    
-        
         <value>Category</value>
-        
-        
-  
-    
     </data>
-
-
-
-
-	<data name="Admin_Reports_Description" xml:space="preserve">
-        
-        
-    
-        
+	<data name="Admin_Reports_Description" xml:space="preserve"> 
         <value>Description</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Admin_Reports_Status" xml:space="preserve">
-        
-        
-    
-        
         <value>Status</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Privacy_Title" xml:space="preserve">
-        
-        
-    
-        
         <value>Privacy policy</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Privacy_Description" xml:space="preserve">
-        
-        
-    
-        
         <value>Use this page to detail your site's privacy policy.</value>
-        
-        
-  
-    
     </data>
-
-
-
-
 	<data name="Navigation_Dashboard" xml:space="preserve">
-        
-        
-    
-        
         <value>Dashboard</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Navigation_Admin" xml:space="preserve">
-        
-        
-    
-        
         <value>Admin</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Title" xml:space="preserve">
-        
-        
-    
-        
         <value>Player hub</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Overview_Tab" xml:space="preserve">
-        
-        
-    
-        
         <value>Overview</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Profile_Tab" xml:space="preserve">
-        
-        
-    
-        
         <value>Profile</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Security_Tab" xml:space="preserve">
-        
-        
-    
-        
         <value>Security</value>
-        
-        
-
-    
     </data>
-
-
-
-
-	<data name="Dashboard_Stats_Tab" xml:space="preserve">
-        
-        
-    
-        
-        <value>Statistics</value>
-        
-        
-
-    
+	<data name="Dashboard_Stats_Tab" xml:space="preserve">    
+        <value>Statistics</value> 
     </data>
-
-
-
-
-	<data name="Dashboard_Games_Tab" xml:space="preserve">
-        
-        
-    
-        
+	<data name="Dashboard_Games_Tab" xml:space="preserve">   
         <value>My games</value>
-        
-        
-
-    
     </data>
-
-
-
-
-	<data name="Dashboard_Friends_Tab" xml:space="preserve">
-        
-        
-    
-        
+	<data name="Dashboard_Friends_Tab" xml:space="preserve"> 
         <value>Friends</value>
-        
-        
-
-    
+        </data>
+	<data name="Dashboard_Notifications_Tab" xml:space="preserve">
+        <value>Notifications</value>
     </data>
-
-
-
-
+	<data name="Dashboard_Notifications_Title" xml:space="preserve">
+        <value>Notifications</value>
+    </data>
+	<data name="Dashboard_Notifications_Subtitle" xml:space="preserve">
+        <value>Stay up to date with your activity and invites.</value>
+    </data>
+	<data name="Dashboard_Notifications_Empty" xml:space="preserve">
+        <value>No notifications yet.</value>
+    </data>
+	<data name="Dashboard_Notifications_Delete" xml:space="preserve">
+        <value>Remove notification</value>
+    </data>
+	<data name="Dashboard_Notifications_Delete_Success" xml:space="preserve">
+        <value>Notification removed.</value>
+    </data>
+	<data name="Dashboard_Notifications_FriendRequest" xml:space="preserve">
+        <value>{0} sent you a friend request.</value>
+    </data>
+	<data name="Dashboard_Notifications_FriendAccepted" xml:space="preserve">
+        <value>{0} accepted your friend request.</value>
+    </data>
+	<data name="Dashboard_Notifications_GameInvite" xml:space="preserve">
+        <value>{0} invited you to {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_GameInviteAccepted" xml:space="preserve">
+        <value>{0} joined your game in {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_CommentQuote" xml:space="preserve">
+        <value>{0} quoted your comment in {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_CommentAdded" xml:space="preserve">
+        <value>{0} commented on {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_Rating" xml:space="preserve">
+        <value>{0} rated {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_Generic" xml:space="preserve">
+        <value>Activity from {0}.</value>
+    </data>
 	<data name="Dashboard_Success_Profile" xml:space="preserve">
-        
-        
-    
-        
         <value>Profile updated successfully.</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Success_Email" xml:space="preserve">
-        
-        
-    
-        
         <value>E-mail updated successfully.</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Success_Password" xml:space="preserve">
-        
-        
-    
-        
         <value>Password updated successfully.</value>
-        
-        
-
-    
     </data>
 	<data name="Dashboard_Success_Recovery" xml:space="preserve">
     <value>Your recovery questions have been updated.</value>
   </data>
-
-
-
 	<data name="Dashboard_Success_Game" xml:space="preserve">
-        
-        
-    
-        
         <value>Game submitted successfully.</value> 
-
-    
     </data>
-
 	<data name="Dashboard_Profile_Info" xml:space="preserve">
-        
-        
-    
-        
         <value>Update how other players see you on the platform.</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Profile_DisplayName" xml:space="preserve">
-        
-        
-    
-        
-        <value>Display name</value>
-        
-        
-
-    
+        <value>Display name</value>  
     </data>
-
 	<data name="Dashboard_Profile_StatusMessage" xml:space="preserve">
 		<value>Status message</value>
 	</data>
-
 	<data name="Dashboard_Profile_Presence_Label" xml:space="preserve">
 		<value>Availability</value>
 	</data>
-
 	<data name="Dashboard_Profile_Invisible_Label" xml:space="preserve">
 		<value>Appear offline</value>
 	</data>
 	<data name="Dashboard_Profile_Presence_Available" xml:space="preserve">
 		<value>Available</value>
 	</data>
-
 	<data name="Dashboard_Profile_Presence_Unavailable" xml:space="preserve">
 		<value>Unavailable</value>
 	</data>
-
 	<data name="Dashboard_Profile_Presence_Invalid" xml:space="preserve">
 		<value>Select a valid availability option.</value>
 	</data>
-
-
 	<data name="Dashboard_Profile_Avatar" xml:space="preserve">
-
         <value>Avatar</value>
-        
-        
-
-    
     </data>
-
 	<data name="Dashboard_Profile_Avatar_ProcessingError" xml:space="preserve">
-
         <value>We couldn't process your avatar. Please upload a valid image up to 2 MB.</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Profile_CurrentAvatar" xml:space="preserve">
-        
-        
-    
-        
         <value>Current avatar:</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Profile_NoAvatar" xml:space="preserve">
-        
-        
-    
-        
         <value>No avatar uploaded</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Profile_Save" xml:space="preserve">
-        
-        
-    
-        
         <value>Save profile</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Security_EmailSection" xml:space="preserve">
-        
-        
-    
-        
         <value>Change e-mail</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Security_Email" xml:space="preserve">
-        
-        
-    
-        
         <value>New e-mail</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Security_EmailPassword" xml:space="preserve">
-        
-        
-    
-        
         <value>Confirm with password</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Security_SaveEmail" xml:space="preserve">
-        
-        
-    
-        
         <value>Update e-mail</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Security_PasswordSection" xml:space="preserve">
-        
-        
-    
-        
         <value>Change password</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Security_CurrentPassword" xml:space="preserve">
-        
-        
-    
-        
         <value>Current password</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Security_NewPassword" xml:space="preserve">
-        
-        
-    
-        
         <value>New password</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Security_ConfirmPassword" xml:space="preserve">
-        
-        
-    
-        
         <value>Confirm new password</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Security_ChangePassword" xml:space="preserve">
-        
-        
-    
-        
         <value>Update password</value>
-        
-        
-
-    
     </data>
-
 	<data name="Dashboard_Security_RecoveryTitle" xml:space="preserve">
     <value>Password recovery questions</value>
   </data>
@@ -1001,450 +567,117 @@
 	<data name="Dashboard_Security_RecoverySave" xml:space="preserve">
     <value>Save questions</value>
   </data>
-
-
-	<data name="Dashboard_Stats_UploadedGames" xml:space="preserve">
-        
-        
-    
-        
+	<data name="Dashboard_Stats_UploadedGames" xml:space="preserve"> 
         <value>Games uploaded</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Stats_TotalScores" xml:space="preserve">
-        
-        
-    
-        
         <value>Scores submitted</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Stats_TotalReviews" xml:space="preserve">
-        
-        
-    
-        
         <value>Reviews written</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Stats_Friends" xml:space="preserve">
-        
-        
-    
-        
         <value>Friends</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Games_CreateHeading" xml:space="preserve">
-        
-        
-    
-        
         <value>Add a new game</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Games_Title" xml:space="preserve">
-        
-        
-    
-        
         <value>Title</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Games_Description" xml:space="preserve">
-        
-        
-    
-        
         <value>Description</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Games_Cover" xml:space="preserve">
-        
-        
-    
-        
         <value>Cover image</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Games_Submit" xml:space="preserve">
-        
-        
-    
-        
         <value>Publish game</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Games_ListHeading" xml:space="preserve">
-        
-        
-    
-        
         <value>Your games</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Games_Rating" xml:space="preserve">
-        
-        
-    
-        
         <value>Rating</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Games_Empty" xml:space="preserve">
-        
-        
-    
-        
         <value>No games uploaded yet.</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Friends_ListHeading" xml:space="preserve">
-        
-        
-    
-        
         <value>Your friends</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Friends_Since" xml:space="preserve">
-        
-        
-    
-        
         <value>Friends since {0}</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Friends_Empty" xml:space="preserve">
-        
-        
-    
-        
         <value>You don't have any friends yet.</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Overview_Heading" xml:space="preserve">
-        
-        
-    
-        
         <value>Latest games</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Dashboard_Overview_Description" xml:space="preserve">
-        
-        
-    
-        
         <value>Browse everything available on the platform.</value>
-        
-        
-
-    
     </data>
-
-
-
-
-
 	<data name="Dashboard_Friends_Unknown" xml:space="preserve">
-        
-        
-    
-        
         <value>Unknown player</value>
-        
-        
-
-    
     </data>
-
-
-
-
 	<data name="Admin_Reports_Subtitle" xml:space="preserve">
-        
-        
         <value>Monitor community feedback and action it without leaving the dashboard.</value>
-        
-    
     </data>
-
-
 	<data name="Admin_Reports_Total" xml:space="preserve">
-        
-        
         <value>All reports</value>
-        
-    
     </data>
-
-
-	<data name="Admin_Reports_Status_Open" xml:space="preserve">
-        
-        
+	<data name="Admin_Reports_Status_Open" xml:space="preserve">  
         <value>Open</value>
-        
-    
     </data>
-
-
 	<data name="Admin_Reports_Status_Actioned" xml:space="preserve">
-        
-        
         <value>Actioned</value>
-        
-    
     </data>
-
-
 	<data name="Admin_Reports_Status_Dismissed" xml:space="preserve">
-        
-        
         <value>Dismissed</value>
-        
-    
     </data>
-
-
 	<data name="Admin_Reports_Status_All" xml:space="preserve">
-        
-        
         <value>All statuses</value>
-        
-    
     </data>
-
-
 	<data name="Admin_Reports_Search" xml:space="preserve">
-        
-        
         <value>Search</value>
-        
-    
     </data>
-
-
 	<data name="Admin_Reports_Search_Placeholder" xml:space="preserve">
-        
-        
         <value>Find by reporter, target or keyword</value>
-        
-    
     </data>
-
-
 	<data name="Admin_Reports_Filter_Status" xml:space="preserve">
-        
-        
         <value>Status</value>
-        
-    
     </data>
-
-
-	<data name="Admin_Reports_Filter_Apply" xml:space="preserve">
-        
-        
+	<data name="Admin_Reports_Filter_Apply" xml:space="preserve"> 
         <value>Apply filters</value>
-        
-    
     </data>
-
-
-	<data name="Admin_Reports_Filter_Reset" xml:space="preserve">
-        
-        
+	<data name="Admin_Reports_Filter_Reset" xml:space="preserve">  
         <value>Clear</value>
-        
-    
     </data>
-
-
 	<data name="Admin_Reports_Actions" xml:space="preserve">
-        
-        
         <value>Actions</value>
-        
-    
     </data>
-
-
 	<data name="Admin_Reports_Update_Button" xml:space="preserve">
-        
-        
         <value>Update</value>
-        
-    
     </data>
-
-
 	<data name="Admin_Reports_Update_Success" xml:space="preserve">
-        
-        
         <value>Report status updated.</value>
-        
-    
     </data>
-
-
 	<data name="Admin_Reports_Update_NotFound" xml:space="preserve">
-        
-        
-        <value>Report no longer exists.</value>
-        
-    
+        <value>Report no longer exists.</value> 
     </data>
-
-
-	<data name="Admin_Reports_NoDescription" xml:space="preserve">
-        
-        
+	<data name="Admin_Reports_NoDescription" xml:space="preserve"> 
         <value>No additional description provided.</value>
-        
-    
     </data>
-
-
 	<data name="Admin_Reports_Empty" xml:space="preserve">
-        
-        
         <value>No reports match the current filters.</value>
-        
-    
     </data>
-
-
 	<data name="Auth_Login_Eyebrow" xml:space="preserve">
-        
-        
         <value>Welcome back</value>
-        
-    
     </data>
-
-
 	<data name="Auth_Login_Tagline" xml:space="preserve">
-        
-        
         <value>Sign in to keep curating and sharing the best browser games.</value>
-        
-    
     </data>
-
-
 	<data name="Auth_Login_Feature_Games" xml:space="preserve">    
         <value>Track your library across every device.</value>
     </data>
@@ -1759,6 +992,9 @@
     </data>
 	<data name="Dashboard_Friends_RankUnknown" xml:space="preserve">
         <value>Rank unavailable</value>
+		</data>
+	<data name="Dashboard_Friends_Playing" xml:space="preserve">
+        <value>Playing {0}</value>
     </data>
 	<data name="Dashboard_Friends_Block" xml:space="preserve">
         <value>Block</value>
@@ -3147,6 +2383,9 @@
   </data>
 	<data name="Auth_SecurityQuestions_Answer_MinLength" xml:space="preserve">
     <value>The answer must be at least 3 characters long.</value>
+		</data>
+	<data name="Auth_SecurityQuestions_Answer_Required" xml:space="preserve">
+    <value>Please provide an answer.</value>
   </data>
 	<data name="Games_Details_PlayHeading">
 		<value>Play</value>
@@ -3234,6 +2473,21 @@
             </data>
 	<data name="Games_Details_Comments_Error" xml:space="preserve">
                 <value>We couldn't save your comment. Please try again.</value>
+            </data>
+	<data name="Games_Details_Comments_Quote" xml:space="preserve">
+                <value>Quote</value>
+            </data>
+	<data name="Games_Details_Comments_Edit" xml:space="preserve">
+                <value>Edit</value>
+            </data>
+	<data name="Games_Details_Comments_Delete" xml:space="preserve">
+                <value>Delete</value>
+            </data>
+	<data name="Games_Details_Comments_QuoteFrom" xml:space="preserve">
+                <value>Quote from {0}</value>
+            </data>
+	<data name="Games_Details_Comments_QuoteClear" xml:space="preserve">
+                <value>Clear quote</value>
             </data>
 	<data name="Games_Details_Comments_Anonymous" xml:space="preserve">
                 <value>Anonymous player</value>
@@ -3566,6 +2820,12 @@
 </data>
 	<data name="Navigation_Friends" xml:space="preserve">
   <value>Friends</value>
+		</data>
+	<data name="Navigation_Notifications" xml:space="preserve">
+  <value>Notifications</value>
+</data>
+	<data name="Navigation_Ranking" xml:space="preserve">
+  <value>Ranking</value>
 </data>
 	<data name="Navigation_Submit_Game" xml:space="preserve">
   <value>Add game</value>

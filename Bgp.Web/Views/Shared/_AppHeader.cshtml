@@ -85,9 +85,24 @@
                            asp-action="Index"
                            asp-route-tab="games"
                            role="menuitem">@L["Navigation_Submit_Game"].Value</a>
+                        <a class="user-menu__item"
+                           asp-controller="Dashboard"
+                           asp-action="Index"
+                           asp-route-tab="friends"
+                           role="menuitem">@L["Navigation_Friends"].Value</a>
+                        <a class="user-menu__item"
+                           asp-controller="Dashboard"
+                           asp-action="Index"
+                           asp-route-tab="notifications"
+                           role="menuitem">@L["Navigation_Notifications"].Value</a>
+                        <a class="user-menu__item"
+                           asp-controller="Dashboard"
+                           asp-action="Index"
+                           asp-route-tab="ranking"
+                           role="menuitem">@L["Navigation_Ranking"].Value</a>
                         @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
                         {
-                            <a class="user-menu__item" asp-controller="AdminUi" asp-action="Users" role="menuitem">@L["Navigation_Admin"].Value</a>
+                            <a class="user-menu__item user-menu__item--admin" asp-controller="AdminUi" asp-action="Users" role="menuitem">@L["Navigation_Admin"].Value</a>
                         }
                         <form class="user-menu__item" asp-controller="Account" asp-action="Logout" method="post" role="none">
                             <button type="submit">@L["Navigation_Logout"].Value</button>

@@ -19,7 +19,7 @@
 .chat-dock {
     --chat-gutter: clamp(0.75rem, 1.5vw, 1.5rem);
     --chat-offset-bottom: clamp(1rem, 3vh, 2.5rem);
-    --chat-offset-top: clamp(1rem, 2vh, 2rem);
+    --chat-offset-top: clamp(4.5rem, 7vh, 6.5rem);
     --chat-panel-width: clamp(20rem, 25vw, 22.5rem);
     --chat-panel-height: min(70vh, 720px);
     --chat-panel-gap: 1.25rem;
@@ -30,8 +30,13 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 0.5rem;
-    pointer-events: auto;
+    pointer-events: none;
     max-width: min(1600px, calc(100vw - (var(--chat-gutter) * 1.5)));
+}
+
+.chat-toggle,
+.chat-workspace {
+    pointer-events: auto;
 }
 
 .chat-workspace {
@@ -59,6 +64,7 @@
 .chat-dock.is-open .chat-workspace {
     opacity: 1;
     transform: translateY(0);
+    pointer-events: auto;
 }
 
 .chat-dock.is-open {

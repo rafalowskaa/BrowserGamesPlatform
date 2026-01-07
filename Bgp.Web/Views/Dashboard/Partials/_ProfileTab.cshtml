@@ -576,6 +576,9 @@
                             <form asp-action="UpdateRecoveryQuestions" method="post" class="profile-form" data-profile-security-form>
                                 @Html.AntiForgeryToken()
                                 @Html.ValidationSummary(true, null, new { @class = "val-summary" })
+                                <input type="hidden" name="HasExistingAnswer1" value="@security.Recovery.HasSecurityAnswer1" />
+                                <input type="hidden" name="HasExistingAnswer2" value="@security.Recovery.HasSecurityAnswer2" />
+                                <input type="hidden" name="HasExistingAnswer3" value="@security.Recovery.HasSecurityAnswer3" />
 
                                 <div class="security-questions@(enabled ? string.Empty : " security-questions--disabled")"
                                      data-security-questions
@@ -717,25 +720,26 @@
                                 </div>
                             </form>
                         </article>
+                        <article class="profile-card profile-card--sessions">
+                            <h4>@L["Dashboard_Profile_Sessions_Title"].Value</h4>
+                            <p>@L["Dashboard_Profile_Sessions_Description"].Value</p>
+                            <ul class="profile-sessions" role="list">
+                                <li class="profile-session">
+                                    <div>
+                                        <strong>@L["Dashboard_Profile_Sessions_Current"].Value</strong>
+                                        <span>@Context.Request.Headers["User-Agent"].FirstOrDefault()</span>
+                                    </div>
+                                    <span class="profile-session__badge">@L["Dashboard_Profile_Sessions_Active"].Value</span>
+                                </li>
+                            </ul>
+                            <form asp-action="SignOutEverywhere" method="post" class="profile-sessions__actions">
+                                @Html.AntiForgeryToken()
+                                <button class="btn-outline" type="submit">@L["Dashboard_Profile_Sessions_SignOutAll"].Value</button>
+                            </form>
+                        </article>
                     </div>
                 </div>
-                <article class="profile-card profile-card--sessions">
-                    <h4>@L["Dashboard_Profile_Sessions_Title"].Value</h4>
-                    <p>@L["Dashboard_Profile_Sessions_Description"].Value</p>
-                    <ul class="profile-sessions" role="list">
-                        <li class="profile-session">
-                            <div>
-                                <strong>@L["Dashboard_Profile_Sessions_Current"].Value</strong>
-                                <span>@Context.Request.Headers["User-Agent"].FirstOrDefault()</span>
-                            </div>
-                            <span class="profile-session__badge">@L["Dashboard_Profile_Sessions_Active"].Value</span>
-                        </li>
-                    </ul>
-                    <form asp-action="SignOutEverywhere" method="post" class="profile-sessions__actions">
-                        @Html.AntiForgeryToken()
-                        <button class="btn-outline" type="submit">@L["Dashboard_Profile_Sessions_SignOutAll"].Value</button>
-                    </form>
-                </article>
+                
             </section>
 
             @{

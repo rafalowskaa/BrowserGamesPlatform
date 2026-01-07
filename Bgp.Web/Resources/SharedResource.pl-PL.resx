@@ -366,6 +366,48 @@
     </data>
 	<data name="Dashboard_Friends_Tab" xml:space="preserve"> 
         <value>Znajomi</value>
+		</data>
+	<data name="Dashboard_Notifications_Tab" xml:space="preserve">
+        <value>Powiadomienia</value>
+    </data>
+	<data name="Dashboard_Notifications_Title" xml:space="preserve">
+        <value>Powiadomienia</value>
+    </data>
+	<data name="Dashboard_Notifications_Subtitle" xml:space="preserve">
+        <value>Bądź na bieżąco z aktywnościami i zaproszeniami.</value>
+    </data>
+	<data name="Dashboard_Notifications_Empty" xml:space="preserve">
+        <value>Brak powiadomień.</value>
+    </data>
+	<data name="Dashboard_Notifications_Delete" xml:space="preserve">
+        <value>Usuń powiadomienie</value>
+    </data>
+	<data name="Dashboard_Notifications_Delete_Success" xml:space="preserve">
+        <value>Powiadomienie zostało usunięte.</value>
+    </data>
+	<data name="Dashboard_Notifications_FriendRequest" xml:space="preserve">
+        <value>{0} wysłał(a) zaproszenie do znajomych.</value>
+    </data>
+	<data name="Dashboard_Notifications_FriendAccepted" xml:space="preserve">
+        <value>{0} zaakceptował(a) Twoje zaproszenie.</value>
+    </data>
+	<data name="Dashboard_Notifications_GameInvite" xml:space="preserve">
+        <value>{0} zaprosił(a) Cię do gry {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_GameInviteAccepted" xml:space="preserve">
+        <value>{0} dołączył(a) do Twojej gry {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_CommentQuote" xml:space="preserve">
+        <value>{0} zacytował(a) Twój komentarz w grze {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_CommentAdded" xml:space="preserve">
+        <value>{0} dodał(a) komentarz do gry {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_Rating" xml:space="preserve">
+        <value>{0} ocenił(a) grę {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_Generic" xml:space="preserve">
+        <value>Aktywność od {0}.</value>
     </data>
 	<data name="Dashboard_Success_Profile" xml:space="preserve">
         <value>Profil został zaktualizowany.</value>
@@ -774,6 +816,9 @@
     </data>
 	<data name="Dashboard_Friends_RankUnknown" xml:space="preserve">
       <value>Ranga nieznana</value>
+		</data>
+	<data name="Dashboard_Friends_Playing" xml:space="preserve">
+      <value>Jest w grze {0}</value>
     </data>
 	<data name="Dashboard_Friends_Block" xml:space="preserve">
       <value>Zablokuj</value>
@@ -864,10 +909,22 @@
   </data>
 	<data name="Admin_Logs_Table_Description" xml:space="preserve">
     <value>Opis</value>
-  </data>
+    </data>
+	<data name="Admin_Logs_Table_Actions" xml:space="preserve">
+        <value>Akcje</value>
+    </data>
 	<data name="Admin_Logs_Rating_Label" xml:space="preserve">
-    <value>Ocena:</value>
-  </data>
+     <value>Ocena:</value>
+    </data>
+	<data name="Admin_Logs_Delete" xml:space="preserve">
+        <value>Usuń</value>
+    </data>
+	<data name="Admin_Logs_Delete_Confirm" xml:space="preserve">
+        <value>Czy usunąć ten wpis logów?</value>
+    </data>
+	<data name="Admin_Logs_Delete_Success" xml:space="preserve">
+        <value>Wpis logów został usunięty.</value>
+    </data>
 	<data name="Admin_Logs_Empty" xml:space="preserve">
     <value>Brak logów do wyświetlenia</value>
   </data>
@@ -2316,6 +2373,9 @@
   </data>
 	<data name="Auth_SecurityQuestions_Answer_MinLength" xml:space="preserve">
     <value>Odpowiedź musi mieć co najmniej 3 znaki.</value>
+		</data>
+	<data name="Auth_SecurityQuestions_Answer_Required" xml:space="preserve">
+    <value>Podaj odpowiedź.</value>
   </data>
 	<data name="Games_Details_PlayHeading">
 		<value>Graj</value>
@@ -2403,6 +2463,21 @@
 	    </data>
 	<data name="Games_Details_Comments_Error" xml:space="preserve">
 	        <value>Nie udało się zapisać komentarza. Spróbuj ponownie.</value>
+	    </data>
+	<data name="Games_Details_Comments_Quote" xml:space="preserve">
+	        <value>Cytuj</value>
+	    </data>
+	<data name="Games_Details_Comments_Edit" xml:space="preserve">
+	        <value>Edytuj</value>
+	    </data>
+	<data name="Games_Details_Comments_Delete" xml:space="preserve">
+	        <value>Usuń</value>
+	    </data>
+	<data name="Games_Details_Comments_QuoteFrom" xml:space="preserve">
+	        <value>Cytat od {0}</value>
+	    </data>
+	<data name="Games_Details_Comments_QuoteClear" xml:space="preserve">
+	        <value>Wyczyść cytat</value>
 	    </data>
 	<data name="Games_Details_Comments_Anonymous" xml:space="preserve">
 	        <value>Anonimowy gracz</value>
@@ -2735,6 +2810,12 @@
 </data>
 	<data name="Navigation_Friends" xml:space="preserve">
   <value>Znajomi</value>
+		</data>
+	<data name="Navigation_Notifications" xml:space="preserve">
+  <value>Powiadomienia</value>
+</data>
+	<data name="Navigation_Ranking" xml:space="preserve">
+  <value>Ranking</value>
 </data>
 	<data name="Navigation_Submit_Game" xml:space="preserve">
   <value>Dodaj grę</value>

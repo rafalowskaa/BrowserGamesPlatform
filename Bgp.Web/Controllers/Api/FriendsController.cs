@@ -123,6 +123,47 @@ public class FriendsController : ControllerBase
                 .Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionaryAsync(g => g.Key, g => g.Count);
 
+        var currentGameLookup = new Dictionary<string, (string Title, string Slug)>();
+        if (friendIds.Count > 0)
+        {
+            var now = DateTime.UtcNow;
+            var activeHostSessions = await _db.MatchSessions
+                .Where(s => s.ExpiresAtUtc > now && friendIds.Contains(s.UserId))
+                .Select(s => new { s.UserId, s.GameId, s.CreatedAtUtc })
+                .ToListAsync();
+
+            var activeGuestSessions = await _db.SessionPlayers
+                .Where(p => friendIds.Contains(p.UserId))
+                .Join(_db.MatchSessions.Where(s => s.ExpiresAtUtc > now),
+                    player => player.SessionId,
+                    session => session.Id,
+                    (player, session) => new { player.UserId, session.GameId, session.CreatedAtUtc })
+                .ToListAsync();
+
+            var latestSessions = activeHostSessions
+                .Concat(activeGuestSessions)
+                .GroupBy(entry => entry.UserId)
+                .Select(group => group.OrderByDescending(entry => entry.CreatedAtUtc).First())
+                .ToList();
+
+            var activeGameIds = latestSessions.Select(entry => entry.GameId).Distinct().ToList();
+            var gameLookup = activeGameIds.Count == 0
+                ? new Dictionary<Guid, (string Title, string Slug)>()
+                : await _db.Games
+                    .AsNoTracking()
+                    .Where(g => activeGameIds.Contains(g.Id))
+                    .Select(g => new { g.Id, g.Title, g.Slug })
+                    .ToDictionaryAsync(g => g.Id, g => (g.Title, g.Slug));
+
+            foreach (var session in latestSessions)
+            {
+                if (gameLookup.TryGetValue(session.GameId, out var game))
+                {
+                    currentGameLookup[session.UserId] = game;
+                }
+            }
+        }
+
         bool CanSeeDisplayName(string id)
         {
             if (!profileLookup.TryGetValue(id, out var profile))
@@ -174,6 +215,10 @@ public class FriendsController : ControllerBase
 
         int ResolveUnread(string id) => unreadLookup.TryGetValue(id, out var count) ? count : 0;
 
+        (string? Title, string? Slug) ResolveCurrentGame(string id) =>
+            currentGameLookup.TryGetValue(id, out var game) ? (game.Title, game.Slug) : (null, null);
+
+
         RankSnapshot ResolveRank(string id)
         {
             if (rankLookup.TryGetValue(id, out var snapshot))
@@ -188,6 +233,7 @@ public class FriendsController : ControllerBase
             .Select(id =>
             {
                 var rank = ResolveRank(id);
+                var currentGame = ResolveCurrentGame(id);
                 return new FriendDto(
                     id,
                     ResolveName(id),
@@ -201,6 +247,8 @@ public class FriendsController : ControllerBase
                     ResolvePresence(id),
                     ResolveInvisible(id),
                     ResolveUnread(id),
+                    currentGame.Title,
+                    currentGame.Slug,
                     false);
             })
             .ToList();
@@ -209,6 +257,7 @@ public class FriendsController : ControllerBase
             .Select(id =>
             {
                 var rank = ResolveRank(id);
+                var currentGame = ResolveCurrentGame(id);
                 return new FriendDto(
                     id,
                     ResolveName(id),
@@ -222,6 +271,8 @@ public class FriendsController : ControllerBase
                     ResolvePresence(id),
                     ResolveInvisible(id),
                     0,
+                    currentGame.Title,
+                    currentGame.Slug,
                     false);
             })
             .ToList();
@@ -230,6 +281,7 @@ public class FriendsController : ControllerBase
             .Select(id =>
             {
                 var rank = ResolveRank(id);
+                var currentGame = ResolveCurrentGame(id);
                 return new FriendDto(
                     id,
                     ResolveName(id),
@@ -243,6 +295,8 @@ public class FriendsController : ControllerBase
                     ResolvePresence(id),
                     ResolveInvisible(id),
                     0,
+                    currentGame.Title,
+                    currentGame.Slug,
                     false);
             })
             .ToList();
@@ -258,6 +312,7 @@ public class FriendsController : ControllerBase
             .Select(id =>
             {
                 var rank = ResolveRank(id);
+                var currentGame = ResolveCurrentGame(id);
                 return new FriendDto(
                     id,
                     ResolveName(id),
@@ -271,6 +326,8 @@ public class FriendsController : ControllerBase
                     ResolvePresence(id),
                     ResolveInvisible(id),
                     0,
+                    currentGame.Title,
+                    currentGame.Slug,
                     true);
             })
             .ToList();
@@ -279,6 +336,7 @@ public class FriendsController : ControllerBase
             .Select(id =>
             {
                 var rank = ResolveRank(id);
+                var currentGame = ResolveCurrentGame(id);
                 return new FriendDto(
                     id,
                     ResolveName(id),
@@ -292,6 +350,8 @@ public class FriendsController : ControllerBase
                     ResolvePresence(id),
                     ResolveInvisible(id),
                     0,
+                    currentGame.Title,
+                    currentGame.Slug,
                     false);
             })
             .ToList();
