@@ -273,7 +273,6 @@
                             </label>
                         }
                         </div>
-                    <button type="button" class="btn-secondary" data-theater-toggle>@L["Games_Details_Play_Theater"].Value</button>
                     <button type="button" class="btn-secondary" data-invite-open>@L["Games_Details_InviteAction"].Value</button>
                 </div>
             </div>
@@ -316,12 +315,7 @@
         </section>
 
     <section class="game-tab-panel @(activeTab == "rules" ? "is-active" : string.Empty)" data-tab-panel="rules" @(activeTab == "rules" ? "" : "hidden")>
-        <div class="grid two-columns">
-            <aside class="card rules-toc">
-                <h3>@L["Games_Details_Rules_Toc"].Value</h3>
-                <ul data-rules-toc></ul>
-                <p class="muted">@L["Games_Details_Rules_Updated"].Value: @(game.UpdatedAtUtc ?? game.CreatedAtUtc).ToLocalTime().ToString("g")</p>
-                </aside>
+        <div class="grid rules-grid">
             <article class="card rules-body">
                     <header class="section-header">
                         <p class="eyebrow">@L["Games_Details_Rules_Heading"].Value</p>

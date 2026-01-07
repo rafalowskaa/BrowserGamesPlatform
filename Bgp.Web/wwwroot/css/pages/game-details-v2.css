@@ -198,6 +198,10 @@
     gap: 1rem;
 }
 
+.rules-grid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 .card {
     background: #0b1220;
     border: 1px solid rgba(255, 255, 255, 0.05);

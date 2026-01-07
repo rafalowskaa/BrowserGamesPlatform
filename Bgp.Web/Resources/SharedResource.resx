@@ -2483,6 +2483,12 @@
 	<data name="Games_Details_Comments_Delete" xml:space="preserve">
                 <value>Delete</value>
             </data>
+	<data name="Games_Details_Comments_DeleteConfirm" xml:space="preserve">
+                <value>Are you sure you want to delete this comment?</value>
+            </data>
+	<data name="Games_Details_Comments_EditConfirm" xml:space="preserve">
+                <value>Edit comment</value>
+            </data>
 	<data name="Games_Details_Comments_QuoteFrom" xml:space="preserve">
                 <value>Quote from {0}</value>
             </data>

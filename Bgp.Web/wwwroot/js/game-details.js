@@ -215,7 +215,7 @@
     async function startSession(mode) {
         if (!config.play?.hasWeb || !config.play?.webUrl || !config.play?.sessionUrl) {
             setPlayerStatus('error', config.text?.playError);
-            return;
+            return false;
         }
         setPlayerStatus('loading', config.text?.playLoading);
 
@@ -233,9 +233,11 @@
             const url = buildGameUrl(mode, currentSessionId, currentToken);
             playerFrame.src = url;
             setPlayerStatus('ready', config.text?.playReady);
+            return true;
         } catch (err) {
             console.error(err);
             setPlayerStatus('error', config.text?.playError);
+            return false;
         }
     }
 
@@ -554,7 +556,7 @@
         likeBtn?.addEventListener('click', () => submitReaction(id, 'like'));
         dislikeBtn?.addEventListener('click', () => submitReaction(id, 'dislike'));
         deleteBtn?.addEventListener('click', () => deleteComment(id));
-        editBtn?.addEventListener('click', () => editComment(id, item.text));
+        editBtn?.addEventListener('click', () => editComment(id, decodedBody));
         quoteBtn?.addEventListener('click', () => startQuote(id, decodedBody, item.author));
 
         return clone;
@@ -830,9 +832,16 @@
     }
 
     async function sendInvite(friendId) {
-        if (!currentSessionId || !config.invites?.createTemplate) {
+        if (!config.invites?.createTemplate) {
             setPlayerStatus('error', config.text?.inviteError);
             return;
+        }
+        if (!currentSessionId) {
+            const started = await startSession(selectedMode());
+            if (!started || !currentSessionId) {
+                setPlayerStatus('error', config.text?.inviteError);
+                return;
+            }
         }
         const url = config.invites.createTemplate.replace('{sessionId}', currentSessionId);
         try {

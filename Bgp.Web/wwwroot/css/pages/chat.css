@@ -52,6 +52,7 @@
     width: auto;
     max-width: min(calc(100vw - (var(--chat-gutter) * 2)), 1600px);
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
     transform: translateY(0.75rem);
     transition: opacity 0.25s ease, transform 0.25s ease;
@@ -64,11 +65,17 @@
 .chat-dock.is-open .chat-workspace {
     opacity: 1;
     transform: translateY(0);
+    visibility: visible;
     pointer-events: auto;
 }
 
 .chat-dock.is-open {
     inset: auto var(--chat-gutter) var(--chat-offset-bottom) auto;
+}
+
+.chat-dock:not(.is-open) .chat-workspace,
+.chat-dock:not(.is-open) .chat-workspace * {
+    pointer-events: none;
 }
 
 

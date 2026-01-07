@@ -2473,6 +2473,12 @@
 	<data name="Games_Details_Comments_Delete" xml:space="preserve">
 	        <value>Usuń</value>
 	    </data>
+	<data name="Games_Details_Comments_DeleteConfirm" xml:space="preserve">
+	        <value>Czy na pewno chcesz usunąć ten komentarz?</value>
+	    </data>
+	<data name="Games_Details_Comments_EditConfirm" xml:space="preserve">
+	        <value>Edytuj komentarz</value>
+	    </data>
 	<data name="Games_Details_Comments_QuoteFrom" xml:space="preserve">
 	        <value>Cytat od {0}</value>
 	    </data>
