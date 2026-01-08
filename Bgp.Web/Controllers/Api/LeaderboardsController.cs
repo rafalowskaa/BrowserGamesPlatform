@@ -3,9 +3,7 @@ using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SixLabors.ImageSharp.ColorSpaces;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Bgp.Web.Controllers.Api;
 
@@ -79,6 +77,7 @@ public class LeaderboardsController : ControllerBase
                             ? g.Count(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase))
                             : g.Count()
                     })
+                    .Select(x => new { x.UserId, Best = (double)x.Best })
                     .OrderByDescending(x => x.Best)
                     .Take(Math.Clamp(top, 1, 200))
                     .ToList();

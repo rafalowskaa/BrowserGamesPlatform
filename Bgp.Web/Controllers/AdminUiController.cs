@@ -1558,17 +1558,17 @@ public class AdminUiController : Controller
             query = query.Where(l => l.Type == type.Value);
         }
 
-        List<Guid>? gameIds = null;
+        List<Guid>? filteredGameIds = null;
         if (!string.IsNullOrWhiteSpace(game))
         {
             var term = game.Trim();
-            gameIds = await _db.Games
+            filteredGameIds = await _db.Games
                 .Where(g => EF.Functions.Like(g.Slug, $"%{term}%") || EF.Functions.Like(g.Title, $"%{term}%"))
                 .Select(g => g.Id)
                 .ToListAsync();
-            if (gameIds.Count > 0)
+            if (filteredGameIds.Count > 0)
             {
-                query = query.Where(l => l.GameId.HasValue && gameIds.Contains(l.GameId.Value));
+                query = query.Where(l => l.GameId.HasValue && filteredGameIds.Contains(l.GameId.Value));
             }
             else
             {
@@ -1622,22 +1622,29 @@ public class AdminUiController : Controller
 
         var logs = items.Select(item =>
         {
-        var hasGame = item.GameId.HasValue && gameLookup.TryGetValue(item.GameId.Value, out var gameInfo);
-        return new AdminLogRowViewModel
-        {
-            Id = item.Id,
-            CreatedAtUtc = item.CreatedAtUtc,
-            Type = item.Type,
-            ActorUserId = item.ActorUserId,
-            TargetUserId = item.TargetUserId,
-            ActorDisplayName = item.ActorUserId != null && userLookup.TryGetValue(item.ActorUserId, out var actorName) ? actorName : item.ActorUserId,
-            TargetDisplayName = item.TargetUserId != null && userLookup.TryGetValue(item.TargetUserId, out var targetName) ? targetName : item.TargetUserId,
-            GameId = item.GameId,
-            GameSlug = hasGame ? gameInfo.Slug : null,
-            GameTitle = hasGame ? gameInfo.Title : null,
-            Rating = item.Rating,
-            Message = item.Message
-        };
+            string? gameSlug = null;
+            string? gameTitle = null;
+            if (item.GameId.HasValue && gameLookup.TryGetValue(item.GameId.Value, out var gameInfo))
+            {
+                gameSlug = gameInfo.Slug;
+                gameTitle = gameInfo.Title;
+            }
+
+            return new AdminLogRowViewModel
+            {
+                Id = item.Id,
+                CreatedAtUtc = item.CreatedAtUtc,
+                Type = item.Type,
+                ActorUserId = item.ActorUserId,
+                TargetUserId = item.TargetUserId,
+                ActorDisplayName = item.ActorUserId != null && userLookup.TryGetValue(item.ActorUserId, out var actorName) ? actorName : item.ActorUserId,
+                TargetDisplayName = item.TargetUserId != null && userLookup.TryGetValue(item.TargetUserId, out var targetName) ? targetName : item.TargetUserId,
+                GameId = item.GameId,
+                GameSlug = gameSlug,
+                GameTitle = gameTitle,
+                Rating = item.Rating,
+                Message = item.Message
+            };
         }).ToList();
 
         var vm = new AdminLogsViewModel
