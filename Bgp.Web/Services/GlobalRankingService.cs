@@ -59,12 +59,50 @@ public class GlobalRankingService
             .Select(g => new { g.Key, Count = g.Count() })
             .ToDictionaryAsync(g => g.Key, g => g.Count, cancellationToken);
 
-        var reviews = await _db.GameReviews
+        var ratings = await _db.GameReviews
             .AsNoTracking()
             .Where(r => r.IsRating)
             .GroupBy(r => r.UserId)
             .Select(g => new { g.Key, Count = g.Count() })
             .ToDictionaryAsync(g => g.Key, g => g.Count, cancellationToken);
+
+        var comments = await _db.GameReviews
+           .AsNoTracking()
+           .Where(r => !string.IsNullOrEmpty(r.Comment))
+           .GroupBy(r => r.UserId)
+           .Select(g => new { g.Key, Count = g.Count() })
+           .ToDictionaryAsync(g => g.Key, g => g.Count, cancellationToken);
+
+        var dailyLogins = await _db.ActivityLogs
+            .AsNoTracking()
+            .Where(log => log.Type == ActivityLogType.DailyLogin && log.ActorUserId != null)
+            .GroupBy(log => log.ActorUserId!)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToDictionaryAsync(g => g.Key, g => g.Count, cancellationToken);
+
+        var multiplayerCounts = new Dictionary<string, int>(StringComparer.Ordinal);
+        var multiplayerSessions = await _db.SessionPlayers
+            .AsNoTracking()
+            .GroupBy(player => player.SessionId)
+            .Select(group => new
+            {
+                group.Key,
+                UserIds = group.Select(x => x.UserId).Distinct().ToList()
+            })
+            .ToListAsync(cancellationToken);
+
+        foreach (var session in multiplayerSessions)
+        {
+            if (session.UserIds.Count <= 1)
+            {
+                continue;
+            }
+
+            foreach (var userId in session.UserIds)
+            {
+                multiplayerCounts[userId] = multiplayerCounts.GetValueOrDefault(userId) + 1;
+            }
+        }
 
         var scores = await _db.Scores
             .AsNoTracking()
@@ -155,7 +193,11 @@ public class GlobalRankingService
             {
                 UploadedGames = uploads.GetValueOrDefault(user.Id),
                 TotalScores = scoreInfo?.Count ?? 0,
-                TotalReviews = reviews.GetValueOrDefault(user.Id),
+                TotalReviews = ratings.GetValueOrDefault(user.Id),
+                TotalRatings = ratings.GetValueOrDefault(user.Id),
+                TotalComments = comments.GetValueOrDefault(user.Id),
+                DailyLoginCount = dailyLogins.GetValueOrDefault(user.Id),
+                MultiplayerMatches = multiplayerCounts.GetValueOrDefault(user.Id),
                 FriendsCount = friendCounts.GetValueOrDefault(user.Id),
                 BonusExperience = user.BonusExperience,
                 GamePerformances = new List<GamePerformanceStat>

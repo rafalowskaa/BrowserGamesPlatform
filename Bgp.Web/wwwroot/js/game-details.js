@@ -57,6 +57,7 @@
     const rulesInput = root.querySelector('[data-rules-input]');
     const rulesToolbar = root.querySelector('[data-rules-toolbar]');
     const rulesFeedback = root.querySelector('[data-rules-feedback]');
+    let alertsContainer = root.querySelector('[data-game-alerts]');
     const rankingPanel = root.querySelector('[data-game-ranking]');
     const rankingList = rankingPanel?.querySelector('[data-ranking-entries]');
     const rankingListWrapper = rankingPanel?.querySelector('[data-ranking-list]');
@@ -83,14 +84,18 @@
     let rankingLoaded = false;
     const commentReactions = new Map();
     const commentVotes = new Map();
+    let rulesImageInput = null;
+    let leaveRequestSent = false;
 
     initialize();
 
     function initialize() {
+        ensureAlertsContainer();
         setupTabs();
         setupTabTargets();
         setupCopy();
         setupPlay();
+        setupSessionCleanup();
         setupRating();
         setupComments();
         setupRulesEditor();
@@ -218,6 +223,7 @@
 
         currentSessionId = sessionId;
         currentToken = token;
+        leaveRequestSent = false;
 
         const modeValue = Number.isFinite(mode) && mode > 0 ? mode : selectedMode();
         playerFrame.src = buildGameUrl(modeValue, sessionId, token);
@@ -250,6 +256,7 @@
             const data = await res.json();
             currentSessionId = data.session_id || data.sessionId;
             currentToken = data.token;
+            leaveRequestSent = false;
             const url = buildGameUrl(mode, currentSessionId, currentToken);
             playerFrame.src = url;
             setPlayerStatus('ready', config.text?.playReady);
@@ -387,6 +394,9 @@
         ratingFeedback.hidden = !message;
         ratingFeedback.classList.toggle('is-error', !!isError);
         if (message) {
+            showAlert(message, isError ? 'error' : 'success');
+        }
+        if (message) {
             ratingFeedbackTimer = setTimeout(() => {
                 ratingFeedback.hidden = true;
                 ratingFeedback.textContent = '';
@@ -459,10 +469,12 @@
                 updateRulesContent(content);
                 originalText = content;
                 setRulesFeedback(config.text?.rulesSaved || '', false);
+                showAlert(config.text?.rulesSaved || '', 'success');
                 exitEditMode(false);
             } catch (err) {
                 console.error(err);
                 setRulesFeedback(config.text?.rulesSaveError || '', true);
+                showAlert(config.text?.rulesSaveError || '', 'error');
             }
         });
 
@@ -501,12 +513,31 @@
         });
 
         rulesToolbar.querySelector('[data-rules-image]')?.addEventListener('click', () => {
-            const url = window.prompt('Image URL');
-            if (!url) return;
-            const alt = window.prompt('Image description') || '';
-            rulesInput.focus();
-            const imgHtml = `<img src="${url}" alt="${alt}" />`;
-            document.execCommand('insertHTML', false, imgHtml);
+            if (!rulesImageInput) {
+                rulesImageInput = document.createElement('input');
+                rulesImageInput.type = 'file';
+                rulesImageInput.accept = 'image/*';
+                rulesImageInput.hidden = true;
+                rulesImageInput.addEventListener('change', async () => {
+                    const file = rulesImageInput.files && rulesImageInput.files[0];
+                    if (!file) {
+                        return;
+                    }
+                    try {
+                        const dataUrl = await readFileAsDataUrl(file);
+                        rulesInput.focus();
+                        const safeAlt = file.name ? file.name.replace(/"/g, '') : '';
+                        const imgHtml = `<img src="${dataUrl}" alt="${safeAlt}" />`;
+                        document.execCommand('insertHTML', false, imgHtml);
+                    } catch (err) {
+                        console.error('Failed to load image.', err);
+                    } finally {
+                        rulesImageInput.value = '';
+                    }
+                });
+                rulesToolbar.appendChild(rulesImageInput);
+            }
+            rulesImageInput.click();
         });
     }
 
@@ -567,8 +598,13 @@
             rows.forEach((row, index) => {
                 const name = row.userName || row.user_name || row.UserName || '—';
                 const score = Number(row.bestScore ?? row.best_score ?? row.BestScore ?? 0);
+                const matches = Number(row.totalMatches ?? row.total_matches ?? row.TotalMatches ?? 0);
+                const xp = Number(row.experiencePoints ?? row.experience_points ?? row.ExperiencePoints ?? 0);
 
                 const item = document.createElement('li');
+                if (index === 0) {
+                    item.classList.add('is-top');
+                }
                 const position = document.createElement('span');
                 position.className = 'leaderboard__position';
                 position.textContent = `#${index + 1}`;
@@ -577,13 +613,32 @@
                 player.className = 'leaderboard__name';
                 player.textContent = name;
 
-                const value = document.createElement('span');
-                value.className = 'leaderboard__score';
-                value.textContent = Number.isFinite(score) ? score.toLocaleString() : '0';
+                const stats = document.createElement('span');
+                stats.className = 'leaderboard__stats';
+
+                const scoreLabel = config.text?.rankingScoreLabel || 'Score';
+                const matchesLabel = config.text?.rankingMatchesLabel || 'Matches';
+                const xpLabel = config.text?.rankingXpLabel || 'XP';
+
+                const scoreValue = document.createElement('span');
+                scoreValue.className = 'leaderboard__stat';
+                scoreValue.textContent = `${scoreLabel}: ${Number.isFinite(score) ? score.toLocaleString() : '0'}`;
+
+                const matchesValue = document.createElement('span');
+                matchesValue.className = 'leaderboard__stat';
+                matchesValue.textContent = `${matchesLabel}: ${Number.isFinite(matches) ? matches.toLocaleString() : '0'}`;
+
+                const xpValue = document.createElement('span');
+                xpValue.className = 'leaderboard__stat';
+                xpValue.textContent = `${xpLabel}: ${Number.isFinite(xp) ? xp.toLocaleString() : '0'}`;
+
+                stats.appendChild(scoreValue);
+                stats.appendChild(matchesValue);
+                stats.appendChild(xpValue);
 
                 item.appendChild(position);
                 item.appendChild(player);
-                item.appendChild(value);
+                item.appendChild(stats);
                 rankingList.appendChild(item);
             });
             rankingListWrapper?.removeAttribute('hidden');
@@ -930,11 +985,13 @@
             commentInput.value = '';
             clearQuotePreview(false);
             setCommentFeedback(config.text?.commentSuccess || '', false);
+            showAlert(config.text?.commentSuccess || '', 'success');
             await loadComments(1);
             await fetchRatings();
         } catch (err) {
             console.error(err);
             setCommentFeedback(config.text?.commentError || '', true);
+            showAlert(config.text?.commentError || '', 'error');
         } finally {
             commentInput.disabled = false;
         }
@@ -1017,7 +1074,9 @@
             const res = await fetch('/api/friends', { credentials: 'include' });
             if (!res.ok) throw new Error('Failed to load friends');
             const data = await res.json();
-            const accepted = Array.isArray(data) ? data.filter(f => Number(f.status) === 1 && !f.outgoingRequest) : [];
+            const accepted = Array.isArray(data)
+                ? data.filter(f => (Number(f.status) === 1 || f.status === 'Accepted') && !f.outgoingRequest)
+                : [];
             inviteList.dataset.friends = JSON.stringify(accepted);
             renderInviteList();
         } catch (err) {
@@ -1089,10 +1148,12 @@
             if (!res.ok) throw new Error('Invite failed');
             setPlayerStatus('ready', config.text?.inviteSuccess);
             setInviteStatus(config.text?.inviteSuccess || '', false);
+            showAlert(config.text?.inviteSuccess || '', 'success');
         } catch (err) {
             console.error(err);
             setPlayerStatus('error', config.text?.inviteError);
             setInviteStatus(config.text?.inviteError || '', true);
+            showAlert(config.text?.inviteError || '', 'error');
         }
 
     }
@@ -1114,6 +1175,69 @@
                 inviteStatusTimer = null;
             }, 3500);
         }
+    }
+
+    function ensureAlertsContainer() {
+        if (alertsContainer) {
+            return;
+        }
+        alertsContainer = document.createElement('div');
+        alertsContainer.className = 'game-alerts';
+        alertsContainer.dataset.gameAlerts = '';
+        alertsContainer.setAttribute('aria-live', 'polite');
+        root.prepend(alertsContainer);
+    }
+
+    function showAlert(message, tone = 'info') {
+        if (!message || !alertsContainer) {
+            return;
+        }
+        const alert = document.createElement('div');
+        alert.className = `game-alert is-${tone}`;
+        alert.textContent = message;
+        alertsContainer.appendChild(alert);
+        window.setTimeout(() => {
+            alert.classList.add('is-hidden');
+            window.setTimeout(() => alert.remove(), 400);
+        }, 3200);
+    }
+
+    function setupSessionCleanup() {
+        if (!config.play?.leaveTemplate) {
+            return;
+        }
+        window.addEventListener('pagehide', sendLeaveSignal);
+        window.addEventListener('beforeunload', sendLeaveSignal);
+    }
+
+    function sendLeaveSignal() {
+        if (leaveRequestSent || !currentSessionId) {
+            return;
+        }
+        leaveRequestSent = true;
+        const url = config.play.leaveTemplate.replace('{sessionId}', currentSessionId);
+        const body = JSON.stringify({ sessionId: currentSessionId });
+        if (navigator.sendBeacon) {
+            const blob = new Blob([body], { type: 'application/json' });
+            navigator.sendBeacon(url, blob);
+            return;
+        }
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body,
+            keepalive: true
+        }).catch(() => { /* ignored */ });
+    }
+
+    function readFileAsDataUrl(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+        });
     }
 
     function wrapSelectionWithSpan(className) {

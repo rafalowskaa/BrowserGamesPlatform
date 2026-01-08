@@ -202,6 +202,12 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
+.rules-body {
+    padding: 0.9rem;
+    border-color: rgba(148, 163, 184, 0.12);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+}
+
 .card {
     background: #0b1220;
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -227,6 +233,40 @@
 .muted {
     color: #94a3b8;
 }
+
+.game-alerts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.game-alert {
+    background: rgba(30, 41, 59, 0.9);
+    color: #e2e8f0;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    padding: 0.65rem 0.9rem;
+    font-weight: 600;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+    .game-alert.is-success {
+        border-color: rgba(34, 197, 94, 0.45);
+        color: #dcfce7;
+        background: rgba(20, 83, 45, 0.7);
+    }
+
+    .game-alert.is-error {
+        border-color: rgba(248, 113, 113, 0.5);
+        color: #fee2e2;
+        background: rgba(127, 29, 29, 0.7);
+    }
+
+    .game-alert.is-hidden {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
 
 .quick-facts {
     display: grid;
@@ -684,8 +724,8 @@
 
     .ranking-panel .leaderboard__list li {
         display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 0.75rem;
+        grid-template-columns: minmax(0, 0.18fr) minmax(0, 0.35fr) minmax(0, 0.47fr);
+        gap: 0.65rem;
         align-items: center;
         padding: 0.55rem 0.85rem;
         border-radius: 0.75rem;
@@ -694,9 +734,19 @@
         font-variant-numeric: tabular-nums;
     }
 
+        .ranking-panel .leaderboard__list li.is-top {
+            background: rgba(248, 250, 252, 0.08);
+            border: 1px solid rgba(250, 204, 21, 0.35);
+        }
+
 .ranking-panel .leaderboard__position {
     font-weight: 700;
     color: #93c5fd;
+}
+
+.ranking-panel .leaderboard__list li.is-top .leaderboard__position::before {
+    content: '👑';
+    margin-right: 0.35rem;
 }
 
 .ranking-panel .leaderboard__name {
@@ -709,6 +759,20 @@
     font-weight: 600;
     color: #bae6fd;
     text-align: right;
+}
+
+.ranking-panel .leaderboard__stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    text-align: right;
+    font-size: 0.9rem;
+    color: #cbd5f5;
+    font-weight: 600;
+}
+
+.ranking-panel .leaderboard__stat {
+    white-space: nowrap;
 }
 
         .comment-actions .btn-ghost.is-active {

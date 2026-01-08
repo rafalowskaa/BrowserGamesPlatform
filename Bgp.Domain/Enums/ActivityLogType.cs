@@ -17,5 +17,6 @@ public enum ActivityLogType
     GameInviteAccepted = 12,
     GameSessionCreated = 13,
     ReportUpdated = 14,
-    AdminAction = 15
+    AdminAction = 15,
+    DailyLogin = 16
 }

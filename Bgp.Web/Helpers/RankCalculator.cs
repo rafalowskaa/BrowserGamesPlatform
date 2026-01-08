@@ -61,24 +61,45 @@ public static class RankCalculator
 
     public static int CalculateExperiencePoints(DashboardStatsViewModel stats) => CalculateTotalExperience(stats);
 
+    public static int CalculateGameExperience(GamePerformanceStat game)
+    {
+        if (game is null)
+        {
+            return 0;
+        }
+
+        return CalculateGameExperience(game.TotalMatches, game.RankPosition, game.TotalPlayers);
+    }
+
+    public static int CalculateGameExperience(int totalMatches, int rankPosition, int totalPlayers)
+    {
+        var participants = Math.Max(1, totalPlayers);
+        var normalizedRank = Math.Clamp(rankPosition, 1, participants);
+        var percentile = participants == 1
+            ? 1d
+            : 1d - (normalizedRank - 1d) / participants;
+
+        var volumeBoost = Math.Clamp(Math.Log10(totalMatches + 1d) + 0.2d, 0.55d, 1.6d);
+        var skillMultiplier = 0.55d + percentile * 0.45d;
+        var xp = 85d * skillMultiplier * volumeBoost;
+        return (int)Math.Round(xp);
+    }
+
     private static int CalculateTotalExperience(DashboardStatsViewModel stats)
     {
         var xpFromGames = 0d;
 
         foreach (var game in stats.GamePerformances)
         {
-            var participants = Math.Max(1, game.TotalPlayers);
-            var percentile = participants == 1
-                ? 1d
-                : 1d - (game.RankPosition - 1d) / participants;
-
-            var volumeBoost = Math.Clamp(Math.Log10(game.TotalMatches + 1d) + 0.2d, 0.55d, 1.6d);
-            var skillMultiplier = 0.55d + percentile * 0.45d;
-
-            xpFromGames += 85d * skillMultiplier * volumeBoost;
+            xpFromGames += CalculateGameExperience(game.TotalMatches, game.RankPosition, game.TotalPlayers);
         }
 
-        var engagementXp = stats.UploadedGames * 140 + stats.TotalReviews * 30 + stats.FriendsCount * 15;
+        var engagementXp = stats.UploadedGames * 140
+                           + stats.TotalRatings * 35
+                           + stats.TotalComments * 20
+                           + stats.FriendsCount * 15
+                           + stats.MultiplayerMatches * 20
+                           + stats.DailyLoginCount * 12;
         var activityXp = Math.Min(stats.TotalScores * 6, 360);
         var dailyXp = Math.Min(Math.Max(stats.DailyGoalsCompleted, 0) * 40, 160);
 

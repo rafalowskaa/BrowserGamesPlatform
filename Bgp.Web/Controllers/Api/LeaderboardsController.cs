@@ -50,10 +50,23 @@ public class LeaderboardsController : ControllerBase
         var rows = await _db.Scores
             .Where(s => s.GameId == gameId && s.Verified)
             .GroupBy(s => s.UserId)
-            .Select(g => new { UserId = g.Key, Best = g.Max(s => s.Value) })
+            .Select(g => new
+            {
+                UserId = g.Key,
+                Best = g.Max(s => s.Value),
+                Matches = g.Count()
+            })
             .OrderByDescending(x => x.Best)
             .Take(Math.Clamp(top, 1, 200))
             .ToListAsync();
+
+        var totalPlayers = rows.Count == 0
+            ? 0
+            : await _db.Scores
+                .Where(s => s.GameId == gameId && s.Verified)
+                .Select(s => s.UserId)
+                .Distinct()
+                .CountAsync();
 
         if (rows.Count == 0)
         {
@@ -66,6 +79,7 @@ public class LeaderboardsController : ControllerBase
 
             if (playerRows.Count > 0)
             {
+                totalPlayers = playerRows.Select(r => r.UserId).Distinct().Count();
                 var hasResults = playerRows.Any(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase)
                                                      || string.Equals(r.Role, "loser", StringComparison.OrdinalIgnoreCase));
                 rows = playerRows
@@ -77,7 +91,7 @@ public class LeaderboardsController : ControllerBase
                             ? g.Count(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase))
                             : g.Count()
                     })
-                    .Select(x => new { x.UserId, Best = (double)x.Best })
+                    .Select(x => new { x.UserId, Best = (double)x.Best, Matches = x.Best })
                     .OrderByDescending(x => x.Best)
                     .Take(Math.Clamp(top, 1, 200))
                     .ToList();
@@ -93,7 +107,23 @@ public class LeaderboardsController : ControllerBase
             u => u.Id,
             u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id));
 
-        return rows.Select(r => new LeaderboardRowDto(nameLookup.GetValueOrDefault(r.UserId, r.UserId.ToUpperInvariant()), r.Best));
+        var ordered = rows
+            .OrderByDescending(r => r.Best)
+            .ToList();
+
+        return ordered.Select((r, index) =>
+        {
+            var position = index + 1;
+            var matches = r.Matches;
+            var xp = RankCalculator.CalculateGameExperience(matches, position, Math.Max(1, totalPlayers));
+            return new LeaderboardRowDto(
+                nameLookup.GetValueOrDefault(r.UserId, r.UserId.ToUpperInvariant()),
+                r.Best,
+                matches,
+                position,
+                totalPlayers,
+                xp);
+        });
     }
 
     private static string QuoteCsv(string value)

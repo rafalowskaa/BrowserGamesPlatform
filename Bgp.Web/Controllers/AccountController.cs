@@ -7,6 +7,8 @@ using System.Linq;
 using Bgp.Web.Models;
 using Bgp.Domain.Enums;
 using Bgp.Web.Services;
+using Bgp.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -23,12 +25,23 @@ public class AccountController : Controller
     private readonly IStringLocalizer<SharedResource> _localizer;
     private readonly IPresenceNotifier _presenceNotifier;
 
-    public AccountController(SignInManager<ApplicationUser> signIn, UserManager<ApplicationUser> users, IStringLocalizer<SharedResource> localizer, IPresenceNotifier presenceNotifier)
+    private readonly AppDbContext _db;
+    private readonly IActivityLogger _logger;
+
+    public AccountController(
+        SignInManager<ApplicationUser> signIn,
+        UserManager<ApplicationUser> users,
+        IStringLocalizer<SharedResource> localizer,
+        IPresenceNotifier presenceNotifier,
+        AppDbContext db,
+        IActivityLogger logger)
     {
         _signIn = signIn;
         _users = users;
         _localizer = localizer;
         _presenceNotifier = presenceNotifier;
+        _db = db;
+        _logger = logger;
     }
 
     [AllowAnonymous]
@@ -118,6 +131,17 @@ public class AccountController : Controller
                 }
 
                 await _presenceNotifier.BroadcastAsync(signInUser.Id, signInUser.StatusMessage, signInUser.PresenceStatus, signInUser.IsInvisible);
+
+                var today = DateTime.UtcNow.Date;
+                var alreadyLogged = await _db.ActivityLogs
+                    .AsNoTracking()
+                    .AnyAsync(log => log.ActorUserId == signInUser.Id
+                                     && log.Type == ActivityLogType.DailyLogin
+                                     && log.CreatedAtUtc >= today);
+                if (!alreadyLogged)
+                {
+                    await _logger.LogAsync(ActivityLogType.DailyLogin, signInUser.Id);
+                }
             }
 
             var target = vm.ReturnUrl;

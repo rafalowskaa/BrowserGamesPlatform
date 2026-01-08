@@ -969,6 +969,9 @@
   </data>
 	<data name="Admin_Logs_Type_AdminAction" xml:space="preserve">
     <value>Akcja administratora</value>
+		</data>
+	<data name="Admin_Logs_Type_DailyLogin" xml:space="preserve">
+    <value>Dzienne logowanie</value>
   </data>
 	<data name="Admin_Logs_Rating_Label" xml:space="preserve">
      <value>Ocena:</value>
@@ -3628,6 +3631,15 @@
   </data>
 	<data name="Games_Details_Ranking_Download" xml:space="preserve">
     <value>Pobierz ranking</value>
+		 </data>
+	<data name="Games_Details_Ranking_ScoreLabel" xml:space="preserve">
+    <value>Wynik</value>
+  </data>
+	<data name="Games_Details_Ranking_MatchesLabel" xml:space="preserve">
+    <value>Rozegrane</value>
+  </data>
+	<data name="Games_Details_Ranking_XpLabel" xml:space="preserve">
+    <value>PD</value>
   </data>
 	<data name="Games_Details_Play_Theater" xml:space="preserve">
     <value>Tryb kinowy</value>

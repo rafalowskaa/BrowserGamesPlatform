@@ -327,6 +327,20 @@ public class HomeController : Controller
             UploadedGames = await _db.Games.CountAsync(g => g.CreatedByUserId == user.Id),
             TotalScores = await _db.Scores.CountAsync(s => s.UserId == user.Id),
             TotalReviews = await _db.GameReviews.CountAsync(r => r.UserId == user.Id),
+            TotalRatings = await _db.GameReviews.CountAsync(r => r.UserId == user.Id && r.IsRating),
+            TotalComments = await _db.GameReviews.CountAsync(r => r.UserId == user.Id && !string.IsNullOrEmpty(r.Comment)),
+            DailyLoginCount = await _db.ActivityLogs.CountAsync(log => log.ActorUserId == user.Id && log.Type == ActivityLogType.DailyLogin),
+            MultiplayerMatches = await _db.SessionPlayers
+                .Where(player => player.UserId == user.Id)
+                .Select(player => player.SessionId)
+                .Distinct()
+                .Join(_db.SessionPlayers
+                        .GroupBy(player => player.SessionId)
+                        .Select(group => new { group.Key, Count = group.Select(x => x.UserId).Distinct().Count() }),
+                    sessionId => sessionId,
+                    group => group.Key,
+                    (sessionId, group) => group.Count)
+                .CountAsync(count => count > 1),
             FriendsCount = await _db.Friendships.CountAsync(f =>
                 f.Status == FriendshipStatus.Accepted &&
                (f.RequesterId == user.Id || f.AddresseeId == user.Id)),

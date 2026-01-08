@@ -699,18 +699,75 @@ public class FriendsController : ControllerBase
             }
         }
 
-        var reviewCounts = await _db.GameReviews
+        var ratingCounts = await _db.GameReviews
             .AsNoTracking()
             .Where(r => ids.Contains(r.UserId) && r.IsRating)
             .GroupBy(r => r.UserId)
             .Select(g => new { g.Key, Count = g.Count() })
             .ToListAsync();
 
-        foreach (var entry in reviewCounts)
+        foreach (var entry in ratingCounts)
         {
             if (statsByUser.TryGetValue(entry.Key, out var stats))
             {
-                stats.TotalReviews = entry.Count;
+                stats.TotalRatings = entry.Count;
+            }
+        }
+
+        var commentCounts = await _db.GameReviews
+            .AsNoTracking()
+            .Where(r => ids.Contains(r.UserId) && !string.IsNullOrEmpty(r.Comment))
+            .GroupBy(r => r.UserId)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        foreach (var entry in commentCounts)
+        {
+            if (statsByUser.TryGetValue(entry.Key, out var stats))
+            {
+                stats.TotalComments = entry.Count;
+            }
+        }
+
+        var dailyLogins = await _db.ActivityLogs
+            .AsNoTracking()
+            .Where(log => log.Type == ActivityLogType.DailyLogin && log.ActorUserId != null && ids.Contains(log.ActorUserId))
+            .GroupBy(log => log.ActorUserId!)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        foreach (var entry in dailyLogins)
+        {
+            if (statsByUser.TryGetValue(entry.Key, out var stats))
+            {
+                stats.DailyLoginCount = entry.Count;
+            }
+        }
+
+        var multiplayerSessions = await _db.SessionPlayers
+            .AsNoTracking()
+            .Where(player => ids.Contains(player.UserId))
+            .GroupBy(player => player.SessionId)
+            .Select(group => new
+            {
+                group.Key,
+                UserIds = group.Select(x => x.UserId).Distinct().ToList()
+            })
+            .ToListAsync();
+
+        foreach (var session in multiplayerSessions)
+        {
+            if (session.UserIds.Count <= 1)
+            {
+                continue;
+            }
+
+            foreach (var userId in session.UserIds)
+            {
+                if (statsByUser.TryGetValue(userId, out var stats))
+                {
+                    stats.MultiplayerMatches++;
+                }
             }
         }
 

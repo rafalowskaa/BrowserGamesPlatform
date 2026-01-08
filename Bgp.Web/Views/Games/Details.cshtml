@@ -101,6 +101,7 @@
                 hasWeb = webOption is not null,
                 webUrl = webOption?.Url,
                 sessionUrl = Url.Content($"/api/games/{game.Id}/sessions"),
+                leaveTemplate = Url.Content($"/api/games/{game.Id}/sessions/{{sessionId}}/leave"),
                 modes = availableModes.Select(def => new { value = (int)def.Mode, label = L[def.ResourceKey].Value }).ToList(),
                 inviteHub = Url.Content("~/hubs/invites")
             },
@@ -178,11 +179,15 @@
                 rankingTitle = L["Games_Details_Ranking_Title"].Value,
                 rankingSubtitle = L["Games_Details_Ranking_Subtitle"].Value,
                 rankingEmpty = L["Games_Details_Ranking_Empty"].Value,
-                rankingLoading = L["Games_Details_Ranking_Loading"].Value
+                rankingLoading = L["Games_Details_Ranking_Loading"].Value,
+                rankingScoreLabel = L["Games_Details_Ranking_ScoreLabel"].Value,
+                rankingMatchesLabel = L["Games_Details_Ranking_MatchesLabel"].Value,
+                rankingXpLabel = L["Games_Details_Ranking_XpLabel"].Value
             }
         };
     }
     <div class="game-details" data-game-config>
+        <div class="game-alerts" data-game-alerts aria-live="polite"></div>
         <div class="game-hero" style="--hero-image:url('@bannerUrl');">
             <div class="game-hero__overlay"></div>
             <div class="game-hero__content">

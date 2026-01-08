@@ -4043,6 +4043,7 @@
             if (!content && !attachmentUrl) {
                 return;
             }
+            markConversationHistory(friend.userId);
             if (!options.skipInputClear) {
                 input.value = '';
                 autoGrowInput(input);
@@ -5715,6 +5716,7 @@
                 setFriend(friend);
                 ensureStrangerContact(friend);
             }
+            markConversationHistory(userId);
             if (displayName && displayName.trim() && friend.displayName !== displayName) {
                 friend.displayName = displayName;
                 updateFriendVisual(friend);

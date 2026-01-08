@@ -102,4 +102,45 @@ public class GameSessionsController : ControllerBase
             ws_url = session.WsUrl
         });
     }
+    [Authorize]
+    [HttpPost("{sessionId:guid}/leave")]
+    public async Task<ActionResult> Leave(Guid gameId, Guid sessionId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        var session = await _db.MatchSessions
+            .FirstOrDefaultAsync(s => s.Id == sessionId && s.GameId == gameId);
+        if (session is null)
+        {
+            return NotFound();
+        }
+
+        var player = await _db.SessionPlayers
+            .FirstOrDefaultAsync(p => p.SessionId == sessionId && p.UserId == userId);
+        if (player is not null)
+        {
+            _db.SessionPlayers.Remove(player);
+        }
+
+        var now = DateTime.UtcNow;
+        if (string.Equals(session.UserId, userId, StringComparison.OrdinalIgnoreCase))
+        {
+            session.ExpiresAtUtc = now;
+        }
+        else
+        {
+            var remainingPlayers = await _db.SessionPlayers.AnyAsync(p => p.SessionId == sessionId && p.UserId != userId);
+            if (!remainingPlayers)
+            {
+                session.ExpiresAtUtc = now;
+            }
+        }
+
+        await _db.SaveChangesAsync();
+        return Ok(new { session_id = sessionId, expires_at = session.ExpiresAtUtc });
+    }
 }

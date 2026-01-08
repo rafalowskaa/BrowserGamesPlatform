@@ -1029,11 +1029,30 @@ public class DashboardController : Controller
             })
             .ToList();
 
+        var totalRatings = await _db.GameReviews.CountAsync(r => r.UserId == user.Id && r.IsRating);
+        var totalComments = await _db.GameReviews.CountAsync(r => r.UserId == user.Id && !string.IsNullOrEmpty(r.Comment));
+        var dailyLogins = await _db.ActivityLogs.CountAsync(log => log.ActorUserId == user.Id && log.Type == ActivityLogType.DailyLogin);
+        var multiplayerMatches = await _db.SessionPlayers
+            .Where(player => player.UserId == user.Id)
+            .Select(player => player.SessionId)
+            .Distinct()
+            .Join(_db.SessionPlayers
+                    .GroupBy(player => player.SessionId)
+                    .Select(group => new { group.Key, Count = group.Select(x => x.UserId).Distinct().Count() }),
+                sessionId => sessionId,
+                group => group.Key,
+                (sessionId, group) => group.Count)
+            .CountAsync(count => count > 1);
+
         var stats = new DashboardStatsViewModel
         {
             UploadedGames = await _db.Games.CountAsync(g => g.CreatedByUserId == user.Id),
             TotalScores = await _db.Scores.CountAsync(s => s.UserId == user.Id),
             TotalReviews = await _db.GameReviews.CountAsync(r => r.UserId == user.Id),
+            TotalRatings = totalRatings,
+            TotalComments = totalComments,
+            DailyLoginCount = dailyLogins,
+            MultiplayerMatches = multiplayerMatches,
             FriendsCount = friendVms.Count,
             BonusExperience = user.BonusExperience
         };

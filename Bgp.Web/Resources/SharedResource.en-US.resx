@@ -945,6 +945,9 @@
   </data>
 	<data name="Admin_Logs_Type_AdminAction" xml:space="preserve">
     <value>Admin action</value>
+		</data>
+	<data name="Admin_Logs_Type_DailyLogin" xml:space="preserve">
+    <value>Daily login</value>
   </data>
 	<data name="Admin_Logs_Rating_Label" xml:space="preserve">
     <value>Rating:</value>
@@ -3707,6 +3710,15 @@
   </data>
 	<data name="Games_Details_Ranking_Download" xml:space="preserve">
     <value>Download ranking</value>
+		</data>
+	<data name="Games_Details_Ranking_ScoreLabel" xml:space="preserve">
+    <value>Score</value>
+  </data>
+	<data name="Games_Details_Ranking_MatchesLabel" xml:space="preserve">
+    <value>Matches</value>
+  </data>
+	<data name="Games_Details_Ranking_XpLabel" xml:space="preserve">
+    <value>XP</value>
   </data>
 	<data name="Games_Details_Play_Theater" xml:space="preserve">
     <value>Theater mode</value>

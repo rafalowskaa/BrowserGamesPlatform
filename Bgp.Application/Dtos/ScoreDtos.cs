@@ -18,4 +18,10 @@ public class SubmitScoreRequest
     public string Signature { get; set; } = string.Empty; // HMAC(sessionId:score)
 }
 
-public record LeaderboardRowDto(string UserName, double BestScore);
+public record LeaderboardRowDto(
+    string UserName,
+    double BestScore,
+    int TotalMatches,
+    int RankPosition,
+    int TotalPlayers,
+    int ExperiencePoints);
