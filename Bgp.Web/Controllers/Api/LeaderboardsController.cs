@@ -60,29 +60,12 @@ public class LeaderboardsController : ControllerBase
             .Take(Math.Clamp(top, 1, 200))
             .ToListAsync();
 
-        var completedSessionIds = await _db.Scores
-             .Where(s => s.GameId == gameId && s.Verified)
-             .Select(s => s.MatchSessionId)
-             .Distinct()
-             .ToListAsync();
+        var scoreEntries = await _db.Scores
+            .Where(s => s.GameId == gameId && s.Verified)
+            .Select(s => new ScoreEntry(s.MatchSessionId, s.UserId, s.Value))
+            .ToListAsync();
 
-        var sessionStats = completedSessionIds.Count == 0
-            ? new List<SessionStat>()
-            : await _db.SessionPlayers
-                .Where(player => completedSessionIds.Contains(player.SessionId))
-                .Select(player => new SessionStat(player.UserId, player.Role, player.SessionId))
-                .ToListAsync();
-
-        var sessionStatsLookup = sessionStats
-            .GroupBy(entry => entry.UserId)
-            .ToDictionary(
-                group => group.Key,
-                group => new
-                {
-                    Played = group.Select(entry => entry.SessionId).Distinct().Count(),
-                    Wins = group.Count(entry => string.Equals(entry.Role, "winner", StringComparison.OrdinalIgnoreCase)),
-                    Losses = group.Count(entry => string.Equals(entry.Role, "loser", StringComparison.OrdinalIgnoreCase))
-                });
+        var sessionStatsLookup = BuildSessionStatsFromScores(scoreEntries);
 
         var totalPlayers = rows.Count == 0
             ? 0
@@ -98,7 +81,7 @@ public class LeaderboardsController : ControllerBase
                 .Join(_db.MatchSessions.Where(s => s.GameId == gameId),
                     player => player.SessionId,
                     session => session.Id,
-                    (player, session) => new { player.UserId, player.Role })
+                    (player, session) => new PlayerEntry(player.UserId, player.Role, player.SessionId))
                 .ToListAsync();
 
             if (playerRows.Count > 0)
@@ -124,6 +107,11 @@ public class LeaderboardsController : ControllerBase
                     .OrderByDescending(x => x.Best)
                     .Take(Math.Clamp(top, 1, 200))
                     .ToList();
+
+                if (sessionStatsLookup.Count == 0)
+                {
+                    sessionStatsLookup = BuildSessionStatsFromPlayers(playerRows);
+                }
             }
         }
 
@@ -160,6 +148,62 @@ public class LeaderboardsController : ControllerBase
     }
 
     private sealed record SessionStat(string UserId, string Role, Guid SessionId);
+
+    private sealed record SessionAggregate(int Played, int Wins, int Losses);
+    private sealed record ScoreEntry(Guid MatchSessionId, string UserId, double Value);
+    private sealed record PlayerEntry(string UserId, string Role, Guid SessionId);
+
+    private static Dictionary<string, SessionAggregate> BuildSessionStatsFromScores(IEnumerable<ScoreEntry> scoreEntries)
+    {
+        var stats = new Dictionary<string, SessionAggregate>(StringComparer.Ordinal);
+        var bySession = scoreEntries
+            .GroupBy(entry => entry.MatchSessionId);
+
+        foreach (var session in bySession)
+        {
+            var entries = session
+                .Select(entry => new { entry.UserId, entry.Value })
+                .ToList();
+            if (entries.Count == 0)
+            {
+                continue;
+            }
+            var topScore = entries.Max(entry => entry.Value);
+            foreach (var entry in entries)
+            {
+                var isWinner = entry.Value.Equals(topScore);
+                if (!stats.TryGetValue(entry.UserId, out var aggregate))
+                {
+                    aggregate = new SessionAggregate(0, 0, 0);
+                }
+                aggregate = aggregate with
+                {
+                    Played = aggregate.Played + 1,
+                    Wins = aggregate.Wins + (isWinner ? 1 : 0),
+                    Losses = aggregate.Losses + (isWinner ? 0 : 1)
+                };
+                stats[entry.UserId] = aggregate;
+            }
+        }
+
+        return stats;
+    }
+
+    private static Dictionary<string, SessionAggregate> BuildSessionStatsFromPlayers(IEnumerable<PlayerEntry> playerRows)
+    {
+        return playerRows
+            .GroupBy(entry => entry.UserId)
+            .ToDictionary(
+                group => group.Key,
+                group =>
+                {
+                    var played = group.Select(entry => entry.SessionId).Distinct().Count();
+                    var wins = group.Count(entry => string.Equals(entry.Role, "winner", StringComparison.OrdinalIgnoreCase));
+                    var losses = group.Count(entry => string.Equals(entry.Role, "loser", StringComparison.OrdinalIgnoreCase));
+                    return new SessionAggregate(played, wins, losses);
+                },
+                StringComparer.Ordinal);
+    }
 
     private static string QuoteCsv(string value)
     {

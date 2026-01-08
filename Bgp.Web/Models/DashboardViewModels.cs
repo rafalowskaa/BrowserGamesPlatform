@@ -310,13 +310,10 @@ public class ChangePasswordInputModel
 
 public class UpdateRecoveryQuestionsInputModel : IValidatableObject
 {
-    [Required]
     public string SecurityQuestion1 { get; set; } = string.Empty;
 
     public string? SecurityQuestion1Custom { get; set; }
 
-
-    [MinLength(3, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_SecurityQuestions_Answer_MinLength")]
     public string SecurityAnswer1 { get; set; } = string.Empty;
     public bool HasExistingAnswer1 { get; set; }
 
@@ -324,8 +321,6 @@ public class UpdateRecoveryQuestionsInputModel : IValidatableObject
 
     public string? SecurityQuestion2Custom { get; set; }
 
-
-    [MinLength(3, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_SecurityQuestions_Answer_MinLength")]
     public string SecurityAnswer2 { get; set; } = string.Empty;
     public bool HasExistingAnswer2 { get; set; }
 
@@ -334,8 +329,6 @@ public class UpdateRecoveryQuestionsInputModel : IValidatableObject
 
     public string? SecurityQuestion3Custom { get; set; }
 
-
-    [MinLength(3, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = "Auth_SecurityQuestions_Answer_MinLength")]
     public string SecurityAnswer3 { get; set; } = string.Empty;
     public bool HasExistingAnswer3 { get; set; }
 
@@ -403,6 +396,14 @@ public class UpdateRecoveryQuestionsInputModel : IValidatableObject
             if (!entry.HasExisting && string.IsNullOrWhiteSpace(entry.Answer))
             {
                 yield return new ValidationResult(Localize("Auth_SecurityQuestions_Answer_Required"), new[] { entry.AnswerMember });
+            }
+            else if (!string.IsNullOrWhiteSpace(entry.Answer)
+                     && (!entry.HasExisting || !string.Equals(entry.Answer, SecurityAnswerHelper.MaskedToken, StringComparison.Ordinal)))
+            {
+                if (entry.Answer.Trim().Length < 3)
+                {
+                    yield return new ValidationResult(Localize("Auth_SecurityQuestions_Answer_MinLength"), new[] { entry.AnswerMember });
+                }
             }
         }
 
