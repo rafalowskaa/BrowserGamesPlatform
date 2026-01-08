@@ -72,11 +72,7 @@
         var bannerUrl = Model.BannerUrl ?? Model.ThumbnailUrl ?? game.CoverImagePath ?? Url.Content("~/img/branding/og-playgrid.png");
         var thumbUrl = Model.ThumbnailUrl ?? Model.BannerUrl ?? game.CoverImagePath ?? Url.Content("~/img/branding/logo-playgrid.svg");
         var gallery = Array.Empty<string>();
-        var rulesPlainText = RulesContentHelper.ToPlainText(Model.DisplayRules);
-        var rulesPreview = string.IsNullOrWhiteSpace(rulesPlainText)
-            ? L["Games_Details_Rules_Heading"].Value
-            : (rulesPlainText.Length > 180 ? string.Concat(rulesPlainText.AsSpan(0, 180).TrimEnd(), "…") : rulesPlainText);
-
+        
         var formattedRules = RulesContentHelper.FormatForDisplay(Model.DisplayRules);
         var editableRules = RulesContentHelper.FormatForEditor(Model.DisplayRules);
 
@@ -180,9 +176,10 @@
                 rankingSubtitle = L["Games_Details_Ranking_Subtitle"].Value,
                 rankingEmpty = L["Games_Details_Ranking_Empty"].Value,
                 rankingLoading = L["Games_Details_Ranking_Loading"].Value,
-                rankingScoreLabel = L["Games_Details_Ranking_ScoreLabel"].Value,
-                rankingMatchesLabel = L["Games_Details_Ranking_MatchesLabel"].Value,
-                rankingXpLabel = L["Games_Details_Ranking_XpLabel"].Value
+                rankingPlayedLabel = L["Games_Details_Ranking_PlayedLabel"].Value,
+                rankingWinsLabel = L["Games_Details_Ranking_WinsLabel"].Value,
+                rankingLossesLabel = L["Games_Details_Ranking_LossesLabel"].Value,
+                rankingPdLabel = L["Games_Details_Ranking_PdLabel"].Value
             }
         };
     }
@@ -331,7 +328,6 @@
                     <header class="section-header">
                         <p class="eyebrow">@L["Games_Details_Rules_Heading"].Value</p>
                         <h2>@L["Games_Details_Tab_Rules"].Value</h2>
-                       <p class="muted" data-rules-preview>@rulesPreview</p>
                     </header>
                     @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
                     {

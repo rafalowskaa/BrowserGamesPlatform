@@ -3640,6 +3640,18 @@
   </data>
 	<data name="Games_Details_Ranking_XpLabel" xml:space="preserve">
     <value>PD</value>
+		</data>
+	<data name="Games_Details_Ranking_PlayedLabel" xml:space="preserve">
+    <value>Rozegrane</value>
+  </data>
+	<data name="Games_Details_Ranking_WinsLabel" xml:space="preserve">
+    <value>Wygrane</value>
+  </data>
+	<data name="Games_Details_Ranking_LossesLabel" xml:space="preserve">
+    <value>Przegrane</value>
+  </data>
+	<data name="Games_Details_Ranking_PdLabel" xml:space="preserve">
+    <value>PD</value>
   </data>
 	<data name="Games_Details_Play_Theater" xml:space="preserve">
     <value>Tryb kinowy</value>

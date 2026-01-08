@@ -60,6 +60,24 @@ public class LeaderboardsController : ControllerBase
             .Take(Math.Clamp(top, 1, 200))
             .ToListAsync();
 
+        var sessionStats = await _db.SessionPlayers
+            .Join(_db.MatchSessions.Where(s => s.GameId == gameId),
+                player => player.SessionId,
+                session => session.Id,
+                (player, session) => new { player.UserId, player.Role, player.SessionId })
+            .ToListAsync();
+
+        var sessionStatsLookup = sessionStats
+            .GroupBy(entry => entry.UserId)
+            .ToDictionary(
+                group => group.Key,
+                group => new
+                {
+                    Played = group.Select(entry => entry.SessionId).Distinct().Count(),
+                    Wins = group.Count(entry => string.Equals(entry.Role, "winner", StringComparison.OrdinalIgnoreCase)),
+                    Losses = group.Count(entry => string.Equals(entry.Role, "loser", StringComparison.OrdinalIgnoreCase))
+                });
+
         var totalPlayers = rows.Count == 0
             ? 0
             : await _db.Scores
@@ -114,7 +132,8 @@ public class LeaderboardsController : ControllerBase
         return ordered.Select((r, index) =>
         {
             var position = index + 1;
-            var matches = r.Matches;
+            sessionStatsLookup.TryGetValue(r.UserId, out var sessionStat);
+            var matches = Math.Max(r.Matches, sessionStat?.Played ?? 0);
             var xp = RankCalculator.CalculateGameExperience(matches, position, Math.Max(1, totalPlayers));
             return new LeaderboardRowDto(
                 nameLookup.GetValueOrDefault(r.UserId, r.UserId.ToUpperInvariant()),
@@ -122,7 +141,10 @@ public class LeaderboardsController : ControllerBase
                 matches,
                 position,
                 totalPlayers,
-                xp);
+                xp,
+                sessionStat?.Wins ?? 0,
+                sessionStat?.Losses ?? 0,
+                r.Best);
         });
     }
 

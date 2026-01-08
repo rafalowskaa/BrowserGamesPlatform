@@ -3612,7 +3612,19 @@
   </data>
 	<data name="Games_Details_Ranking_XpLabel" xml:space="preserve">
     <value>XP</value>
-  </data>
+	</data>
+	<data name="Games_Details_Ranking_PlayedLabel" xml:space="preserve">
+		<value>Played</value>
+	</data>
+	<data name="Games_Details_Ranking_WinsLabel" xml:space="preserve">
+		<value>Wins</value>
+	</data>
+	<data name="Games_Details_Ranking_LossesLabel" xml:space="preserve">
+		<value>Losses</value>
+	</data>
+	<data name="Games_Details_Ranking_PdLabel" xml:space="preserve">
+		<value>PD</value>
+	</data>
 	<data name="Games_Details_Play_Theater" xml:space="preserve">
     <value>Theater mode</value>
   </data>

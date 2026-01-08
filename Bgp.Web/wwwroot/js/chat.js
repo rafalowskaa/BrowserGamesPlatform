@@ -3413,6 +3413,7 @@
             announceMessage(errorMessage);
             return;
         }
+        markConversationHistory(friendId);
         if (isMobileSheet()) {
             enterThreadView();
         }

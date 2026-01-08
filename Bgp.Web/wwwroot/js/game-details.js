@@ -414,6 +414,7 @@
         let originalText = rulesInput.innerHTML || '';
 
         const enterEditMode = () => {
+            rulesEditor.classList.add('is-editing');
             rulesInput.hidden = false;
             rulesInput.focus();
             rulesActions.hidden = false;
@@ -426,6 +427,7 @@
             if (restore) {
                 rulesInput.innerHTML = originalText;
             }
+            rulesEditor.classList.remove('is-editing');
             rulesInput.hidden = true;
             rulesActions.hidden = true;
             rulesToolbar.hidden = true;
@@ -599,7 +601,9 @@
                 const name = row.userName || row.user_name || row.UserName || '—';
                 const score = Number(row.bestScore ?? row.best_score ?? row.BestScore ?? 0);
                 const matches = Number(row.totalMatches ?? row.total_matches ?? row.TotalMatches ?? 0);
-                const xp = Number(row.experiencePoints ?? row.experience_points ?? row.ExperiencePoints ?? 0);
+                const wins = Number(row.wins ?? row.Wins ?? 0);
+                const losses = Number(row.losses ?? row.Losses ?? 0);
+                const pd = Number(row.pointsDifference ?? row.points_difference ?? row.PointsDifference ?? score ?? 0);
 
                 const item = document.createElement('li');
                 if (index === 0) {
@@ -613,32 +617,37 @@
                 player.className = 'leaderboard__name';
                 player.textContent = name;
 
-                const stats = document.createElement('span');
-                stats.className = 'leaderboard__stats';
+                const playedLabel = config.text?.rankingPlayedLabel || 'Played';
+                const winsLabel = config.text?.rankingWinsLabel || 'Wins';
+                const lossesLabel = config.text?.rankingLossesLabel || 'Losses';
+                const pdLabel = config.text?.rankingPdLabel || 'PD';
 
-                const scoreLabel = config.text?.rankingScoreLabel || 'Score';
-                const matchesLabel = config.text?.rankingMatchesLabel || 'Matches';
-                const xpLabel = config.text?.rankingXpLabel || 'XP';
+                const playedValue = document.createElement('span');
+                playedValue.className = 'leaderboard__stat';
+                playedValue.dataset.label = playedLabel;
+                playedValue.textContent = `${Number.isFinite(matches) ? matches.toLocaleString() : '0'}`;
 
-                const scoreValue = document.createElement('span');
-                scoreValue.className = 'leaderboard__stat';
-                scoreValue.textContent = `${scoreLabel}: ${Number.isFinite(score) ? score.toLocaleString() : '0'}`;
+                const winsValue = document.createElement('span');
+                winsValue.className = 'leaderboard__stat';
+                winsValue.dataset.label = winsLabel;
+                winsValue.textContent = `${Number.isFinite(wins) ? wins.toLocaleString() : '0'}`;
 
-                const matchesValue = document.createElement('span');
-                matchesValue.className = 'leaderboard__stat';
-                matchesValue.textContent = `${matchesLabel}: ${Number.isFinite(matches) ? matches.toLocaleString() : '0'}`;
+                const lossesValue = document.createElement('span');
+                lossesValue.className = 'leaderboard__stat';
+                lossesValue.dataset.label = lossesLabel;
+                lossesValue.textContent = `${Number.isFinite(losses) ? losses.toLocaleString() : '0'}`;
 
-                const xpValue = document.createElement('span');
-                xpValue.className = 'leaderboard__stat';
-                xpValue.textContent = `${xpLabel}: ${Number.isFinite(xp) ? xp.toLocaleString() : '0'}`;
-
-                stats.appendChild(scoreValue);
-                stats.appendChild(matchesValue);
-                stats.appendChild(xpValue);
+                const pdValue = document.createElement('span');
+                pdValue.className = 'leaderboard__stat';
+                pdValue.dataset.label = pdLabel;
+                pdValue.textContent = `${Number.isFinite(pd) ? pd.toLocaleString() : '0'}`;
 
                 item.appendChild(position);
                 item.appendChild(player);
-                item.appendChild(stats);
+                item.appendChild(playedValue);
+                item.appendChild(winsValue);
+                item.appendChild(lossesValue);
+                item.appendChild(pdValue);
                 rankingList.appendChild(item);
             });
             rankingListWrapper?.removeAttribute('hidden');
@@ -1075,7 +1084,7 @@
             if (!res.ok) throw new Error('Failed to load friends');
             const data = await res.json();
             const accepted = Array.isArray(data)
-                ? data.filter(f => (Number(f.status) === 1 || f.status === 'Accepted') && !f.outgoingRequest)
+                ? data.filter(f => (Number(f.status) === 1 || f.status === 'Accepted'))
                 : [];
             inviteList.dataset.friends = JSON.stringify(accepted);
             renderInviteList();

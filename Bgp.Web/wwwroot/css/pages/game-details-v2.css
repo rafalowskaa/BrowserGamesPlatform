@@ -235,10 +235,14 @@
 }
 
 .game-alerts {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    margin-bottom: 1rem;
+    max-width: min(320px, 90vw);
+    z-index: 1200;
 }
 
 .game-alert {
@@ -395,7 +399,18 @@
 .rules-body .rich-text {
     line-height: 1.6;
     color: #e2e8f0;
+    white-space: pre-wrap;
 }
+
+    .rules-body .rich-text p,
+    .rules-body .rich-text div {
+        margin: 0 0 0.75rem;
+    }
+
+        .rules-body .rich-text p:last-child,
+        .rules-body .rich-text div:last-child {
+            margin-bottom: 0;
+        }
 
     .rules-body .rich-text img {
         max-width: 100%;
@@ -406,14 +421,20 @@
 
 .rules-editor {
     margin-bottom: 1rem;
-    padding: 0.75rem;
+    padding: 0;
     border-radius: 0.85rem;
-    border: 1px solid rgba(148, 163, 184, 0.15);
-    background: rgba(15, 23, 42, 0.35);
+    border: none;
+    background: transparent;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
 }
+
+    .rules-editor.is-editing {
+        padding: 0.75rem;
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        background: rgba(15, 23, 42, 0.35);
+    }
 
 .rules-editor__toolbar {
     display: flex;
@@ -724,7 +745,7 @@
 
     .ranking-panel .leaderboard__list li {
         display: grid;
-        grid-template-columns: minmax(0, 0.18fr) minmax(0, 0.35fr) minmax(0, 0.47fr);
+        grid-template-columns: minmax(0, 0.12fr) minmax(0, 0.28fr) repeat(4, minmax(0, 0.15fr));
         gap: 0.65rem;
         align-items: center;
         padding: 0.55rem 0.85rem;
@@ -761,19 +782,26 @@
     text-align: right;
 }
 
-.ranking-panel .leaderboard__stats {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
+.ranking-panel .leaderboard__stat {
+    white-space: nowrap;
     text-align: right;
     font-size: 0.9rem;
     color: #cbd5f5;
     font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
 }
 
-.ranking-panel .leaderboard__stat {
-    white-space: nowrap;
-}
+    .ranking-panel .leaderboard__stat::before {
+        content: attr(data-label);
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #94a3b8;
+    }
+
 
         .comment-actions .btn-ghost.is-active {
             border-color: rgba(34, 197, 94, 0.6);
