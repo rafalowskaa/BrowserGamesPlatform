@@ -931,7 +931,6 @@ public class DashboardController : Controller
             ActivityLogType.CommentAdded,
             ActivityLogType.CommentLiked,
             ActivityLogType.CommentDisliked,
-            ActivityLogType.MessageReceived,
             ActivityLogType.RatingSubmitted
         };
 
@@ -992,7 +991,6 @@ public class DashboardController : Controller
                 ActivityLogType.CommentAdded => string.Format(Localize("Dashboard_Notifications_CommentAdded"), actorName, gameTitle),
                 ActivityLogType.CommentLiked => string.Format(Localize("Dashboard_Notifications_CommentLiked"), actorName, gameTitle),
                 ActivityLogType.CommentDisliked => string.Format(Localize("Dashboard_Notifications_CommentDisliked"), actorName, gameTitle),
-                ActivityLogType.MessageReceived => string.Format(Localize("Dashboard_Notifications_Message"), actorName),
                 ActivityLogType.RatingSubmitted => string.Format(Localize("Dashboard_Notifications_Rating"), actorName, gameTitle),
                 _ => string.Format(Localize("Dashboard_Notifications_Generic"), actorName)
             };
@@ -1000,7 +998,7 @@ public class DashboardController : Controller
 
         string? BuildNotificationLink(ActivityLog log)
         {
-            if (log.Type is ActivityLogType.FriendRequestSent or ActivityLogType.FriendRequestAccepted or ActivityLogType.MessageReceived)
+            if (log.Type is ActivityLogType.FriendRequestSent or ActivityLogType.FriendRequestAccepted)
             {
                 return Url.Action(nameof(Index), new { tab = "friends" });
             }

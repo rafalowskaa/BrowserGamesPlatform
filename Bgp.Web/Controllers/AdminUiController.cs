@@ -11,12 +11,15 @@ using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Identity;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Models;
+using Bgp.Web.Resources;
 using Bgp.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace Bgp.Web.Controllers;
 
@@ -30,14 +33,18 @@ public class AdminUiController : Controller
     private readonly ILogger<AdminUiController> _logger;
     private readonly IGameContentResolver _contentResolver;
     private readonly IFileStorage _fileStorage;
+    private readonly IActivityLogger _activityLogger;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
-    public AdminUiController(AppDbContext db, UserManager<ApplicationUser> users, ILogger<AdminUiController> logger, IGameContentResolver contentResolver, IFileStorage fileStorage)
+    public AdminUiController(AppDbContext db, UserManager<ApplicationUser> users, ILogger<AdminUiController> logger, IGameContentResolver contentResolver, IFileStorage fileStorage, IActivityLogger activityLogger, IStringLocalizer<SharedResource> localizer)
     {
         _db = db;
         _users = users;
         _logger = logger;
         _contentResolver = contentResolver;
         _fileStorage = fileStorage;
+        _activityLogger = activityLogger;
+        _localizer = localizer;
     }
 
     private IActionResult RedirectToUsers(string? search, string? fallbackSearch = null)
@@ -1210,12 +1217,49 @@ public class AdminUiController : Controller
                 g.Description))
             .ToListAsync();
 
+        var historyLogs = await _db.ActivityLogs
+            .AsNoTracking()
+            .Where(l => l.Type == ActivityLogType.HomeContentUpdated)
+            .OrderByDescending(l => l.CreatedAtUtc)
+            .Take(6)
+            .ToListAsync();
+
+        var historyActorIds = historyLogs
+            .Select(l => l.ActorUserId)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        var historyActorLookup = historyActorIds.Count == 0
+            ? new Dictionary<string, string>(StringComparer.Ordinal)
+            : (await _db.Users
+                .AsNoTracking()
+                .Where(u => historyActorIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
+                .ToListAsync())
+                .ToDictionary(
+                    u => u.Id,
+                    u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
+                    StringComparer.Ordinal);
+
+        var history = historyLogs
+            .Select(log =>
+            {
+                historyActorLookup.TryGetValue(log.ActorUserId ?? string.Empty, out var name);
+                return new AdminContentHistoryItemViewModel(
+                    log.CreatedAtUtc,
+                    log.Message ?? string.Empty,
+                    name);
+            })
+            .ToList();
+
         var vm = new AdminHomeContentViewModel
         {
             Facts = facts,
             Events = events,
             FeaturedGame = featured,
             GameOptions = gameOptions,
+            History = history,
             SuccessKey = TempData["AdminContentSuccess"] as string,
             ErrorKey = TempData["AdminContentError"] as string
         };
@@ -1287,6 +1331,8 @@ public class AdminUiController : Controller
         fact.UpdatedAtUtc = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
+        var factSnippet = Truncate(content, 80);
+        await LogHomeContentChangeAsync(string.Format(_localizer["Admin_Content_Log_Fact_Saved"].Value, factSnippet));
 
         TempData["AdminContentSuccess"] = input.Id.HasValue ? "Admin_Content_Saved" : "Admin_Content_Added";
         return RedirectToContentSection("facts");
@@ -1311,6 +1357,8 @@ public class AdminUiController : Controller
 
         _db.HomeFacts.Remove(fact);
         await _db.SaveChangesAsync();
+        var factSnippet = Truncate(fact.Content, 80);
+        await LogHomeContentChangeAsync(string.Format(_localizer["Admin_Content_Log_Fact_Deleted"].Value, factSnippet));
 
         TempData["AdminContentSuccess"] = "Admin_Content_Deleted";
         return RedirectToContentSection("facts");
@@ -1417,6 +1465,7 @@ public class AdminUiController : Controller
         homeEvent.UpdatedAtUtc = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
+        await LogHomeContentChangeAsync(string.Format(_localizer["Admin_Content_Log_Event_Saved"].Value, title), homeEvent.GameId);
 
         TempData["AdminContentSuccess"] = input.Id.HasValue ? "Admin_Content_Saved" : "Admin_Content_Added";
         return RedirectToContentSection("events");
@@ -1439,8 +1488,11 @@ public class AdminUiController : Controller
             return RedirectToContentSection("events");
         }
 
+        var deletedTitle = homeEvent.Title;
+        var deletedGameId = homeEvent.GameId;
         _db.HomeEvents.Remove(homeEvent);
         await _db.SaveChangesAsync();
+        await LogHomeContentChangeAsync(string.Format(_localizer["Admin_Content_Log_Event_Deleted"].Value, deletedTitle), deletedGameId);
 
         TempData["AdminContentSuccess"] = "Admin_Content_Deleted";
         return RedirectToContentSection("events");
@@ -1514,6 +1566,7 @@ public class AdminUiController : Controller
         feature.UpdatedAtUtc = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
+        await LogHomeContentChangeAsync(string.Format(_localizer["Admin_Content_Log_Feature_Saved"].Value, game.Title), game.Id);
 
         TempData["AdminContentSuccess"] = "Admin_Content_Saved";
         return RedirectToContentSection("feature");
@@ -1536,8 +1589,14 @@ public class AdminUiController : Controller
             return RedirectToContentSection("feature");
         }
 
+        var featureGameTitle = await _db.Games
+            .AsNoTracking()
+            .Where(g => g.Id == feature.GameId)
+            .Select(g => g.Title)
+            .FirstOrDefaultAsync() ?? feature.GameId.ToString();
         _db.HomeFeaturedGames.Remove(feature);
         await _db.SaveChangesAsync();
+        await LogHomeContentChangeAsync(string.Format(_localizer["Admin_Content_Log_Feature_Deleted"].Value, featureGameTitle), feature.GameId);
 
         TempData["AdminContentSuccess"] = "Admin_Content_Deleted";
         return RedirectToContentSection("feature");
@@ -1575,7 +1634,30 @@ public class AdminUiController : Controller
         return RedirectToAction(nameof(Games));
     }
 
+    private async Task LogHomeContentChangeAsync(string message, Guid? gameId = null)
+    {
+        var actorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(actorId))
+        {
+            return;
+        }
 
+        await _activityLogger.LogAsync(ActivityLogType.HomeContentUpdated, actorId, log =>
+        {
+            log.Message = message;
+            log.GameId = gameId;
+        });
+    }
+
+    private static string Truncate(string value, int length)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+        var trimmed = value.Trim();
+        return trimmed.Length <= length ? trimmed : $"{trimmed[..length].TrimEnd()}…";
+    }
 
     public async Task<IActionResult> Logs(string? search = null, ActivityLogType? type = null, string? game = null, DateTime? dateFrom = null, DateTime? dateTo = null, int page = 1)
     {

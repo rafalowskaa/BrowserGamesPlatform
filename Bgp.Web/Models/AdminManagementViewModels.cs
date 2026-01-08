@@ -155,6 +155,7 @@ public class AdminHomeContentViewModel
     public IReadOnlyList<AdminHomeEventViewModel> Events { get; init; } = Array.Empty<AdminHomeEventViewModel>();
     public AdminHomeFeaturedGameViewModel? FeaturedGame { get; init; }
     public IReadOnlyList<AdminFeaturedGameOptionViewModel> GameOptions { get; init; } = Array.Empty<AdminFeaturedGameOptionViewModel>();
+    public IReadOnlyList<AdminContentHistoryItemViewModel> History { get; init; } = Array.Empty<AdminContentHistoryItemViewModel>();
     public string? SuccessKey { get; init; }
     public string? ErrorKey { get; init; }
 }
@@ -196,6 +197,10 @@ public record AdminFeaturedGameOptionViewModel(
     string? CoverImagePath,
     string? Description);
 
+public record AdminContentHistoryItemViewModel(
+    DateTime CreatedAtUtc,
+    string Message,
+    string? ActorDisplayName);
 
 public class AdminUpsertHomeFactInputModel
 {

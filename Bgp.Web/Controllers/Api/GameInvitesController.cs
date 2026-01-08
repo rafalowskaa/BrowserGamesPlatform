@@ -59,6 +59,14 @@ public class GameInvitesController : ControllerBase
             return BadRequest(new { code = "invalid_target", message = _localizer["Games_Details_InviteError"].Value });
         }
 
+        var targetUser = await _db.Users
+           .AsNoTracking()
+           .FirstOrDefaultAsync(u => u.Id == request.FriendId);
+        if (targetUser is null || !targetUser.EnableFriendInvites)
+        {
+            return StatusCode(403, new { code = "invites_disabled", message = _localizer["Games_Details_InviteError"].Value });
+        }
+
         var recentInvites = await _db.GameInvites
             .Where(i => i.SessionId == sessionId && i.FromUserId == userId && i.CreatedAtUtc > DateTime.UtcNow.Subtract(InviteWindow))
             .CountAsync();

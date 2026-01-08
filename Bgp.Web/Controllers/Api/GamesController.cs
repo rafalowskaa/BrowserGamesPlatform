@@ -87,7 +87,7 @@ public class GamesController : ControllerBase
             g.CoverImagePath,
             LatestVersion = latest?.Version,
             PlayUrl = latest?.ContentPath is null ? null : $"{latest.ContentPath.TrimEnd('/')}/index.html",
-            AvgRating = g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0,
+            AvgRating = g.Reviews.Any(r => r.IsRating) ? g.Reviews.Where(r => r.IsRating).Average(r => r.Stars) : 0,
             ReviewsCount = g.Reviews.Count,
             Tags = g.Tags.Where(t => t.IsApproved).OrderBy(t => t.Value).Select(t => t.Value).ToList(),
             UpdatedAt = g.UpdatedAtUtc ?? g.CreatedAtUtc,

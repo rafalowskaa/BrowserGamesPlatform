@@ -1,6 +1,7 @@
 ﻿@using System
 @using System.Linq
 @using System.Text.Encodings.Web
+@using Bgp.Domain.Enums
 @model AdminHomeContentViewModel
 @section Styles {
     <link rel="stylesheet" href="~/css/pages/admin.css" asp-append-version="true" />
@@ -481,8 +482,29 @@
 
             <div class="admin-home-history">
                 <h3>@L["Admin_Content_History_Title"].Value</h3>
-                <p>@L["Admin_Content_History_Description"].Value</p>
-                <button type="button" class="btn-secondary btn-small" disabled>@L["Admin_Content_History_Button"].Value</button>
+                @if (Model.History.Any())
+                {
+                    <ul class="admin-content-history" role="list">
+                        @foreach (var item in Model.History)
+                        {
+                            <li>
+                                <div class="admin-content-history__meta">
+                                    <span class="badge">@item.CreatedAtUtc.ToLocalTime().ToString("g")</span>
+                                    @if (!string.IsNullOrWhiteSpace(item.ActorDisplayName))
+                                    {
+                                        <span class="muted">@item.ActorDisplayName</span>
+                                    }
+                                </div>
+                                <p>@item.Message</p>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p>@L["Admin_Content_History_Description"].Value</p>
+                }
+                <a class="btn-secondary btn-small" asp-action="Logs" asp-route-type="@((int)ActivityLogType.HomeContentUpdated)">@L["Admin_Content_History_Button"].Value</a>
             </div>
             <section id="preview" class="admin-editor-section" data-admin-section hidden>
                 <header>

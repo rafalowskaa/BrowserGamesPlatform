@@ -192,6 +192,15 @@
         const randomButton = featuredSection.querySelector('[data-featured-random]');
         const replaceButton = featuredSection.querySelector('[data-featured-replace]');
 
+        const decodeHtml = (value) => {
+            if (!value) {
+                return '';
+            }
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = value;
+            return textarea.value;
+        };
+
         const updateDescriptionPreview = () => {
             if (!descriptionPreview) {
                 return;
@@ -218,7 +227,7 @@
                 id: option.value,
                 title: option.getAttribute('data-title') || option.textContent || '',
                 slug: option.getAttribute('data-slug') || '',
-                description: option.getAttribute('data-description') || '',
+                description: decodeHtml(option.getAttribute('data-description') || ''),
                 coverImagePath: option.getAttribute('data-cover') || ''
             };
         };

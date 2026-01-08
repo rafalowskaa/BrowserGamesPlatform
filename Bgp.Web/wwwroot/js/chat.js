@@ -14,6 +14,7 @@
     const panel = document.getElementById('chatPanel');
     const closeBtn = panel ? panel.querySelector('[data-chat-close]') : null;
     const searchInput = panel ? panel.querySelector('[data-chat-search]') : null;
+    const searchClear = panel ? panel.querySelector('[data-chat-search-clear]') : null;
     const usersList = panel ? panel.querySelector('[data-chat-users]') : null;
     const usersEmpty = panel ? panel.querySelector('[data-chat-users-empty]') : null;
     const usersEmptyDefault = usersEmpty ? usersEmpty.textContent : '';
@@ -38,6 +39,7 @@
     const unreadBadge = dock.querySelector('[data-chat-unread]');
     const liveRegion = dock.querySelector('[data-chat-live]');
     const stringsElement = document.getElementById('chatStrings');
+    const globalToastStack = document.getElementById('globalToastStack');
     const resizeHandle = panel ? panel.querySelector('[data-chat-panel-resize]') : null;
     const statusForm = panel ? panel.querySelector('[data-chat-status-form]') : null;
     const statusMessageInput = statusForm ? statusForm.querySelector('[data-chat-status-message]') : null;
@@ -96,8 +98,10 @@
     let incomingRequests = [];
     let outgoingRequests = [];
     let connection = null;
+    let inviteConnection = null;
     let loadFriendsPromise = null;
     let connectionPromise = null;
+    let inviteConnectionPromise = null;
     let searchTerm = '';
     let statusDirty = false;
     let statusAwaitingConfirmation = false;
@@ -241,7 +245,12 @@
         searchPending: 'Pending',
         searchAccept: 'Accept',
         searchDecline: 'Decline',
-        searchApprovalRequired: 'Requires approval'
+        searchApprovalRequired: 'Requires approval',
+        alertFriendRequest: 'Friend request received',
+        alertFriendAccepted: 'Friend request accepted',
+        alertGameInvite: 'Game invitation received',
+        alertGameInviteAccepted: 'Game invitation accepted',
+        searchClear: 'Clear search'
 
     };
 
@@ -747,6 +756,7 @@
                     throw err;
                 } finally {
                     ensureConnectionStarted();
+                    ensureInviteConnectionStarted();
                 }
             })().finally(() => {
                 chatBootstrapPromise = null;
@@ -1802,10 +1812,33 @@
         }
     }
 
+    function updateSearchClearVisibility() {
+        if (!searchClear || !searchInput) {
+            return;
+        }
+        searchClear.hidden = !searchInput.value;
+    }
+
     if (searchInput) {
         searchInput.addEventListener('input', (evt) => {
             const value = evt.target.value || '';
             runSearch(value);
+            updateSearchClearVisibility();
+        });
+            searchInput.addEventListener('search', (evt) => {
+                const value = evt.target.value || '';
+                runSearch(value);
+                updateSearchClearVisibility();
+            });
+            updateSearchClearVisibility();
+        }
+
+        if (searchClear && searchInput) {
+            searchClear.addEventListener('click', () => {
+                searchInput.value = '';
+                runSearch('');
+                updateSearchClearVisibility();
+                searchInput.focus();
         });
     }
 
@@ -1907,6 +1940,23 @@
         } else {
             writer();
         }
+        }
+
+    function showGlobalToast(message, tone) {
+        if (!globalToastStack || !message) {
+            return;
+        }
+        while (globalToastStack.children.length > 4) {
+            globalToastStack.removeChild(globalToastStack.firstChild);
+        }
+        const toast = document.createElement('div');
+        toast.className = `toast toast--${tone || 'success'}`;
+        toast.textContent = message;
+        globalToastStack.appendChild(toast);
+        window.setTimeout(() => {
+            toast.classList.add('is-leaving');
+            window.setTimeout(() => toast.remove(), 250);
+        }, 7000);
     }
 
     function announceNewMessage(friend) {
@@ -5626,11 +5676,13 @@
 
         connection.on('FriendRequestReceived', (payload) => {
             announceMessage(strings.newMessage || 'New friend request');
+            showGlobalToast(strings.alertFriendRequest || strings.noInvites || 'Friend request received', 'success');
             loadFriends();
         });
 
         connection.on('FriendRequestAccepted', (payload) => {
             announceMessage(strings.accept || 'Friend request accepted');
+            showGlobalToast(strings.alertFriendAccepted || strings.accept || 'Friend request accepted', 'success');
             loadFriends();
         });
 
@@ -5684,6 +5736,51 @@
         }
     }
 
+    async function startInviteConnection() {
+        if (typeof signalR === 'undefined') {
+            return null;
+        }
+        if (inviteConnection) {
+            if (inviteConnection.state === 'Disconnected') {
+                try {
+                    await inviteConnection.start();
+                } catch (err) {
+                    console.error('Invite connection failed to restart.', err);
+                    inviteConnection = null;
+                    return null;
+                }
+            }
+            return inviteConnection;
+        }
+
+        inviteConnection = new signalR.HubConnectionBuilder()
+            .withUrl('/hubs/invites')
+            .withAutomaticReconnect()
+            .build();
+
+        inviteConnection.onclose(() => {
+            inviteConnection = null;
+            inviteConnectionPromise = null;
+        });
+
+        inviteConnection.on('InviteReceived', () => {
+            showGlobalToast(strings.alertGameInvite || 'Game invitation received', 'success');
+        });
+
+        inviteConnection.on('InviteAccepted', () => {
+            showGlobalToast(strings.alertGameInviteAccepted || 'Game invitation accepted', 'success');
+        });
+
+        try {
+            await inviteConnection.start();
+            return inviteConnection;
+        } catch (err) {
+            console.error('Invite connection failed to start.', err);
+            inviteConnection = null;
+            return null;
+        }
+    }
+
     function ensureConnectionStarted() {
         if (!connectionPromise) {
             connectionPromise = startConnection().then((conn) => {
@@ -5694,6 +5791,18 @@
             });
         }
         return connectionPromise;
+    }
+
+    function ensureInviteConnectionStarted() {
+        if (!inviteConnectionPromise) {
+            inviteConnectionPromise = startInviteConnection().then((conn) => {
+                if (!conn) {
+                    inviteConnectionPromise = null;
+                }
+                return conn;
+            });
+        }
+        return inviteConnectionPromise;
     }
 
     window.bgpChat = {

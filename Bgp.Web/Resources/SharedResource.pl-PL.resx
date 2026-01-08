@@ -188,6 +188,21 @@
     </data>
 	<data name="Chat_Search_ApprovalRequired" xml:space="preserve">
         <value>Wymaga akceptacji</value>
+		</data>
+	<data name="Chat_Search_Clear" xml:space="preserve">
+        <value>Wyczyść wyszukiwanie</value>
+    </data>
+	<data name="Chat_Alert_FriendRequest" xml:space="preserve">
+        <value>Otrzymano zaproszenie do znajomych.</value>
+    </data>
+	<data name="Chat_Alert_FriendAccepted" xml:space="preserve">
+        <value>Zaakceptowano zaproszenie do znajomych.</value>
+    </data>
+	<data name="Chat_Alert_GameInvite" xml:space="preserve">
+        <value>Otrzymano zaproszenie do gry.</value>
+    </data>
+	<data name="Chat_Alert_GameInviteAccepted" xml:space="preserve">
+        <value>Zaakceptowano zaproszenie do gry.</value>
     </data>
 	<data name="Chat_Friends" xml:space="preserve">
         <value>Znajomi</value>
@@ -984,6 +999,9 @@
 		</data>
 	<data name="Admin_Logs_Type_MessageReceived" xml:space="preserve">
     <value>Otrzymano wiadomość</value>
+		</data>
+	<data name="Admin_Logs_Type_HomeContentUpdated" xml:space="preserve">
+    <value>Zaktualizowano treści strony głównej</value>
   </data>
 	<data name="Admin_Logs_Rating_Label" xml:space="preserve">
      <value>Ocena:</value>
@@ -1128,6 +1146,15 @@
   </data>
 	<data name="Admin_Content_Event_TitlePlaceholder" xml:space="preserve">
     <value>Tytuł wydarzenia</value>
+		</data>
+	<data name="Admin_Content_Event_Error_Dates" xml:space="preserve">
+    <value>Data zakończenia musi być późniejsza niż data rozpoczęcia.</value>
+  </data>
+	<data name="Admin_Content_Event_Error_Game" xml:space="preserve">
+    <value>Wybierz poprawną grę dla wydarzenia.</value>
+  </data>
+	<data name="Admin_Content_Event_Error_Image" xml:space="preserve">
+    <value>Prześlij poprawny obraz wydarzenia.</value>
   </data>
 	<data name="Admin_Content_Events_Eyebrow" xml:space="preserve">
     <value>Wydarzenia tygodnia</value>
@@ -1188,6 +1215,24 @@
   </data>
 	<data name="Admin_Content_History_Title" xml:space="preserve">
     <value>Historia publikacji</value>
+		</data>
+	<data name="Admin_Content_Log_Fact_Saved" xml:space="preserve">
+    <value>Zapisano ciekawostkę: {0}</value>
+  </data>
+	<data name="Admin_Content_Log_Fact_Deleted" xml:space="preserve">
+    <value>Usunięto ciekawostkę: {0}</value>
+  </data>
+	<data name="Admin_Content_Log_Event_Saved" xml:space="preserve">
+    <value>Zapisano wydarzenie: {0}</value>
+  </data>
+	<data name="Admin_Content_Log_Event_Deleted" xml:space="preserve">
+    <value>Usunięto wydarzenie: {0}</value>
+  </data>
+	<data name="Admin_Content_Log_Feature_Saved" xml:space="preserve">
+    <value>Zapisano wyróżnioną grę: {0}</value>
+  </data>
+	<data name="Admin_Content_Log_Feature_Deleted" xml:space="preserve">
+    <value>Usunięto wyróżnioną grę: {0}</value>
   </data>
 	<data name="Admin_Content_HomeNav_AriaLabel" xml:space="preserve">
     <value>Sekcje strony głównej</value>

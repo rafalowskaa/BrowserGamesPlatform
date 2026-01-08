@@ -412,6 +412,25 @@
         }
 
         let originalText = rulesInput.innerHTML || '';
+        const draftKey = config.rules?.updateUrl ? `bgp.rulesDraft:${config.rules.updateUrl}` : null;
+        const readDraft = () => {
+            if (!draftKey || !window.sessionStorage) {
+                return null;
+            }
+            return window.sessionStorage.getItem(draftKey);
+        };
+        const writeDraft = () => {
+            if (!draftKey || !window.sessionStorage) {
+                return;
+            }
+            window.sessionStorage.setItem(draftKey, rulesInput.innerHTML || '');
+        };
+        const clearDraft = () => {
+            if (!draftKey || !window.sessionStorage) {
+                return;
+            }
+            window.sessionStorage.removeItem(draftKey);
+        };
 
         const enterEditMode = () => {
             rulesEditor.classList.add('is-editing');
@@ -436,11 +455,16 @@
         };
 
         rulesEditButton.addEventListener('click', () => {
+            const draft = readDraft();
+            if (draft) {
+                rulesInput.innerHTML = draft;
+            }
             enterEditMode();
         });
 
         rulesActions.querySelector('[data-rules-cancel]')?.addEventListener('click', () => {
             setRulesFeedback('');
+            clearDraft();
             exitEditMode(true);
         });
 
@@ -470,6 +494,7 @@
                 }
                 updateRulesContent(content);
                 originalText = content;
+                clearDraft();
                 setRulesFeedback(config.text?.rulesSaved || '', false);
                 showAlert(config.text?.rulesSaved || '', 'success');
                 exitEditMode(false);
@@ -479,6 +504,7 @@
                 showAlert(config.text?.rulesSaveError || '', 'error');
             }
         });
+        rulesInput.addEventListener('input', writeDraft);
 
         rulesToolbar.querySelectorAll('[data-rules-command]').forEach(button => {
             button.addEventListener('click', () => {
@@ -550,6 +576,9 @@
 
         rulesContent.innerHTML = '';
         const sanitized = sanitizeRulesHtml(text);
+        if (rulesInput && !rulesEditor?.classList.contains('is-editing')) {
+            rulesInput.innerHTML = sanitized;
+        }
         if (!extractPlainText(sanitized)) {
             const emptyText = config.text?.rulesEmpty || '';
             if (emptyText) {
@@ -1021,6 +1050,18 @@
             if (e.target === inviteModal) closeInviteModal();
         });
         inviteSearch?.addEventListener('input', () => renderInviteList());
+        inviteSearch?.addEventListener('search', () => renderInviteList());
+        document.addEventListener('bgp:chat:invite', (event) => {
+            if (!(event instanceof CustomEvent)) {
+                return;
+            }
+            const detail = event.detail || {};
+            const displayName = detail.displayName || '';
+            if (inviteSearch) {
+                inviteSearch.value = displayName;
+            }
+            openInviteModal();
+        });
         connectInviteHub();
     }
 
@@ -1223,7 +1264,7 @@
         window.setTimeout(() => {
             alert.classList.add('is-hidden');
             window.setTimeout(() => alert.remove(), 400);
-        }, 3200);
+        }, 7000);
     }
 
     function setupSessionCleanup() {

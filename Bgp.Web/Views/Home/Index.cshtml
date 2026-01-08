@@ -145,6 +145,46 @@
         </div>
     </section>
 
+        @if (Model.WeeklyEvents.Any())
+        {
+            <section class="home-guest__section" aria-labelledby="events-heading">
+                <header class="home-guest__section-header">
+                    <div>
+                        <h2 id="events-heading">@L["Home_Events_Title"].Value</h2>
+                    </div>
+                    <a class="section-header__link" asp-controller="Account" asp-action="Register">@L["Home_Events_Cta"].Value</a>
+                </header>
+                <div class="home-guest__events" role="list">
+                    @foreach (var ev in Model.WeeklyEvents)
+                    {
+                        var eventTarget = !string.IsNullOrWhiteSpace(ev.GameSlug)
+                        ? Url.Action("Details", "Games", new { slug = ev.GameSlug }) ?? "#"
+                        : "#";
+                        <article class="event-card" role="listitem">
+                            @if (!string.IsNullOrWhiteSpace(ev.ImagePath))
+                            {
+                                <div class="event-card__media">
+                                    <img src="@ev.ImagePath" alt="@ev.Title" loading="lazy" />
+                                </div>
+                            }
+                            <div class="event-card__content">
+                                <h3>@ev.Title</h3>
+                                <p>@string.Format(L["Home_Events_Reward"].Value, ev.Reward)</p>
+                                <div class="event-card__time">
+                                    <div>@string.Format(L["Home_Events_Start"].Value, ev.StartsAt.ToLocalTime().ToString("d"))</div>
+                                    <div>@string.Format(L["Home_Events_End"].Value, ev.EndsAt.ToLocalTime().ToString("d"))</div>
+                                </div>
+                                @if (ev.IsJoinable && !string.IsNullOrWhiteSpace(ev.GameSlug))
+                                {
+                                    <a class="btn-primary btn-small event-card__cta" href="@eventTarget">@L["Home_Events_JoinNow"].Value</a>
+                                }
+                            </div>
+                        </article>
+                    }
+                </div>
+            </section>
+        }
+
         @if (Model.FunFacts.Any())
         {
         <section class="home-guest__section home-guest__section--facts" aria-labelledby="facts-heading">
@@ -233,6 +273,37 @@ else
                 </div>
                 
         </section>
+
+    <section class="home-section">
+        <div class="home-section__header">
+            <h2>@L["Home_Dashboard_Events_Title"].Value</h2>
+            <p>@L["Home_Dashboard_Events_Subtitle"].Value</p>
+        </div>
+        @if (Model.WeeklyEvents.Any())
+        {
+            <div class="event-grid" role="list">
+                @foreach (var ev in Model.WeeklyEvents)
+                {
+                    var eventTarget = !string.IsNullOrWhiteSpace(ev.GameSlug)
+                    ? Url.Action("Details", "Games", new { slug = ev.GameSlug }) ?? "#"
+                    : "#";
+                    <article role="listitem">
+                        <h3>@ev.Title</h3>
+                        <p>@string.Format(L["Home_Events_Reward"].Value, ev.Reward)</p>
+                        <p class="event-card__time">@string.Format(L["Home_Events_End"].Value, ev.EndsAt.ToLocalTime().ToString("d"))</p>
+                        @if (ev.IsJoinable && !string.IsNullOrWhiteSpace(ev.GameSlug))
+                        {
+                            <a class="btn-primary btn-small event-card__cta" href="@eventTarget">@L["Home_Events_JoinNow"].Value</a>
+                        }
+                    </article>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="home-guest__empty">@L["Home_Dashboard_Events_Empty"].Value</p>
+        }
+    </section>
 
         <section class="home-section">
             <div class="home-section__header">

@@ -97,7 +97,12 @@
         searchPending = L["Chat_Search_Pending"].Value,
         searchAccept = L["Chat_Search_Accept"].Value,
         searchDecline = L["Chat_Search_Decline"].Value,
-        searchApprovalRequired = L["Chat_Search_ApprovalRequired"].Value
+        searchApprovalRequired = L["Chat_Search_ApprovalRequired"].Value,
+        alertFriendRequest = L["Chat_Alert_FriendRequest"].Value,
+        alertFriendAccepted = L["Chat_Alert_FriendAccepted"].Value,
+        alertGameInvite = L["Chat_Alert_GameInvite"].Value,
+        alertGameInviteAccepted = L["Chat_Alert_GameInviteAccepted"].Value,
+        searchClear = L["Chat_Search_Clear"].Value
 
     };
 }
@@ -178,9 +183,17 @@
             </header>
             <div class="chat-panel__search">
                 <input id="chatSearch"
+                       type="search"
                        data-chat-search
                        placeholder="@L["Chat_SearchPlaceholder"].Value"
                        autocomplete="off" />
+                <button type="button"
+                        class="chat-search-clear"
+                        data-chat-search-clear
+                        aria-label="@L["Chat_Search_Clear"].Value"
+                        hidden>
+                    ✕
+                </button>
             </div>
 
             <div class="chat-panel__body" id="chatPanelBody">

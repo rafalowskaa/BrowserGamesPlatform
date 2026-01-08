@@ -145,8 +145,11 @@
     <value>Daily login</value>
     </data>
 	<data name="Admin_Logs_Type_MessageReceived" xml:space="preserve">
-        <value>Message received</value>
-    </data>
+       <value>Message received</value>
+  </data>
+	<data name="Admin_Logs_Type_HomeContentUpdated" xml:space="preserve">
+    <value>Home content updated</value>
+  </data>
 	<data name="Admin_Logs_Rating_Label" xml:space="preserve">
         <value>Rating:</value>
     </data>
@@ -320,6 +323,21 @@
     </data>
 	<data name="Chat_Search_ApprovalRequired" xml:space="preserve">
         <value>Requires approval</value>
+		 </data>
+	<data name="Chat_Search_Clear" xml:space="preserve">
+        <value>Clear search</value>
+    </data>
+	<data name="Chat_Alert_FriendRequest" xml:space="preserve">
+        <value>Friend request received.</value>
+    </data>
+	<data name="Chat_Alert_FriendAccepted" xml:space="preserve">
+        <value>Friend request accepted.</value>
+    </data>
+	<data name="Chat_Alert_GameInvite" xml:space="preserve">
+        <value>Game invitation received.</value>
+    </data>
+	<data name="Chat_Alert_GameInviteAccepted" xml:space="preserve">
+        <value>Game invitation accepted.</value>
     </data>
 	<data name="Chat_Friends" xml:space="preserve">
         <value>Friends</value>
@@ -1235,6 +1253,15 @@
     </data>
 	<data name="Admin_Content_Event_TitlePlaceholder" xml:space="preserve">
         <value>Event title</value>
+		</data>
+	<data name="Admin_Content_Event_Error_Dates" xml:space="preserve">
+        <value>The end date must be later than the start date.</value>
+    </data>
+	<data name="Admin_Content_Event_Error_Game" xml:space="preserve">
+        <value>Select a valid game for this event.</value>
+    </data>
+	<data name="Admin_Content_Event_Error_Image" xml:space="preserve">
+        <value>Upload a valid image for the event.</value>
     </data>
 	<data name="Admin_Content_Events_Eyebrow" xml:space="preserve">
         <value>Weekly events</value>
@@ -1295,6 +1322,24 @@
     </data>
 	<data name="Admin_Content_History_Title" xml:space="preserve">
         <value>Publish history</value>
+		</data>
+	<data name="Admin_Content_Log_Fact_Saved" xml:space="preserve">
+        <value>Fact saved: {0}</value>
+    </data>
+	<data name="Admin_Content_Log_Fact_Deleted" xml:space="preserve">
+        <value>Fact deleted: {0}</value>
+    </data>
+	<data name="Admin_Content_Log_Event_Saved" xml:space="preserve">
+        <value>Event saved: {0}</value>
+    </data>
+	<data name="Admin_Content_Log_Event_Deleted" xml:space="preserve">
+        <value>Event deleted: {0}</value>
+    </data>
+	<data name="Admin_Content_Log_Feature_Saved" xml:space="preserve">
+        <value>Featured game saved: {0}</value>
+    </data>
+	<data name="Admin_Content_Log_Feature_Deleted" xml:space="preserve">
+        <value>Featured game removed: {0}</value>
     </data>
 	<data name="Admin_Content_HomeNav_AriaLabel" xml:space="preserve">
         <value>Homepage sections</value>

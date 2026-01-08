@@ -122,12 +122,6 @@ public class ChatMessageService : IChatMessageService
         _db.ChatMessages.Add(message);
         await _db.SaveChangesAsync(cancellationToken);
 
-        await _logger.LogAsync(ActivityLogType.MessageReceived, senderId, log =>
-        {
-            log.TargetUserId = receiverId;
-            log.Message = messageContent;
-        }, cancellationToken);
-
         var participants = await _db.Users
             .Where(u => u.Id == senderId || u.Id == receiverId)
             .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })

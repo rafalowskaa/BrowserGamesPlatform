@@ -67,7 +67,10 @@
     {
         @await Html.PartialAsync("_ChatSidebar")
     }
-
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <div class="toast-stack global-toast-stack" id="globalToastStack" aria-live="polite" aria-atomic="true"></div>
+    }
 
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/app-header.js" asp-append-version="true"></script>
