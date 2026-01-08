@@ -405,6 +405,15 @@
     </data>
 	<data name="Dashboard_Notifications_CommentAdded" xml:space="preserve">
         <value>{0} dodał(a) komentarz do gry {1}.</value>
+		</data>
+	<data name="Dashboard_Notifications_CommentLiked" xml:space="preserve">
+        <value>{0} polubił(a) Twój komentarz w grze {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_CommentDisliked" xml:space="preserve">
+        <value>{0} dodał(a) niechęć do Twojego komentarza w grze {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_Message" xml:space="preserve">
+        <value>Nowa wiadomość od {0}.</value>
     </data>
 	<data name="Dashboard_Notifications_Rating" xml:space="preserve">
         <value>{0} ocenił(a) grę {1}.</value>
@@ -972,6 +981,9 @@
 		</data>
 	<data name="Admin_Logs_Type_DailyLogin" xml:space="preserve">
     <value>Dzienne logowanie</value>
+		</data>
+	<data name="Admin_Logs_Type_MessageReceived" xml:space="preserve">
+    <value>Otrzymano wiadomość</value>
   </data>
 	<data name="Admin_Logs_Rating_Label" xml:space="preserve">
      <value>Ocena:</value>
@@ -1521,6 +1533,18 @@
     </data>
 	<data name="Admin_Games_Preview" xml:space="preserve">
         <value>Podgląd</value>
+		</data>
+	<data name="Admin_Games_Rankings_Clear" xml:space="preserve">
+        <value>Wyczyść rankingi</value>
+    </data>
+	<data name="Admin_Games_Rankings_Clear_Confirm" xml:space="preserve">
+        <value>Czy na pewno wyczyścić wszystkie rankingi i statystyki meczów tej gry?</value>
+    </data>
+	<data name="Admin_Games_Rankings_Clear_Success" xml:space="preserve">
+        <value>Rankingi zostały wyczyszczone.</value>
+    </data>
+	<data name="Admin_Games_Rankings_Clear_Error" xml:space="preserve">
+        <value>Nie udało się wyczyścić rankingów tej gry.</value>
     </data>
 	<data name="Admin_Games_Label_New" xml:space="preserve">
         <value>Nowe</value>

@@ -510,6 +510,7 @@
             this.editorSection = this.drawer?.querySelector('[data-drawer-editor]');
             this.metadataForm = this.drawer?.querySelector('[data-metadata-form]');
             this.previewApproveForm = this.drawer?.querySelector('[data-preview-approve]');
+            this.previewClearRankingsForm = this.drawer?.querySelector('[data-preview-clear-rankings]');
             this.rejectForm = this.drawer?.querySelector('[data-reject-form]');
             this.previewTestLink = this.drawer?.querySelector('[data-preview-test]');
             this.previewTitle = this.drawer?.querySelector('[data-preview-title]');
@@ -864,6 +865,13 @@
 
             if (this.previewApproveForm) {
                 const input = this.previewApproveForm.querySelector('input[name="id"]');
+                if (input) {
+                    input.value = game.id;
+                }
+            }
+
+            if (this.previewClearRankingsForm) {
+                const input = this.previewClearRankingsForm.querySelector('input[name="id"]');
                 if (input) {
                     input.value = game.id;
                 }

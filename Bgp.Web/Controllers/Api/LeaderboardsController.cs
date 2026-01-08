@@ -54,18 +54,24 @@ public class LeaderboardsController : ControllerBase
             {
                 UserId = g.Key,
                 Best = g.Max(s => s.Value),
-                Matches = g.Count()
+                Matches = g.Select(s => s.MatchSessionId).Distinct().Count()
             })
             .OrderByDescending(x => x.Best)
             .Take(Math.Clamp(top, 1, 200))
             .ToListAsync();
 
-        var sessionStats = await _db.SessionPlayers
-            .Join(_db.MatchSessions.Where(s => s.GameId == gameId),
-                player => player.SessionId,
-                session => session.Id,
-                (player, session) => new { player.UserId, player.Role, player.SessionId })
-            .ToListAsync();
+        var completedSessionIds = await _db.Scores
+             .Where(s => s.GameId == gameId && s.Verified)
+             .Select(s => s.MatchSessionId)
+             .Distinct()
+             .ToListAsync();
+
+        var sessionStats = completedSessionIds.Count == 0
+            ? new List<SessionStat>()
+            : await _db.SessionPlayers
+                .Where(player => completedSessionIds.Contains(player.SessionId))
+                .Select(player => new SessionStat(player.UserId, player.Role, player.SessionId))
+                .ToListAsync();
 
         var sessionStatsLookup = sessionStats
             .GroupBy(entry => entry.UserId)
@@ -97,17 +103,22 @@ public class LeaderboardsController : ControllerBase
 
             if (playerRows.Count > 0)
             {
-                totalPlayers = playerRows.Select(r => r.UserId).Distinct().Count();
                 var hasResults = playerRows.Any(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase)
                                                      || string.Equals(r.Role, "loser", StringComparison.OrdinalIgnoreCase));
+                if (!hasResults)
+                {
+                    return Enumerable.Empty<LeaderboardRowDto>();
+                }
+
+                totalPlayers = playerRows.Select(r => r.UserId).Distinct().Count();
                 rows = playerRows
+                    .Where(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase)
+                                || string.Equals(r.Role, "loser", StringComparison.OrdinalIgnoreCase))
                     .GroupBy(r => r.UserId)
                     .Select(g => new
                     {
                         UserId = g.Key,
-                        Best = hasResults
-                            ? g.Count(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase))
-                            : g.Count()
+                        Best = g.Count(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase))
                     })
                     .Select(x => new { x.UserId, Best = (double)x.Best, Matches = x.Best })
                     .OrderByDescending(x => x.Best)
@@ -147,6 +158,8 @@ public class LeaderboardsController : ControllerBase
                 r.Best);
         });
     }
+
+    private sealed record SessionStat(string UserId, string Role, Guid SessionId);
 
     private static string QuoteCsv(string value)
     {

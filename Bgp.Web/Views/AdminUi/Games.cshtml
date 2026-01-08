@@ -287,6 +287,11 @@
                                 <input type="hidden" name="id" value="" />
                                 <button type="submit" class="btn-primary">@L["Admin_Games_Approve"].Value</button>
                             </form>
+                            <form asp-action="ClearGameRankings" method="post" class="inline-form" onsubmit="return confirm('@L["Admin_Games_Rankings_Clear_Confirm"].Value');" data-preview-clear-rankings>
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="" />
+                                <button type="submit" class="btn-outline">@L["Admin_Games_Rankings_Clear"].Value</button>
+                            </form>
                             <button type="button" class="btn-outline" data-open-moderation>@L["Admin_Games_Reject"].Value</button>
                         </div>
                     </section>

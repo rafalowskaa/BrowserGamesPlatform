@@ -1137,24 +1137,39 @@
             setInviteStatus(config.text?.inviteError || '', true);
             return;
         }
-        if (!currentSessionId) {
-            const started = await startSession(selectedMode());
-            if (!started || !currentSessionId) {
-                setPlayerStatus('error', config.text?.inviteError);
-                setInviteStatus(config.text?.inviteError || '', true);
-                return;
-            }
-        }
-        const url = config.invites.createTemplate.replace('{sessionId}', currentSessionId);
+        
         try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ friendId, FriendId: friendId })
-            });
+            let retried = false;
 
-            if (!res.ok) throw new Error('Invite failed');
+            const ensureSession = async () => {
+                if (currentSessionId) {
+                    return true;
+                }
+                const started = await startSession(selectedMode());
+                return started && !!currentSessionId;
+            };
+
+            const sendRequest = async () => {
+                if (!await ensureSession() || !currentSessionId) {
+                    return null;
+                }
+                const url = config.invites.createTemplate.replace('{sessionId}', currentSessionId);
+                return fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ friendId, FriendId: friendId })
+                });
+            };
+
+            let res = await sendRequest();
+            if (!res || (!res.ok && (res.status === 403 || res.status === 404) && !retried)) {
+                retried = true;
+                currentSessionId = null;
+                res = await sendRequest();
+            }
+
+            if (!res || !res.ok) throw new Error('Invite failed');
             setPlayerStatus('ready', config.text?.inviteSuccess);
             setInviteStatus(config.text?.inviteSuccess || '', false);
             showAlert(config.text?.inviteSuccess || '', 'success');

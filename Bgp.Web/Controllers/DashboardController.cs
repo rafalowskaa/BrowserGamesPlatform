@@ -929,6 +929,9 @@ public class DashboardController : Controller
             ActivityLogType.GameInviteSent,
             ActivityLogType.GameInviteAccepted,
             ActivityLogType.CommentAdded,
+            ActivityLogType.CommentLiked,
+            ActivityLogType.CommentDisliked,
+            ActivityLogType.MessageReceived,
             ActivityLogType.RatingSubmitted
         };
 
@@ -987,6 +990,9 @@ public class DashboardController : Controller
                 ActivityLogType.CommentAdded when log.TargetUserId == user.Id
                     => string.Format(Localize("Dashboard_Notifications_CommentQuote"), actorName, gameTitle),
                 ActivityLogType.CommentAdded => string.Format(Localize("Dashboard_Notifications_CommentAdded"), actorName, gameTitle),
+                ActivityLogType.CommentLiked => string.Format(Localize("Dashboard_Notifications_CommentLiked"), actorName, gameTitle),
+                ActivityLogType.CommentDisliked => string.Format(Localize("Dashboard_Notifications_CommentDisliked"), actorName, gameTitle),
+                ActivityLogType.MessageReceived => string.Format(Localize("Dashboard_Notifications_Message"), actorName),
                 ActivityLogType.RatingSubmitted => string.Format(Localize("Dashboard_Notifications_Rating"), actorName, gameTitle),
                 _ => string.Format(Localize("Dashboard_Notifications_Generic"), actorName)
             };
@@ -994,7 +1000,7 @@ public class DashboardController : Controller
 
         string? BuildNotificationLink(ActivityLog log)
         {
-            if (log.Type is ActivityLogType.FriendRequestSent or ActivityLogType.FriendRequestAccepted)
+            if (log.Type is ActivityLogType.FriendRequestSent or ActivityLogType.FriendRequestAccepted or ActivityLogType.MessageReceived)
             {
                 return Url.Action(nameof(Index), new { tab = "friends" });
             }
@@ -1008,7 +1014,7 @@ public class DashboardController : Controller
                 return Url.Action(nameof(Index), new { tab = "overview" });
             }
 
-            if (log.Type is ActivityLogType.CommentAdded or ActivityLogType.RatingSubmitted)
+            if (log.Type is ActivityLogType.CommentAdded or ActivityLogType.CommentLiked or ActivityLogType.CommentDisliked or ActivityLogType.RatingSubmitted)
             {
                 if (log.GameId.HasValue && notificationGames.TryGetValue(log.GameId.Value, out var game))
                 {

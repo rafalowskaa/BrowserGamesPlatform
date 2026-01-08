@@ -37,10 +37,12 @@ public record ChatMessagePayload(
 public class ChatMessageService : IChatMessageService
 {
     private readonly AppDbContext _db;
+    private readonly IActivityLogger _logger;
 
-    public ChatMessageService(AppDbContext db)
+    public ChatMessageService(AppDbContext db, IActivityLogger logger)
     {
         _db = db;
+        _logger = logger;
     }
 
     public async Task<ChatMessagePayload> CreateAsync(
@@ -87,6 +89,26 @@ public class ChatMessageService : IChatMessageService
             throw new InvalidOperationException("User is blocked.");
         }
 
+        var receiverVisibility = await _db.Users
+            .AsNoTracking()
+            .Where(u => u.Id == receiverId)
+            .Select(u => u.DisplayNameVisibility)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (receiverVisibility != ProfileVisibility.Everyone)
+        {
+            var isFriend = await _db.Friendships.AnyAsync(
+                f => (f.RequesterId == senderId && f.AddresseeId == receiverId
+                      || f.RequesterId == receiverId && f.AddresseeId == senderId)
+                     && f.Status == FriendshipStatus.Accepted,
+                cancellationToken);
+
+            if (!isFriend)
+            {
+                throw new InvalidOperationException("User is unavailable.");
+            }
+        }
+
         var message = new Bgp.Domain.Entities.ChatMessage
         {
             SenderId = senderId,
@@ -99,6 +121,12 @@ public class ChatMessageService : IChatMessageService
 
         _db.ChatMessages.Add(message);
         await _db.SaveChangesAsync(cancellationToken);
+
+        await _logger.LogAsync(ActivityLogType.MessageReceived, senderId, log =>
+        {
+            log.TargetUserId = receiverId;
+            log.Message = messageContent;
+        }, cancellationToken);
 
         var participants = await _db.Users
             .Where(u => u.Id == senderId || u.Id == receiverId)

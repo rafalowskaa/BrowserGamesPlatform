@@ -80,6 +80,7 @@ public class GameRulesController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Locale) || string.Equals(request.Locale, game.DefaultLocale, StringComparison.OrdinalIgnoreCase))
         {
             game.Rules = content;
+            game.UpdatedAtUtc = DateTime.UtcNow;
         }
         else
         {

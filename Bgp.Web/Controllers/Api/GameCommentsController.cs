@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Bgp.Domain.Entities;
 using System.Text.Encodings.Web;
@@ -262,6 +263,10 @@ public class GameCommentsController : ControllerBase
             {
                 log.GameId = gameId;
                 log.CommentId = commentId;
+                if (!string.Equals(review.UserId, userId, StringComparison.OrdinalIgnoreCase))
+                {
+                    log.TargetUserId = review.UserId;
+                }
             });
 
         var likes = review.Reactions.Count(r => r.Reaction == CommentReactionType.Like);

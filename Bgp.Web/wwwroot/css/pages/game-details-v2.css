@@ -675,6 +675,12 @@
         font-size: 0.9rem;
     }
 
+    .comment-list [data-comment-author] {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #ff8a00;
+    }
+
 .comment-quote {
     border-left: 3px solid rgba(56, 189, 248, 0.6);
     padding-left: 0.75rem;

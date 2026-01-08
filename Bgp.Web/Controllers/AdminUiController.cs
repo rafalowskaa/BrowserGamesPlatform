@@ -938,6 +938,50 @@ public class AdminUiController : Controller
         return RedirectToAction(nameof(Games));
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ClearGameRankings(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            TempData["AdminGamesError"] = "Admin_Games_Rankings_Clear_Error";
+            return RedirectToAction(nameof(Games));
+        }
+
+        var sessionIds = await _db.MatchSessions
+            .Where(s => s.GameId == id)
+            .Select(s => s.Id)
+            .ToListAsync();
+
+        if (sessionIds.Count > 0)
+        {
+            var invites = await _db.GameInvites
+                .Where(i => sessionIds.Contains(i.SessionId))
+                .ToListAsync();
+            _db.GameInvites.RemoveRange(invites);
+
+            var players = await _db.SessionPlayers
+                .Where(p => sessionIds.Contains(p.SessionId))
+                .ToListAsync();
+            _db.SessionPlayers.RemoveRange(players);
+
+            var sessions = await _db.MatchSessions
+                .Where(s => sessionIds.Contains(s.Id))
+                .ToListAsync();
+            _db.MatchSessions.RemoveRange(sessions);
+        }
+
+        var scores = await _db.Scores
+            .Where(s => s.GameId == id)
+            .ToListAsync();
+        _db.Scores.RemoveRange(scores);
+
+        await _db.SaveChangesAsync();
+
+        TempData["AdminGamesSuccess"] = "Admin_Games_Rankings_Clear_Success";
+        return RedirectToAction(nameof(Games));
+    }
+
     public async Task<IActionResult> PlayGame(Guid id)
     {
         var game = await _db.Games

@@ -143,7 +143,10 @@
 		</data>
 	<data name="Admin_Logs_Type_DailyLogin" xml:space="preserve">
     <value>Daily login</value>
-  </data>
+    </data>
+	<data name="Admin_Logs_Type_MessageReceived" xml:space="preserve">
+        <value>Message received</value>
+    </data>
 	<data name="Admin_Logs_Rating_Label" xml:space="preserve">
         <value>Rating:</value>
     </data>
@@ -533,6 +536,15 @@
     </data>
 	<data name="Dashboard_Notifications_CommentAdded" xml:space="preserve">
         <value>{0} commented on {1}.</value>
+		</data>
+	<data name="Dashboard_Notifications_CommentLiked" xml:space="preserve">
+        <value>{0} liked your comment in {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_CommentDisliked" xml:space="preserve">
+        <value>{0} disliked your comment in {1}.</value>
+    </data>
+	<data name="Dashboard_Notifications_Message" xml:space="preserve">
+        <value>New message from {0}.</value>
     </data>
 	<data name="Dashboard_Notifications_Rating" xml:space="preserve">
         <value>{0} rated {1}.</value>
@@ -1628,6 +1640,18 @@
     </data>
 	<data name="Admin_Games_Preview" xml:space="preserve">
         <value>Preview</value>
+		</data>
+	<data name="Admin_Games_Rankings_Clear" xml:space="preserve">
+        <value>Clear rankings</value>
+    </data>
+	<data name="Admin_Games_Rankings_Clear_Confirm" xml:space="preserve">
+        <value>Clear all rankings and match stats for this game?</value>
+    </data>
+	<data name="Admin_Games_Rankings_Clear_Success" xml:space="preserve">
+        <value>Rankings have been cleared.</value>
+    </data>
+	<data name="Admin_Games_Rankings_Clear_Error" xml:space="preserve">
+        <value>Unable to clear rankings for this game.</value>
     </data>
 	<data name="Admin_Games_Label_New" xml:space="preserve">
         <value>New</value>

@@ -177,7 +177,8 @@
             isInvisible: !!(row.isInvisible ?? row.IsInvisible),
             unreadCount: Number.parseInt(row.unreadCount ?? row.UnreadCount ?? '0', 10) || 0,
             currentGameTitle: row.currentGameTitle ?? row.CurrentGameTitle ?? null,
-            currentGameSlug: row.currentGameSlug ?? row.CurrentGameSlug ?? null
+            currentGameSlug: row.currentGameSlug ?? row.CurrentGameSlug ?? null,
+            conversationOnly: !!(row.conversationOnly ?? row.ConversationOnly)
         };
     }
 
@@ -239,8 +240,8 @@
     function renderFriends(items) {
         const normalized = Array.isArray(items) ? items.map(normalizeFriend).filter(Boolean) : [];
         const accepted = normalized.filter(x => x.status === 1);
-        const incoming = normalized.filter(x => x.status === 0 && !x.outgoingRequest);
-        const outgoing = normalized.filter(x => x.status === 0 && x.outgoingRequest);
+        const incoming = normalized.filter(x => x.status === 0 && !x.outgoingRequest && !x.conversationOnly);
+        const outgoing = normalized.filter(x => x.status === 0 && x.outgoingRequest && !x.conversationOnly);
         const blocked = normalized.filter(x => x.status === 2);
 
         clearList(acceptedList);
