@@ -164,4 +164,55 @@
     }
 
     initUserMenus();
+    function initNotificationBadges() {
+        const badges = Array.from(document.querySelectorAll('[data-notifications-badge]'));
+        if (!badges.length) {
+            return;
+        }
+        const storageKey = 'bgp.notifications.lastSeen';
+        const notificationsView = document.querySelector('[data-notifications-view]');
+        if (notificationsView) {
+            try {
+                window.localStorage.setItem(storageKey, new Date().toISOString());
+            } catch (err) {
+
+            }
+            badges.forEach((badge) => {
+                badge.textContent = '0';
+                badge.setAttribute('hidden', '');
+            });
+        }
+
+        let since = null;
+        try {
+            since = window.localStorage.getItem(storageKey);
+        } catch (err) {
+            since = null;
+        }
+
+        const url = new URL('/api/notifications/unread-count', window.location.origin);
+        if (since) {
+            url.searchParams.set('since', since);
+        }
+
+        fetch(url.toString(), { credentials: 'include' })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((payload) => {
+                if (!payload || typeof payload.count !== 'number') {
+                    return;
+                }
+                const count = payload.count;
+                badges.forEach((badge) => {
+                    badge.textContent = String(count);
+                    if (count > 0) {
+                        badge.removeAttribute('hidden');
+                    } else {
+                        badge.setAttribute('hidden', '');
+                    }
+                });
+            })
+            .catch(() => { });
+    }
+
+    initNotificationBadges();
 })();

@@ -98,7 +98,10 @@
                            asp-controller="Dashboard"
                            asp-action="Index"
                            asp-route-tab="notifications"
-                           role="menuitem">@L["Navigation_Notifications"].Value</a>
+                           role="menuitem">
+                            @L["Navigation_Notifications"].Value
+                            <span class="notification-badge" data-notifications-badge hidden>0</span>
+                        </a>
                         <a class="user-menu__item"
                            asp-controller="Dashboard"
                            asp-action="Index"

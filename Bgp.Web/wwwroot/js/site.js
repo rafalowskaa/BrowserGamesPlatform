@@ -84,6 +84,25 @@
 
     initRejectionCountdowns();
 
+    function showGlobalToast(message, tone) {
+        const toastContainer = document.getElementById('globalToastStack');
+        if (!toastContainer || !message) {
+            return;
+        }
+        while (toastContainer.children.length > 4) {
+            toastContainer.removeChild(toastContainer.firstChild);
+        }
+        const toast = document.createElement('div');
+        toast.className = `toast toast--${tone || 'success'}`;
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('is-leaving');
+            window.setTimeout(() => toast.remove(), 250);
+        }, 3500);
+    }
+
+    window.Bgp.showGlobalToast = showGlobalToast;
 
     function initSecurityQuestions(container) {
         if (!container) {

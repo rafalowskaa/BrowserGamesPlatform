@@ -237,6 +237,26 @@
         window.history.replaceState({}, '', newUrl);
     }
 
+    async function createSession(mode) {
+        if (!config.play?.sessionUrl) {
+            return false;
+        }
+
+        const res = await fetch(config.play.sessionUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ mode })
+        });
+        if (!res.ok) {
+            throw new Error('Failed to create session');
+        }
+        const data = await res.json();
+        currentSessionId = data.session_id || data.sessionId;
+        currentToken = data.token;
+        leaveRequestSent = false;
+        return true;
+    }
 
     async function startSession(mode) {
         if (!config.play?.hasWeb || !config.play?.webUrl || !config.play?.sessionUrl) {
@@ -246,17 +266,10 @@
         setPlayerStatus('loading', config.text?.playLoading);
 
         try {
-            const res = await fetch(config.play.sessionUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ mode })
-            });
-            if (!res.ok) throw new Error('Failed to create session');
-            const data = await res.json();
-            currentSessionId = data.session_id || data.sessionId;
-            currentToken = data.token;
-            leaveRequestSent = false;
+            const created = await createSession(mode);
+            if (!created) {
+                throw new Error('Session not created');
+            }
             const url = buildGameUrl(mode, currentSessionId, currentToken);
             playerFrame.src = url;
             setPlayerStatus('ready', config.text?.playReady);
@@ -431,6 +444,13 @@
             }
             window.sessionStorage.removeItem(draftKey);
         };
+
+        const initialDraft = readDraft();
+        if (initialDraft) {
+            rulesInput.innerHTML = initialDraft;
+            updateRulesContent(initialDraft);
+            originalText = initialDraft;
+        }
 
         const enterEditMode = () => {
             rulesEditor.classList.add('is-editing');
@@ -1186,8 +1206,13 @@
                 if (currentSessionId) {
                     return true;
                 }
-                const started = await startSession(selectedMode());
-                return started && !!currentSessionId;
+                try {
+                    const started = await createSession(selectedMode());
+                    return started && !!currentSessionId;
+                } catch (err) {
+                    console.error(err);
+                    return false;
+                }
             };
 
             const sendRequest = async () => {

@@ -359,10 +359,18 @@
             await apiCall(`/api/friends/block/${encodeURIComponent(userId)}`, { method: 'POST' });
             await loadFriends();
             await renderSearch();
-            window.alert(labels.blockSuccess);
+            if (window.Bgp && typeof window.Bgp.showGlobalToast === 'function') {
+                window.Bgp.showGlobalToast(labels.blockSuccess, 'success');
+            } else {
+                window.alert(labels.blockSuccess);
+            }
         } catch (err) {
             console.error(err);
-            window.alert(labels.blockError);
+            if (window.Bgp && typeof window.Bgp.showGlobalToast === 'function') {
+                window.Bgp.showGlobalToast(labels.blockError, 'error');
+            } else {
+                window.alert(labels.blockError);
+            }
         }
     }
 
@@ -392,9 +400,19 @@
         })
             .then(res => {
                 if (!res.ok) throw new Error('Report failed');
-                window.alert(labels.reportSuccess);
+                if (window.Bgp && typeof window.Bgp.showGlobalToast === 'function') {
+                    window.Bgp.showGlobalToast(labels.reportSuccess, 'success');
+                } else {
+                    window.alert(labels.reportSuccess);
+                }
             })
-            .catch(() => window.alert(labels.reportError));
+            .catch(() => {
+                if (window.Bgp && typeof window.Bgp.showGlobalToast === 'function') {
+                    window.Bgp.showGlobalToast(labels.reportError, 'error');
+                } else {
+                    window.alert(labels.reportError);
+                }
+            });
     }
 
     function openChat(userId, displayName) {
@@ -412,6 +430,24 @@
     }
 
     searchBtn.addEventListener('click', renderSearch);
+    searchInput.addEventListener('input', () => {
+        const term = (searchInput.value || '').trim();
+        if (!term) {
+            clearList(searchResults);
+            setEmptyState(searchEmpty, false);
+            return;
+        }
+        renderSearch();
+    });
+    searchInput.addEventListener('search', () => {
+        const term = (searchInput.value || '').trim();
+        if (!term) {
+            clearList(searchResults);
+            setEmptyState(searchEmpty, false);
+            return;
+        }
+        renderSearch();
+    });
     searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();

@@ -87,7 +87,10 @@
         <a class="dashboard-nav__item@(activeTab == "stats" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="stats">@L["Dashboard_Stats_Tab"].Value</a>
         <a class="dashboard-nav__item@(activeTab == "games" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="games">@L["Dashboard_Games_AddTab"].Value</a>
         <a class="dashboard-nav__item@(activeTab == "friends" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="friends">@L["Dashboard_Friends_Tab"].Value</a>
-        <a class="dashboard-nav__item@(activeTab == "notifications" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="notifications">@L["Dashboard_Notifications_Tab"].Value</a>
+        <a class="dashboard-nav__item@(activeTab == "notifications" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="notifications">
+            @L["Dashboard_Notifications_Tab"].Value
+            <span class="notification-badge" data-notifications-badge hidden>0</span>
+        </a>
         <a class="dashboard-nav__item@(activeTab == "ranking" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="ranking">@L["Dashboard_Ranking_Tab"].Value</a>
     </nav>
 
@@ -394,7 +397,7 @@
             </section>
             break;
         case "notifications":
-            <section class="dashboard-panel notifications-panel">
+            <section class="dashboard-panel notifications-panel" data-notifications-view>
                 <header class="panel-header">
                     <div>
                         <h2>@L["Dashboard_Notifications_Title"].Value</h2>

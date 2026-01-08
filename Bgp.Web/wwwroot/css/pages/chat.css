@@ -500,6 +500,12 @@
             outline: 0;
         }
 
+        .chat-panel__search input::-webkit-search-cancel-button,
+        .chat-panel__search input::-webkit-search-decoration {
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
     .chat-panel__search .chat-search-clear {
         position: absolute;
         top: 50%;

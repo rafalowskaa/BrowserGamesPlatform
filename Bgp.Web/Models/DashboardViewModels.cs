@@ -345,7 +345,13 @@ public class UpdateRecoveryQuestionsInputModel : IValidatableObject
         var localizer = validationContext.GetService(typeof(IStringLocalizer<SharedResource>)) as IStringLocalizer<SharedResource>;
         string Localize(string key) => localizer?[key].Value ?? key;
 
-        var questionKeys = new[] { SecurityQuestion1, SecurityQuestion2, SecurityQuestion3 };
+        var questionEntries = new[]
+         {
+            (Key: SecurityQuestion1, Custom: SecurityQuestion1Custom),
+            (Key: SecurityQuestion2, Custom: SecurityQuestion2Custom),
+            (Key: SecurityQuestion3, Custom: SecurityQuestion3Custom)
+        };
+        var questionKeys = questionEntries.Select(entry => entry.Key).ToArray();
         if (questionKeys.Any(string.IsNullOrWhiteSpace))
         {
             yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Required"), new[]
@@ -370,7 +376,18 @@ public class UpdateRecoveryQuestionsInputModel : IValidatableObject
             yield return new ValidationResult(Localize("Auth_SecurityQuestions_Answer_Required"), new[] { nameof(SecurityAnswer3) });
         }
 
-        if (questionKeys.GroupBy(x => x).Any(g => g.Count() > 1))
+        var normalizedKeys = questionEntries.Select(entry =>
+        {
+            var key = entry.Key?.Trim() ?? string.Empty;
+            if (string.Equals(key, SecurityQuestionCatalog.CustomKey, StringComparison.OrdinalIgnoreCase))
+            {
+                var custom = (entry.Custom ?? string.Empty).Trim();
+                return $"{key}:{custom}".ToLowerInvariant();
+            }
+            return key.ToLowerInvariant();
+        });
+
+        if (normalizedKeys.GroupBy(x => x).Any(g => g.Count() > 1))
         {
             yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Distinct"), new[]
             {
