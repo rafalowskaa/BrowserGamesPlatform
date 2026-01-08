@@ -424,6 +424,10 @@
             return;
         }
 
+        if (typeof document.execCommand === 'function') {
+            document.execCommand('styleWithCSS', false, false);
+        }
+
         let originalText = rulesInput.innerHTML || '';
         const draftKey = config.rules?.updateUrl ? `bgp.rulesDraft:${config.rules.updateUrl}` : null;
         const readDraft = () => {
@@ -1347,12 +1351,65 @@
         selection.addRange(newRange);
     }
 
+    function applyInlineRulesFormatting(wrapper, doc) {
+        if (!wrapper) {
+            return;
+        }
+        const styledNodes = wrapper.querySelectorAll('[style]');
+        styledNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) {
+                return;
+            }
+            const rawStyle = node.getAttribute('style') || '';
+            if (!rawStyle) {
+                return;
+            }
+            const normalized = rawStyle.toLowerCase();
+            const wrappers = [];
+            const weightMatch = normalized.match(/font-weight\s*:\s*([^;]+)/);
+            if (weightMatch) {
+                const weightValue = weightMatch[1].trim();
+                const numericWeight = parseInt(weightValue, 10);
+                if (weightValue.includes('bold') || (!Number.isNaN(numericWeight) && numericWeight >= 600)) {
+                    wrappers.push('strong');
+                }
+            }
+            if (normalized.includes('font-style') && normalized.includes('italic')) {
+                wrappers.push('em');
+            }
+            const decorationMatch = normalized.match(/text-decoration\s*:\s*([^;]+)/);
+            if (decorationMatch) {
+                const value = decorationMatch[1];
+                if (value.includes('underline')) {
+                    wrappers.push('u');
+                }
+                if (value.includes('line-through')) {
+                    wrappers.push('s');
+                }
+            }
+
+            if (wrappers.length) {
+                let current = node;
+                wrappers.forEach((tag) => {
+                    const wrapperEl = doc.createElement(tag);
+                    while (current.firstChild) {
+                        wrapperEl.appendChild(current.firstChild);
+                    }
+                    current.appendChild(wrapperEl);
+                    current = wrapperEl;
+                });
+            }
+            node.removeAttribute('style');
+        });
+    }
+
     function sanitizeRulesHtml(html) {
         if (!html) return '';
         const parser = new DOMParser();
         const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html');
         const wrapper = doc.body.firstElementChild;
         if (!wrapper) return '';
+        applyInlineRulesFormatting(wrapper, doc);
         const allowedTags = new Set(['P', 'BR', 'DIV', 'STRONG', 'B', 'EM', 'I', 'U', 'S', 'UL', 'OL', 'LI', 'H1', 'H2', 'H3', 'H4', 'BLOCKQUOTE', 'SPAN', 'IMG', 'A']);
         const allowedSpanClasses = new Set(['rules-size-sm', 'rules-size-md', 'rules-size-lg']);
 

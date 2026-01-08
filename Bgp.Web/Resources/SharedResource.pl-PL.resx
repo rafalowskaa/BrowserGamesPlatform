@@ -159,6 +159,9 @@
 	<data name="Chat_SearchHint" xml:space="preserve">
         <value>Zacznij wpisywać, aby znaleźć graczy</value>
 		</data>
+	<data name="Chat_SearchMinChars" xml:space="preserve">
+        <value>Wpisz minimum 3 znaki, aby wyszukiwać.</value>
+    </data>
 	<data name="Chat_Search_LocalHeading" xml:space="preserve">
         <value>Wyniki lokalne</value>
     </data>
@@ -786,6 +789,9 @@
   </data>
 	<data name="Dashboard_Friends_SearchEmpty" xml:space="preserve">
     <value>Nie znaleziono graczy spełniających kryteria.</value>
+		 </data>
+	<data name="Dashboard_Friends_SearchMinChars" xml:space="preserve">
+    <value>Wpisz minimum 3 znaki, aby wyszukiwać.</value>
   </data>
 	<data name="Dashboard_Friends_CurrentHeading" xml:space="preserve">
     <value>Twoi znajomi</value>
@@ -2367,6 +2373,9 @@
   </data>
 	<data name="Auth_Register_SecurityQuestions_EmptyState" xml:space="preserve">
     <value>Pytania zabezpieczające są opcjonalne, ale ułatwiają odzyskanie konta.</value>
+		</data>
+	<data name="Auth_Register_SecurityQuestions_MaxHint" xml:space="preserve">
+    <value>Możesz dodać maksymalnie 3 pytania zabezpieczające.</value>
   </data>
 	<data name="Auth_Register_SecurityQuestions_Info" xml:space="preserve">
     <value>Pytania są dodatkowe i pomagają lepiej chronić konto.</value>

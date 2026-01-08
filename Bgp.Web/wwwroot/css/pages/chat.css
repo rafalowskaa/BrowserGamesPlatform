@@ -501,10 +501,16 @@
         }
 
         .chat-panel__search input::-webkit-search-cancel-button,
-        .chat-panel__search input::-webkit-search-decoration {
-            -webkit-appearance: none;
-            appearance: none;
-        }
+    .chat-panel__search input::-webkit-search-decoration {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    .chat-window__search input[type="search"]::-webkit-search-cancel-button,
+    .chat-window__search input[type="search"]::-webkit-search-decoration {
+        -webkit-appearance: none;
+        appearance: none;
+    }
 
     .chat-panel__search .chat-search-clear {
         position: absolute;

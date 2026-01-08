@@ -94,7 +94,6 @@ public static class RulesContentHelper
 
         var cleaned = ScriptStyleRegex.Replace(html, string.Empty);
         cleaned = EventHandlerRegex.Replace(cleaned, string.Empty);
-        cleaned = Regex.Replace(cleaned, "\\s+style\\s*=\\s*(\"[^\"]*\"|'[^']*'|[^\\s>]+)", string.Empty, RegexOptions.IgnoreCase);
         cleaned = Regex.Replace(cleaned, "\\s+srcdoc\\s*=\\s*(\"[^\"]*\"|'[^']*'|[^\\s>]+)", string.Empty, RegexOptions.IgnoreCase);
 
         cleaned = TagRegex.Replace(cleaned, match =>
@@ -132,7 +131,7 @@ public static class RulesContentHelper
         {
             "img" => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "src", "alt", "title" },
             "a" => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "href", "target", "rel" },
-            "span" => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "class" },
+            "span" => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "class", "style" },
             _ => new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         };
 
@@ -161,6 +160,16 @@ public static class RulesContentHelper
                 value = string.Join(" ", classes);
             }
 
+            if (tagName == "span" && name.Equals("style", StringComparison.OrdinalIgnoreCase))
+            {
+                var sanitizedStyle = SanitizeSpanStyle(value);
+                if (string.IsNullOrWhiteSpace(sanitizedStyle))
+                {
+                    continue;
+                }
+                value = sanitizedStyle;
+            }
+
             if (tagName == "img" && name.Equals("src", StringComparison.OrdinalIgnoreCase))
             {
                 if (!IsSafeUrl(value, allowRemote: false))
@@ -181,6 +190,58 @@ public static class RulesContentHelper
         }
 
         return string.Join(" ", results);
+    }
+
+    private static string SanitizeSpanStyle(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var allowed = new List<string>();
+        var declarations = value.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        foreach (var declaration in declarations)
+        {
+            var parts = declaration.Split(':', 2, StringSplitOptions.TrimEntries);
+            if (parts.Length != 2)
+            {
+                continue;
+            }
+
+            var property = parts[0].ToLowerInvariant();
+            var rawValue = parts[1].ToLowerInvariant();
+            if (property == "font-weight")
+            {
+                var numericValue = int.TryParse(rawValue, out var numeric) ? numeric : 0;
+                if (rawValue.Contains("bold") || numericValue >= 600)
+                {
+                    allowed.Add("font-weight: bold");
+                }
+            }
+            else if (property == "font-style" && rawValue.Contains("italic"))
+            {
+                allowed.Add("font-style: italic");
+            }
+            else if (property == "text-decoration")
+            {
+                var decorations = new List<string>();
+                if (rawValue.Contains("underline"))
+                {
+                    decorations.Add("underline");
+                }
+                if (rawValue.Contains("line-through"))
+                {
+                    decorations.Add("line-through");
+                }
+                if (decorations.Count > 0)
+                {
+                    allowed.Add($"text-decoration: {string.Join(' ', decorations)}");
+                }
+            }
+        }
+
+        return string.Join("; ", allowed);
     }
 
     private static bool IsSafeUrl(string value, bool allowRemote)

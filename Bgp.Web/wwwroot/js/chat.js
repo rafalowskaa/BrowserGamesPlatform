@@ -88,6 +88,7 @@
     const PRESENCE_DND = 3;
     const TIME_GROUP_WINDOW_MS = 2 * 60 * 1000;
     const TIME_GAP_THRESHOLD_MS = 15 * 60 * 1000;
+    const MIN_SEARCH_LENGTH = 3;
 
     const friends = new Map();
     const conversations = new Map();
@@ -180,6 +181,7 @@
         strangers: 'Other players',
         noStrangers: 'No players match your search',
         searchHint: 'Start typing to find players',
+        searchMinChars: 'Type at least 3 characters to search.',
         strangersPrompt: 'Start a conversation',
         minimize: 'Minimize chat window',
         restore: 'Restore chat window',
@@ -2748,11 +2750,18 @@
 
         function runSearch(value) {
             const normalized = normalizeSearchTerm(value);
-            searchTerm = normalized;
+            const meetsMinLength = normalized.length >= MIN_SEARCH_LENGTH;
+            searchTerm = meetsMinLength ? normalized : '';
             setSearchMode(!!normalized);
             applyFriendFilter();
             if (!normalized) {
                 clearLocalSearchResults();
+                scheduleSearch('');
+                return;
+            }
+            if (!meetsMinLength) {
+                clearLocalSearchResults();
+                showStrangerMessage(strings.searchMinChars || strings.searchHint, true);
                 scheduleSearch('');
                 return;
             }
@@ -3279,6 +3288,16 @@
             }
             clearStrangerResults();
             showStrangerMessage(strings.searchHint, false);
+            setSearchBusy(false);
+            return;
+        }
+        if (value.length < MIN_SEARCH_LENGTH) {
+            if (searchController) {
+                searchController.abort();
+                searchController = null;
+            }
+            clearStrangerResults();
+            showStrangerMessage(strings.searchMinChars || strings.searchHint, true);
             setSearchBusy(false);
             return;
         }
@@ -5311,6 +5330,11 @@
                 if (shouldSignalAttention) {
                     friend.lastNotifiedMessageId = message.id || null;
                     triggerConversationAttention(conversation, message);
+
+                    const toastLabel = friend.displayName
+                        ? `${strings.newMessage || 'New message'}: ${friend.displayName}`
+                        : (strings.newMessage || 'New message');
+                    showGlobalToast(toastLabel, 'success');
                    
                 }
                 const entry = setWindowEntry(friendId, (prev) => ({

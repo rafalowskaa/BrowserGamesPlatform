@@ -320,7 +320,6 @@ public class UpdateRecoveryQuestionsInputModel : IValidatableObject
     public string SecurityAnswer1 { get; set; } = string.Empty;
     public bool HasExistingAnswer1 { get; set; }
 
-    [Required]
     public string SecurityQuestion2 { get; set; } = string.Empty;
 
     public string? SecurityQuestion2Custom { get; set; }
@@ -330,7 +329,7 @@ public class UpdateRecoveryQuestionsInputModel : IValidatableObject
     public string SecurityAnswer2 { get; set; } = string.Empty;
     public bool HasExistingAnswer2 { get; set; }
 
-    [Required]
+
     public string SecurityQuestion3 { get; set; } = string.Empty;
 
     public string? SecurityQuestion3Custom { get; set; }
@@ -345,54 +344,86 @@ public class UpdateRecoveryQuestionsInputModel : IValidatableObject
         var localizer = validationContext.GetService(typeof(IStringLocalizer<SharedResource>)) as IStringLocalizer<SharedResource>;
         string Localize(string key) => localizer?[key].Value ?? key;
 
-        var questionEntries = new[]
-         {
-            (Key: SecurityQuestion1, Custom: SecurityQuestion1Custom),
-            (Key: SecurityQuestion2, Custom: SecurityQuestion2Custom),
-            (Key: SecurityQuestion3, Custom: SecurityQuestion3Custom)
-        };
-        var questionKeys = questionEntries.Select(entry => entry.Key).ToArray();
-        if (questionKeys.Any(string.IsNullOrWhiteSpace))
+        var entries = new[]
         {
-            yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Required"), new[]
+            new
             {
-                nameof(SecurityQuestion1), nameof(SecurityQuestion2), nameof(SecurityQuestion3)
-            });
+                Index = 1,
+                Key = SecurityQuestion1,
+                Custom = SecurityQuestion1Custom,
+                Answer = SecurityAnswer1,
+                HasExisting = HasExistingAnswer1,
+                QuestionMember = nameof(SecurityQuestion1),
+                CustomMember = nameof(SecurityQuestion1Custom),
+                AnswerMember = nameof(SecurityAnswer1)
+            },
+            new
+            {
+                Index = 2,
+                Key = SecurityQuestion2,
+                Custom = SecurityQuestion2Custom,
+                Answer = SecurityAnswer2,
+                HasExisting = HasExistingAnswer2,
+                QuestionMember = nameof(SecurityQuestion2),
+                CustomMember = nameof(SecurityQuestion2Custom),
+                AnswerMember = nameof(SecurityAnswer2)
+            },
+            new
+            {
+                Index = 3,
+                Key = SecurityQuestion3,
+                Custom = SecurityQuestion3Custom,
+                Answer = SecurityAnswer3,
+                HasExisting = HasExistingAnswer3,
+                QuestionMember = nameof(SecurityQuestion3),
+                CustomMember = nameof(SecurityQuestion3Custom),
+                AnswerMember = nameof(SecurityAnswer3)
+            }
+        };
+
+        bool HasInput(string? key, string? custom, string? answer) =>
+             !string.IsNullOrWhiteSpace(key) || !string.IsNullOrWhiteSpace(custom) || !string.IsNullOrWhiteSpace(answer);
+
+        var activeEntries = entries.Where(entry => HasInput(entry.Key, entry.Custom, entry.Answer)).ToList();
+
+        if (activeEntries.Count == 0 || string.IsNullOrWhiteSpace(SecurityQuestion1))
+        {
+            yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Required"), new[] { nameof(SecurityQuestion1) });
             yield break;
         }
 
-        if (!HasExistingAnswer1 && string.IsNullOrWhiteSpace(SecurityAnswer1))
+        foreach (var entry in activeEntries)
         {
-            yield return new ValidationResult(Localize("Auth_SecurityQuestions_Answer_Required"), new[] { nameof(SecurityAnswer1) });
-        }
-
-        if (!HasExistingAnswer2 && string.IsNullOrWhiteSpace(SecurityAnswer2))
-        {
-            yield return new ValidationResult(Localize("Auth_SecurityQuestions_Answer_Required"), new[] { nameof(SecurityAnswer2) });
-        }
-
-        if (!HasExistingAnswer3 && string.IsNullOrWhiteSpace(SecurityAnswer3))
-        {
-            yield return new ValidationResult(Localize("Auth_SecurityQuestions_Answer_Required"), new[] { nameof(SecurityAnswer3) });
-        }
-
-        var normalizedKeys = questionEntries.Select(entry =>
-        {
-            var key = entry.Key?.Trim() ?? string.Empty;
-            if (string.Equals(key, SecurityQuestionCatalog.CustomKey, StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(entry.Key))
             {
-                var custom = (entry.Custom ?? string.Empty).Trim();
-                return $"{key}:{custom}".ToLowerInvariant();
+                yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Required"), new[] { entry.QuestionMember });
+                continue;
             }
-            return key.ToLowerInvariant();
-        });
+
+            if (!entry.HasExisting && string.IsNullOrWhiteSpace(entry.Answer))
+            {
+                yield return new ValidationResult(Localize("Auth_SecurityQuestions_Answer_Required"), new[] { entry.AnswerMember });
+            }
+        }
+
+        string NormalizeKey(string? key, string? custom)
+        {
+            var trimmed = key?.Trim() ?? string.Empty;
+            if (string.Equals(trimmed, SecurityQuestionCatalog.CustomKey, StringComparison.OrdinalIgnoreCase))
+            {
+                var customValue = (custom ?? string.Empty).Trim();
+                return $"{trimmed}:{customValue}".ToLowerInvariant();
+            }
+            return trimmed.ToLowerInvariant();
+        }
+
+        var normalizedKeys = activeEntries
+            .Select(entry => NormalizeKey(entry.Key, entry.Custom))
+            .ToList();
 
         if (normalizedKeys.GroupBy(x => x).Any(g => g.Count() > 1))
         {
-            yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Distinct"), new[]
-            {
-                nameof(SecurityQuestion1), nameof(SecurityQuestion2), nameof(SecurityQuestion3)
-            });
+            yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Distinct"), activeEntries.Select(e => e.QuestionMember));
         }
 
         IEnumerable<ValidationResult> ValidateCustom(string key, string? custom, string questionMemberName, string customMemberName)
@@ -410,19 +441,12 @@ public class UpdateRecoveryQuestionsInputModel : IValidatableObject
             }
         }
 
-        foreach (var result in ValidateCustom(SecurityQuestion1, SecurityQuestion1Custom, nameof(SecurityQuestion1), nameof(SecurityQuestion1Custom)))
+        foreach (var entry in activeEntries)
         {
-            yield return result;
-        }
-
-        foreach (var result in ValidateCustom(SecurityQuestion2, SecurityQuestion2Custom, nameof(SecurityQuestion2), nameof(SecurityQuestion2Custom)))
-        {
-            yield return result;
-        }
-
-        foreach (var result in ValidateCustom(SecurityQuestion3, SecurityQuestion3Custom, nameof(SecurityQuestion3), nameof(SecurityQuestion3Custom)))
-        {
-            yield return result;
+            foreach (var result in ValidateCustom(entry.Key, entry.Custom, entry.QuestionMember, entry.CustomMember))
+            {
+                yield return result;
+            }
         }
     }
 }

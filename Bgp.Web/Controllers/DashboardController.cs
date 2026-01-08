@@ -532,23 +532,30 @@ public class DashboardController : Controller
             !string.Equals(currentKey ?? string.Empty, newKey ?? string.Empty, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(currentCustom ?? string.Empty, newCustom ?? string.Empty, StringComparison.OrdinalIgnoreCase);
 
-        var question1Changed = IsQuestionChanged(user.SecurityQuestion1Key, user.SecurityQuestion1CustomPrompt, input.SecurityQuestion1, custom1);
-        var question2Changed = IsQuestionChanged(user.SecurityQuestion2Key, user.SecurityQuestion2CustomPrompt, input.SecurityQuestion2, custom2);
-        var question3Changed = IsQuestionChanged(user.SecurityQuestion3Key, user.SecurityQuestion3CustomPrompt, input.SecurityQuestion3, custom3);
+        bool IsEntryActive(string? key, string? custom, string? answer) =>
+            !string.IsNullOrWhiteSpace(key) || !string.IsNullOrWhiteSpace(custom) || !string.IsNullOrWhiteSpace(answer);
 
-        var keepAnswer1 = input.HasExistingAnswer1 && string.Equals(input.SecurityAnswer1, SecurityAnswerHelper.MaskedToken, StringComparison.Ordinal);
-        var keepAnswer2 = input.HasExistingAnswer2 && string.Equals(input.SecurityAnswer2, SecurityAnswerHelper.MaskedToken, StringComparison.Ordinal);
-        var keepAnswer3 = input.HasExistingAnswer3 && string.Equals(input.SecurityAnswer3, SecurityAnswerHelper.MaskedToken, StringComparison.Ordinal);
+        var question1Active = IsEntryActive(input.SecurityQuestion1, custom1, input.SecurityAnswer1);
+        var question2Active = IsEntryActive(input.SecurityQuestion2, custom2, input.SecurityAnswer2);
+        var question3Active = IsEntryActive(input.SecurityQuestion3, custom3, input.SecurityAnswer3);
 
-        if ((keepAnswer1 && question1Changed) || (!keepAnswer1 && string.IsNullOrWhiteSpace(input.SecurityAnswer1)))
+        var question1Changed = question1Active && IsQuestionChanged(user.SecurityQuestion1Key, user.SecurityQuestion1CustomPrompt, input.SecurityQuestion1, custom1);
+        var question2Changed = question2Active && IsQuestionChanged(user.SecurityQuestion2Key, user.SecurityQuestion2CustomPrompt, input.SecurityQuestion2, custom2);
+        var question3Changed = question3Active && IsQuestionChanged(user.SecurityQuestion3Key, user.SecurityQuestion3CustomPrompt, input.SecurityQuestion3, custom3);
+
+        var keepAnswer1 = question1Active && input.HasExistingAnswer1 && string.Equals(input.SecurityAnswer1, SecurityAnswerHelper.MaskedToken, StringComparison.Ordinal);
+        var keepAnswer2 = question2Active && input.HasExistingAnswer2 && string.Equals(input.SecurityAnswer2, SecurityAnswerHelper.MaskedToken, StringComparison.Ordinal);
+        var keepAnswer3 = question3Active && input.HasExistingAnswer3 && string.Equals(input.SecurityAnswer3, SecurityAnswerHelper.MaskedToken, StringComparison.Ordinal);
+
+        if (question1Active && ((keepAnswer1 && question1Changed) || (!keepAnswer1 && string.IsNullOrWhiteSpace(input.SecurityAnswer1))))
         {
             ModelState.AddModelError(nameof(input.SecurityAnswer1), Localize("Auth_SecurityQuestions_Answer_Required"));
         }
-        if ((keepAnswer2 && question2Changed) || (!keepAnswer2 && string.IsNullOrWhiteSpace(input.SecurityAnswer2)))
+        if (question2Active && ((keepAnswer2 && question2Changed) || (!keepAnswer2 && string.IsNullOrWhiteSpace(input.SecurityAnswer2))))
         {
             ModelState.AddModelError(nameof(input.SecurityAnswer2), Localize("Auth_SecurityQuestions_Answer_Required"));
         }
-        if ((keepAnswer3 && question3Changed) || (!keepAnswer3 && string.IsNullOrWhiteSpace(input.SecurityAnswer3)))
+        if (question3Active && ((keepAnswer3 && question3Changed) || (!keepAnswer3 && string.IsNullOrWhiteSpace(input.SecurityAnswer3))))
         {
             ModelState.AddModelError(nameof(input.SecurityAnswer3), Localize("Auth_SecurityQuestions_Answer_Required"));
         }
@@ -558,29 +565,55 @@ public class DashboardController : Controller
             return await ReturnDashboardWithErrorsAsync(user, "profile", "security");
         }
 
-        user.SecurityQuestion1Key = input.SecurityQuestion1;
-        user.SecurityQuestion1CustomPrompt = custom1;
-
-        user.SecurityQuestion2Key = input.SecurityQuestion2;
-        user.SecurityQuestion2CustomPrompt = custom2;
-
-        user.SecurityQuestion3Key = input.SecurityQuestion3;
-        user.SecurityQuestion3CustomPrompt = custom3;
-
-        if (!keepAnswer1)
+        if (question1Active)
         {
-            var answer1 = SecurityAnswerHelper.Normalize(input.SecurityAnswer1);
-            user.SecurityQuestion1AnswerHash = _users.PasswordHasher.HashPassword(user, answer1);
+            user.SecurityQuestion1Key = input.SecurityQuestion1;
+            user.SecurityQuestion1CustomPrompt = custom1;
+            if (!keepAnswer1)
+            {
+                var answer1 = SecurityAnswerHelper.Normalize(input.SecurityAnswer1);
+                user.SecurityQuestion1AnswerHash = _users.PasswordHasher.HashPassword(user, answer1);
+            }
         }
-        if (!keepAnswer2)
+        else
         {
-            var answer2 = SecurityAnswerHelper.Normalize(input.SecurityAnswer2);
-            user.SecurityQuestion2AnswerHash = _users.PasswordHasher.HashPassword(user, answer2);
+            user.SecurityQuestion1Key = null;
+            user.SecurityQuestion1CustomPrompt = null;
+            user.SecurityQuestion1AnswerHash = null;
         }
-        if (!keepAnswer3)
+
+        if (question2Active)
         {
-            var answer3 = SecurityAnswerHelper.Normalize(input.SecurityAnswer3);
-            user.SecurityQuestion3AnswerHash = _users.PasswordHasher.HashPassword(user, answer3);
+            user.SecurityQuestion2Key = input.SecurityQuestion2;
+            user.SecurityQuestion2CustomPrompt = custom2;
+            if (!keepAnswer2)
+            {
+                var answer2 = SecurityAnswerHelper.Normalize(input.SecurityAnswer2);
+                user.SecurityQuestion2AnswerHash = _users.PasswordHasher.HashPassword(user, answer2);
+            }
+        }
+        else
+        {
+            user.SecurityQuestion2Key = null;
+            user.SecurityQuestion2CustomPrompt = null;
+            user.SecurityQuestion2AnswerHash = null;
+        }
+
+        if (question3Active)
+        {
+            user.SecurityQuestion3Key = input.SecurityQuestion3;
+            user.SecurityQuestion3CustomPrompt = custom3;
+            if (!keepAnswer3)
+            {
+                var answer3 = SecurityAnswerHelper.Normalize(input.SecurityAnswer3);
+                user.SecurityQuestion3AnswerHash = _users.PasswordHasher.HashPassword(user, answer3);
+            }
+        }
+        else
+        {
+            user.SecurityQuestion3Key = null;
+            user.SecurityQuestion3CustomPrompt = null;
+            user.SecurityQuestion3AnswerHash = null;
         }
 
         var updateResult = await _users.UpdateAsync(user);

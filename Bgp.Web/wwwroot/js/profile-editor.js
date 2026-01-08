@@ -1043,6 +1043,28 @@
                 });
             });
         }
+        setupToggleFields();
+    }
+
+    function setupToggleFields() {
+        const toggleFields = form.querySelectorAll('.form-field--toggle');
+        toggleFields.forEach((field) => {
+            const checkbox = field.querySelector('input[type="checkbox"]');
+            if (!(checkbox instanceof HTMLInputElement)) {
+                return;
+            }
+            field.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target instanceof HTMLInputElement || target instanceof HTMLLabelElement) {
+                    return;
+                }
+                if (target instanceof HTMLElement && target.closest('label')) {
+                    return;
+                }
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        });
     }
 
     function handleGlobalKeydown(event) {

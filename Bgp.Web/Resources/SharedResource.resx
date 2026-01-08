@@ -293,6 +293,9 @@
         </data>
 	<data name="Chat_SearchHint" xml:space="preserve">
         <value>Start typing to find players</value>
+		</data>
+	<data name="Chat_SearchMinChars" xml:space="preserve">
+        <value>Type at least 3 characters to search.</value>
     </data>
 	<data name="Chat_Search_LocalHeading" xml:space="preserve">
         <value>Local results</value>
@@ -1034,6 +1037,9 @@
     </data>
 	<data name="Dashboard_Friends_SearchEmpty" xml:space="preserve">
         <value>No matching players were found.</value>
+		 </data>
+	<data name="Dashboard_Friends_SearchMinChars" xml:space="preserve">
+        <value>Type at least 3 characters to search.</value>
     </data>
 	<data name="Dashboard_Friends_CurrentHeading" xml:space="preserve">
         <value>Your friends</value>
@@ -2377,6 +2383,9 @@
   </data>
 	<data name="Auth_Register_SecurityQuestions_EmptyState" xml:space="preserve">
     <value>Security questions are optional, but they make it easier to recover your account.</value>
+		 </data>
+	<data name="Auth_Register_SecurityQuestions_MaxHint" xml:space="preserve">
+    <value>You can add up to 3 security questions.</value>
   </data>
 	<data name="Auth_Register_SecurityQuestions_Info" xml:space="preserve">
     <value>Security questions are optional but help keep your account safe.</value>

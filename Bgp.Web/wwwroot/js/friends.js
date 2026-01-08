@@ -3,6 +3,7 @@
     const searchBtn = document.getElementById('friendSearchBtn');
     const searchResults = document.getElementById('friendSearchResults');
     const searchEmpty = document.getElementById('friendSearchEmpty');
+    const searchEmptyDefault = searchEmpty ? searchEmpty.textContent : '';
     const acceptedList = document.getElementById('friendsAccepted');
     const incomingList = document.getElementById('friendsIncoming');
     const outgoingList = document.getElementById('friendsOutgoing');
@@ -292,6 +293,17 @@
         const term = (searchInput.value || '').trim();
         if (term.length < 1) {
             clearList(searchResults);
+            if (searchEmpty) {
+                searchEmpty.textContent = searchEmptyDefault;
+            }
+            setEmptyState(searchEmpty, false);
+            return;
+        }
+        if (term.length < 3) {
+            clearList(searchResults);
+            if (searchEmpty) {
+                searchEmpty.textContent = labels.searchMinChars || searchEmptyDefault;
+            }
             setEmptyState(searchEmpty, false);
             return;
         }
@@ -300,6 +312,9 @@
             const payload = await res.json();
             const normalized = Array.isArray(payload) ? payload.map(normalizeFriend).filter(Boolean) : [];
             clearList(searchResults);
+            if (searchEmpty) {
+                searchEmpty.textContent = searchEmptyDefault;
+            }
             normalized.forEach(profile => {
                 buildFriendItem(searchResults, profile, {
                     showRank: false,

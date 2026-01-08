@@ -53,13 +53,13 @@
     height: 1.35rem;
     padding: 0 0.4rem;
     border-radius: 999px;
-    background: #ef4444;
+    background: #f59e0b;
     color: #fff;
     font-size: 0.7rem;
     font-weight: 700;
     line-height: 1;
-    margin-left: 0.5rem;
-    box-shadow: 0 0 12px rgba(239, 68, 68, 0.45);
+    margin-left: 0.6rem;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.45);
 }
 
 .user-menu__item .notification-badge {
