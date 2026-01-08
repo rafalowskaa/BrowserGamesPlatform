@@ -126,8 +126,7 @@
             },
             leaderboard = new
             {
-                fetchUrl = Url.Content($"/api/games/{game.Id}/leaderboard"),
-                exportUrl = Url.Content($"/api/games/{game.Id}/leaderboard/export")
+                fetchUrl = Url.Content($"/api/games/{game.Id}/leaderboard")
             },
             invites = new
             {
@@ -179,8 +178,7 @@
                 rankingTitle = L["Games_Details_Ranking_Title"].Value,
                 rankingSubtitle = L["Games_Details_Ranking_Subtitle"].Value,
                 rankingEmpty = L["Games_Details_Ranking_Empty"].Value,
-                rankingLoading = L["Games_Details_Ranking_Loading"].Value,
-                rankingDownload = L["Games_Details_Ranking_Download"].Value
+                rankingLoading = L["Games_Details_Ranking_Loading"].Value
             }
         };
     }
@@ -496,7 +494,7 @@
                         <p class="eyebrow">@L["Games_Details_Ranking_Subtitle"].Value</p>
                         <h2>@L["Games_Details_Ranking_Title"].Value</h2>
                     </div>
-                    <a class="btn-ghost btn-compact" data-ranking-export href="@Url.Content($"/api/games/{game.Id}/leaderboard/export")">@L["Games_Details_Ranking_Download"].Value</a>
+                   
                 </header>
                 <p class="muted" data-ranking-loading>@L["Games_Details_Ranking_Loading"].Value</p>
                 <div class="leaderboard" data-ranking-list hidden>

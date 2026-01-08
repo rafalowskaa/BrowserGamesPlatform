@@ -957,6 +957,15 @@
     </data>
 	<data name="Admin_Logs_Delete_Success" xml:space="preserve">
         <value>Log entry deleted.</value>
+		</data>
+	<data name="Admin_Logs_DeleteAll" xml:space="preserve">
+        <value>Delete all logs</value>
+    </data>
+	<data name="Admin_Logs_DeleteAll_Confirm" xml:space="preserve">
+        <value>Delete all matching logs?</value>
+    </data>
+	<data name="Admin_Logs_DeleteAll_Success" xml:space="preserve">
+        <value>Logs removed.</value>
     </data>
 	<data name="Admin_Logs_Empty" xml:space="preserve">
     <value>No logs to display.</value>
@@ -3521,6 +3530,15 @@
     </data>
 	<data name="Chat_Context_Release" xml:space="preserve">
         <value>Return to active</value>
+		</data>
+	<data name="Chat_Context_Clear" xml:space="preserve">
+        <value>Clear chat</value>
+    </data>
+	<data name="Chat_ClearConversation" xml:space="preserve">
+        <value>Clear chat</value>
+    </data>
+	<data name="Chat_ClearConversationConfirm" xml:space="preserve">
+        <value>Clear this chat for you?</value>
     </data>
 	<data name="Chat_Day_Today" xml:space="preserve">
         <value>Today</value>

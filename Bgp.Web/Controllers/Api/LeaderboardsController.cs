@@ -57,6 +57,34 @@ public class LeaderboardsController : ControllerBase
             .Take(Math.Clamp(top, 1, 200))
             .ToListAsync();
 
+        if (rows.Count == 0)
+        {
+            var playerRows = await _db.SessionPlayers
+                .Join(_db.MatchSessions.Where(s => s.GameId == gameId),
+                    player => player.SessionId,
+                    session => session.Id,
+                    (player, session) => new { player.UserId, player.Role })
+                .ToListAsync();
+
+            if (playerRows.Count > 0)
+            {
+                var hasResults = playerRows.Any(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase)
+                                                     || string.Equals(r.Role, "loser", StringComparison.OrdinalIgnoreCase));
+                rows = playerRows
+                    .GroupBy(r => r.UserId)
+                    .Select(g => new
+                    {
+                        UserId = g.Key,
+                        Best = hasResults
+                            ? g.Count(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase))
+                            : g.Count()
+                    })
+                    .OrderByDescending(x => x.Best)
+                    .Take(Math.Clamp(top, 1, 200))
+                    .ToList();
+            }
+        }
+
         var users = await _db.Users
             .Where(u => rows.Select(r => r.UserId).Contains(u.Id))
             .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })

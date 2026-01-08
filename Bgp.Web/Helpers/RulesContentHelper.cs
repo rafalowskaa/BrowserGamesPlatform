@@ -161,10 +161,17 @@ public static class RulesContentHelper
                 value = string.Join(" ", classes);
             }
 
-            if ((tagName == "img" && name.Equals("src", StringComparison.OrdinalIgnoreCase)) ||
-                (tagName == "a" && name.Equals("href", StringComparison.OrdinalIgnoreCase)))
+            if (tagName == "img" && name.Equals("src", StringComparison.OrdinalIgnoreCase))
             {
-                if (!IsSafeUrl(value))
+                if (!IsSafeUrl(value, allowRemote: false))
+                {
+                    continue;
+                }
+            }
+
+            if (tagName == "a" && name.Equals("href", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!IsSafeUrl(value, allowRemote: true))
                 {
                     continue;
                 }
@@ -176,7 +183,7 @@ public static class RulesContentHelper
         return string.Join(" ", results);
     }
 
-    private static bool IsSafeUrl(string value)
+    private static bool IsSafeUrl(string value, bool allowRemote)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -191,6 +198,11 @@ public static class RulesContentHelper
         if (value.StartsWith("/", StringComparison.Ordinal) || value.StartsWith("./", StringComparison.Ordinal) || value.StartsWith("../", StringComparison.Ordinal))
         {
             return true;
+        }
+
+        if (!allowRemote)
+        {
+            return false;
         }
 
         if (Uri.TryCreate(value, UriKind.Absolute, out var uri))

@@ -1570,6 +1570,11 @@ public class AdminUiController : Controller
             {
                 query = query.Where(l => l.GameId.HasValue && gameIds.Contains(l.GameId.Value));
             }
+            else
+            {
+                query = query.Where(l => false);
+            }
+
         }
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -1602,26 +1607,23 @@ public class AdminUiController : Controller
                 .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
                 .ToDictionaryAsync(u => u.Id, u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id));
 
-        var gameLookup = items
+        var gameIds = items
             .Where(l => l.GameId.HasValue)
             .Select(l => l.GameId!.Value)
             .Distinct()
-            .ToDictionary(id => id, id => string.Empty);
+            .ToList();
 
-        if (gameLookup.Count > 0)
+        var gameLookup = gameIds.Count == 0
+            ? new Dictionary<Guid, (string Slug, string Title)>()
+            : await _db.Games
+                .Where(g => gameIds.Contains(g.Id))
+                .Select(g => new { g.Id, g.Slug, g.Title })
+                .ToDictionaryAsync(g => g.Id, g => (g.Slug, g.Title));
+
+        var logs = items.Select(item =>
         {
-            var ids = gameLookup.Keys.ToList();
-            var games = await _db.Games
-                .Where(g => ids.Contains(g.Id))
-                .Select(g => new { g.Id, g.Slug })
-                .ToListAsync();
-            foreach (var g in games)
-            {
-                gameLookup[g.Id] = g.Slug;
-            }
-        }
-
-        var logs = items.Select(item => new AdminLogRowViewModel
+        var hasGame = item.GameId.HasValue && gameLookup.TryGetValue(item.GameId.Value, out var gameInfo);
+        return new AdminLogRowViewModel
         {
             Id = item.Id,
             CreatedAtUtc = item.CreatedAtUtc,
@@ -1631,9 +1633,11 @@ public class AdminUiController : Controller
             ActorDisplayName = item.ActorUserId != null && userLookup.TryGetValue(item.ActorUserId, out var actorName) ? actorName : item.ActorUserId,
             TargetDisplayName = item.TargetUserId != null && userLookup.TryGetValue(item.TargetUserId, out var targetName) ? targetName : item.TargetUserId,
             GameId = item.GameId,
-            GameSlug = item.GameId.HasValue && gameLookup.TryGetValue(item.GameId.Value, out var slug) ? slug : null,
+            GameSlug = hasGame ? gameInfo.Slug : null,
+            GameTitle = hasGame ? gameInfo.Title : null,
             Rating = item.Rating,
             Message = item.Message
+        };
         }).ToList();
 
         var vm = new AdminLogsViewModel
@@ -1651,6 +1655,74 @@ public class AdminUiController : Controller
 
         return View(vm);
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteLogs(string? search = null, ActivityLogType? type = null, string? game = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? returnUrl = null)
+    {
+        var query = _db.ActivityLogs.AsQueryable();
+
+        if (dateFrom.HasValue)
+        {
+            var fromUtc = DateTime.SpecifyKind(dateFrom.Value.Date, DateTimeKind.Local).ToUniversalTime();
+            query = query.Where(l => l.CreatedAtUtc >= fromUtc);
+        }
+
+        if (dateTo.HasValue)
+        {
+            var localEnd = dateTo.Value.Date.AddDays(1).AddTicks(-1);
+            var toUtc = DateTime.SpecifyKind(localEnd, DateTimeKind.Local).ToUniversalTime();
+            query = query.Where(l => l.CreatedAtUtc <= toUtc);
+        }
+
+        if (type.HasValue)
+        {
+            query = query.Where(l => l.Type == type.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(game))
+        {
+            var term = game.Trim();
+            var gameIds = await _db.Games
+                .Where(g => EF.Functions.Like(g.Slug, $"%{term}%") || EF.Functions.Like(g.Title, $"%{term}%"))
+                .Select(g => g.Id)
+                .ToListAsync();
+            if (gameIds.Count > 0)
+            {
+                query = query.Where(l => l.GameId.HasValue && gameIds.Contains(l.GameId.Value));
+            }
+            else
+            {
+                query = query.Where(l => false);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+            query = query.Where(l =>
+                (l.ActorUserId != null && EF.Functions.Like(l.ActorUserId, $"%{term}%")) ||
+                (l.TargetUserId != null && EF.Functions.Like(l.TargetUserId, $"%{term}%")) ||
+                (l.Message != null && EF.Functions.Like(l.Message, $"%{term}%")));
+        }
+
+        var logs = await query.ToListAsync();
+        if (logs.Count > 0)
+        {
+            _db.ActivityLogs.RemoveRange(logs);
+            await _db.SaveChangesAsync();
+        }
+
+        TempData["AdminLogsSuccess"] = "Admin_Logs_DeleteAll_Success";
+
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
+        return RedirectToAction(nameof(Logs));
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteLog(Guid id, string? returnUrl = null)

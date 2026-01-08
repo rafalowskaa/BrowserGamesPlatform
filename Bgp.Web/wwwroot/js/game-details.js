@@ -1083,7 +1083,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ friendId })
+                body: JSON.stringify({ friendId, FriendId: friendId })
             });
 
             if (!res.ok) throw new Error('Invite failed');

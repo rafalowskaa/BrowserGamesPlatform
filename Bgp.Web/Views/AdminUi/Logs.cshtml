@@ -9,6 +9,7 @@
     string FormatType(ActivityLogType type) => L[$"Admin_Logs_Type_{type}"].Value;
     var dateFromValue = Model.DateFrom?.ToString("yyyy-MM-dd");
     var dateToValue = Model.DateTo?.ToString("yyyy-MM-dd");
+    var polishCulture = System.Globalization.CultureInfo.GetCultureInfo("pl-PL");
 }
 <section class="admin-section">
     <nav class="admin-nav">
@@ -70,6 +71,21 @@
             </div>
         </form>
 
+        <form asp-action="DeleteLogs" method="post" class="admin-reports__filters admin-reports__filters--actions">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="search" value="@Model.Search" />
+            <input type="hidden" name="type" value="@(Model.Type.HasValue ? ((int)Model.Type.Value).ToString() : string.Empty)" />
+            <input type="hidden" name="game" value="@Model.Game" />
+            <input type="hidden" name="dateFrom" value="@dateFromValue" />
+            <input type="hidden" name="dateTo" value="@dateToValue" />
+            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+            <div class="filter-actions">
+                <button type="submit" class="btn-outline btn-compact text-danger" onclick="return confirm('@L["Admin_Logs_DeleteAll_Confirm"].Value');">
+                    @L["Admin_Logs_DeleteAll"].Value
+                </button>
+            </div>
+        </form>
+
         <div class="table-wrapper">
             <table class="admin-table">
                 <thead>
@@ -89,7 +105,7 @@
                         foreach (var log in Model.Logs)
                         {
                             <tr>
-                                <td><span class="badge">@log.CreatedAtUtc.ToLocalTime().ToString("g")</span></td>
+                                <td><span class="badge">@log.CreatedAtUtc.ToLocalTime().ToString("g", polishCulture)</span></td>
                                 <td><span class="status status-open">@FormatType(log.Type)</span></td>
                                 <td>
                                     <strong>@(log.ActorDisplayName ?? log.ActorUserId ?? "-")</strong>
@@ -115,7 +131,13 @@
                                 <td>
                                     @if (log.GameSlug is not null)
                                     {
-                                        <a asp-controller="Games" asp-action="Details" asp-route-slug="@log.GameSlug">@log.GameSlug</a>
+                                        <a asp-controller="Games" asp-action="Details" asp-route-slug="@log.GameSlug">
+                                            @(log.GameTitle ?? log.GameSlug)
+                                        </a>
+                                        @if (!string.IsNullOrWhiteSpace(log.GameTitle) && log.GameTitle != log.GameSlug)
+                                        {
+                                            <div class="muted">@log.GameSlug</div>
+                                        }
                                     }
                                     else
                                     {

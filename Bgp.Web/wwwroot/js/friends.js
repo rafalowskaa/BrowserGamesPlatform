@@ -417,6 +417,12 @@
             renderSearch();
         }
     });
-
+    const refreshIntervalMs = 30000;
     loadFriends();
+    window.setInterval(() => {
+        if (document.hidden) {
+            return;
+        }
+        loadFriends();
+    }, refreshIntervalMs);
 })();

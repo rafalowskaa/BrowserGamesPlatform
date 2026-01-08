@@ -71,7 +71,6 @@
                 <button type="button" class="admin-tab active" data-admin-section-button="#feature">@L["Admin_Content_HomeNav_Feature"].Value</button>
                 <button type="button" class="admin-tab" data-admin-section-button="#facts">@L["Admin_Content_HomeNav_Facts"].Value</button>
                 <button type="button" class="admin-tab" data-admin-section-button="#events">@L["Admin_Content_HomeNav_Events"].Value</button>
-                <button type="button" class="admin-tab" data-admin-section-button="#layout">@L["Admin_Content_HomeNav_Layout"].Value</button>
                 <button type="button" class="admin-tab" data-admin-section-button="#preview">@L["Admin_Content_Preview_Title"].Value</button>
             </div>
             <div class="admin-editor-toolbar">
@@ -478,46 +477,7 @@
                     </form>
                     
                 </article>
-            </section>
-
-            <section id="layout" class="admin-editor-section" data-admin-section hidden>
-                <header>
-                    <div>
-                        <p class="admin-editor-section__eyebrow">@L["Admin_Content_Layout_Eyebrow"].Value</p>
-                        <h2>@L["Admin_Content_Layout_Title"].Value</h2>
-                        <p class="muted">@L["Admin_Content_Layout_Description"].Value</p>
-                    </div>
-                </header>
-                <div class="admin-layout-list" data-dnd-list>
-                    @{
-                        var sections = new[]
-                        {
-                                        L["Admin_Content_Layout_Section_Hero"].Value,
-                                        L["Admin_Content_Layout_Section_Feature"].Value,
-                                        L["Admin_Content_Layout_Section_Recommended"].Value,
-                                        L["Admin_Content_Layout_Section_Trending"].Value,
-                                        L["Admin_Content_Layout_Section_Facts"].Value,
-                                        L["Admin_Content_Layout_Section_Events"].Value,
-                                        L["Admin_Content_Layout_Section_Join"].Value
-                                        };
-                    }
-                    @foreach (var layoutSection in sections.Select((name, index) => new { name, index }))
-                    {
-                        <article class="admin-layout-item" data-dnd-item>
-                            <button type="button" class="admin-editor-card__handle" data-dnd-handle aria-label="@L["Admin_Content_Aria_DragSection"].Value">⋮⋮</button>
-                            <div class="admin-layout-item__body">
-                                <strong>@layoutSection.name</strong>
-                                <span class="muted admin-order-indicator" data-order-template="@L["Admin_Content_Layout_Position"].Value">@string.Format(L["Admin_Content_Layout_Position"].Value, layoutSection.index + 1)</span>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" checked />
-                                <span></span>
-                                <span class="switch__label">@L["Admin_Content_Layout_SwitchLabel"].Value</span>
-                            </label>
-                        </article>
-                    }
-                </div>
-            </section>
+            </section>  
 
             <div class="admin-home-history">
                 <h3>@L["Admin_Content_History_Title"].Value</h3>

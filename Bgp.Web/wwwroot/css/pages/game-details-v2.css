@@ -385,7 +385,8 @@
 
 .rules-editor__edit {
     align-self: flex-start;
-    width: auto;
+    width: fit-content;
+    display: inline-flex;
 }
 
 .rules-editor__actions {

@@ -120,6 +120,8 @@
     const lastSeenMessages = loadLastSeenMessages();
     const STORAGE_ARCHIVED_KEY = 'bgp.chat.archived';
     const archivedThreads = loadArchivedThreads();
+    const STORAGE_CLEARED_KEY = 'bgp.chat.cleared';
+    const clearedThreads = loadClearedThreads();
     let pollTimer = null;
     let pollInFlight = false;
     const POLL_INTERVAL_MS = 7000;
@@ -212,6 +214,9 @@
         contextRestore: 'Restore',
         contextKeep: 'Keep archived',
         contextRelease: 'Return to active',
+        contextClear: 'Clear chat',
+        clearConversation: 'Clear chat',
+        clearConversationConfirm: 'Clear this conversation for you?',
         dayToday: 'Today',
         dayYesterday: 'Yesterday',
         timeMarker: '{0}',
@@ -881,6 +886,13 @@
                 });
             }
         }
+        if (hasConversationHistory(friend)) {
+            items.push({
+                key: 'clear',
+                label: strings.contextClear || strings.clearConversation || 'Clear chat',
+                action: () => clearConversationHistory(friend.userId)
+            });
+        }
         return items;
     }
 
@@ -975,6 +987,29 @@
         }
     }
 
+        function loadClearedThreads() {
+            if (typeof window === 'undefined' || !window.localStorage) {
+                return new Map();
+            }
+            try {
+                const raw = window.localStorage.getItem(STORAGE_CLEARED_KEY);
+                if (!raw) {
+                    return new Map();
+                }
+                const parsed = JSON.parse(raw);
+                if (!parsed || typeof parsed !== 'object') {
+                    return new Map();
+                }
+                const entries = Object.entries(parsed)
+                    .map(([key, value]) => [normalizeId(key), Number(value) || 0])
+                    .filter(([, value]) => value > 0);
+                return new Map(entries);
+            } catch (err) {
+                console.warn('Unable to load cleared threads.', err);
+                return new Map();
+            }
+        }
+
     function persistArchivedThreads() {
         if (typeof window === 'undefined' || !window.localStorage) {
             return;
@@ -989,6 +1024,23 @@
             console.warn('Unable to persist archived threads.', err);
         }
     }
+
+        function persistClearedThreads() {
+            if (typeof window === 'undefined' || !window.localStorage) {
+                return;
+            }
+            try {
+                const payload = {};
+                clearedThreads.forEach((value, key) => {
+                    if (value) {
+                        payload[key] = value;
+                    }
+                });
+                window.localStorage.setItem(STORAGE_CLEARED_KEY, JSON.stringify(payload));
+            } catch (err) {
+                console.warn('Unable to persist cleared threads.', err);
+            }
+        }
 
     function getArchiveEntry(friendId) {
         if (!friendId) {
@@ -1012,6 +1064,26 @@
         archivedThreads.delete(normalizeId(friendId));
         persistArchivedThreads();
     }
+
+        function getClearedAt(friendId) {
+            if (!friendId) {
+                return 0;
+            }
+            return clearedThreads.get(normalizeId(friendId)) || 0;
+        }
+
+        function setClearedAt(friendId, timestamp) {
+            if (!friendId) {
+                return;
+            }
+            const normalized = normalizeId(friendId);
+            if (!timestamp || timestamp <= 0) {
+                clearedThreads.delete(normalized);
+            } else {
+                clearedThreads.set(normalized, timestamp);
+            }
+            persistClearedThreads();
+        }
 
     function clearLastSeenEntry(friendId) {
         if (!friendId) {
@@ -2738,7 +2810,7 @@
                 if (!friend) {
                     return;
                 }
-                if (friend.isFriend || !hasConversationHistory(friend)) {
+                if (friend.isFriend || friend.isArchived || !hasConversationHistory(friend)) {
                     return;
                 }
                 const matches = !searchTerm
@@ -3254,6 +3326,47 @@
         }
         setFriendArchived(friendId, true, !friend.keepArchived);
     }
+
+        function clearConversationHistory(friendId) {
+            if (!friendId) {
+                return;
+            }
+            const confirmMessage = strings.clearConversationConfirm || 'Clear this conversation?';
+            if (!window.confirm(confirmMessage)) {
+                return;
+            }
+            const now = Date.now();
+            setClearedAt(friendId, now);
+
+            const friend = getFriend(friendId);
+            if (friend) {
+                friend.unreadCount = 0;
+                updateFriendUnreadState(friend, false);
+                updateFriendVisual(friend);
+            }
+
+            const conversation = getConversation(friendId);
+            if (conversation) {
+                conversation.clearedAtMs = now;
+                conversation.messages.clear();
+                conversation.latestSentAtMs = null;
+                conversation.latestMessageId = null;
+                conversation.lastAttentionMessageId = null;
+                conversation.timeline = {
+                    lastGroup: null,
+                    lastMessageMs: null,
+                    lastDayKey: null
+                };
+                if (conversation.body) {
+                    conversation.body.innerHTML = '';
+                }
+                updateConversationLatest(conversation, null);
+            }
+
+            setLastSeenEntry(friendId, null, new Date(now).toISOString());
+            updateUnreadBadge();
+            requestUsersRender();
+        }
 
     function updateConversationHeader(conversation) {
         const friend = getFriend(conversation.friendId);
@@ -3868,6 +3981,7 @@
             latestSentAtMs: null,
             latestMessageId: null,
             lastAttentionMessageId: null,
+            clearedAtMs: getClearedAt(friend.userId),
             archiveBtn,
             collapseBtn,
             isCollapsed: initialCollapse,
@@ -4664,6 +4778,21 @@
         return sentAt ? sentAt.getTime() : null;
     }
 
+        function shouldRenderMessage(conversation, message) {
+            if (!conversation || !message) {
+                return false;
+            }
+            const clearedAt = conversation.clearedAtMs || getClearedAt(conversation.friendId);
+            if (!clearedAt) {
+                return true;
+            }
+            const timestamp = getMessageTimestamp(message);
+            if (!timestamp) {
+                return true;
+            }
+            return timestamp > clearedAt;
+        }
+
     function updateConversationLatest(conversation, message) {
         if (!conversation || !message) {
             return;
@@ -5005,6 +5134,9 @@
         }
 
     function renderMessage(conversation, message, options = {}) {
+        if (!shouldRenderMessage(conversation, message)) {
+            return;
+        }
         const fromSelf = message.fromSelf === true || message.senderId === undefined || message.senderId !== conversation.friendId;
         const isDeleted = message.isDeleted === true;
         const timestamp = getMessageTimestamp(message) || Date.now();

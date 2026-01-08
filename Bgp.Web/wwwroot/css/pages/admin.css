@@ -274,6 +274,13 @@ html[data-theme='light'] .admin-section {
     box-shadow: var(--shadow);
 }
 
+.admin-reports__filters--actions {
+    justify-content: flex-end;
+    margin-top: 0.75rem;
+    padding: 0.75rem 1.25rem;
+}
+
+
 .filter-item {
     display: flex;
     flex-direction: column;
@@ -446,7 +453,8 @@ html[data-theme='light'] .admin-section {
     }
 
 .admin-tabs--content .admin-tab {
-    color: #cbd5e1;
+    color: #94a3b8;
+    background: transparent;
 }
 
     .admin-tabs--content .admin-tab.active {
@@ -1380,9 +1388,7 @@ html[data-theme='light'] .admin-section {
     border: 1px solid var(--admin-border);
     border-radius: 1rem;
     padding: 0.75rem 1rem;
-    position: sticky;
-    top: 4.5rem;
-    z-index: 4;
+    position: static;
 }
 
 .admin-editor-toolbar__filters label {

@@ -15,6 +15,7 @@ public class AdminLogRowViewModel
     public string? TargetDisplayName { get; init; }
     public Guid? GameId { get; init; }
     public string? GameSlug { get; init; }
+    public string? GameTitle { get; init; }
     public int? Rating { get; init; }
     public string? Message { get; init; }
 }
