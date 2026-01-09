@@ -1055,10 +1055,13 @@
             }
             field.addEventListener('click', (event) => {
                 const target = event.target;
-                if (target instanceof HTMLInputElement || target instanceof HTMLLabelElement) {
+                if (target instanceof HTMLLabelElement || (target instanceof HTMLElement && target.closest('label'))) {
+                    event.preventDefault();
+                    checkbox.checked = !checkbox.checked;
+                    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
                     return;
                 }
-                if (target instanceof HTMLElement && target.closest('label')) {
+                if (target instanceof HTMLInputElement) {
                     return;
                 }
                 checkbox.checked = !checkbox.checked;

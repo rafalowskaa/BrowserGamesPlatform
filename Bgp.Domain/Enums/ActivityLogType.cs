@@ -20,5 +20,7 @@ public enum ActivityLogType
     AdminAction = 15,
     DailyLogin = 16,
     MessageReceived = 17,
-    HomeContentUpdated = 18
+    HomeContentUpdated = 18,
+    ExperienceGained = 19,
+    NewEventAvailable = 20
 }

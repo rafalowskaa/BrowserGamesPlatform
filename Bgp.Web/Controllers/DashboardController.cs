@@ -964,7 +964,9 @@ public class DashboardController : Controller
             ActivityLogType.CommentAdded,
             ActivityLogType.CommentLiked,
             ActivityLogType.CommentDisliked,
-            ActivityLogType.RatingSubmitted
+            ActivityLogType.RatingSubmitted,
+            ActivityLogType.ExperienceGained,
+            ActivityLogType.NewEventAvailable
         };
 
         var notificationLogs = await _db.ActivityLogs
@@ -1025,6 +1027,8 @@ public class DashboardController : Controller
                 ActivityLogType.CommentLiked => string.Format(Localize("Dashboard_Notifications_CommentLiked"), actorName, gameTitle),
                 ActivityLogType.CommentDisliked => string.Format(Localize("Dashboard_Notifications_CommentDisliked"), actorName, gameTitle),
                 ActivityLogType.RatingSubmitted => string.Format(Localize("Dashboard_Notifications_Rating"), actorName, gameTitle),
+                ActivityLogType.ExperienceGained => string.Format(Localize("Dashboard_Notifications_Experience"), log.Message ?? "0"),
+                ActivityLogType.NewEventAvailable => string.Format(Localize("Dashboard_Notifications_Event"), log.Message ?? Localize("Dashboard_Notifications_Event_Default")),
                 _ => string.Format(Localize("Dashboard_Notifications_Generic"), actorName)
             };
         }
@@ -1051,6 +1055,16 @@ public class DashboardController : Controller
                 {
                     return Url.Action("Details", "Games", new { slug = game.Slug, tab = "reviews" });
                 }
+            }
+
+            if (log.Type is ActivityLogType.ExperienceGained)
+            {
+                return Url.Action(nameof(Index), new { tab = "profile", panel = "profile" });
+            }
+
+            if (log.Type is ActivityLogType.NewEventAvailable)
+            {
+                return Url.Action("Index", "Home");
             }
 
             return null;

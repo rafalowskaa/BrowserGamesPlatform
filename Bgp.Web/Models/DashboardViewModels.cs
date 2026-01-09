@@ -379,7 +379,7 @@ public class UpdateRecoveryQuestionsInputModel : IValidatableObject
 
         var activeEntries = entries.Where(entry => HasInput(entry.Key, entry.Custom, entry.Answer)).ToList();
 
-        if (activeEntries.Count == 0 || string.IsNullOrWhiteSpace(SecurityQuestion1))
+        if (activeEntries.Count == 0)
         {
             yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Required"), new[] { nameof(SecurityQuestion1) });
             yield break;

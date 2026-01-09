@@ -174,6 +174,7 @@
         if (notificationsView) {
             try {
                 window.localStorage.setItem(storageKey, new Date().toISOString());
+                window.localStorage.setItem('bgp.notifications.lastAlertSeen', new Date().toISOString());
             } catch (err) {
 
             }
@@ -215,4 +216,54 @@
     }
 
     initNotificationBadges();
+    function initNotificationAlerts() {
+        const toastFn = window.Bgp?.showGlobalAlert;
+        if (typeof toastFn !== 'function') {
+            return;
+        }
+
+        const storageKey = 'bgp.notifications.lastAlertSeen';
+        let since = null;
+        try {
+            since = window.localStorage.getItem(storageKey);
+        } catch (err) {
+            since = null;
+        }
+
+        const url = new URL('/api/notifications/latest', window.location.origin);
+        if (since) {
+            url.searchParams.set('since', since);
+        }
+
+        fetch(url.toString(), { credentials: 'include' })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((payload) => {
+                if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) {
+                    return;
+                }
+                const items = payload.items
+                    .filter((item) => item && item.message)
+                    .slice()
+                    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+                let latest = since;
+                items.forEach((item) => {
+                    toastFn(item.message, 'info', item.link || '');
+                    if (!latest || new Date(item.created_at) > new Date(latest)) {
+                        latest = item.created_at;
+                    }
+                });
+
+                if (latest) {
+                    try {
+                        window.localStorage.setItem(storageKey, latest);
+                    } catch (err) {
+
+                    }
+                }
+            })
+            .catch(() => { });
+    }
+
+    initNotificationAlerts();
 })();

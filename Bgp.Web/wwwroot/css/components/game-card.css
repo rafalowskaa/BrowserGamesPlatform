@@ -67,7 +67,8 @@
 }
 
 .app-header__admin-label,
-.app-header__admin-link {
+.app-header__admin-link,
+.app-header__player-link {
     font-size: 0.75rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -87,8 +88,18 @@
     transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.app-header__player-link {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
     .app-header__admin-link:hover,
-    .app-header__admin-link:focus-visible {
+    .app-header__admin-link:focus-visible,
+    .app-header__player-link:hover,
+    .app-header__player-link:focus-visible {
         background: rgba(59, 130, 246, 0.25);
         box-shadow: 0 8px 20px rgba(30, 64, 175, 0.35);
         transform: translateY(-1px);

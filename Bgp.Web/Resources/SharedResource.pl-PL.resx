@@ -435,9 +435,27 @@
     </data>
 	<data name="Dashboard_Notifications_Rating" xml:space="preserve">
         <value>{0} ocenił(a) grę {1}.</value>
+     </data>
+	<data name="Dashboard_Notifications_Experience" xml:space="preserve">
+        <value>Zdobyto {0} punktów doświadczenia.</value>
+    </data>
+	<data name="Dashboard_Notifications_Event" xml:space="preserve">
+        <value>Dostępne jest nowe wydarzenie: {0}.</value>
+    </data>
+	<data name="Dashboard_Notifications_Event_Default" xml:space="preserve">
+        <value>Dostępne jest nowe wydarzenie.</value>
     </data>
 	<data name="Dashboard_Notifications_Generic" xml:space="preserve">
         <value>Aktywność od {0}.</value>
+    </data>
+	<data name="Navigation_PlayerPanel" xml:space="preserve">
+        <value>Panel gracza</value>
+    </data>
+	<data name="Admin_Logs_Type_ExperienceGained" xml:space="preserve">
+        <value>Zdobyto doświadczenie</value>
+    </data>
+	<data name="Admin_Logs_Type_NewEventAvailable" xml:space="preserve">
+        <value>Nowe wydarzenie</value>
     </data>
 	<data name="Dashboard_Success_Profile" xml:space="preserve">
         <value>Profil został zaktualizowany.</value>

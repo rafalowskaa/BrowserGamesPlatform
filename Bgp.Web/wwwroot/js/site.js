@@ -104,6 +104,29 @@
 
     window.Bgp.showGlobalToast = showGlobalToast;
 
+    function showGlobalAlert(message, tone, link) {
+        const toastContainer = document.getElementById('globalToastStack');
+        if (!toastContainer || !message) {
+            return;
+        }
+        while (toastContainer.children.length > 4) {
+            toastContainer.removeChild(toastContainer.firstChild);
+        }
+        const toast = document.createElement(link ? 'a' : 'div');
+        toast.className = `toast${tone ? ` toast--${tone}` : ''}`;
+        toast.textContent = message;
+        if (link) {
+            toast.href = link;
+        }
+        toastContainer.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('is-leaving');
+            window.setTimeout(() => toast.remove(), 250);
+        }, 5000);
+    }
+
+    window.Bgp.showGlobalAlert = showGlobalAlert;
+
     function initSecurityQuestions(container) {
         if (!container) {
             return;

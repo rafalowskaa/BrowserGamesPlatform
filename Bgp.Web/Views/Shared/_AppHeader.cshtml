@@ -43,6 +43,10 @@
             </form>
         </div>
         <div class="app-header__end">
+            @if (SignInManager.IsSignedIn(User))
+            {
+                <a class="app-header__player-link" asp-controller="Dashboard" asp-action="Index">@L["Navigation_PlayerPanel"].Value</a>
+            }
             @if (User.IsInRole("Admin") || User.IsInRole("Moderator"))
             {
                 <a class="app-header__admin-link" asp-controller="AdminUi" asp-action="Users">@L["Navigation_AdminPanel"].Value</a>

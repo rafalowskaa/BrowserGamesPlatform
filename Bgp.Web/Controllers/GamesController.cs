@@ -218,7 +218,7 @@ public class GamesController : Controller
             PlayOptions = playOptions,
             DisplayTitle = locale?.Title ?? g.Title,
             DisplayDescription = locale?.Description ?? g.Description,
-            DisplayRules = g.Rules,
+            DisplayRules = locale?.RulesContent ?? g.Rules,
             CurrentLocale = currentLocale,
             DefaultLocale = g.DefaultLocale,
             BannerUrl = g.ResolveAsset(GameAssetType.Banner, currentLocale),
