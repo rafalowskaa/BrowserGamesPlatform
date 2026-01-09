@@ -1164,27 +1164,27 @@
     border: 1px solid rgba(148, 163, 184, 0.2);
     border-radius: 1rem;
     background: rgba(15, 23, 42, 0.6);
-    padding: 1rem;
+    padding: 0.85rem;
 }
 
     .security-question.is-complete {
-        border-color: rgba(34, 197, 94, 0.45);
-        background: rgba(34, 197, 94, 0.08);
+        border-color: rgba(34, 197, 94, 0.25);
+        background: rgba(34, 197, 94, 0.04);
     }
 
         .security-question.is-complete select,
         .security-question.is-complete input {
-            border-color: rgba(34, 197, 94, 0.45);
-            box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.35);
+            box-shadow: none;
         }
 
 .security-question__summary {
     display: none;
     margin: 0;
     border-radius: 0.85rem;
-    background: rgba(30, 64, 175, 0.3);
-    border: 1px solid rgba(59, 130, 246, 0.35);
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.25);
 }
 
 .security-question.is-collapsed .security-question__summary {
@@ -1194,8 +1194,8 @@
 .security-question__summary-main {
     display: flex;
     flex-direction: column;
-    gap: 0.65rem;
-    padding: 0.85rem 1rem;
+    gap: 0.55rem;
+    padding: 0.65rem 0.85rem;
 }
 
 .security-question__summary-button {

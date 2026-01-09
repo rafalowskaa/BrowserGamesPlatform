@@ -713,6 +713,16 @@
         setStatus(savingText, 'saving');
 
         const formData = new FormData(form);
+        const emailCheckbox = form.querySelector('#EnableEmailNotifications');
+        if (emailCheckbox instanceof HTMLInputElement) {
+            formData.delete('EnableEmailNotifications');
+            formData.append('EnableEmailNotifications', emailCheckbox.checked ? 'true' : 'false');
+        }
+        const invitesCheckbox = form.querySelector('#EnableFriendInvites');
+        if (invitesCheckbox instanceof HTMLInputElement) {
+            formData.delete('EnableFriendInvites');
+            formData.append('EnableFriendInvites', invitesCheckbox.checked ? 'true' : 'false');
+        }
         const controller = new AbortController();
 
         try {

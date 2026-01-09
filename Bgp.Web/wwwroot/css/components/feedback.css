@@ -59,6 +59,7 @@
 .global-toast-stack {
     top: auto;
     bottom: clamp(1rem, 3vw, 2rem);
+    align-items: flex-end;
 }
 
 .toast {
@@ -75,6 +76,13 @@
     pointer-events: auto;
     text-decoration: none;
 }
+
+.global-toast-stack .toast {
+    border-color: rgba(249, 115, 22, 0.6);
+    background: rgba(124, 45, 18, 0.92);
+    color: #ffedd5;
+}
+
 
 .toast--success {
     border-color: rgba(34, 197, 94, 0.45);

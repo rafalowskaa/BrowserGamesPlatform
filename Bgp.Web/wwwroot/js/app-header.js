@@ -237,6 +237,17 @@
         const storageKey = 'bgp.notifications.lastAlertSeen';
         let isFetching = false;
 
+        const updateStoredTimestamp = (value) => {
+            if (!value) {
+                return;
+            }
+            try {
+                window.localStorage.setItem(storageKey, value);
+            } catch (err) {
+
+            }
+        };
+
         const refreshAlerts = () => {
             if (isFetching) {
                 return;
@@ -247,6 +258,11 @@
                 since = window.localStorage.getItem(storageKey);
             } catch (err) {
                 since = null;
+            }
+
+            if (!since) {
+                since = new Date().toISOString();
+                updateStoredTimestamp(since);
             }
 
             const url = new URL('/api/notifications/latest', window.location.origin);
@@ -273,13 +289,7 @@
                         }
                     });
 
-                    if (latest) {
-                        try {
-                            window.localStorage.setItem(storageKey, latest);
-                        } catch (err) {
-
-                        }
-                    }
+                    updateStoredTimestamp(latest);
                 })
                 .catch(() => { })
                 .finally(() => {
@@ -293,7 +303,17 @@
                 return;
             }
             refreshAlerts();
-        }, 15000);
+        }, 5000);
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                refreshAlerts();
+            }
+        });
+
+        window.addEventListener('focus', () => {
+            refreshAlerts();
+        });
 
         window.addEventListener('beforeunload', () => window.clearInterval(refreshInterval), { once: true });
     }
