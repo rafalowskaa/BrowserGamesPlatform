@@ -165,8 +165,9 @@ public class NotificationsController : ControllerBase
             var actorName = log.ActorUserId != null && actorLookup.TryGetValue(log.ActorUserId, out var name)
                 ? name
                 : Localize("Dashboard_Friends_Unknown");
-            var hasGame = log.GameId.HasValue && gameLookup.TryGetValue(log.GameId.Value, out var game);
-            var gameTitle = hasGame ? game.Title : string.Empty;
+            var gameTitle = log.GameId.HasValue && gameLookup.TryGetValue(log.GameId.Value, out var game)
+                  ? game.Title
+                  : string.Empty;
 
             return log.Type switch
             {
