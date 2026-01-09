@@ -3028,6 +3028,7 @@
             if (strangersList) {
                 renderStrangerContacts();
             }
+            requestUsersRender();
         applyFriendFilter();
         updateUnreadBadge();
     }

@@ -228,9 +228,9 @@ public class HomeController : Controller
     {
         var gamesCount = await _db.Games.CountAsync(g => g.ApprovalStatus == GameApprovalStatus.Approved);
         var onlineUserIds = ChatHub.GetOnlineUserIds();
-        var onlinePlayers = onlineUserIds.Count == 0
-            ? await _db.Users.CountAsync(u => !u.IsInvisible && u.PresenceStatus != UserPresenceStatus.Offline)
-            : await _db.Users.CountAsync(u => onlineUserIds.Contains(u.Id) && !u.IsInvisible && u.PresenceStatus != UserPresenceStatus.Offline);
+        var onlinePlayers = await _db.Users.CountAsync(u =>
+            !u.IsInvisible
+            && (u.PresenceStatus != UserPresenceStatus.Offline || onlineUserIds.Contains(u.Id)));
         var playersCount = await _db.Users.CountAsync();
 
         return new CommunityMetricsViewModel

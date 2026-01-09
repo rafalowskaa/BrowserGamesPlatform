@@ -757,14 +757,14 @@
                                                     <label class="security-question__answer" for="@answerId">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
                                                     <div class="password-field password-field--answer">
                                                         <div class="password-field__input">
-                                                            <input id="@answerId" name="SecurityAnswer@questionNumber" value="@question.AnswerValue" type="text" autocomplete="off" data-answer-input minlength="3" />
+                                                                <input id="@answerId" name="SecurityAnswer@questionNumber" value="@question.AnswerValue" type="password" autocomplete="off" data-answer-input minlength="3" />
                                                             <button type="button"
                                                                     class="password-toggle"
                                                                     data-password-toggle="@answerId"
                                                                     data-password-show="@L["Auth_Password_Show"].Value"
                                                                     data-password-hide="@L["Auth_Password_Hide"].Value"
-                                                                    data-password-default="show"
-                                                                    aria-label="@L["Auth_Password_Hide"].Value"
+                                                                    data-password-default="hide"
+                                                                    aria-label="@L["Auth_Password_Show"].Value"
                                                                     tabindex="-1">
                                                                 <span class="password-toggle__emoji" aria-hidden="true">👁️</span>
                                                                 <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
@@ -785,6 +785,9 @@
                         </div>
 
                         <div class="form-actions">
+                            <label for="RecoveryPassword">@L["Dashboard_Security_CurrentPassword"].Value</label>
+                            <input id="RecoveryPassword" name="Password" type="password" autocomplete="current-password" class="form-control-sm" />
+                            @Html.ValidationMessage("Password", null, new { @class = "val" })
                             <button class="btn-primary" type="submit">@L["Dashboard_Profile_Recovery_Save"].Value</button>
                         </div>
                     </form>

@@ -927,6 +927,10 @@
     margin-top: calc(var(--space-7) * 2);
 }
 
+.home-facts-section {
+    margin-bottom: var(--space-6);
+}
+
 .community-panel {
     background: linear-gradient(135deg, rgba(76, 111, 255, 0.55), rgba(159, 107, 255, 0.35), rgba(76, 111, 255, 0.55));
     background-size: 200% 200%;

@@ -524,6 +524,13 @@ public class DashboardController : Controller
             return await ReturnDashboardWithErrorsAsync(user, "profile", "security");
         }
 
+        var passwordValid = await _users.CheckPasswordAsync(user, input.Password);
+        if (!passwordValid)
+        {
+            ModelState.AddModelError(nameof(input.Password), Localize("Dashboard_Profile_DisplayName_InvalidPassword"));
+            return await ReturnDashboardWithErrorsAsync(user, "profile", "security");
+        }
+
         var custom1 = string.IsNullOrWhiteSpace(input.SecurityQuestion1Custom) ? null : input.SecurityQuestion1Custom.Trim();
         var custom2 = string.IsNullOrWhiteSpace(input.SecurityQuestion2Custom) ? null : input.SecurityQuestion2Custom.Trim();
         var custom3 = string.IsNullOrWhiteSpace(input.SecurityQuestion3Custom) ? null : input.SecurityQuestion3Custom.Trim();

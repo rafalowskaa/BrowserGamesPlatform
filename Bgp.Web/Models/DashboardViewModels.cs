@@ -310,6 +310,8 @@ public class ChangePasswordInputModel
 
 public class UpdateRecoveryQuestionsInputModel : IValidatableObject
 {
+    [Required]
+    public string Password { get; set; } = string.Empty;
     public string SecurityQuestion1 { get; set; } = string.Empty;
 
     public string? SecurityQuestion1Custom { get; set; }
@@ -381,7 +383,6 @@ public class UpdateRecoveryQuestionsInputModel : IValidatableObject
 
         if (activeEntries.Count == 0)
         {
-            yield return new ValidationResult(Localize("Auth_Register_SecurityQuestions_Required"), new[] { nameof(SecurityQuestion1) });
             yield break;
         }
 
