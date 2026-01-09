@@ -209,6 +209,8 @@ public class AccountController : Controller
             BirthMonth = vm.BirthDate?.Month,
             BirthDay = vm.BirthDate?.Day,
             BirthYear = vm.BirthDate?.Year,
+            EnableEmailNotifications = true,
+            EnableFriendInvites = true,
             SecurityQuestion1Key = GetKeyAt(0),
             SecurityQuestion1CustomPrompt = GetCustomAt(0),
             SecurityQuestion2Key = GetKeyAt(1),

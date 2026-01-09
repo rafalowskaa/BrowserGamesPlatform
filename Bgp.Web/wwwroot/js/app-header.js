@@ -235,7 +235,11 @@
         }
 
         const storageKey = 'bgp.notifications.lastAlertSeen';
+        const alertedKey = 'bgp.notifications.alertedIds';
+        const notificationsView = document.querySelector('[data-notifications-view]');
         let isFetching = false;
+        let alertedIds = [];
+        let alertedLoaded = false;
 
         const updateStoredTimestamp = (value) => {
             if (!value) {
@@ -243,6 +247,32 @@
             }
             try {
                 window.localStorage.setItem(storageKey, value);
+            } catch (err) {
+
+            }
+        };
+
+        const loadAlertedIds = () => {
+            if (alertedLoaded) {
+                return;
+            }
+            alertedLoaded = true;
+            try {
+                const stored = window.localStorage.getItem(alertedKey);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed)) {
+                        alertedIds = parsed.filter((id) => typeof id === 'string');
+                    }
+                }
+            } catch (err) {
+                alertedIds = [];
+            }
+        };
+
+        const storeAlertedIds = () => {
+            try {
+                window.localStorage.setItem(alertedKey, JSON.stringify(alertedIds.slice(-50)));
             } catch (err) {
 
             }
@@ -276,6 +306,7 @@
                     if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) {
                         return;
                     }
+                    loadAlertedIds();
                     const items = payload.items
                         .filter((item) => item && item.message)
                         .slice()
@@ -283,13 +314,22 @@
 
                     let latest = since;
                     items.forEach((item) => {
-                        toastFn(item.message, 'info', item.link || '');
+                        if (item.id && alertedIds.includes(item.id)) {
+                            return;
+                        }
+                        if (!notificationsView) {
+                            toastFn(item.message, 'info', item.link || '');
+                        }
                         if (!latest || new Date(item.created_at) > new Date(latest)) {
                             latest = item.created_at;
+                        }
+                        if (item.id) {
+                            alertedIds.push(item.id);
                         }
                     });
 
                     updateStoredTimestamp(latest);
+                    storeAlertedIds();
                 })
                 .catch(() => { })
                 .finally(() => {
@@ -297,13 +337,17 @@
                 });
         };
 
-              refreshAlerts();
+        if (notificationsView) {
+            updateStoredTimestamp(new Date().toISOString());
+        }
+
+        refreshAlerts();
         const refreshInterval = window.setInterval(() => {
             if (document.hidden) {
                 return;
             }
             refreshAlerts();
-        }, 5000);
+        }, 3000);
 
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {

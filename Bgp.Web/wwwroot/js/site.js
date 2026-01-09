@@ -139,6 +139,7 @@
 
         var addNextButton = container.querySelector('[data-questions-add]');
         var emptyHint = container.querySelector('[data-empty-hint]');
+        var countLabel = container.querySelector('[data-questions-count]');
         var addFirstLabel = container.getAttribute('data-label-add-first') || '';
         var addNextLabel = container.getAttribute('data-label-add-next') || '';
 
@@ -248,6 +249,7 @@
                 bodyRemove: bodyRemove,
                 index: index,
                 summaryRevealed: false,
+                summaryHideTimer: null,
                 state: 'hidden'
             };
         });
@@ -681,10 +683,11 @@
         function updateActionButtons() {
             if (addNextButton) {
                 var atCapacity = enabled && visibleCount >= maxVisible;
-                addNextButton.hidden = atCapacity;
+                addNextButton.hidden = false;
 
                 if (atCapacity) {
                     addNextButton.disabled = true;
+                    addNextButton.setAttribute('aria-disabled', 'true');
                     return;
                 }
 
@@ -693,6 +696,7 @@
                         addNextButton.textContent = addFirstLabel;
                     }
                     addNextButton.disabled = false;
+                    addNextButton.removeAttribute('aria-disabled');
                     return;
                 }
 
@@ -701,8 +705,17 @@
                 }
 
                 addNextButton.disabled = false;
+                addNextButton.removeAttribute('aria-disabled');
             }
         }
+        function updateCountLabel() {
+            if (!countLabel) {
+                return;
+            }
+            var count = enabled ? visibleCount : 0;
+            countLabel.textContent = count + '/' + maxVisible;
+        }
+
 
         function refreshStates(options) {
             options = options || {};
@@ -718,6 +731,7 @@
                 updateRemoveButtons();
                 updateEmptyHint();
                 updateActionButtons();
+                updateCountLabel();
                 return;
             }
 
@@ -762,6 +776,7 @@
             updateRemoveButtons();
             updateEmptyHint();
             updateActionButtons();
+            updateCountLabel();
 
             if (hasActive && options.focusActive !== false && items[activeIndex]) {
                 focusFirstField(items[activeIndex]);
@@ -897,6 +912,7 @@
                 } else {
                     updateEmptyHint();
                     updateActionButtons();
+                    updateCountLabel();
                 }
                 return;
             }
@@ -917,6 +933,7 @@
                 updateRemoveButtons();
                 updateEmptyHint();
                 updateActionButtons();
+                updateCountLabel();
                 return;
             }
             visibleCount = Math.min(Math.max(visibleCount || 1, 1), maxVisible);
@@ -976,12 +993,18 @@
 
             if (item.bodyRemove) {
                 item.bodyRemove.addEventListener('click', function () {
+                    if (!window.confirm('Na pewno?')) {
+                        return;
+                    }
                     removeQuestion(item.index);
                 });
             }
 
             if (item.summaryRemove) {
                 item.summaryRemove.addEventListener('click', function () {
+                    if (!window.confirm('Na pewno?')) {
+                        return;
+                    }
                     removeQuestion(item.index);
                 });
             }
@@ -1002,6 +1025,19 @@
                     }
                     item.summaryRevealed = !item.summaryRevealed;
                     updateSummary(item);
+                    if (item.summaryRevealed) {
+                        if (item.summaryHideTimer) {
+                            clearTimeout(item.summaryHideTimer);
+                        }
+                        item.summaryHideTimer = window.setTimeout(function () {
+                            item.summaryRevealed = false;
+                            updateSummary(item);
+                            item.summaryHideTimer = null;
+                        }, 6000);
+                    } else if (item.summaryHideTimer) {
+                        clearTimeout(item.summaryHideTimer);
+                        item.summaryHideTimer = null;
+                    }
                 });
             }
             if (item.body) {
