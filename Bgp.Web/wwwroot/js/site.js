@@ -187,6 +187,7 @@
             answerCommon: container.getAttribute('data-message-answer-common') || '',
             answerMatches: container.getAttribute('data-message-answer-matches') || ''
         };
+        var maskedToken = container.getAttribute('data-answer-mask') || '';
 
         if (!messages.questionRequired) {
             messages.questionRequired = 'Please select a question.';
@@ -211,6 +212,13 @@
             return (value || '').trim();
         }
 
+        function isMaskedValue(value) {
+            if (!maskedToken) {
+                return false;
+            }
+            return trim(value) === maskedToken;
+        }
+
         var items = Array.from(list.querySelectorAll('[data-question-item]')).map(function (element, index) {
             var summary = element.querySelector('[data-question-summary]');
             var body = element.querySelector('[data-question-body]');
@@ -228,6 +236,10 @@
             var summaryEdit = summary ? summary.querySelector('[data-summary-edit]') : null;
             var summaryRemove = summary ? summary.querySelector('[data-summary-remove]') : null;
             var bodyRemove = body ? body.querySelector('[data-question-remove]') : null;
+
+            if (answerInput && maskedToken && isMaskedValue(answerInput.value)) {
+                answerInput.dataset.answerMasked = 'true';
+            }
 
             return {
                 element: element,
@@ -950,6 +962,10 @@
                     if (item.questionError) {
                         item.questionError.dataset.clientMessage = 'true';
                     }
+                    if (item.answerInput && isMaskedValue(item.answerInput.value)) {
+                        item.answerInput.value = '';
+                        delete item.answerInput.dataset.answerMasked;
+                    }
                     updateCustomVisibility(item);
                     validateItem(item, { showErrors: false });
                     updateSummary(item);
@@ -968,6 +984,10 @@
                     if (item.customError) {
                         item.customError.dataset.clientMessage = 'true';
                     }
+                    if (item.answerInput && isMaskedValue(item.answerInput.value)) {
+                        item.answerInput.value = '';
+                        delete item.answerInput.dataset.answerMasked;
+                    }
                     validateItem(item, { showErrors: false });
                     updateSummary(item);
                     updateActionButtons();
@@ -978,9 +998,20 @@
             }
 
             if (item.answerInput) {
+                item.answerInput.addEventListener('focus', function () {
+                    if (isMaskedValue(item.answerInput.value)) {
+                        item.answerInput.value = '';
+                        delete item.answerInput.dataset.answerMasked;
+                        updateSummary(item);
+                    }
+                });
                 item.answerInput.addEventListener('input', function () {
                     if (item.answerError) {
                         item.answerError.dataset.clientMessage = 'true';
+                    }
+                    if (item.answerInput && isMaskedValue(item.answerInput.value)) {
+                        item.answerInput.value = '';
+                        delete item.answerInput.dataset.answerMasked;
                     }
                     validateItem(item, { showErrors: false });
                     updateSummary(item);

@@ -166,7 +166,7 @@
         <value>Wyniki lokalne</value>
     </data>
 	<data name="Chat_Search_GlobalHeading" xml:space="preserve">
-        <value>Użytkownicy</value>
+         <value>Wyszukaj graczy</value>
     </data>
 	<data name="Chat_Search_Loading" xml:space="preserve">
         <value>Wyszukiwanie…</value>

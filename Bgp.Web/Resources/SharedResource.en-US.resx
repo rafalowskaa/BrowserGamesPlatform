@@ -167,7 +167,7 @@
         <value>Local results</value>
     </data>
 	<data name="Chat_Search_GlobalHeading" xml:space="preserve">
-        <value>Users</value>
+        <value>Find players</value>
     </data>
 	<data name="Chat_Search_Loading" xml:space="preserve">
         <value>Searching…</value>

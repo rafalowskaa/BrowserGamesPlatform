@@ -1194,6 +1194,27 @@
         background: rgba(15, 23, 42, 0.7);
     }
 
+.profile-section[data-profile-panel="security"] .security-question__summary {
+    border-radius: 0.85rem;
+    background: rgba(15, 23, 42, 0.7);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
+}
+
+    .profile-section[data-profile-panel="security"] .security-question__summary:hover,
+    .profile-section[data-profile-panel="security"] .security-question__summary:focus-within {
+        background: rgba(30, 41, 59, 0.82);
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.45);
+    }
+
+.profile-section[data-profile-panel="security"] .security-question.is-complete {
+    border-color: rgba(148, 163, 184, 0.35);
+    background: rgba(15, 23, 42, 0.7);
+}
+
+.profile-section[data-profile-panel="security"] .security-question__summary-button {
+    color: #e2e8f0;
+}
+
 .security-question__summary {
     display: block;
     margin: 0;

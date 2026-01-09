@@ -47,19 +47,20 @@
 
 .toast-stack {
     position: fixed;
-    top: 6rem;
+    top: auto;
     right: clamp(1rem, 3vw, 2rem);
+    bottom: clamp(1rem, 3vw, 2rem);
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
     z-index: 1200;
     pointer-events: none;
+    bottom: clamp(1rem, 3vw, 2rem);
 }
 
 .global-toast-stack {
     top: auto;
     bottom: clamp(1rem, 3vw, 2rem);
-    align-items: flex-end;
 }
 
 .toast {
@@ -80,7 +81,7 @@
 .global-toast-stack .toast {
     border-color: rgba(249, 115, 22, 0.6);
     background: rgba(124, 45, 18, 0.92);
-    color: #ffedd5;
+    color: #fdba74;
 }
 
 
@@ -91,7 +92,7 @@
 .toast--info {
     border-color: rgba(249, 115, 22, 0.6);
     background: rgba(124, 45, 18, 0.92);
-    color: #ffedd5;
+    color: #fdba74;
 }
 
 .toast--error {
