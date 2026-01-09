@@ -184,35 +184,47 @@
             });
         }
 
-        let since = null;
-        try {
-            since = window.localStorage.getItem(storageKey);
-        } catch (err) {
-            since = null;
-        }
+        const refreshBadges = () => {
+            let since = null;
+            try {
+                since = window.localStorage.getItem(storageKey);
+            } catch (err) {
+                since = null;
+            }
 
-        const url = new URL('/api/notifications/unread-count', window.location.origin);
-        if (since) {
-            url.searchParams.set('since', since);
-        }
+            const url = new URL('/api/notifications/unread-count', window.location.origin);
+            if (since) {
+                url.searchParams.set('since', since);
+            }
 
         fetch(url.toString(), { credentials: 'include' })
-            .then((res) => (res.ok ? res.json() : null))
-            .then((payload) => {
-                if (!payload || typeof payload.count !== 'number') {
-                    return;
-                }
-                const count = payload.count;
-                badges.forEach((badge) => {
-                    badge.textContent = String(count);
-                    if (count > 0) {
-                        badge.removeAttribute('hidden');
-                    } else {
-                        badge.setAttribute('hidden', '');
+                .then((res) => (res.ok ? res.json() : null))
+                .then((payload) => {
+                    if (!payload || typeof payload.count !== 'number') {
+                        return;
                     }
-                });
-            })
-            .catch(() => { });
+                const count = payload.count;
+                    badges.forEach((badge) => {
+                        badge.textContent = String(count);
+                        if (count > 0) {
+                            badge.removeAttribute('hidden');
+                        } else {
+                            badge.setAttribute('hidden', '');
+                        }
+                    });
+                })
+                .catch(() => { });
+        };
+
+        refreshBadges();
+        const refreshInterval = window.setInterval(() => {
+            if (document.hidden) {
+                return;
+            }
+            refreshBadges();
+        }, 15000);
+
+        window.addEventListener('beforeunload', () => window.clearInterval(refreshInterval), { once: true });
     }
 
     initNotificationBadges();
@@ -223,46 +235,67 @@
         }
 
         const storageKey = 'bgp.notifications.lastAlertSeen';
-        let since = null;
-        try {
-            since = window.localStorage.getItem(storageKey);
-        } catch (err) {
-            since = null;
-        }
+        let isFetching = false;
 
-        const url = new URL('/api/notifications/latest', window.location.origin);
-        if (since) {
-            url.searchParams.set('since', since);
-        }
+        const refreshAlerts = () => {
+            if (isFetching) {
+                return;
+            }
+            isFetching = true;
+            let since = null;
+            try {
+                since = window.localStorage.getItem(storageKey);
+            } catch (err) {
+                since = null;
+            }
 
-        fetch(url.toString(), { credentials: 'include' })
-            .then((res) => (res.ok ? res.json() : null))
-            .then((payload) => {
-                if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) {
-                    return;
-                }
-                const items = payload.items
-                    .filter((item) => item && item.message)
-                    .slice()
-                    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+            const url = new URL('/api/notifications/latest', window.location.origin);
+            if (since) {
+                url.searchParams.set('since', since);
+            }
 
-                let latest = since;
-                items.forEach((item) => {
-                    toastFn(item.message, 'info', item.link || '');
-                    if (!latest || new Date(item.created_at) > new Date(latest)) {
-                        latest = item.created_at;
+            fetch(url.toString(), { credentials: 'include' })
+                .then((res) => (res.ok ? res.json() : null))
+                .then((payload) => {
+                    if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) {
+                        return;
                     }
+                    const items = payload.items
+                        .filter((item) => item && item.message)
+                        .slice()
+                        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+                    let latest = since;
+                    items.forEach((item) => {
+                        toastFn(item.message, 'info', item.link || '');
+                        if (!latest || new Date(item.created_at) > new Date(latest)) {
+                            latest = item.created_at;
+                        }
+                    });
+
+                    if (latest) {
+                        try {
+                            window.localStorage.setItem(storageKey, latest);
+                        } catch (err) {
+
+                        }
+                    }
+                })
+                .catch(() => { })
+                .finally(() => {
+                    isFetching = false;
                 });
+        };
 
-                if (latest) {
-                    try {
-                        window.localStorage.setItem(storageKey, latest);
-                    } catch (err) {
+              refreshAlerts();
+        const refreshInterval = window.setInterval(() => {
+            if (document.hidden) {
+                return;
+            }
+            refreshAlerts();
+        }, 15000);
 
-                    }
-                }
-            })
-            .catch(() => { });
+        window.addEventListener('beforeunload', () => window.clearInterval(refreshInterval), { once: true });
     }
 
     initNotificationAlerts();

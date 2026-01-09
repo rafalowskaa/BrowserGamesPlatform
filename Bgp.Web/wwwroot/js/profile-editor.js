@@ -4,18 +4,19 @@
         return;
     }
 
-    const actionBar = form.querySelector('[data-profile-actions]');
-    const statusEl = form.querySelector('[data-profile-status]');
-    const saveBtn = form.querySelector('[data-profile-save]');
-    const cancelBtn = form.querySelector('[data-profile-cancel]');
-    const panels = Array.from(form.querySelectorAll('[data-profile-panel]'));
+    const actionBar = document.querySelector('[data-profile-actions]');
+    const statusEl = actionBar ? actionBar.querySelector('[data-profile-status]') : null;
+    const saveBtn = actionBar ? actionBar.querySelector('[data-profile-save]') : null;
+    const cancelBtn = actionBar ? actionBar.querySelector('[data-profile-cancel]') : null;
+    const panels = Array.from(document.querySelectorAll('[data-profile-panel]'));
+    const formPanels = new Set(form.querySelectorAll('[data-profile-panel]'));
     const navButtons = Array.from(document.querySelectorAll('[data-profile-nav]'));
     const displayNameInput = form.querySelector('#DisplayName');
     const displayNamePasswordField = form.querySelector('#DisplayNamePasswordField');
-    const displayNameModal = form.querySelector('[data-profile-displayname-modal]');
-    const avatarModal = form.querySelector('[data-profile-avatar-modal]');
-    const avatarInput = form.querySelector('[data-profile-avatar-input]');
-    const avatarDropzone = form.querySelector('[data-profile-avatar-drop]');
+    const displayNameModal = document.querySelector('[data-profile-displayname-modal]');
+    const avatarModal = document.querySelector('[data-profile-avatar-modal]');
+    const avatarInput = document.querySelector('[data-profile-avatar-input]');
+    const avatarDropzone = document.querySelector('[data-profile-avatar-drop]');
     const profileRoot = form.closest('[data-profile-root]') || document;
     const avatarContainer = profileRoot.querySelector('[data-profile-avatar]');
     let avatarPreview = avatarContainer ? avatarContainer.querySelector('[data-profile-avatar-preview]') : null;
@@ -361,6 +362,9 @@
 
     function resetPanelById(id) {
         const panel = panelMap.get(id);
+        if (!panel || !formPanels.has(panel)) {
+            return;
+        }
         resetPanelElements(panel);
         updateActionBarState();
         if (statusEl && idleText) {
@@ -377,7 +381,7 @@
     }
 
     function resetAllFields() {
-        panels.forEach((panel) => resetPanelElements(panel));
+        formPanels.forEach((panel) => resetPanelElements(panel));
         if (displayNamePasswordField) {
             displayNamePasswordField.value = '';
         }
@@ -1055,13 +1059,10 @@
             }
             field.addEventListener('click', (event) => {
                 const target = event.target;
-                if (target instanceof HTMLLabelElement || (target instanceof HTMLElement && target.closest('label'))) {
-                    event.preventDefault();
-                    checkbox.checked = !checkbox.checked;
-                    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                if (target instanceof HTMLInputElement) {
                     return;
                 }
-                if (target instanceof HTMLInputElement) {
+                if (target instanceof HTMLLabelElement || (target instanceof HTMLElement && target.closest('label'))) {
                     return;
                 }
                 checkbox.checked = !checkbox.checked;
