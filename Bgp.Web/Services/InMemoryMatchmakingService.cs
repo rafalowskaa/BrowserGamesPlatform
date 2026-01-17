@@ -42,6 +42,8 @@ public sealed class InMemoryMatchmakingService : IMatchmakingService
             ExpiresAtUtc = now.Add(TicketTtl)
         };
 
+        _tickets[ticket.Id] = ticket;
+
         var key = (gameId, mode);
         var queue = _queues.GetOrAdd(key, _ => new Queue<Guid>());
         var sync = _locks.GetOrAdd(key, _ => new object());
@@ -72,14 +74,12 @@ public sealed class InMemoryMatchmakingService : IMatchmakingService
                 ticket.MatchId = matchId;
                 ticket.MatchedAtUtc = now;
                 ticket.OpponentUserId = candidate.UserId;
-                _tickets[ticket.Id] = ticket;
                 return Task.FromResult(ticket);
             }
 
             queue.Enqueue(ticket.Id);
         }
 
-        _tickets[ticket.Id] = ticket;
         return Task.FromResult(ticket);
     }
 
