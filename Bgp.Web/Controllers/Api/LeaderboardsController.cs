@@ -26,8 +26,8 @@ public class LeaderboardsController : ControllerBase
                 return BadRequest("Nieprawidłowy tryb gry.");
             }
 
-            var rows = await GetExternalRowsAsync(gameId, parsedMode, limit ?? 100);
-            return Ok(rows);
+            var externalRows = await GetExternalRowsAsync(gameId, parsedMode, limit ?? 100);
+            return Ok(externalRows);
         }
 
         var rows = await GetRowsAsync(gameId, top);
@@ -196,7 +196,9 @@ public class LeaderboardsController : ControllerBase
 
             foreach (var playerId in sessionPlayers)
             {
-                var entry = stats.TryGetValue(playerId, out var current) ? current : (0, 0, 0, 0);
+                var entry = stats.TryGetValue(playerId, out var current)
+                   ? current
+                   : (wins: 0, losses: 0, draws: 0, games: 0);
                 entry.games += 1;
 
                 var playerScore = sessionScores.FirstOrDefault(s => s.UserId == playerId);
