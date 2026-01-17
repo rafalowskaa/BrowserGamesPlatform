@@ -86,7 +86,12 @@ public class ScoresController : ControllerBase
         if (session.GameId != gameId) return BadRequest("Nieprawidłowe powiązanie gry z sesją.");
         if (session.ExpiresAtUtc < _time.UtcNow) return BadRequest("Sesja wygasła lub została użyta.");
 
-        if (!TryParseMode(req.Mode, out var requestedMode))
+        GameMode requestedMode;
+        if (string.IsNullOrWhiteSpace(req.Mode))
+        {
+            requestedMode = session.Mode;
+        }
+        else if (!TryParseMode(req.Mode, out requestedMode))
         {
             return BadRequest("Nieprawidłowy tryb gry.");
         }

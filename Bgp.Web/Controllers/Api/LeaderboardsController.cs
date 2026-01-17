@@ -200,7 +200,7 @@ public class LeaderboardsController : ControllerBase
         {
             var sessionPlayers = sessionGroup.Select(p => p.UserId).Distinct(StringComparer.Ordinal).ToList();
             var sessionScores = scores.Where(s => s.MatchSessionId == sessionGroup.Key).ToList();
-            if (sessionScores.Select(s => s.UserId).Distinct(StringComparer.Ordinal).Count() < sessionPlayers.Count)
+            if (sessionScores.Count == 0)
             {
                 continue;
             }

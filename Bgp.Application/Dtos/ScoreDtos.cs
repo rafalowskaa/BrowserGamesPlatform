@@ -9,8 +9,8 @@ public class SubmitScoreRequest
 {
     [Required]
     public Guid SessionId { get; set; }
-    [Required, MaxLength(32)]
-    public string Mode { get; set; } = GameMode.Singleplayer.ToString();
+    [MaxLength(32)]
+    public string? Mode { get; set; }
 
     [Range(0, double.MaxValue)]
     public double Score { get; set; }
