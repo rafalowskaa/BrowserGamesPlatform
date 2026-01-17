@@ -100,25 +100,39 @@ public class LeaderboardsController : ControllerBase
             {
                 var hasResults = playerRows.Any(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase)
                                                      || string.Equals(r.Role, "loser", StringComparison.OrdinalIgnoreCase));
-                if (!hasResults)
-                {
-                    return Enumerable.Empty<LeaderboardRowDto>();
-                }
+               
 
                 totalPlayers = playerRows.Select(r => r.UserId).Distinct().Count();
-                rows = playerRows
-                    .Where(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase)
-                                || string.Equals(r.Role, "loser", StringComparison.OrdinalIgnoreCase))
-                    .GroupBy(r => r.UserId)
-                    .Select(g => new
-                    {
-                        UserId = g.Key,
-                        Best = g.Count(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase))
-                    })
-                    .Select(x => new { x.UserId, Best = (double)x.Best, Matches = x.Best })
-                    .OrderByDescending(x => x.Best)
-                    .Take(Math.Clamp(top, 1, 200))
-                    .ToList();
+                if (hasResults)
+                {
+                    rows = playerRows
+                        .Where(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase)
+                                    || string.Equals(r.Role, "loser", StringComparison.OrdinalIgnoreCase))
+                        .GroupBy(r => r.UserId)
+                        .Select(g => new
+                        {
+                            UserId = g.Key,
+                            Best = g.Count(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase))
+                        })
+                        .Select(x => new { x.UserId, Best = (double)x.Best, Matches = x.Best })
+                        .OrderByDescending(x => x.Best)
+                        .Take(Math.Clamp(top, 1, 200))
+                        .ToList();
+                }
+                else
+                {
+                    rows = playerRows
+                        .GroupBy(r => r.UserId)
+                        .Select(g => new
+                        {
+                            UserId = g.Key,
+                            Matches = g.Select(r => r.SessionId).Distinct().Count()
+                        })
+                        .Select(x => new { x.UserId, Best = (double)x.Matches, Matches = x.Matches })
+                        .OrderByDescending(x => x.Best)
+                        .Take(Math.Clamp(top, 1, 200))
+                        .ToList();
+                }
 
                 if (sessionStatsLookup.Count == 0)
                 {
