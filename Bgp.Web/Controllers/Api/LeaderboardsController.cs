@@ -302,22 +302,18 @@ public class LeaderboardsController : ControllerBase
     private static Dictionary<string, SessionAggregate> BuildSessionStatsFromScores(IEnumerable<ScoreEntry> scoreEntries)
     {
         var stats = new Dictionary<string, SessionAggregate>(StringComparer.Ordinal);
-        var bySession = scoreEntries
-            .GroupBy(entry => entry.MatchSessionId);
-
-        foreach (var session in bySession)
+        foreach (var session in scoreEntries.GroupBy(entry => entry.MatchSessionId))
         {
-            var entries = session
-                .Select(entry => new { entry.UserId, entry.Value })
-                .ToList();
-            if (entries.Count == 0)
+            var entries = session.ToList();
+            if (entries.Count < 2)
             {
                 continue;
             }
             var topScore = entries.Max(entry => entry.Value);
+            var isDraw = entries.All(entry => entry.Value.Equals(topScore));
             foreach (var entry in entries)
             {
-                var isWinner = entry.Value.Equals(topScore);
+                
                 if (!stats.TryGetValue(entry.UserId, out var aggregate))
                 {
                     aggregate = new SessionAggregate(0, 0, 0);
@@ -325,8 +321,8 @@ public class LeaderboardsController : ControllerBase
                 aggregate = aggregate with
                 {
                     Played = aggregate.Played + 1,
-                    Wins = aggregate.Wins + (isWinner ? 1 : 0),
-                    Losses = aggregate.Losses + (isWinner ? 0 : 1)
+                    Wins = aggregate.Wins + (!isDraw && entry.Value.Equals(topScore) ? 1 : 0),
+                    Losses = aggregate.Losses + (!isDraw && !entry.Value.Equals(topScore) ? 1 : 0)
                 };
                 stats[entry.UserId] = aggregate;
             }
