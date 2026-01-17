@@ -219,6 +219,16 @@
             return trim(value) === maskedToken;
         }
 
+        function clearMaskedAnswer(item) {
+            if (!item || !item.answerInput) {
+                return;
+            }
+            if (item.answerInput.dataset.answerMasked === 'true') {
+                item.answerInput.value = '';
+                delete item.answerInput.dataset.answerMasked;
+            }
+        }
+
         var items = Array.from(list.querySelectorAll('[data-question-item]')).map(function (element, index) {
             var summary = element.querySelector('[data-question-summary]');
             var body = element.querySelector('[data-question-body]');
@@ -329,9 +339,10 @@
 
         function maskAnswer(answer) {
             var length = Math.max(answer.length, 5);
+            var maskChar = isMaskedValue(answer) ? '●' : '•';
             var mask = '';
             for (var i = 0; i < length; i++) {
-                mask += '•';
+                mask += maskChar;
             }
             return mask;
         }
@@ -962,10 +973,7 @@
                     if (item.questionError) {
                         item.questionError.dataset.clientMessage = 'true';
                     }
-                    if (item.answerInput && isMaskedValue(item.answerInput.value)) {
-                        item.answerInput.value = '';
-                        delete item.answerInput.dataset.answerMasked;
-                    }
+                    clearMaskedAnswer(item);
                     updateCustomVisibility(item);
                     validateItem(item, { showErrors: false });
                     updateSummary(item);
@@ -984,10 +992,7 @@
                     if (item.customError) {
                         item.customError.dataset.clientMessage = 'true';
                     }
-                    if (item.answerInput && isMaskedValue(item.answerInput.value)) {
-                        item.answerInput.value = '';
-                        delete item.answerInput.dataset.answerMasked;
-                    }
+                    clearMaskedAnswer(item);
                     validateItem(item, { showErrors: false });
                     updateSummary(item);
                     updateActionButtons();
@@ -998,20 +1003,24 @@
             }
 
             if (item.answerInput) {
-                item.answerInput.addEventListener('focus', function () {
-                    if (isMaskedValue(item.answerInput.value)) {
-                        item.answerInput.value = '';
-                        delete item.answerInput.dataset.answerMasked;
-                        updateSummary(item);
+                item.answerInput.addEventListener('keydown', function (event) {
+                    if (item.answerInput.dataset.answerMasked === 'true'
+                        && !event.ctrlKey
+                        && !event.metaKey
+                        && !event.altKey
+                        && (event.key.length === 1 || event.key === 'Backspace' || event.key === 'Delete')) {
+                        clearMaskedAnswer(item);
                     }
+                });
+                item.answerInput.addEventListener('paste', function () {
+                    clearMaskedAnswer(item);
                 });
                 item.answerInput.addEventListener('input', function () {
                     if (item.answerError) {
                         item.answerError.dataset.clientMessage = 'true';
                     }
-                    if (item.answerInput && isMaskedValue(item.answerInput.value)) {
-                        item.answerInput.value = '';
-                        delete item.answerInput.dataset.answerMasked;
+                    if (item.answerInput && item.answerInput.dataset.answerMasked === 'true') {
+                        clearMaskedAnswer(item);
                     }
                     validateItem(item, { showErrors: false });
                     updateSummary(item);

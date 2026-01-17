@@ -86,6 +86,7 @@
             <table class="admin-table">
                 <thead>
                     <tr>
+                        <th class="min">Nr</th>
                         <th>@L["Admin_Reports_Date"].Value</th>
                         <th>@L["Admin_Reports_Reporter"].Value</th>
                         <th>@L["Admin_Reports_Target"].Value</th>
@@ -101,6 +102,7 @@
                         foreach (var report in Model.Reports)
                         {
                             <tr>
+                                <td class="min">@report.Id</td>
                                 <td>
                                     <span class="badge">@report.CreatedAtUtc.ToLocalTime().ToString("g")</span>
                                 </td>
@@ -139,7 +141,7 @@
                     else
                 {
                     <tr>
-                            <td colspan="7" class="empty">@L["Admin_Reports_Empty"].Value</td>
+                            <td colspan="8" class="empty">@L["Admin_Reports_Empty"].Value</td>
                     </tr>
                 }
                 </tbody>

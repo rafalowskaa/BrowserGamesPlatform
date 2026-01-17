@@ -927,6 +927,11 @@
     margin-top: calc(var(--space-7) * 2);
 }
 
+.home-guest + .home-community {
+    margin-top: calc(var(--space-7) * 2);
+}
+
+
 .home-facts-section {
     margin-bottom: var(--space-6);
 }

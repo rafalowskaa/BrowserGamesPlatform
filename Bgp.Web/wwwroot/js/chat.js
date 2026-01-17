@@ -2825,9 +2825,27 @@
         }
 
         function markConversationHistory(friendId) {
-            const friend = getFriend(friendId);
+            let friend = getFriend(friendId);
             if (!friend) {
-                return;
+                const stored = getStrangerContact(friendId);
+                if (stored) {
+                    friend = { ...stored, userId: stored.userId || friendId };
+                } else {
+                    friend = {
+                        userId: friendId,
+                        displayName: friendId,
+                        avatarUrl: null,
+                        statusMessage: '',
+                        presence: PRESENCE_OFFLINE,
+                        isInvisible: false,
+                        unreadCount: 0,
+                        isFriend: false,
+                        isArchived: false,
+                        keepArchived: false,
+                        lastNotifiedMessageId: null
+                    };
+                }
+                setFriend(friend);
             }
             if (!friend.hasConversationHistory) {
                 friend.hasConversationHistory = true;

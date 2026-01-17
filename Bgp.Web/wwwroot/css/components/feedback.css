@@ -47,7 +47,7 @@
 
 .toast-stack {
     position: fixed;
-    top: auto;
+    top: unset;
     right: clamp(1rem, 3vw, 2rem);
     bottom: clamp(1rem, 3vw, 2rem);
     display: flex;
@@ -59,7 +59,7 @@
 }
 
 .global-toast-stack {
-    top: auto;
+    top: unset;
     bottom: clamp(1rem, 3vw, 2rem);
 }
 

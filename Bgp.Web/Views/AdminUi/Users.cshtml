@@ -92,6 +92,7 @@
         <table class="admin-table">
             <thead>
                 <tr>
+                    <th class="min">Lp.</th>
                     <th>@L["Admin_Users_Table_Name"].Value</th>
                     <th>@L["Admin_Users_Table_Email"].Value</th>
                     <th>@L["Admin_Users_Table_Created"].Value</th>
@@ -103,8 +104,10 @@
             <tbody>
                 @if (Model.Users.Any())
                 {
+                    var rowIndex = 1;
                     foreach (var user in Model.Users)
                     {
+                        var rowNumber = rowIndex++;
                         var isCurrent = string.Equals(user.Id, currentUserId, StringComparison.Ordinal);
                         var allowedAccessLevels = new List<AdminUserAccessLevel>();
 
@@ -153,6 +156,7 @@
                         var hasAnyActions = canEditUser || canBlockUser || canDeleteUser;
                         var allowedAccessAttribute = string.Join(',', allowedAccessLevels.Select(level => level.ToString()));
                         <tr>
+                            <td class="min">@rowNumber</td>
                             <td>
                                 <a class="admin-user-link" asp-controller="Dashboard" asp-action="ViewProfile" asp-route-id="@(user.UserName ?? user.Id)" target="_blank" rel="noopener">
                                     @user.DisplayName
@@ -288,7 +292,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="6" class="empty">@L["Admin_Users_Empty"].Value</td>
+                        <td colspan="7" class="empty">@L["Admin_Users_Empty"].Value</td>
                     </tr>
                 }
             </tbody>
