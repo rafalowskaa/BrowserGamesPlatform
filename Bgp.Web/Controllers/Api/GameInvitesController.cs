@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Bgp.Web.Services;
+using Bgp.Web.Helpers;
 
 namespace Bgp.Web.Controllers.Api;
 
@@ -142,15 +143,24 @@ public class GameInvitesController : ControllerBase
         invite.RespondedAtUtc = now;
 
         var existingPlayer = await _db.SessionPlayers.FirstOrDefaultAsync(p => p.SessionId == session.Id && p.UserId == userId);
+        var token = SessionTokenUtilities.GenerateToken();
+        var tokenHash = SessionTokenUtilities.HashToken(token);
         if (existingPlayer is null)
         {
             _db.SessionPlayers.Add(new SessionPlayer
             {
                 SessionId = session.Id,
                 UserId = userId,
+                TokenHash = tokenHash,
                 Role = "guest",
                 JoinedAtUtc = now
             });
+        }
+
+        else
+        {
+            existingPlayer.TokenHash = tokenHash;
+            existingPlayer.JoinedAtUtc = now;
         }
 
         await _db.SaveChangesAsync();
@@ -161,7 +171,13 @@ public class GameInvitesController : ControllerBase
             log.GameId = session.GameId;
         });
 
-        var joinUrl = Url.Action("Details", "Games", new { slug = (await _db.Games.Where(g => g.Id == session.GameId).Select(g => g.Slug).FirstOrDefaultAsync()), tab = "play", sessionId = session.Id, token = session.Token }, Request.Scheme);
+        var joinUrl = Url.Action("Details", "Games", new
+        {
+            slug = (await _db.Games.Where(g => g.Id == session.GameId).Select(g => g.Slug).FirstOrDefaultAsync()),
+            tab = "play",
+            sessionId = session.Id,
+            token
+        }, Request.Scheme);
 
         await _hub.Clients.Group($"user-{invite.FromUserId}")
             .SendAsync("InviteAccepted", new
@@ -175,7 +191,7 @@ public class GameInvitesController : ControllerBase
         return Ok(new
         {
             session_id = session.Id,
-            token = session.Token,
+            token,
             ws_url = session.WsUrl,
             join_url = joinUrl
         });

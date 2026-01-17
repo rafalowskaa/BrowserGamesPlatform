@@ -1,4 +1,5 @@
 ﻿using Bgp.Application.Dtos;
+using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Web.Helpers;
 using Microsoft.AspNetCore.Mvc;
@@ -16,8 +17,19 @@ public class LeaderboardsController : ControllerBase
     public LeaderboardsController(AppDbContext db) => _db = db;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<LeaderboardRowDto>>> Get(Guid gameId, [FromQuery] int top = 20)
+    public async Task<ActionResult> Get(Guid gameId, [FromQuery] int top = 20, [FromQuery] string? mode = null, [FromQuery] int? limit = null)
     {
+        if (!string.IsNullOrWhiteSpace(mode))
+        {
+            if (!TryParseMode(mode, out var parsedMode))
+            {
+                return BadRequest("Nieprawidłowy tryb gry.");
+            }
+
+            var rows = await GetExternalRowsAsync(gameId, parsedMode, limit ?? 100);
+            return Ok(rows);
+        }
+
         var rows = await GetRowsAsync(gameId, top);
         return Ok(rows);
     }
@@ -145,6 +157,124 @@ public class LeaderboardsController : ControllerBase
                 sessionStat?.Losses ?? 0,
                 r.Best);
         });
+    }
+
+    private async Task<IEnumerable<object>> GetExternalRowsAsync(Guid gameId, GameMode mode, int limit)
+    {
+        var sessions = await _db.MatchSessions
+            .Where(s => s.GameId == gameId && s.Mode == mode)
+            .Select(s => s.Id)
+            .ToListAsync();
+
+        if (sessions.Count == 0)
+        {
+            return Enumerable.Empty<object>();
+        }
+
+        var players = await _db.SessionPlayers
+            .Where(p => sessions.Contains(p.SessionId))
+            .Select(p => new { p.SessionId, p.UserId })
+            .ToListAsync();
+
+        var scores = await _db.Scores
+            .Where(s => s.GameId == gameId && s.Mode == mode && s.Verified && sessions.Contains(s.MatchSessionId))
+            .Select(s => new { s.MatchSessionId, s.UserId, s.Value })
+            .ToListAsync();
+
+        var stats = new Dictionary<string, (int wins, int losses, int draws, int games)>(StringComparer.Ordinal);
+        foreach (var sessionGroup in players.GroupBy(p => p.SessionId))
+        {
+            var sessionPlayers = sessionGroup.Select(p => p.UserId).Distinct(StringComparer.Ordinal).ToList();
+            var sessionScores = scores.Where(s => s.MatchSessionId == sessionGroup.Key).ToList();
+            if (sessionScores.Select(s => s.UserId).Distinct(StringComparer.Ordinal).Count() < sessionPlayers.Count)
+            {
+                continue;
+            }
+
+            var topScore = sessionScores.Max(s => s.Value);
+            var isDraw = sessionScores.All(s => s.Value.Equals(topScore));
+
+            foreach (var playerId in sessionPlayers)
+            {
+                var entry = stats.TryGetValue(playerId, out var current) ? current : (0, 0, 0, 0);
+                entry.games += 1;
+
+                var playerScore = sessionScores.FirstOrDefault(s => s.UserId == playerId);
+                if (playerScore is null)
+                {
+                    entry.losses += 1;
+                }
+                else if (isDraw)
+                {
+                    entry.draws += 1;
+                }
+                else if (playerScore.Value.Equals(topScore))
+                {
+                    entry.wins += 1;
+                }
+                else
+                {
+                    entry.losses += 1;
+                }
+
+                stats[playerId] = entry;
+            }
+        }
+
+        if (stats.Count == 0)
+        {
+            return Enumerable.Empty<object>();
+        }
+
+        var userIds = stats.Keys.ToList();
+        var users = await _db.Users
+            .Where(u => userIds.Contains(u.Id))
+            .Select(u => new { u.Id, u.DisplayName, u.Email, u.UserName })
+            .ToListAsync();
+
+        var nameLookup = users.ToDictionary(
+            u => u.Id,
+            u => DisplayNameFormatter.Format(u.DisplayName, u.Email, u.UserName, u.Id),
+            StringComparer.Ordinal);
+
+        return stats
+            .Select(entry => new
+            {
+                userId = entry.Key,
+                nick = nameLookup.GetValueOrDefault(entry.Key, entry.Key.ToUpperInvariant()),
+                wins = entry.Value.wins,
+                losses = entry.Value.losses,
+                draws = entry.Value.draws,
+                games = entry.Value.games,
+                points = (entry.Value.wins * 3) + entry.Value.draws
+            })
+            .OrderByDescending(r => r.points)
+            .ThenByDescending(r => r.wins)
+            .Take(Math.Clamp(limit, 1, 200))
+            .ToList();
+    }
+
+    private static bool TryParseMode(string mode, out GameMode parsed)
+    {
+        if (string.IsNullOrWhiteSpace(mode))
+        {
+            parsed = GameMode.None;
+            return false;
+        }
+
+        if (Enum.TryParse<GameMode>(mode, true, out parsed) && parsed != GameMode.None)
+        {
+            return true;
+        }
+
+        if (int.TryParse(mode, out var numeric) && Enum.IsDefined(typeof(GameMode), numeric))
+        {
+            parsed = (GameMode)numeric;
+            return parsed != GameMode.None;
+        }
+
+        parsed = GameMode.None;
+        return false;
     }
 
     private sealed record SessionStat(string UserId, string Role, Guid SessionId);

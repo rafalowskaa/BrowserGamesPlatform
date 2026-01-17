@@ -240,9 +240,19 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .IsUnique();
 
         b.Entity<SessionPlayer>()
+         .HasIndex(x => new { x.SessionId, x.TokenHash })
+         .IsUnique();
+
+        b.Entity<SessionPlayer>()
             .Property(x => x.Role)
             .HasMaxLength(24)
             .HasDefaultValue("player");
+
+        b.Entity<SessionPlayer>()
+           .Property(x => x.TokenHash)
+           .HasMaxLength(128)
+           .IsRequired();
+
 
         b.Entity<GameInvite>()
             .Property(x => x.Status)

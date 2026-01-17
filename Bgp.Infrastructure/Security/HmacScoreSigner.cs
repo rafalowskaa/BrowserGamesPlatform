@@ -8,9 +8,9 @@ public class HmacScoreSigner : IScoreSigner
 {
     public string ComputeSignature(string key, Guid sessionId, double score)
     {
-        var message = $"{sessionId}:{score}";
+        var message = FormattableString.Invariant($"{sessionId}:{score}");
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(key));
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
-        return Convert.ToBase64String(hash);
+        return Convert.ToHexString(hash);
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using System.Security.Cryptography;
+using Bgp.Web.Helpers;
 using Bgp.Domain.Entities;
 using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Persistence;
@@ -61,7 +61,8 @@ public class GameSessionsController : ControllerBase
             return BadRequest(new { code = "mode_not_available", message = _localizer["Games_Details_Mode_Unspecified"].Value });
         }
 
-        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        var token = SessionTokenUtilities.GenerateToken();
+        var tokenHash = SessionTokenUtilities.HashToken(token);
         var now = DateTime.UtcNow;
         var session = new MatchSession
         {
@@ -79,6 +80,7 @@ public class GameSessionsController : ControllerBase
         {
             SessionId = session.Id,
             UserId = userId,
+            TokenHash = tokenHash,
             Role = "host",
             JoinedAtUtc = now
         });
