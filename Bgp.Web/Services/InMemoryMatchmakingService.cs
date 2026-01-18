@@ -60,7 +60,7 @@ public sealed class InMemoryMatchmakingService : IMatchmakingService
                     continue;
                 }
 
-                if (candidate.IsInactive(now) || string.Equals(candidate.UserId, userId, StringComparison.Ordinal))
+                if (candidate.MatchId.HasValue || candidate.IsInactive(now) || string.Equals(candidate.UserId, userId, StringComparison.Ordinal))
                 {
                     continue;
                 }
@@ -74,6 +74,7 @@ public sealed class InMemoryMatchmakingService : IMatchmakingService
                 ticket.MatchId = matchId;
                 ticket.MatchedAtUtc = now;
                 ticket.OpponentUserId = candidate.UserId;
+                _tickets[ticket.Id] = ticket;
                 return Task.FromResult(ticket);
             }
 
@@ -162,7 +163,7 @@ public sealed class InMemoryMatchmakingService : IMatchmakingService
         for (var i = 0; i < originalCount; i++)
         {
             var ticketId = queue.Dequeue();
-            if (_tickets.TryGetValue(ticketId, out var ticket) && !ticket.IsInactive(now))
+            if (_tickets.TryGetValue(ticketId, out var ticket) && !ticket.IsInactive(now) && !ticket.MatchId.HasValue)
             {
                 queue.Enqueue(ticketId);
             }
