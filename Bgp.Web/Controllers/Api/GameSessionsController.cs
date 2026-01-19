@@ -271,7 +271,16 @@ public class GameSessionsController : ControllerBase
                                                          && s.UserId == userId);
             if (!hasScore)
             {
-                _db.SessionPlayers.Remove(player);
+                _db.Scores.Add(new Score
+                {
+                    GameId = gameId,
+                    MatchSessionId = sessionId,
+                    UserId = userId,
+                    Mode = session.Mode,
+                    Value = 0,
+                    Verified = true,
+                    SubmittedAtUtc = DateTime.UtcNow
+                });
             }
         }
 
