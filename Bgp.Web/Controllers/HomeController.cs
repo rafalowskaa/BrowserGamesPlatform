@@ -321,16 +321,17 @@ public class HomeController : Controller
 
     private async Task<DashboardStatsViewModel> BuildUserStatsSnapshotAsync(ApplicationUser user)
     {
+        var completedSessionIds = MatchSessionQueryHelper.BuildCompletedSessionIds(_db);
         var stats = new DashboardStatsViewModel
         {
             UploadedGames = await _db.Games.CountAsync(g => g.CreatedByUserId == user.Id),
-            TotalScores = await _db.Scores.CountAsync(s => s.UserId == user.Id),
+            TotalScores = await _db.Scores.CountAsync(s => s.UserId == user.Id && completedSessionIds.Contains(s.MatchSessionId)),
             TotalReviews = await _db.GameReviews.CountAsync(r => r.UserId == user.Id),
             TotalRatings = await _db.GameReviews.CountAsync(r => r.UserId == user.Id && r.IsRating),
             TotalComments = await _db.GameReviews.CountAsync(r => r.UserId == user.Id && !string.IsNullOrEmpty(r.Comment)),
             DailyLoginCount = await _db.ActivityLogs.CountAsync(log => log.ActorUserId == user.Id && log.Type == ActivityLogType.DailyLogin),
             MultiplayerMatches = await _db.SessionPlayers
-                .Where(player => player.UserId == user.Id)
+                .Where(player => player.UserId == user.Id && completedSessionIds.Contains(player.SessionId))
                 .Select(player => player.SessionId)
                 .Distinct()
                 .Join(_db.SessionPlayers
@@ -348,7 +349,7 @@ public class HomeController : Controller
 
         var userScoreGroups = await _db.Scores
             .AsNoTracking()
-            .Where(s => s.UserId == user.Id)
+            .Where(s => s.UserId == user.Id && completedSessionIds.Contains(s.MatchSessionId))
             .GroupBy(s => s.GameId)
             .Select(g => new
             {
@@ -390,7 +391,7 @@ public class HomeController : Controller
 
             var bestScores = await _db.Scores
                 .AsNoTracking()
-                .Where(s => gameIds.Contains(s.GameId))
+                .Where(s => gameIds.Contains(s.GameId) && completedSessionIds.Contains(s.MatchSessionId))
                 .GroupBy(s => new { s.GameId, s.UserId })
                 .Select(g => new
                 {

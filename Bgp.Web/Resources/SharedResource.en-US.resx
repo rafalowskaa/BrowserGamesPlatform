@@ -3800,18 +3800,30 @@
   </data>
 	<data name="Dashboard_ExperienceHistory_Subtitle" xml:space="preserve">
     <value>Track where your experience points come from.</value>
+		 </data>
+	<data name="Dashboard_ExperienceHistory_Clear" xml:space="preserve">
+    <value>Clear history</value>
+  </data>
+	<data name="Dashboard_ExperienceHistory_Clear_Confirm" xml:space="preserve">
+    <value>Are you sure you want to clear your XP history?</value>
   </data>
 	<data name="Dashboard_ExperienceHistory_PointsLabel" xml:space="preserve">
     <value>XP</value>
   </data>
 	<data name="Dashboard_ExperienceHistory_Empty" xml:space="preserve">
     <value>No XP history yet.</value>
+		</data>
+	<data name="Dashboard_Profile_History_Game_Context" xml:space="preserve">
+    <value>Game: {0}.</value>
   </data>
 	<data name="Dashboard_Profile_History_RankingCleared_Title" xml:space="preserve">
     <value>Ranking cleared</value>
   </data>
 	<data name="Dashboard_Profile_History_RankingCleared_Body" xml:space="preserve">
     <value>The game ranking was reset. Your XP was preserved.</value>
+		</data>
+	<data name="Dashboard_Profile_History_RankingCleared_Body_Game" xml:space="preserve">
+    <value>The ranking for {0} was reset. Your XP was preserved.</value>
   </data>
 	<data name="Dashboard_Profile_History_Match_Title" xml:space="preserve">
     <value>Match result</value>
@@ -3848,5 +3860,8 @@
   </data>
 	<data name="Dashboard_Profile_History_Generic_Body" xml:space="preserve">
     <value>Experience points awarded.</value>
+  </data>
+	<data name="Dashboard_Success_ExperienceHistoryCleared" xml:space="preserve">
+    <value>XP history cleared.</value>
   </data>
 </root>

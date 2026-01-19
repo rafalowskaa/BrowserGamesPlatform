@@ -743,10 +743,11 @@ public class FriendsController : ControllerBase
                 stats.DailyLoginCount = entry.Count;
             }
         }
+        var completedSessionIds = MatchSessionQueryHelper.BuildCompletedSessionIds(_db);
 
         var multiplayerSessions = await _db.SessionPlayers
             .AsNoTracking()
-            .Where(player => ids.Contains(player.UserId))
+            .Where(player => ids.Contains(player.UserId) && completedSessionIds.Contains(player.SessionId))
             .GroupBy(player => player.SessionId)
             .Select(group => new
             {
@@ -773,7 +774,7 @@ public class FriendsController : ControllerBase
 
         var scoreTotals = await _db.Scores
             .AsNoTracking()
-            .Where(s => ids.Contains(s.UserId))
+            .Where(s => ids.Contains(s.UserId) && completedSessionIds.Contains(s.MatchSessionId))
             .GroupBy(s => s.UserId)
             .Select(g => new
             {
@@ -813,7 +814,7 @@ public class FriendsController : ControllerBase
 
         var scoreGroups = await _db.Scores
             .AsNoTracking()
-            .Where(s => ids.Contains(s.UserId))
+            .Where(s => ids.Contains(s.UserId) && completedSessionIds.Contains(s.MatchSessionId))
             .GroupBy(s => new { s.UserId, s.GameId })
             .Select(g => new
             {
@@ -840,7 +841,7 @@ public class FriendsController : ControllerBase
             ? new List<(Guid GameId, string UserId, double BestScore)>()
             : (await _db.Scores
                 .AsNoTracking()
-                .Where(s => gameIds.Contains(s.GameId))
+                .Where(s => gameIds.Contains(s.GameId) && completedSessionIds.Contains(s.MatchSessionId))
                 .GroupBy(s => new { s.GameId, s.UserId })
                 .Select(g => new
                 {

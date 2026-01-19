@@ -245,6 +245,7 @@ public class ScoresController : ControllerBase
         if (session is not null)
         {
             session.ExpiresAtUtc = _time.UtcNow;
+            session.Used = true;
         }
 
         await _db.SaveChangesAsync();
@@ -264,8 +265,9 @@ public class ScoresController : ControllerBase
 
     private async Task<int> CalculateGameXpAsync(Guid gameId, string userId)
     {
+        var completedSessionIds = MatchSessionQueryHelper.BuildCompletedSessionIds(_db);
         var rows = await _db.Scores
-            .Where(s => s.GameId == gameId && s.Verified)
+            .Where(s => s.GameId == gameId && s.Verified && completedSessionIds.Contains(s.MatchSessionId))
             .GroupBy(s => s.UserId)
             .Select(g => new
             {

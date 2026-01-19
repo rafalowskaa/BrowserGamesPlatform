@@ -3826,18 +3826,30 @@
   </data>
 	<data name="Dashboard_ExperienceHistory_Subtitle" xml:space="preserve">
     <value>Sprawdź, skąd pochodzą Twoje punkty doświadczenia.</value>
+		</data>
+	<data name="Dashboard_ExperienceHistory_Clear" xml:space="preserve">
+    <value>Wyczyść historię</value>
+  </data>
+	<data name="Dashboard_ExperienceHistory_Clear_Confirm" xml:space="preserve">
+    <value>Czy na pewno chcesz wyczyścić historię PD?</value>
   </data>
 	<data name="Dashboard_ExperienceHistory_PointsLabel" xml:space="preserve">
     <value>PD</value>
   </data>
 	<data name="Dashboard_ExperienceHistory_Empty" xml:space="preserve">
     <value>Brak historii PD.</value>
+		</data>
+	<data name="Dashboard_Profile_History_Game_Context" xml:space="preserve">
+    <value>Gra: {0}.</value>
   </data>
 	<data name="Dashboard_Profile_History_RankingCleared_Title" xml:space="preserve">
     <value>Ranking wyczyszczony</value>
   </data>
 	<data name="Dashboard_Profile_History_RankingCleared_Body" xml:space="preserve">
     <value>Ranking gry został wyzerowany. Twoje PD zostało zachowane.</value>
+		 </data>
+	<data name="Dashboard_Profile_History_RankingCleared_Body_Game" xml:space="preserve">
+    <value>Ranking gry {0} został wyzerowany. Twoje PD zostało zachowane.</value>
   </data>
 	<data name="Dashboard_Profile_History_Match_Title" xml:space="preserve">
     <value>Wynik meczu</value>
@@ -3874,5 +3886,8 @@
   </data>
 	<data name="Dashboard_Profile_History_Generic_Body" xml:space="preserve">
     <value>Przyznano punkty doświadczenia.</value>
+		</data>
+	<data name="Dashboard_Success_ExperienceHistoryCleared" xml:space="preserve">
+    <value>Historia PD została wyczyszczona.</value>
   </data>
 </root>

@@ -44,6 +44,8 @@ public class GlobalRankingService
             })
             .ToListAsync(cancellationToken);
 
+        var completedSessionIds = MatchSessionQueryHelper.BuildCompletedSessionIds(_db);
+
         if (users.Count == 0)
         {
             return new GlobalRankingViewModel
@@ -83,6 +85,7 @@ public class GlobalRankingService
         var multiplayerCounts = new Dictionary<string, int>(StringComparer.Ordinal);
         var multiplayerSessions = await _db.SessionPlayers
             .AsNoTracking()
+            .Where(player => completedSessionIds.Contains(player.SessionId))
             .GroupBy(player => player.SessionId)
             .Select(group => new
             {
@@ -125,6 +128,7 @@ public class GlobalRankingService
 
         var scores = await _db.Scores
             .AsNoTracking()
+            .Where(s => completedSessionIds.Contains(s.MatchSessionId))
             .GroupBy(s => s.UserId)
             .Select(g => new
             {
@@ -137,6 +141,7 @@ public class GlobalRankingService
 
         var playsByUser = await _db.Scores
             .AsNoTracking()
+            .Where(s => completedSessionIds.Contains(s.MatchSessionId))
             .GroupBy(s => new { s.UserId, s.GameId })
             .Select(g => new
             {

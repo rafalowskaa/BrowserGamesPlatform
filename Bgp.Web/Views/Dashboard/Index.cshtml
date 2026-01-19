@@ -28,6 +28,7 @@
         "DisplayNameRequested" => L["Dashboard_Success_DisplayNameRequested"].Value,
         "SessionsRevoked" => L["Dashboard_Success_Sessions"].Value,
         "Dashboard_Notifications_Delete_Success" => L["Dashboard_Notifications_Delete_Success"].Value,
+        "ExperienceHistoryCleared" => L["Dashboard_Success_ExperienceHistoryCleared"].Value,
         _ => null
     };
     var includeProfileScripts = false;
@@ -475,6 +476,10 @@
                         <h2>@L["Dashboard_ExperienceHistory_Title"].Value</h2>
                         <p>@L["Dashboard_ExperienceHistory_Subtitle"].Value</p>
                     </div>
+                    <form asp-action="ClearExperienceHistory" method="post" class="inline-form" onsubmit="return confirm('@L["Dashboard_ExperienceHistory_Clear_Confirm"].Value');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-outline btn-compact">@L["Dashboard_ExperienceHistory_Clear"].Value</button>
+                    </form>
                 </header>
                 <ul class="experience-history" role="list">
                     @if (Model.Profile.ExperienceHistory.Any())

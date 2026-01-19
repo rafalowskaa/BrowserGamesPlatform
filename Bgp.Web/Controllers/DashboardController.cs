@@ -677,6 +677,32 @@ public class DashboardController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ClearExperienceHistory()
+    {
+        var user = await _users.GetUserAsync(User);
+        if (user is null)
+        {
+            return Challenge();
+        }
+
+        var logs = await _db.ActivityLogs
+            .Where(log => log.TargetUserId == user.Id
+                          && (log.Type == ActivityLogType.ExperienceGained
+                              || log.Type == ActivityLogType.GameRankingCleared))
+            .ToListAsync();
+
+        if (logs.Count > 0)
+        {
+            _db.ActivityLogs.RemoveRange(logs);
+            await _db.SaveChangesAsync();
+        }
+
+        TempData["DashboardSuccess"] = "ExperienceHistoryCleared";
+        return RedirectToAction(nameof(Index), new { tab = "history" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [RequestSizeLimit(200_000_000)]
     [RequestFormLimits(MultipartBodyLengthLimit = 200_000_000)]
     public async Task<IActionResult> CreateGame(CreateGameFormViewModel input)
@@ -1089,8 +1115,9 @@ public class DashboardController : Controller
         var totalRatings = await _db.GameReviews.CountAsync(r => r.UserId == user.Id && r.IsRating);
         var totalComments = await _db.GameReviews.CountAsync(r => r.UserId == user.Id && !string.IsNullOrEmpty(r.Comment));
         var dailyLogins = await _db.ActivityLogs.CountAsync(log => log.ActorUserId == user.Id && log.Type == ActivityLogType.DailyLogin);
+        var completedSessionIds = MatchSessionQueryHelper.BuildCompletedSessionIds(_db);
         var multiplayerMatches = await _db.SessionPlayers
-            .Where(player => player.UserId == user.Id)
+            .Where(player => player.UserId == user.Id && completedSessionIds.Contains(player.SessionId))
             .Select(player => player.SessionId)
             .Distinct()
             .Join(_db.SessionPlayers
@@ -1104,7 +1131,7 @@ public class DashboardController : Controller
         var stats = new DashboardStatsViewModel
         {
             UploadedGames = await _db.Games.CountAsync(g => g.CreatedByUserId == user.Id),
-            TotalScores = await _db.Scores.CountAsync(s => s.UserId == user.Id),
+            TotalScores = await _db.Scores.CountAsync(s => s.UserId == user.Id && completedSessionIds.Contains(s.MatchSessionId)),
             TotalReviews = await _db.GameReviews.CountAsync(r => r.UserId == user.Id),
             TotalRatings = totalRatings,
             TotalComments = totalComments,
@@ -1116,7 +1143,7 @@ public class DashboardController : Controller
 
         var userScoreGroups = await _db.Scores
             .AsNoTracking()
-            .Where(s => s.UserId == user.Id)
+            .Where(s => s.UserId == user.Id && completedSessionIds.Contains(s.MatchSessionId))
             .GroupBy(s => s.GameId)
             .Select(g => new
             {
@@ -1158,7 +1185,7 @@ public class DashboardController : Controller
 
             var bestScores = await _db.Scores
                 .AsNoTracking()
-                .Where(s => gameIds.Contains(s.GameId))
+                .Where(s => gameIds.Contains(s.GameId) && completedSessionIds.Contains(s.MatchSessionId))
                 .GroupBy(s => new { s.GameId, s.UserId })
                 .Select(g => new
                 {
@@ -1741,11 +1768,15 @@ public class DashboardController : Controller
 
             if (log.Type == ActivityLogType.GameRankingCleared)
             {
+                var description = !string.IsNullOrWhiteSpace(gameTitle)
+                  ? string.Format(Localize("Dashboard_Profile_History_RankingCleared_Body_Game"), gameTitle)
+                  : Localize("Dashboard_Profile_History_RankingCleared_Body");
+
                 items.Add(new ExperienceHistoryEntryViewModel(
                     log.CreatedAtUtc,
                     0,
                     Localize("Dashboard_Profile_History_RankingCleared_Title"),
-                    Localize("Dashboard_Profile_History_RankingCleared_Body"),
+                    description,
                     gameTitle));
                 continue;
             }
@@ -1767,6 +1798,8 @@ public class DashboardController : Controller
                 _ => Localize(bodyKey)
             };
 
+            description = AppendGameContext(description, gameTitle);
+
             items.Add(new ExperienceHistoryEntryViewModel(
                 log.CreatedAtUtc,
                 details.Amount,
@@ -1776,6 +1809,22 @@ public class DashboardController : Controller
         }
 
         return items;
+    }
+
+    private string AppendGameContext(string description, string? gameTitle)
+    {
+        if (string.IsNullOrWhiteSpace(gameTitle))
+        {
+            return description;
+        }
+
+        var gameContext = string.Format(Localize("Dashboard_Profile_History_Game_Context"), gameTitle);
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            return gameContext;
+        }
+
+        return $"{description} {gameContext}";
     }
 
     private string ResolveMatchHistoryBody(string? role)

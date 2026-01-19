@@ -59,8 +59,9 @@ public class LeaderboardsController : ControllerBase
 
     private async Task<IEnumerable<LeaderboardRowDto>> GetRowsAsync(Guid gameId, int top)
     {
+        var completedSessionIds = MatchSessionQueryHelper.BuildCompletedSessionIds(_db); 
         var rows = await _db.Scores
-            .Where(s => s.GameId == gameId && s.Verified)
+            .Where(s => s.GameId == gameId && s.Verified && completedSessionIds.Contains(s.MatchSessionId))
             .GroupBy(s => s.UserId)
             .Select(g => new
             {
@@ -74,12 +75,12 @@ public class LeaderboardsController : ControllerBase
             .ToListAsync();
 
         var scoreEntries = await _db.Scores
-            .Where(s => s.GameId == gameId && s.Verified)
+            .Where(s => s.GameId == gameId && s.Verified && completedSessionIds.Contains(s.MatchSessionId))
             .Select(s => new ScoreEntry(s.MatchSessionId, s.UserId, s.Value))
             .ToListAsync();
 
         var playerRows = await _db.SessionPlayers
-            .Join(_db.MatchSessions.Where(s => s.GameId == gameId),
+            .Join(_db.MatchSessions.Where(s => s.GameId == gameId && completedSessionIds.Contains(s.Id)),
                 player => player.SessionId,
                 session => session.Id,
                 (player, session) => new PlayerEntry(player.UserId, player.Role, player.SessionId))
@@ -98,7 +99,7 @@ public class LeaderboardsController : ControllerBase
             : rows.Count == 0
                 ? 0
                 : await _db.Scores
-                    .Where(s => s.GameId == gameId && s.Verified)
+                    .Where(s => s.GameId == gameId && s.Verified && completedSessionIds.Contains(s.MatchSessionId))
                     .Select(s => s.UserId)
                     .Distinct()
                     .CountAsync();
@@ -205,8 +206,9 @@ public class LeaderboardsController : ControllerBase
 
     private async Task<IEnumerable<object>> GetExternalRowsAsync(Guid gameId, GameMode mode, int limit)
     {
+        var completedSessionIds = MatchSessionQueryHelper.BuildCompletedSessionIds(_db); 
         var sessions = await _db.MatchSessions
-            .Where(s => s.GameId == gameId && s.Mode == mode)
+            .Where(s => s.GameId == gameId && s.Mode == mode && completedSessionIds.Contains(s.Id))
             .Select(s => s.Id)
             .ToListAsync();
 
