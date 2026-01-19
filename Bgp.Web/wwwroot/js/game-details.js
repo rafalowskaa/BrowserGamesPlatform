@@ -298,7 +298,8 @@
         url.searchParams.set('mode', mode);
         if (sessionId) url.searchParams.set('sessionId', sessionId);
         if (token) url.searchParams.set('token', token);
-        if (config.gameId) url.searchParams.set('gameId', config.gameId);
+        const gameId = config.gameId || config.play?.gameId;
+        if (gameId) url.searchParams.set('gameId', gameId);
         return url.pathname + url.search;
     }
 
@@ -1358,8 +1359,7 @@
         if (playerFrame) {
             playerFrame.remove();
         }
-        playerFrame = createPlayerFrame();
-        playerContainer.appendChild(playerFrame);
+        playerFrame = null;
         setPlayerStatus('idle', '');
     }
 

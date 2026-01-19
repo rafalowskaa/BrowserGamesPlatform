@@ -20,6 +20,7 @@ public class GameSessionsController : ControllerBase
     private readonly AppDbContext _db;
     private readonly IStringLocalizer<SharedResource> _localizer;
     private readonly IActivityLogger _logger;
+    private const int MaxMultiplayerPlayers = 2;
 
     public GameSessionsController(AppDbContext db, IStringLocalizer<SharedResource> localizer, IActivityLogger logger)
     {
@@ -60,39 +61,60 @@ public class GameSessionsController : ControllerBase
         {
             return BadRequest(new { code = "mode_not_available", message = _localizer["Games_Details_Mode_Unspecified"].Value });
         }
-
+        var now = DateTime.UtcNow;
+        var session = mode == GameMode.Singleplayer
+            ? null
+            : await FindAvailableSessionAsync(gameId, mode, userId, now);
+        var isNewSession = session is null;
         var token = SessionTokenUtilities.GenerateToken();
         var tokenHash = SessionTokenUtilities.HashToken(token);
-        var now = DateTime.UtcNow;
-        var session = new MatchSession
-        {
-            GameId = gameId,
-            UserId = userId,
-            Mode = mode,
-            CreatedAtUtc = now,
-            ExpiresAtUtc = now.AddMinutes(30),
-            Token = token,
-            WsUrl = "/hubs/invites"
-        };
 
-        _db.MatchSessions.Add(session);
-        _db.SessionPlayers.Add(new SessionPlayer
+        if (session is null)
         {
-            SessionId = session.Id,
-            UserId = userId,
-            TokenHash = tokenHash,
-            Role = "host",
-            JoinedAtUtc = now
-        });
+            session = new MatchSession
+            {
+                GameId = gameId,
+                UserId = userId,
+                Mode = mode,
+                CreatedAtUtc = now,
+                ExpiresAtUtc = now.AddMinutes(30),
+                Token = token,
+                WsUrl = "/hubs/invites"
+            };
+
+            _db.MatchSessions.Add(session);
+        }
+
+        var existingPlayer = await _db.SessionPlayers
+            .FirstOrDefaultAsync(p => p.SessionId == session.Id && p.UserId == userId);
+        if (existingPlayer is null)
+        {
+            _db.SessionPlayers.Add(new SessionPlayer
+            {
+                SessionId = session.Id,
+                UserId = userId,
+                TokenHash = tokenHash,
+                Role = isNewSession ? "host" : "guest",
+                JoinedAtUtc = now
+            });
+        }
+        else
+        {
+            existingPlayer.TokenHash = tokenHash;
+            existingPlayer.JoinedAtUtc = now;
+        }
 
         await _db.SaveChangesAsync();
 
-        await _logger.LogAsync(ActivityLogType.GameSessionCreated, userId, log =>
+        if (isNewSession)
         {
-            log.GameId = gameId;
-            log.InviteId = null;
-            log.TargetUserId = null;
-        });
+            await _logger.LogAsync(ActivityLogType.GameSessionCreated, userId, log =>
+            {
+                log.GameId = gameId;
+                log.InviteId = null;
+                log.TargetUserId = null;
+            });
+        }
 
         var joinUrl = Url.Action("Details", "Games", new { slug = game.Slug, tab = "play", sessionId = session.Id, token }, Request.Scheme);
 
@@ -104,6 +126,36 @@ public class GameSessionsController : ControllerBase
             ws_url = session.WsUrl
         });
     }
+
+
+    private async Task<MatchSession?> FindAvailableSessionAsync(Guid gameId, GameMode mode, string userId, DateTime now)
+    {
+        var sessionId = await _db.SessionPlayers
+            .Where(player => player.Session.GameId == gameId
+                && player.Session.Mode == mode
+                && player.Session.ExpiresAtUtc > now)
+            .GroupBy(player => player.SessionId)
+            .Select(group => new
+            {
+                SessionId = group.Key,
+                PlayerCount = group.Count(),
+                HasUser = group.Any(player => player.UserId == userId)
+            })
+            .Where(group => group.HasUser || group.PlayerCount < MaxMultiplayerPlayers)
+            .OrderByDescending(group => group.HasUser)
+            .ThenBy(group => group.PlayerCount)
+            .Select(group => group.SessionId)
+            .FirstOrDefaultAsync();
+
+        if (sessionId == Guid.Empty)
+        {
+            return null;
+        }
+
+        return await _db.MatchSessions.FirstOrDefaultAsync(session =>
+            session.Id == sessionId && session.ExpiresAtUtc > now);
+    }
+
     [Authorize]
     [HttpPost("{sessionId:guid}/leave")]
     public async Task<ActionResult> Leave(Guid gameId, Guid sessionId)
