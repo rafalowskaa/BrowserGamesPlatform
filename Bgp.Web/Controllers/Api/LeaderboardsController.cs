@@ -70,6 +70,7 @@ public class LeaderboardsController : ControllerBase
             })
             .OrderByDescending(x => x.Best)
             .Take(Math.Clamp(top, 1, 200))
+            .Select(row => new LeaderboardSeed(row.UserId, row.Best, row.Matches))
             .ToListAsync();
 
         var scoreEntries = await _db.Scores
@@ -88,13 +89,15 @@ public class LeaderboardsController : ControllerBase
             ? BuildSessionStatsFromPlayers(playerRows)
             : BuildSessionStatsFromScores(scoreEntries);
 
-        var totalPlayers = rows.Count == 0
-            ? 0
-            : await _db.Scores
-                .Where(s => s.GameId == gameId && s.Verified)
-                .Select(s => s.UserId)
-                .Distinct()
-                .CountAsync();
+        var totalPlayers = sessionStatsLookup.Count > 0
+            ? sessionStatsLookup.Count
+            : rows.Count == 0
+                ? 0
+                : await _db.Scores
+                    .Where(s => s.GameId == gameId && s.Verified)
+                    .Select(s => s.UserId)
+                    .Distinct()
+                    .CountAsync();
 
         if (rows.Count == 0)
         {
@@ -116,7 +119,7 @@ public class LeaderboardsController : ControllerBase
                             UserId = g.Key,
                             Best = g.Count(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase))
                         })
-                        .Select(x => new { x.UserId, Best = (double)x.Best, Matches = x.Best })
+                         .Select(x => new LeaderboardSeed(x.UserId, x.Best, x.Best))
                         .OrderByDescending(x => x.Best)
                         .Take(Math.Clamp(top, 1, 200))
                         .ToList();
@@ -130,7 +133,7 @@ public class LeaderboardsController : ControllerBase
                             UserId = g.Key,
                             Matches = g.Select(r => r.SessionId).Distinct().Count()
                         })
-                        .Select(x => new { x.UserId, Best = (double)x.Matches, Matches = x.Matches })
+                        .Select(x => new LeaderboardSeed(x.UserId, x.Matches, x.Matches))
                         .OrderByDescending(x => x.Best)
                         .Take(Math.Clamp(top, 1, 200))
                         .ToList();
@@ -141,6 +144,25 @@ public class LeaderboardsController : ControllerBase
                     sessionStatsLookup = BuildSessionStatsFromPlayers(playerRows);
                 }
             }
+        }
+
+        if (sessionStatsLookup.Count > 0)
+        {
+            var existingUsers = new HashSet<string>(rows.Select(r => r.UserId), StringComparer.Ordinal);
+            foreach (var entry in sessionStatsLookup)
+            {
+                if (!existingUsers.Add(entry.Key))
+                {
+                    continue;
+                }
+
+                rows.Add(new LeaderboardSeed(entry.Key, 0d, entry.Value.Played));
+            }
+        }
+
+        if (rows.Count > totalPlayers)
+        {
+            totalPlayers = rows.Select(r => r.UserId).Distinct(StringComparer.Ordinal).Count();
         }
 
         var users = await _db.Users
@@ -154,6 +176,7 @@ public class LeaderboardsController : ControllerBase
 
         var ordered = rows
             .OrderByDescending(r => r.Best)
+            .ThenByDescending(r => r.Matches)
             .ToList();
 
         return ordered.Select((r, index) =>
@@ -302,6 +325,7 @@ public class LeaderboardsController : ControllerBase
     private sealed record SessionAggregate(int Played, int Wins, int Losses);
     private sealed record ScoreEntry(Guid MatchSessionId, string UserId, double Value);
     private sealed record PlayerEntry(string UserId, string Role, Guid SessionId);
+    private sealed record LeaderboardSeed(string UserId, double Best, int Matches);
 
     private static Dictionary<string, SessionAggregate> BuildSessionStatsFromScores(IEnumerable<ScoreEntry> scoreEntries)
     {
