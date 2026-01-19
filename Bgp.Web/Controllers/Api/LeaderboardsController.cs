@@ -85,9 +85,13 @@ public class LeaderboardsController : ControllerBase
                 (player, session) => new PlayerEntry(player.UserId, player.Role, player.SessionId))
             .ToListAsync();
 
-        var sessionStatsLookup = playerRows.Count > 0
-            ? BuildSessionStatsFromPlayers(playerRows)
-            : BuildSessionStatsFromScores(scoreEntries);
+        var hasOutcomeRoles = playerRows.Any(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase)
+                                                  || string.Equals(r.Role, "loser", StringComparison.OrdinalIgnoreCase));
+        var sessionStatsLookup = playerRows.Count == 0
+            ? BuildSessionStatsFromScores(scoreEntries)
+            : hasOutcomeRoles
+                ? BuildSessionStatsFromPlayers(playerRows)
+                : BuildSessionStatsFromScores(scoreEntries);
 
         var totalPlayers = sessionStatsLookup.Count > 0
             ? sessionStatsLookup.Count
@@ -103,12 +107,8 @@ public class LeaderboardsController : ControllerBase
         {
             if (playerRows.Count > 0)
             {
-                var hasResults = playerRows.Any(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase)
-                                                     || string.Equals(r.Role, "loser", StringComparison.OrdinalIgnoreCase));
-               
-
                 totalPlayers = playerRows.Select(r => r.UserId).Distinct().Count();
-                if (hasResults)
+                if (hasOutcomeRoles)
                 {
                     rows = playerRows
                         .Where(r => string.Equals(r.Role, "winner", StringComparison.OrdinalIgnoreCase)

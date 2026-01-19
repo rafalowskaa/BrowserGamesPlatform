@@ -659,12 +659,14 @@
         rulesFeedback.classList.toggle('is-error', !!isError);
     }
 
-    async function loadRanking() {
-        if (rankingLoaded || !rankingPanel || !rankingList || !config.leaderboard?.fetchUrl) {
+    async function loadRanking(force = false) {
+        if ((!force && rankingLoaded) || !rankingPanel || !rankingList || !config.leaderboard?.fetchUrl) {
             return;
         }
         rankingLoaded = true;
         rankingLoading?.removeAttribute('hidden');
+        rankingEmpty?.setAttribute('hidden', 'hidden');
+        rankingListWrapper?.setAttribute('hidden', 'hidden');
         try {
             const res = await fetch(`${config.leaderboard.fetchUrl}?top=10`, { credentials: 'include' });
             if (!res.ok) {
@@ -743,6 +745,43 @@
         } finally {
             rankingLoading?.setAttribute('hidden', 'hidden');
         }
+    }
+
+    async function submitMatchResult(payload) {
+        if (!config.play?.sessionUrl || !currentSessionId || !currentToken) {
+            return;
+        }
+        const value = Number(payload?.value ?? payload?.score ?? 0);
+        if (!Number.isFinite(value)) {
+            return;
+        }
+        const outcome = typeof payload?.outcome === 'string' ? payload.outcome : undefined;
+        const url = `${config.play.sessionUrl}/${currentSessionId}/score`;
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ token: currentToken, value, outcome })
+            });
+            if (!res.ok) {
+                throw new Error('Failed to submit match result');
+            }
+            rankingLoaded = false;
+            await loadRanking(true);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function isValidGameMessage(event) {
+        if (!playerFrame?.contentWindow) {
+            return false;
+        }
+        if (event.origin !== window.location.origin) {
+            return false;
+        }
+        return event.source === playerFrame.contentWindow;
     }
 
     function setupComments() {
@@ -1342,8 +1381,15 @@
             if (!event?.data) {
                 return;
             }
+            if (!isValidGameMessage(event)) {
+                return;
+            }
             if (event.data.type === 'GAME_EXIT') {
                 closeGamePlayer();
+                return;
+            }
+            if (event.data.type === 'GAME_RESULT') {
+                submitMatchResult(event.data);
             }
         });
     }

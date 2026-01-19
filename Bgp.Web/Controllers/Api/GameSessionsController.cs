@@ -35,6 +35,17 @@ public class GameSessionsController : ControllerBase
         public int Mode { get; set; } = (int)GameMode.Singleplayer;
     }
 
+    public class SubmitSessionScoreRequest
+    {
+        [Required]
+        public string Token { get; set; } = string.Empty;
+
+        [Range(0, double.MaxValue)]
+        public double Value { get; set; }
+
+        public string? Outcome { get; set; }
+    }
+
     [Authorize]
     [HttpPost]
     public async Task<ActionResult> Create(Guid gameId, [FromBody] CreateSessionRequest request)
@@ -156,6 +167,85 @@ public class GameSessionsController : ControllerBase
             session.Id == sessionId && session.ExpiresAtUtc > now);
     }
 
+    [AllowAnonymous]
+    [HttpPost("{sessionId:guid}/score")]
+    public async Task<ActionResult> SubmitScore(Guid gameId, Guid sessionId, [FromBody] SubmitSessionScoreRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Token))
+        {
+            return Unauthorized();
+        }
+
+        if (!double.IsFinite(request.Value) || request.Value < 0)
+        {
+            return BadRequest("Nieprawidłowy wynik.");
+        }
+
+        var session = await _db.MatchSessions
+            .FirstOrDefaultAsync(s => s.Id == sessionId);
+        if (session is null)
+        {
+            return NotFound();
+        }
+        if (session.GameId != gameId)
+        {
+            return BadRequest("Nieprawidłowe powiązanie gry z sesją.");
+        }
+
+        var tokenHash = SessionTokenUtilities.HashToken(request.Token);
+        var player = await _db.SessionPlayers
+            .FirstOrDefaultAsync(p => p.SessionId == sessionId && p.TokenHash == tokenHash);
+        if (player is null)
+        {
+            return Unauthorized();
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Outcome))
+        {
+            var normalized = request.Outcome.Trim().ToLowerInvariant();
+            var role = normalized switch
+            {
+                "win" => "winner",
+                "loss" => "loser",
+                "draw" => "draw",
+                _ => null
+            };
+            if (role is null)
+            {
+                return BadRequest("Nieprawidłowy wynik meczu.");
+            }
+            player.Role = role;
+        }
+
+        var existingScore = await _db.Scores
+            .FirstOrDefaultAsync(s => s.MatchSessionId == sessionId && s.UserId == player.UserId);
+
+        if (existingScore is null)
+        {
+            _db.Scores.Add(new Score
+            {
+                GameId = gameId,
+                MatchSessionId = sessionId,
+                UserId = player.UserId,
+                Mode = session.Mode,
+                Value = request.Value,
+                Verified = true,
+                SubmittedAtUtc = DateTime.UtcNow
+            });
+        }
+        else
+        {
+            existingScore.Value = request.Value;
+            existingScore.Verified = true;
+            existingScore.Mode = session.Mode;
+            existingScore.SubmittedAtUtc = DateTime.UtcNow;
+        }
+
+        await _db.SaveChangesAsync();
+
+        return Ok(new { session_id = sessionId });
+    }
+
     [Authorize]
     [HttpPost("{sessionId:guid}/leave")]
     public async Task<ActionResult> Leave(Guid gameId, Guid sessionId)
@@ -178,8 +268,7 @@ public class GameSessionsController : ControllerBase
         if (player is not null)
         {
             var hasScore = await _db.Scores.AnyAsync(s => s.MatchSessionId == sessionId
-                                                         && s.UserId == userId
-                                                         && s.Verified);
+                                                         && s.UserId == userId);
             if (!hasScore)
             {
                 _db.SessionPlayers.Remove(player);
