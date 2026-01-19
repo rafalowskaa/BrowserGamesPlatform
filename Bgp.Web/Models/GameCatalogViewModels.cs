@@ -9,7 +9,6 @@ public class GameCatalogViewModel
     public IReadOnlyList<GameCatalogItemViewModel> Games { get; init; } = new List<GameCatalogItemViewModel>();
     public GameCatalogFilterModel Filters { get; init; } = new();
     public IReadOnlyList<SelectListItem> CategoryOptions { get; init; } = new List<SelectListItem>();
-    public IReadOnlyList<SelectListItem> ModeOptions { get; init; } = new List<SelectListItem>();
     public IReadOnlyList<SelectListItem> TagOptions { get; init; } = new List<SelectListItem>();
 }
 
@@ -29,6 +28,5 @@ public class GameCatalogFilterModel
 {
     public string? Search { get; set; }
     public string? Category { get; set; }
-    public string? Mode { get; set; }
     public string? Tag { get; set; }
 }

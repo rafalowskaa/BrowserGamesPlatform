@@ -31,7 +31,7 @@ public class GamesController : Controller
     }
 
     [AllowAnonymous]
-    public async Task<IActionResult> Index(string? search = null, string? category = null, string? mode = null, string? tag = null)
+    public async Task<IActionResult> Index(string? search = null, string? category = null, string? tag = null)
     {
         var gamesQuery = _db.Games
             .AsNoTracking()
@@ -51,12 +51,6 @@ public class GamesController : Controller
         {
             var filter = categoryFilter.Value;
             gamesQuery = gamesQuery.Where(g => (g.Categories & filter) != 0);
-        }
-
-        var modeFilter = ParseMode(mode);
-        if (modeFilter != GameMode.None)
-        {
-            gamesQuery = gamesQuery.Where(g => (g.Modes & modeFilter) != 0);
         }
 
         var normalizedTag = NormalizeTag(tag);
@@ -137,11 +131,9 @@ public class GamesController : Controller
             {
                 Search = search,
                 Category = category,
-                Mode = mode,
                 Tag = normalizedTag
             },
             CategoryOptions = BuildCategoryFilterOptions(categoryFilter),
-            ModeOptions = BuildModeFilterOptions(modeFilter),
             TagOptions = tagOptions
                 .Select(t => new SelectListItem
                 {
@@ -247,18 +239,6 @@ public class GamesController : Controller
             .ToList();
     }
 
-    private IReadOnlyList<SelectListItem> BuildModeFilterOptions(GameMode selected)
-    {
-        return GameMetadataOptions.ModeDefinitions
-            .Select(option => new SelectListItem
-            {
-                Value = ((int)option.Mode).ToString(CultureInfo.InvariantCulture),
-                Text = _localizer[option.ResourceKey],
-                Selected = (selected & option.Mode) != 0
-            })
-            .ToList();
-    }
-
     private static GameCategory? ParseCategory(string? raw)
     {
         if (string.IsNullOrWhiteSpace(raw))
@@ -277,26 +257,6 @@ public class GamesController : Controller
         }
 
         return null;
-    }
-
-    private static GameMode ParseMode(string? raw)
-    {
-        if (string.IsNullOrWhiteSpace(raw))
-        {
-            return GameMode.None;
-        }
-
-        if (int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var numeric) && Enum.IsDefined(typeof(GameMode), numeric))
-        {
-            return (GameMode)numeric;
-        }
-
-        if (Enum.TryParse<GameMode>(raw, true, out var parsed))
-        {
-            return parsed;
-        }
-
-        return GameMode.None;
     }
 
     private static string? NormalizeTag(string? raw)

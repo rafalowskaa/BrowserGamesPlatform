@@ -15,29 +15,11 @@
             .Where(o => string.Equals(o.Kind, "download", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        var availableModes = GameMetadataOptions.ModeDefinitions
-            .Where(def => (game.Modes & def.Mode) != 0)
-            .ToList();
-        if (availableModes.Count == 0)
+        var defaultMode = GameMetadataOptions.ModeDefinitions
+            .FirstOrDefault(def => (game.Modes & def.Mode) != 0).Mode;
+        if (defaultMode == GameMode.None)
         {
-            availableModes = GameMetadataOptions.ModeDefinitions
-                .Where(def => def.Mode == GameMode.Singleplayer)
-                .ToList();
-        }
-        string FormatModes(GameMode modes)
-        {
-            if (modes == GameMode.None)
-            {
-                return L["Games_Details_Mode_Unspecified"].Value;
-            }
-
-            var labels = GameMetadataOptions.ModeDefinitions
-                .Where(def => (modes & def.Mode) != 0)
-                .Select(def => L[def.ResourceKey].Value)
-                .Where(label => !string.IsNullOrWhiteSpace(label))
-                .ToList();
-
-            return labels.Count == 0 ? L["Games_Details_Mode_Unspecified"].Value : string.Join(", ", labels);
+            defaultMode = GameMode.Singleplayer;
         }
 
         string FormatCategories(GameCategory categories)
@@ -98,7 +80,7 @@
                 webUrl = webOption?.Url,
                 sessionUrl = Url.Content($"/api/games/{game.Id}/sessions"),
                 leaveTemplate = Url.Content($"/api/games/{game.Id}/sessions/{{sessionId}}/leave"),
-                modes = availableModes.Select(def => new { value = (int)def.Mode, label = L[def.ResourceKey].Value }).ToList(),
+                defaultMode = (int)defaultMode,
                 inviteHub = Url.Content("~/hubs/invites")
             },
             rules = new
@@ -139,8 +121,6 @@
                 playReady = L["Games_Details_Matchmaking_Starting"].Value,
                 playTheater = L["Games_Details_Play_Theater"].Value,
                 playExitTheater = L["Games_Details_Play_ExitTheater"].Value,
-                fullscreen = L["Games_Details_Fullscreen"].Value,
-                exitFullscreen = L["Games_Details_ExitFullscreen"].Value,
                 share = L["Games_Details_Share"].Value,
                 copied = L["Games_Details_Copy_Success"].Value,
                 inviteTitle = L["Games_Details_InviteHeading"].Value,
@@ -197,7 +177,6 @@
                     <button type="button" class="btn-ghost" data-copy-link data-copy-text="@shareLink">@L["Games_Details_Share"].Value</button>
                 </div>
                 <div class="game-hero__facts">
-                    <span class="chip">@FormatModes(game.Modes)</span>
                     <span class="chip">@FormatCategories(game.Categories)</span>
                     <span class="chip">
                         @L["Games_Details_LastUpdated"].Value
@@ -245,10 +224,6 @@
                     </div>
                         <div class="quick-facts">
                             <div>
-                                <span class="label">@L["Games_Details_Modes"].Value</span>
-                                <strong>@FormatModes(game.Modes)</strong>
-                            </div>
-                            <div>
                                 <span class="label">@L["Games_Details_Categories"].Value</span>
                                 <strong>@FormatCategories(game.Categories)</strong>
                             </div>
@@ -270,17 +245,6 @@
                     <p class="muted">@L["Games_Details_PlaySubheading"].Value</p>
                     </div>
                 <div class="play-controls">
-                    <div class="mode-selector" role="group" aria-label="@L["Games_Details_ModeHeading"].Value">
-                        @for (var i = 0; i < availableModes.Count; i++)
-                        {
-                            var def = availableModes[i];
-                            var optionId = $"mode_{(int)def.Mode}";
-                            <label class="mode-pill" for="@optionId">
-                                <input type="radio" name="game-mode" id="@optionId" value="@((int)def.Mode)" @(i == 0 ? "checked" : string.Empty) />
-                                <span>@L[def.ResourceKey].Value</span>
-                            </label>
-                        }
-                        </div>
                     <button type="button" class="btn-secondary" data-invite-open>@L["Games_Details_InviteAction"].Value</button>
                 </div>
             </div>
@@ -294,7 +258,6 @@
                 </div>
                 <div class="player-actions">
                     <button type="button" class="btn-primary" data-play-now>@L["Games_Details_StartGeneric"].Value</button>
-                    <button type="button" class="btn-secondary" data-fullscreen>@L["Games_Details_Fullscreen"].Value</button>
                 </div>
                 <p class="muted" data-player-hint>@L["Games_Details_WebHint"].Value</p>
             </div>

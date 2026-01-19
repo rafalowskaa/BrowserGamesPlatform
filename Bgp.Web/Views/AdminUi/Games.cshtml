@@ -26,20 +26,6 @@
         return values;
     }
 
-    static List<int> ExtractModeValues(GameMode modes)
-    {
-        var values = new List<int>();
-        foreach (var option in GameMetadataOptions.ModeDefinitions)
-        {
-            if ((modes & option.Mode) != 0)
-            {
-                values.Add((int)option.Mode);
-            }
-        }
-
-        return values;
-    }
-
     string FormatStatus(GameApprovalStatus status) => L[$"Dashboard_Games_Status_{status}"].Value;
 
     
@@ -85,8 +71,6 @@
         moderationNotes = game.ModerationNotes,
         proposedCategories = ExtractCategoryValues(game.ProposedCategories),
         categories = ExtractCategoryValues(game.Categories),
-        proposedModes = ExtractModeValues(game.ProposedModes),
-        modes = ExtractModeValues(game.Modes),
         description = game.Description,
         rules = game.Rules,
         coverImagePath = game.CoverImagePath,
@@ -95,10 +79,6 @@
 
     var categoryOptions = GameMetadataOptions.CategoryDefinitions
         .Select(def => new { value = (int)def.Category, label = L[def.ResourceKey].Value })
-        .ToList();
-
-    var modeOptions = GameMetadataOptions.ModeDefinitions
-        .Select(def => new { value = (int)def.Mode, label = L[def.ResourceKey].Value })
         .ToList();
 
     var statusLabels = statuses
@@ -145,7 +125,6 @@
     <div id="admin-games-app"
          data-games='@Html.Raw(JsonSerializer.Serialize(gamesData, serializerOptions))'
          data-category-options='@Html.Raw(JsonSerializer.Serialize(categoryOptions, serializerOptions))'
-         data-mode-options='@Html.Raw(JsonSerializer.Serialize(modeOptions, serializerOptions))'
          data-status-labels='@Html.Raw(JsonSerializer.Serialize(statusLabels, serializerOptions))'
          data-rejection-template="@rejectionTemplate"
          data-rejection-retention-days="@GameModerationSettings.RejectedRetentionPeriod.TotalDays"
@@ -319,10 +298,6 @@
                                             <dt>@L["Admin_Games_Metadata_Categories"].Value</dt>
                                             <dd data-summary-categories></dd>
                                         </div>
-                                        <div>
-                                            <dt>@L["Admin_Games_Metadata_Modes"].Value</dt>
-                                            <dd data-summary-modes></dd>
-                                        </div>
                                     </dl>
                                 </div>
                             </aside>
@@ -397,34 +372,6 @@
                                                     <label>
                                                        <span>@L["Admin_Games_Metadata_Category_Add"].Value</span>
                                                         <input type="text" placeholder="@L["Admin_Games_Metadata_Category_Search"].Value" data-chips-input />
-                                                    </label>
-                                                    <div class="chips-suggestions" data-chips-suggestions></div>
-                                                </div>
-                                                <div class="chips-columns">
-                                                    <div class="chips-column">
-                                                        <h5>@L["Admin_Games_Metadata_Source_Proposed"].Value</h5>
-                                                        <div class="chips-list" data-chips-list="proposed"></div>
-                                                    </div>
-                                                    <div class="chips-column">
-                                                        <h5>@L["Admin_Games_Metadata_Source_Published"].Value</h5>
-                                                        <div class="chips-list" data-chips-list="published"></div>
-                                                    </div>
-                                                </div>
-                                                <div class="chips-hidden" data-chips-hidden></div>
-                                            </div>
-
-                                            <div class="chips-field" data-chips-field="modes" data-hidden-name="Modes">
-                                                <header>
-                                                    <h4>@L["Admin_Games_Metadata_Modes"].Value</h4>
-                                                    <div class="chips-tools">
-                                                        <button type="button" class="btn-link" data-chips-undo title="@L["Common_Undo"].Value">↺</button>
-                                                        <button type="button" class="btn-link" data-chips-redo title="@L["Common_Redo"].Value">↻</button>
-                                                    </div>
-                                                </header>
-                                                <div class="chips-input">
-                                                    <label>
-                                                        <span>@L["Admin_Games_Metadata_Mode_Add"].Value</span>
-                                                        <input type="text" placeholder="@L["Admin_Games_Metadata_Mode_Search"].Value" data-chips-input />
                                                     </label>
                                                     <div class="chips-suggestions" data-chips-suggestions></div>
                                                 </div>

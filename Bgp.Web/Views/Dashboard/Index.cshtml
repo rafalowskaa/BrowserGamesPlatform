@@ -229,21 +229,6 @@
                                     </select>
                                     @Html.ValidationMessage("SelectedCategoryValues", null, new { @class = "val" })
                                 </div>
-                                <div class="wizard-fieldset">
-                                    <h4>@L["Dashboard_Games_Modes_Label"].Value</h4>
-                                    <div class="form-hint">@L["Dashboard_Games_Modes_Hint"].Value</div>
-                                    <div class="option-grid">
-                                        @foreach (var option in Model.NewGame.ModeOptions)
-                                        {
-                                            
-                                            <label class="option-chip">
-                                                <input type="checkbox" name="SelectedModeValues" value="@option.Value" checked="@(option.Selected ? "checked" : null)" />
-                                                <span>@option.Text</span>
-                                            </label>
-                                        }
-                                    </div>
-                                    @Html.ValidationMessage("SelectedModeValues", null, new { @class = "val" })
-                                </div>
                             </div>
                             <p class="wizard-step__warning" data-step-warning hidden></p>
                             <div class="wizard-actions">
@@ -647,8 +632,7 @@
                             const categorySelected = categoriesSelect
                                 ? Array.from(categoriesSelect.selectedOptions || []).length > 0
                                 : false;
-                            const modeSelected = wizard.querySelectorAll('input[name="SelectedModeValues"]:checked').length > 0;
-                            if (!categorySelected || !modeSelected) {
+                                 if (!categorySelected) {
                                 showWarning(step, warningMessage);
                                 return false;
                             }

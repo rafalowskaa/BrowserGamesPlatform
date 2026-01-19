@@ -708,19 +708,6 @@ public class DashboardController : Controller
         }
 
         var proposedModes = GameMode.None;
-        foreach (var modeValue in input.SelectedModeValues)
-        {
-            if (int.TryParse(modeValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var raw) && Enum.IsDefined(typeof(GameMode), raw))
-            {
-                proposedModes |= (GameMode)raw;
-            }
-        }
-
-        if (proposedModes == GameMode.None)
-        {
-            ModelState.AddModelError("SelectedModeValues", Localize("Dashboard_Games_Modes_Required"));
-            return await ReturnDashboardWithErrorsAsync(user, "games");
-        }
 
         var parsedTags = ParseTags(input.TagsRaw);
         if (parsedTags.Count > 10)
@@ -1445,18 +1432,12 @@ public class DashboardController : Controller
             vm.NewGame.TagsRaw = tagsState.AttemptedValue;
         }
 
-        if (Request.Form.TryGetValue("SelectedCategoryValues", out var categories))
-        {
-            vm.NewGame.SelectedCategoryValues = categories.ToList();
-        }
-
         if (Request.Form.TryGetValue("SelectedModeValues", out var modes))
         {
             vm.NewGame.SelectedModeValues = modes.ToList();
         }
 
         vm.NewGame.CategoryOptions = BuildCategoryOptions(vm.NewGame.SelectedCategoryValues);
-        vm.NewGame.ModeOptions = BuildModeOptions(vm.NewGame.SelectedModeValues);
 
         if (IsAjaxRequest())
         {
@@ -1578,7 +1559,6 @@ public class DashboardController : Controller
     {
         var form = new CreateGameFormViewModel();
         form.CategoryOptions = BuildCategoryOptions();
-        form.ModeOptions = BuildModeOptions();
         return form;
     }
 
@@ -1617,22 +1597,6 @@ public class DashboardController : Controller
                 Value = ((int)option.Category).ToString(CultureInfo.InvariantCulture),
                 Text = Localize(option.ResourceKey, option.Category.ToString()),
                 Selected = selected.Contains(((int)option.Category).ToString(CultureInfo.InvariantCulture))
-            })
-            .ToList();
-    }
-
-    private IReadOnlyList<SelectListItem> BuildModeOptions(IReadOnlyCollection<string>? selectedValues = null)
-    {
-        var selected = selectedValues is null
-            ? new HashSet<string>(StringComparer.Ordinal)
-            : new HashSet<string>(selectedValues, StringComparer.Ordinal);
-
-        return GameMetadataOptions.ModeDefinitions
-            .Select(option => new SelectListItem
-            {
-                Value = ((int)option.Mode).ToString(CultureInfo.InvariantCulture),
-                Text = Localize(option.ResourceKey, option.Mode.ToString()),
-                Selected = selected.Contains(((int)option.Mode).ToString(CultureInfo.InvariantCulture))
             })
             .ToList();
     }

@@ -461,7 +461,6 @@
             this.games = new Map();
             this.statusLabels = parseJson(this.root.dataset.statusLabels, {});
             this.categoryOptions = parseJson(this.root.dataset.categoryOptions, []);
-            this.modeOptions = parseJson(this.root.dataset.modeOptions, []);
             this.labels = {
                 saved: this.root.dataset.savedLabel || 'Saved',
                 saving: this.root.dataset.savingLabel || 'Saving…',
@@ -527,7 +526,6 @@
             this.summaryCreated = this.drawer?.querySelector('[data-summary-created]');
             this.summaryStatus = this.drawer?.querySelector('[data-summary-status]');
             this.summaryCategories = this.drawer?.querySelector('[data-summary-categories]');
-            this.summaryModes = this.drawer?.querySelector('[data-summary-modes]');
             this.actionStatus = this.drawer?.querySelector('[data-save-status]');
             this.saveButton = this.drawer?.querySelector('[data-save-button]');
             this.previewLink = this.drawer?.querySelector('[data-preview-link]');
@@ -557,7 +555,6 @@
             this.isSaving = false;
             this.isLoadingForm = false;
             this.categoriesField = null;
-            this.modesField = null;
             this.activeRow = null;
             this.coverUploadObjectUrl = null;
             this.initializeGames(parseJson(this.root.dataset.games, []));
@@ -577,9 +574,6 @@
                     categories: (game.categories || []).map(Number),
                     proposedCategories: (game.proposedCategories || []).map(Number),
                     rejectedCategories: [],
-                    modes: (game.modes || []).map(Number),
-                    proposedModes: (game.proposedModes || []).map(Number),
-                    rejectedModes: [],
                     tags: (game.tags || []).map(tag => ({
                         id: tag.id,
                         value: tag.value,
@@ -606,11 +600,6 @@
             const categoriesContainer = this.drawer?.querySelector('[data-chips-field="categories"]');
             if (categoriesContainer) {
                 this.categoriesField = new ChipsField(categoriesContainer, this.categoryOptions, labels, () => this.onMetadataChanged());
-            }
-
-            const modesContainer = this.drawer?.querySelector('[data-chips-field="modes"]');
-            if (modesContainer) {
-                this.modesField = new ChipsField(modesContainer, this.modeOptions, labels, () => this.onMetadataChanged());
             }
         }
 
@@ -959,10 +948,6 @@
                 published: game.categories,
                 proposed: game.proposedCategories
             });
-            this.modesField?.setState({
-                published: game.modes,
-                proposed: game.proposedModes
-            });
 
             this.renderTags(game.tags);
             this.isLoadingForm = false;
@@ -1012,13 +997,11 @@
         }
 
         updateSummaries() {
-            if (!this.summaryCategories || !this.summaryModes) {
+            if (!this.summaryCategories) {
                 return;
             }
             const categoryLabels = this.categoriesField ? this.categoriesField.getPublishedLabels() : [];
-            const modeLabels = this.modesField ? this.modesField.getPublishedLabels() : [];
             this.summaryCategories.textContent = categoryLabels.length ? categoryLabels.join(', ') : this.emptyLabel;
-            this.summaryModes.textContent = modeLabels.length ? modeLabels.join(', ') : this.emptyLabel;
         }
 
         setCoverPreview(source) {
@@ -1176,11 +1159,6 @@
                 game.categories = this.categoriesField.getPublishedValues();
                 game.proposedCategories = this.categoriesField.getProposedValues();
                 game.rejectedCategories = this.categoriesField.getRejectedValues();
-            }
-            if (this.modesField) {
-                game.modes = this.modesField.getPublishedValues();
-                game.proposedModes = this.modesField.getProposedValues();
-                game.rejectedModes = this.modesField.getRejectedValues();
             }
             game.tags = [...this.tagsList?.querySelectorAll('label') || []].map(label => {
                 const input = label.querySelector('input[type="checkbox"]');

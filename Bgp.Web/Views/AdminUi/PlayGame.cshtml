@@ -23,22 +23,6 @@
         .OrderBy(t => t)
         .ToList() ?? new List<string>();
 
-    string FormatModes(GameMode modes)
-    {
-        if (modes == GameMode.None)
-        {
-            return L["Games_Details_Mode_Unspecified"].Value;
-        }
-
-        var labels = GameMetadataOptions.ModeDefinitions
-            .Where(def => (modes & def.Mode) != 0)
-            .Select(def => L[def.ResourceKey].Value)
-            .Where(label => !string.IsNullOrWhiteSpace(label))
-            .ToList();
-
-        return labels.Count == 0 ? L["Games_Details_Mode_Unspecified"].Value : string.Join(", ", labels);
-    }
-
     string FormatCategories(GameCategory categories)
     {
         if (categories == GameCategory.None)
@@ -55,17 +39,6 @@
         return labels.Count == 0 ? L["Games_Details_Category_Unspecified"].Value : string.Join(", ", labels);
     }
 
-    var availableModes = GameMetadataOptions.ModeDefinitions
-       .Where(def => (game.Modes & def.Mode) != 0)
-       .ToList();
-
-    if (availableModes.Count == 0)
-    {
-        availableModes = GameMetadataOptions.ModeDefinitions
-            .Where(def => def.Mode == GameMode.Singleplayer)
-            .ToList();
-    }
-
     var config = new
     {
         gameId = game.Id,
@@ -78,10 +51,6 @@
             nativeHeight = webOption.NativeHeight,
             aspectRatio = webOption.AspectRatio
         } : null,
-        fullScreenLabel = L["Games_Details_Fullscreen"].Value,
-        fullScreenExitLabel = L["Games_Details_ExitFullscreen"].Value,
-        fullScreenUnavailable = L["Games_Details_FullscreenUnavailable"].Value,
-        modes = availableModes.Select(def => new { value = (int)def.Mode, label = L[def.ResourceKey].Value }).ToList(),
         inviteTemplate = string.Empty,
         inviteSuccess = string.Empty,
         inviteError = string.Empty,
@@ -112,7 +81,6 @@
     <p>@game.Description</p>
 
     <div class="game-meta-panel">
-        <div><strong>@L["Games_Details_Modes"].Value</strong><span>@FormatModes(game.Modes)</span></div>
         <div><strong>@L["Games_Details_Categories"].Value</strong><span>@FormatCategories(game.Categories)</span></div>
         @if (approvedTags.Any())
         {
@@ -137,20 +105,6 @@
         </header>
 
         <div class="game-play__content">
-            <div class="game-play__modes" data-mode-selector>
-                <h4>@L["Games_Details_ModeHeading"].Value</h4>
-                <div class="mode-options">
-                    @for (var i = 0; i < availableModes.Count; i++)
-                    {
-                        var def = availableModes[i];
-                        var optionId = $"mode_{(int)def.Mode}";
-                        <label for="@optionId" class="mode-option">
-                            <input type="radio" name="game-mode" id="@optionId" value="@((int)def.Mode)" @(i == 0 ? "checked" : string.Empty) />
-                            <span>@L[def.ResourceKey].Value</span>
-                        </label>
-                    }
-                </div>
-            </div>
 
             @if (!string.IsNullOrWhiteSpace(formattedRules))
             {
@@ -188,10 +142,6 @@
                                 </label>
                                 <span class="player__scale-value" id="admin-game-scale-value" data-game-scale-value>100%</span>
                             </div>
-                            <button class="player__fullscreen" type="button" data-game-fullscreen aria-pressed="false" data-state="enter">
-                                <span data-game-fullscreen-enter>@L["Games_Details_Fullscreen"].Value</span>
-                                <span data-game-fullscreen-exit hidden>@L["Games_Details_ExitFullscreen"].Value</span>
-                            </button>
                         </div>
                     </div>
                 </div>

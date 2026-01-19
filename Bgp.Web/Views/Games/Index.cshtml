@@ -9,22 +9,6 @@
 
     var isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
 
-    string FormatModes(GameMode modes)
-    {
-        if (modes == GameMode.None)
-        {
-            return L["Games_Index_Mode_Unspecified"].Value;
-        }
-
-        var labels = GameMetadataOptions.ModeDefinitions
-            .Where(def => (modes & def.Mode) != 0)
-            .Select(def => L[def.ResourceKey].Value)
-            .Where(label => !string.IsNullOrWhiteSpace(label))
-            .ToList();
-
-        return labels.Count == 0 ? L["Games_Index_Mode_Unspecified"].Value : string.Join(", ", labels);
-    }
-
     string FormatCategories(GameCategory categories)
     {
         if (categories == GameCategory.None)
@@ -78,16 +62,6 @@
                 </select>
             </label>
             <label>
-                <span>@L["Games_Index_Filter_Mode"].Value</span>
-                <select name="mode">
-                    <option value="">@L["Games_Index_Filter_All"].Value</option>
-                    @foreach (var option in Model.ModeOptions)
-                    {
-                        <option value="@option.Value" selected="@(option.Selected ? "selected" : null)">@option.Text</option>
-                    }
-                </select>
-            </label>
-            <label>
                 <span>@L["Games_Index_Filter_Tag"].Value</span>
                 <select name="tag">
                     <option value="">@L["Games_Index_Filter_AllTags"].Value</option>
@@ -127,7 +101,6 @@
                         {
                             <p class="game-card__description">@summary</p>
                         }
-                        <p class="game-card__meta">@L["Games_Index_Modes"].Value: @FormatModes(g.Modes)</p>
                         <p class="game-card__meta">@L["Games_Index_Categories"].Value: @FormatCategories(g.Categories)</p>
                         @if (g.Tags.Any())
                         {

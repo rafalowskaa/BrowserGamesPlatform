@@ -900,22 +900,6 @@ public class AdminUiController : Controller
             }
         }
 
-        GameMode modes = GameMode.None;
-        if (input.Modes is not null)
-        {
-            foreach (var value in input.Modes)
-            {
-                if (Enum.IsDefined(typeof(GameMode), value))
-                {
-                    modes |= (GameMode)value;
-                }
-            }
-        }
-
-        if (modes == GameMode.None)
-        {
-            modes = GameMode.Singleplayer;
-        }
 
         var approvedTags = input.ApprovedTags?.ToHashSet() ?? new HashSet<Guid>();
         foreach (var tag in game.Tags)
@@ -931,7 +915,6 @@ public class AdminUiController : Controller
         var manualCoverPath = string.IsNullOrWhiteSpace(input.CoverImagePath) ? null : input.CoverImagePath.Trim();
         game.CoverImagePath = uploadedCoverPath ?? manualCoverPath;
         game.Categories = categories == GameCategory.None ? GameCategory.Indie : categories;
-        game.Modes = modes;
         game.UpdatedAtUtc = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();

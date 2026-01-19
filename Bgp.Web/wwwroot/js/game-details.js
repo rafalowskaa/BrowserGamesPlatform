@@ -27,7 +27,6 @@
     const playerStatus = root.querySelector('[data-player-status-text]');
     const retryButton = root.querySelector('[data-retry]');
     const theaterToggle = root.querySelector('[data-theater-toggle]');
-    const fullscreenButton = root.querySelector('[data-fullscreen]');
     const modeInputs = Array.from(root.querySelectorAll('input[name="game-mode"]'));
     const ratingPanel = root.querySelector('[data-rating-summary]');
     const starButtons = ratingPanel ? Array.from(ratingPanel.querySelectorAll('[data-star-value]')) : [];
@@ -190,7 +189,9 @@
 
     function selectedMode() {
         const checked = modeInputs.find(input => input.checked);
-        return checked ? Number(checked.value) : (config.play?.modes?.[0]?.value ?? 1);
+        return checked
+            ? Number(checked.value)
+            : (Number(config.play?.defaultMode) || 1);
     }
 
     function setupPlay() {
@@ -209,7 +210,6 @@
                 : (config.text?.playTheater || '');
         });
 
-        fullscreenButton?.addEventListener('click', () => toggleFullscreen());
     }
 
     function hydrateSessionFromUrl() {
@@ -299,17 +299,6 @@
         if (retryButton) {
             retryButton.hidden = state !== 'error';
         }
-    }
-
-
-    function toggleFullscreen() {
-        if (!playerContainer) return;
-        if (document.fullscreenElement) {
-            document.exitFullscreen?.();
-        } else {
-            playerContainer.requestFullscreen?.();
-        }
-        
     }
 
     function setupRating() {

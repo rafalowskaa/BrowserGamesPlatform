@@ -143,8 +143,6 @@ public class AdminUpdateGameMetadataInputModel
 
     public List<int> Categories { get; set; } = new();
 
-    public List<int> Modes { get; set; } = new();
-
     public List<Guid> ApprovedTags { get; set; } = new();
 
     public string? Rules { get; set; }
