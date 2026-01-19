@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using Bgp.Application.Interfaces;
 using Bgp.Domain.Enums;
 
@@ -32,6 +33,27 @@ public sealed class InMemoryMatchmakingService : IMatchmakingService
         cancellationToken.ThrowIfCancellationRequested();
 
         var now = _clock.UtcNow;
+        var existing = FindActiveTicket(gameId, userId, mode, now);
+        if (existing is not null)
+        {
+            if (!existing.MatchId.HasValue)
+            {
+                var key = (gameId, mode);
+                var queue = _queues.GetOrAdd(key, _ => new Queue<Guid>());
+                var sync = _locks.GetOrAdd(key, _ => new object());
+
+                lock (sync)
+                {
+                    CleanupQueue(queue, now);
+                    if (!queue.Contains(existing.Id))
+                    {
+                        queue.Enqueue(existing.Id);
+                    }
+                }
+            }
+
+            return Task.FromResult(existing);
+        }
         var ticket = new MatchTicket
         {
             Id = Guid.NewGuid(),
@@ -169,8 +191,21 @@ public sealed class InMemoryMatchmakingService : IMatchmakingService
             }
         }
     }
-}
 
+
+
+    private MatchTicket? FindActiveTicket(Guid gameId, string userId, GameMode mode, DateTime now)
+    {
+        return _tickets.Values
+            .Where(ticket =>
+                ticket.GameId == gameId
+                && ticket.Mode == mode
+                && string.Equals(ticket.UserId, userId, StringComparison.Ordinal)
+                && !ticket.IsInactive(now))
+            .OrderByDescending(ticket => ticket.CreatedAtUtc)
+            .FirstOrDefault();
+    }
+}
 public sealed class MatchTicket
 {
     public Guid Id { get; init; }
