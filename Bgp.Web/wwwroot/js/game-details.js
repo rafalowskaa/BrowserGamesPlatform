@@ -22,8 +22,12 @@
     const tabTargets = Array.from(root.querySelectorAll('[data-tab-target]'));
     const copyButtons = Array.from(root.querySelectorAll('[data-copy-link], [data-copy-text]'));
     const playButtons = Array.from(root.querySelectorAll('[data-play-now]'));
-    const playerFrame = root.querySelector('[data-game-frame]');
+    let playerFrame = root.querySelector('[data-game-frame]');
     const playerContainer = root.querySelector('[data-player-frame]');
+    const playerFrameTitle = playerFrame?.getAttribute('title') || document.title;
+    const playerFrameLoading = playerFrame?.getAttribute('loading') || 'lazy';
+    const playerFrameAllow = playerFrame?.getAttribute('allow') || 'fullscreen';
+    const playerFrameAllowFullscreen = playerFrame?.hasAttribute('allowfullscreen');
     const playerStatus = root.querySelector('[data-player-status-text]');
     const retryButton = root.querySelector('[data-retry]');
     const theaterToggle = root.querySelector('[data-theater-toggle]');
@@ -95,6 +99,7 @@
         setupCopy();
         setupPlay();
         setupSessionCleanup();
+        setupGameExitListener();
         setupRating();
         setupComments();
         setupRulesEditor();
@@ -213,7 +218,9 @@
     }
 
     function hydrateSessionFromUrl() {
-        if (!config.play?.hasWeb || !config.play?.webUrl || !playerFrame) return;
+        if (!config.play?.hasWeb || !config.play?.webUrl) return;
+        ensurePlayerFrame();
+        if (!playerFrame) return;
         const params = new URLSearchParams(window.location.search);
         const sessionId = params.get('sessionId');
         const token = params.get('token');
@@ -263,6 +270,11 @@
             setPlayerStatus('error', config.text?.playError);
             return false;
         }
+        ensurePlayerFrame();
+        if (!playerFrame) {
+            setPlayerStatus('error', config.text?.playError);
+            return false;
+        }
         setPlayerStatus('loading', config.text?.playLoading);
 
         try {
@@ -286,7 +298,31 @@
         url.searchParams.set('mode', mode);
         if (sessionId) url.searchParams.set('sessionId', sessionId);
         if (token) url.searchParams.set('token', token);
+        if (config.gameId) url.searchParams.set('gameId', config.gameId);
         return url.pathname + url.search;
+    }
+
+    function ensurePlayerFrame() {
+        if (playerFrame || !playerContainer) {
+            return;
+        }
+        playerFrame = createPlayerFrame();
+        playerContainer.appendChild(playerFrame);
+    }
+
+    function createPlayerFrame() {
+        const frame = document.createElement('iframe');
+        frame.src = 'about:blank';
+        frame.title = playerFrameTitle || '';
+        frame.loading = playerFrameLoading;
+        if (playerFrameAllow) {
+            frame.setAttribute('allow', playerFrameAllow);
+        }
+        if (playerFrameAllowFullscreen) {
+            frame.setAttribute('allowfullscreen', '');
+        }
+        frame.dataset.gameFrame = '';
+        return frame;
     }
 
     function setPlayerStatus(state, message) {
@@ -640,9 +676,16 @@
             }
             rankingList.innerHTML = '';
             rows.forEach((row, index) => {
-                const name = row.userName || row.user_name || row.UserName || '—';
+                const name = row.userName || row.user_name || row.UserName || row.nick || row.Nick || '—';
                 const score = Number(row.bestScore ?? row.best_score ?? row.BestScore ?? 0);
-                const matches = Number(row.totalMatches ?? row.total_matches ?? row.TotalMatches ?? 0);
+                const matches = Number(row.totalMatches
+                    ?? row.total_matches
+                    ?? row.TotalMatches
+                    ?? row.games
+                    ?? row.Games
+                    ?? row.gamesPlayed
+                    ?? row.GamesPlayed
+                    ?? 0);
                 const wins = Number(row.wins ?? row.Wins ?? 0);
                 const losses = Number(row.losses ?? row.Losses ?? 0);
                 const pd = Number(row.pointsDifference ?? row.points_difference ?? row.PointsDifference ?? score ?? 0);
@@ -1291,6 +1334,33 @@
         }
         window.addEventListener('pagehide', sendLeaveSignal);
         window.addEventListener('beforeunload', sendLeaveSignal);
+    }
+
+    function setupGameExitListener() {
+        window.addEventListener('message', event => {
+            if (!event?.data) {
+                return;
+            }
+            if (event.data.type === 'GAME_EXIT') {
+                closeGamePlayer();
+            }
+        });
+    }
+
+    function closeGamePlayer() {
+        if (!playerContainer) {
+            return;
+        }
+        sendLeaveSignal();
+        currentSessionId = null;
+        currentToken = null;
+        leaveRequestSent = false;
+        if (playerFrame) {
+            playerFrame.remove();
+        }
+        playerFrame = createPlayerFrame();
+        playerContainer.appendChild(playerFrame);
+        setPlayerStatus('idle', '');
     }
 
     function sendLeaveSignal() {

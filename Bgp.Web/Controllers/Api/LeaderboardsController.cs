@@ -259,11 +259,13 @@ public class LeaderboardsController : ControllerBase
             .Select(entry => new
             {
                 userId = entry.Key,
+                userName = nameLookup.GetValueOrDefault(entry.Key, entry.Key.ToUpperInvariant()),
                 nick = nameLookup.GetValueOrDefault(entry.Key, entry.Key.ToUpperInvariant()),
                 wins = entry.Value.wins,
                 losses = entry.Value.losses,
                 draws = entry.Value.draws,
                 games = entry.Value.games,
+                totalMatches = entry.Value.games,
                 points = (entry.Value.wins * 3) + entry.Value.draws
             })
             .OrderByDescending(r => r.points)
