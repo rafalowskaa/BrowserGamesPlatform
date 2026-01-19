@@ -38,16 +38,16 @@ public sealed class InMemoryMatchmakingService : IMatchmakingService
         {
             if (!existing.MatchId.HasValue)
             {
-                var key = (gameId, mode);
-                var queue = _queues.GetOrAdd(key, _ => new Queue<Guid>());
-                var sync = _locks.GetOrAdd(key, _ => new object());
+                var existingKey = (gameId, mode);
+                var existingQueue = _queues.GetOrAdd(existingKey, _ => new Queue<Guid>());
+                var existingSync = _locks.GetOrAdd(existingKey, _ => new object());
 
-                lock (sync)
+                lock (existingSync)
                 {
-                    CleanupQueue(queue, now);
-                    if (!queue.Contains(existing.Id))
+                    CleanupQueue(existingQueue, now);
+                    if (!existingQueue.Contains(existing.Id))
                     {
-                        queue.Enqueue(existing.Id);
+                        existingQueue.Enqueue(existing.Id);
                     }
                 }
             }
