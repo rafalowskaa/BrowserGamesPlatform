@@ -938,33 +938,7 @@ public class AdminUiController : Controller
             return RedirectToAction(nameof(Games));
         }
 
-        var sessionIds = await _db.MatchSessions
-            .Where(s => s.GameId == id)
-            .Select(s => s.Id)
-            .ToListAsync();
-
-        if (sessionIds.Count > 0)
-        {
-            var invites = await _db.GameInvites
-                .Where(i => sessionIds.Contains(i.SessionId))
-                .ToListAsync();
-            _db.GameInvites.RemoveRange(invites);
-
-            var players = await _db.SessionPlayers
-                .Where(p => sessionIds.Contains(p.SessionId))
-                .ToListAsync();
-            _db.SessionPlayers.RemoveRange(players);
-
-            var sessions = await _db.MatchSessions
-                .Where(s => sessionIds.Contains(s.Id))
-                .ToListAsync();
-            _db.MatchSessions.RemoveRange(sessions);
-        }
-
-        var scores = await _db.Scores
-            .Where(s => s.GameId == id)
-            .ToListAsync();
-        _db.Scores.RemoveRange(scores);
+        await ClearGameRankingDataAsync(id);
 
         await _db.SaveChangesAsync();
 
@@ -1615,6 +1589,94 @@ public class AdminUiController : Controller
 
         TempData["AdminGamesSuccess"] = "Admin_Games_Delete_Success";
         return RedirectToAction(nameof(Games));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveGame(AdminDeleteGameInputModel input)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["AdminGamesError"] = "Admin_Games_Remove_Error";
+            return RedirectToAction(nameof(Games));
+        }
+
+        var game = await _db.Games.FirstOrDefaultAsync(g => g.Id == input.Id);
+        if (game is null)
+        {
+            TempData["AdminGamesError"] = "Admin_Games_NotFound";
+            return RedirectToAction(nameof(Games));
+        }
+
+        if (game.ApprovalStatus != GameApprovalStatus.Rejected)
+        {
+            TempData["AdminGamesError"] = "Admin_Games_Remove_NotRejected";
+            return RedirectToAction(nameof(Games));
+        }
+
+        await ClearGameRankingDataAsync(game.Id);
+
+        var versions = await _db.GameVersions
+            .Where(v => v.GameId == game.Id)
+            .ToListAsync();
+        _db.GameVersions.RemoveRange(versions);
+
+        var reviews = await _db.GameReviews
+            .Where(r => r.GameId == game.Id)
+            .ToListAsync();
+        _db.GameReviews.RemoveRange(reviews);
+
+        var tags = await _db.GameTags
+            .Where(t => t.GameId == game.Id)
+            .ToListAsync();
+        _db.GameTags.RemoveRange(tags);
+
+        var locales = await _db.GameLocales
+            .Where(l => l.GameId == game.Id)
+            .ToListAsync();
+        _db.GameLocales.RemoveRange(locales);
+
+        var assets = await _db.GameAssets
+            .Where(a => a.GameId == game.Id)
+            .ToListAsync();
+        _db.GameAssets.RemoveRange(assets);
+
+        _db.Games.Remove(game);
+        await _db.SaveChangesAsync();
+
+        TempData["AdminGamesSuccess"] = "Admin_Games_Remove_Success";
+        return RedirectToAction(nameof(Games));
+    }
+
+    private async Task ClearGameRankingDataAsync(Guid gameId)
+    {
+        var sessionIds = await _db.MatchSessions
+            .Where(s => s.GameId == gameId)
+            .Select(s => s.Id)
+            .ToListAsync();
+
+        if (sessionIds.Count > 0)
+        {
+            var invites = await _db.GameInvites
+                .Where(i => sessionIds.Contains(i.SessionId))
+                .ToListAsync();
+            _db.GameInvites.RemoveRange(invites);
+
+            var players = await _db.SessionPlayers
+                .Where(p => sessionIds.Contains(p.SessionId))
+                .ToListAsync();
+            _db.SessionPlayers.RemoveRange(players);
+
+            var sessions = await _db.MatchSessions
+                .Where(s => sessionIds.Contains(s.Id))
+                .ToListAsync();
+            _db.MatchSessions.RemoveRange(sessions);
+        }
+
+        var scores = await _db.Scores
+            .Where(s => s.GameId == gameId)
+            .ToListAsync();
+        _db.Scores.RemoveRange(scores);
     }
 
     private async Task LogHomeContentChangeAsync(string message, Guid? gameId = null)

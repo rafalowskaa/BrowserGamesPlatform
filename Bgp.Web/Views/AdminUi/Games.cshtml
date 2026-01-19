@@ -217,11 +217,22 @@
                             <a class="btn-outline btn-compact" asp-action="PlayGame" asp-route-id="@game.Id" target="_blank" data-test-button data-shortcut="T">@L["Admin_Games_Test"].Value</a>
                             <button type="button" class="btn-outline btn-compact" data-approve-button>@L["Admin_Games_Approve"].Value</button>
                             <button type="button" class="btn-primary btn-compact" data-edit-button>@L["Admin_Games_Metadata_Edit"].Value</button>
-                            <form asp-action="DeleteGame" method="post" class="inline-form" onsubmit="return confirm('@L["Admin_Games_Delete_Confirm"].Value');">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="Id" value="@game.Id" />
-                                <button type="submit" class="btn-danger btn-compact">@L["Admin_Games_Delete"].Value</button>
-                            </form>
+                             @if (game.Status == GameApprovalStatus.Rejected)
+                            {
+                                <form asp-action="RemoveGame" method="post" class="inline-form" onsubmit="return confirm('@L["Admin_Games_Remove_Confirm"].Value');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="Id" value="@game.Id" />
+                                    <button type="submit" class="btn-danger btn-compact">@L["Admin_Games_Remove"].Value</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="DeleteGame" method="post" class="inline-form" onsubmit="return confirm('@L["Admin_Games_Delete_Confirm"].Value');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="Id" value="@game.Id" />
+                                    <button type="submit" class="btn-danger btn-compact">@L["Admin_Games_Delete"].Value</button>
+                                </form>
+                            }
                         </div>
                     </div>
                    
@@ -270,6 +281,11 @@
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="" />
                                 <button type="submit" class="btn-outline">@L["Admin_Games_Rankings_Clear"].Value</button>
+                            </form>
+                            <form asp-action="RemoveGame" method="post" class="inline-form" onsubmit="return confirm('@L["Admin_Games_Remove_Confirm"].Value');" data-preview-delete hidden>
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="Id" value="" />
+                                <button type="submit" class="btn-danger">@L["Admin_Games_Remove"].Value</button>
                             </form>
                             <button type="button" class="btn-outline" data-open-moderation>@L["Admin_Games_Reject"].Value</button>
                         </div>

@@ -510,6 +510,7 @@
             this.metadataForm = this.drawer?.querySelector('[data-metadata-form]');
             this.previewApproveForm = this.drawer?.querySelector('[data-preview-approve]');
             this.previewClearRankingsForm = this.drawer?.querySelector('[data-preview-clear-rankings]');
+            this.previewDeleteForm = this.drawer?.querySelector('[data-preview-delete]');
             this.rejectForm = this.drawer?.querySelector('[data-reject-form]');
             this.previewTestLink = this.drawer?.querySelector('[data-preview-test]');
             this.previewTitle = this.drawer?.querySelector('[data-preview-title]');
@@ -864,6 +865,14 @@
                 if (input) {
                     input.value = game.id;
                 }
+            }
+
+            if (this.previewDeleteForm) {
+                const input = this.previewDeleteForm.querySelector('input[name="Id"]');
+                if (input) {
+                    input.value = game.id;
+                }
+                this.previewDeleteForm.hidden = game.status !== 'Rejected';
             }
 
             if (this.rejectForm) {
