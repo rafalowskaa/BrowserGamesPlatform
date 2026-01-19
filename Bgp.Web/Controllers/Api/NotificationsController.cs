@@ -181,7 +181,7 @@ public class NotificationsController : ControllerBase
                 ActivityLogType.CommentLiked => string.Format(Localize("Dashboard_Notifications_CommentLiked"), actorName, gameTitle),
                 ActivityLogType.CommentDisliked => string.Format(Localize("Dashboard_Notifications_CommentDisliked"), actorName, gameTitle),
                 ActivityLogType.RatingSubmitted => string.Format(Localize("Dashboard_Notifications_Rating"), actorName, gameTitle),
-                ActivityLogType.ExperienceGained => string.Format(Localize("Dashboard_Notifications_Experience"), log.Message ?? "0"),
+                ActivityLogType.ExperienceGained => BuildExperienceMessage(log),
                 ActivityLogType.NewEventAvailable => string.Format(Localize("Dashboard_Notifications_Event"), log.Message ?? Localize("Dashboard_Notifications_Event_Default")),
                 _ => string.Format(Localize("Dashboard_Notifications_Generic"), actorName)
             };
@@ -222,6 +222,18 @@ public class NotificationsController : ControllerBase
             }
 
             return null;
+        }
+
+        string BuildExperienceMessage(ActivityLog log)
+        {
+            var details = ExperienceLogFormatter.Parse(log.Message);
+            return details.Code switch
+            {
+                "match" => string.Format(Localize("Dashboard_Notifications_Experience_Match"), details.Amount),
+                "ranking" => string.Format(Localize("Dashboard_Notifications_Experience_Ranking"), details.Amount),
+                "admin" => string.Format(Localize("Dashboard_Notifications_Experience_Admin"), details.Amount),
+                _ => string.Format(Localize("Dashboard_Notifications_Experience"), details.Amount)
+            };
         }
 
         var items = logs

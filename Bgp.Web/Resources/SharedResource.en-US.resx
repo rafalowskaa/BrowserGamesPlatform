@@ -3765,4 +3765,88 @@
 	<data name="Games_Details_Rules_Updated" xml:space="preserve">
     <value>Last updated</value>
   </data>
+	<data name="Dashboard_Notifications_Experience_Match" xml:space="preserve">
+    <value>Match reward: {0} XP</value>
+  </data>
+	<data name="Dashboard_Notifications_Experience_Ranking" xml:space="preserve">
+    <value>Ranking update: {0} XP</value>
+  </data>
+	<data name="Dashboard_Notifications_Experience_Admin" xml:space="preserve">
+    <value>Admin adjustment: {0} XP</value>
+  </data>
+	<data name="Dashboard_Profile_Goal_RateGame_Title" xml:space="preserve">
+    <value>Rate a game</value>
+  </data>
+	<data name="Dashboard_Profile_Goal_RateGame_Body" xml:space="preserve">
+    <value>Leave a rating on any game today.</value>
+  </data>
+	<data name="Dashboard_Profile_Goal_Comment_Title" xml:space="preserve">
+    <value>Leave a comment</value>
+  </data>
+	<data name="Dashboard_Profile_Goal_Comment_Body" xml:space="preserve">
+    <value>Share a short comment under a game.</value>
+  </data>
+	<data name="Dashboard_Profile_Goal_React_Title" xml:space="preserve">
+    <value>React to a comment</value>
+  </data>
+	<data name="Dashboard_Profile_Goal_React_Body" xml:space="preserve">
+    <value>Like or dislike a comment to support the community.</value>
+  </data>
+	<data name="Dashboard_ExperienceHistory_Tab" xml:space="preserve">
+    <value>XP history</value>
+  </data>
+	<data name="Dashboard_ExperienceHistory_Title" xml:space="preserve">
+    <value>XP history</value>
+  </data>
+	<data name="Dashboard_ExperienceHistory_Subtitle" xml:space="preserve">
+    <value>Track where your experience points come from.</value>
+  </data>
+	<data name="Dashboard_ExperienceHistory_PointsLabel" xml:space="preserve">
+    <value>XP</value>
+  </data>
+	<data name="Dashboard_ExperienceHistory_Empty" xml:space="preserve">
+    <value>No XP history yet.</value>
+  </data>
+	<data name="Dashboard_Profile_History_RankingCleared_Title" xml:space="preserve">
+    <value>Ranking cleared</value>
+  </data>
+	<data name="Dashboard_Profile_History_RankingCleared_Body" xml:space="preserve">
+    <value>The game ranking was reset. Your XP was preserved.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Match_Title" xml:space="preserve">
+    <value>Match result</value>
+  </data>
+	<data name="Dashboard_Profile_History_Match_Body" xml:space="preserve">
+    <value>Match completed.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Match_Win" xml:space="preserve">
+    <value>Win in a match.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Match_Loss" xml:space="preserve">
+    <value>Loss in a match.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Match_Draw" xml:space="preserve">
+    <value>Draw in a match.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Ranking_Title" xml:space="preserve">
+    <value>Ranking progress</value>
+  </data>
+	<data name="Dashboard_Profile_History_Ranking_Body" xml:space="preserve">
+    <value>Score improvement added experience.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Admin_Title" xml:space="preserve">
+    <value>Admin adjustment</value>
+  </data>
+	<data name="Dashboard_Profile_History_Admin_Body" xml:space="preserve">
+    <value>Admin note: {0}</value>
+  </data>
+	<data name="Dashboard_Profile_History_Admin_Body_Fallback" xml:space="preserve">
+    <value>Admin note not provided.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Generic_Title" xml:space="preserve">
+    <value>Experience gained</value>
+  </data>
+	<data name="Dashboard_Profile_History_Generic_Body" xml:space="preserve">
+    <value>Experience points awarded.</value>
+  </data>
 </root>

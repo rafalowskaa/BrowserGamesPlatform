@@ -104,6 +104,25 @@ public class GlobalRankingService
             }
         }
 
+        var matchExperienceByUser = await _db.SessionPlayers
+           .AsNoTracking()
+           .Join(_db.MatchSessions.AsNoTracking(),
+               player => player.SessionId,
+               session => session.Id,
+               (player, session) => new { player.UserId, player.Role })
+           .GroupBy(entry => entry.UserId)
+           .Select(group => new
+           {
+               UserId = group.Key,
+               Wins = group.Count(entry => entry.Role == "winner"),
+               Losses = group.Count(entry => entry.Role == "loser"),
+               Draws = group.Count(entry => entry.Role == "draw")
+           })
+           .ToDictionaryAsync(
+               entry => entry.UserId,
+               entry => RankCalculator.CalculateMatchExperience(entry.Wins, entry.Losses, entry.Draws),
+               cancellationToken);
+
         var scores = await _db.Scores
             .AsNoTracking()
             .GroupBy(s => s.UserId)
@@ -209,6 +228,7 @@ public class GlobalRankingService
                         bestScore,
                         1,
                         totalPlayers,
+                        matchExperienceByUser.GetValueOrDefault(user.Id),
                         lastActivity)
                 },
                 LastScoreSubmittedAt = lastActivity

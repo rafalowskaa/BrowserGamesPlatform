@@ -58,6 +58,7 @@ public class ProfileSectionViewModel
     public ProfileBestGameViewModel? BestGame { get; set; }
     public IReadOnlyList<ProfileHighlightViewModel> Highlights { get; set; } = Array.Empty<ProfileHighlightViewModel>();
     public IReadOnlyList<ProfileGoalViewModel> DailyGoals { get; set; } = Array.Empty<ProfileGoalViewModel>();
+    public IReadOnlyList<ExperienceHistoryEntryViewModel> ExperienceHistory { get; set; } = Array.Empty<ExperienceHistoryEntryViewModel>();
     public bool HasAvatar => !string.IsNullOrWhiteSpace(AvatarUrl);
     public IReadOnlyList<SelectListItem> VisibilityOptions { get; set; } = Array.Empty<SelectListItem>();
 }
@@ -189,7 +190,15 @@ public record GamePerformanceStat(
     double BestScore,
     int RankPosition,
     int TotalPlayers,
+    int MatchExperience,
     DateTime LastPlayedAt);
+
+public record ExperienceHistoryEntryViewModel(
+    DateTime CreatedAtUtc,
+    int Points,
+    string Title,
+    string Description,
+    string? GameTitle);
 
 public class CreateGameFormViewModel
 {

@@ -92,6 +92,7 @@
             <span class="notification-badge" data-notifications-badge hidden>0</span>
         </a>
         <a class="dashboard-nav__item@(activeTab == "ranking" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="ranking">@L["Dashboard_Ranking_Tab"].Value</a>
+        <a class="dashboard-nav__item@(activeTab == "history" ? " active" : string.Empty)" asp-action="Index" asp-route-tab="history">@L["Dashboard_ExperienceHistory_Tab"].Value</a>
     </nav>
 
     @if (!string.IsNullOrEmpty(successMessage))
@@ -465,6 +466,48 @@
             };
             <section class="dashboard-panel">
                 @await Html.PartialAsync("_GlobalRanking", rankingSection)
+            </section>
+            break;
+        case "history":
+            <section class="dashboard-panel experience-history-panel">
+                <header class="panel-header">
+                    <div>
+                        <h2>@L["Dashboard_ExperienceHistory_Title"].Value</h2>
+                        <p>@L["Dashboard_ExperienceHistory_Subtitle"].Value</p>
+                    </div>
+                </header>
+                <ul class="experience-history" role="list">
+                    @if (Model.Profile.ExperienceHistory.Any())
+                    {
+                        foreach (var entry in Model.Profile.ExperienceHistory)
+                        {
+                            var amountClass = entry.Points >= 0 ? "is-positive" : "is-negative";
+                            <li class="experience-history__item">
+                                <div class="experience-history__meta">
+                                    <div class="experience-history__heading">
+                                        <strong>@entry.Title</strong>
+                                        @if (!string.IsNullOrWhiteSpace(entry.GameTitle))
+                                        {
+                                            <span class="experience-history__game">@entry.GameTitle</span>
+                                        }
+                                    </div>
+                                    <p>@entry.Description</p>
+                                </div>
+                                <div class="experience-history__aside">
+                                    <span class="experience-history__amount @amountClass">
+                                        @(entry.Points >= 0 ? "+" : string.Empty)@entry.Points
+                                    </span>
+                                    <span class="experience-history__label">@L["Dashboard_ExperienceHistory_PointsLabel"].Value</span>
+                                    <time class="experience-history__time">@entry.CreatedAtUtc.ToLocalTime().ToString("g")</time>
+                                </div>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="experience-history__empty">@L["Dashboard_ExperienceHistory_Empty"].Value</li>
+                    }
+                </ul>
             </section>
             break;
         default:

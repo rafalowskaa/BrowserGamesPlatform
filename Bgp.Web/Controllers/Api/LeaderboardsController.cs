@@ -184,7 +184,11 @@ public class LeaderboardsController : ControllerBase
             var position = index + 1;
             sessionStatsLookup.TryGetValue(r.UserId, out var sessionStat);
             var matches = Math.Max(r.Matches, sessionStat?.Played ?? 0);
-            var xp = RankCalculator.CalculateGameExperience(matches, position, Math.Max(1, totalPlayers));
+            var wins = sessionStat?.Wins ?? 0;
+            var losses = sessionStat?.Losses ?? 0;
+            var draws = Math.Max(0, (sessionStat?.Played ?? 0) - wins - losses);
+            var matchExperience = RankCalculator.CalculateMatchExperience(wins, losses, draws);
+            var xp = RankCalculator.CalculateGameExperience(matches, position, Math.Max(1, totalPlayers), matchExperience);
             return new LeaderboardRowDto(
                 nameLookup.GetValueOrDefault(r.UserId, r.UserId.ToUpperInvariant()),
                 r.Best,
@@ -192,9 +196,10 @@ public class LeaderboardsController : ControllerBase
                 position,
                 totalPlayers,
                 xp,
-                sessionStat?.Wins ?? 0,
-                sessionStat?.Losses ?? 0,
-                r.Best);
+                matchExperience,
+                wins,
+                losses,
+                matchExperience);
         });
     }
 
@@ -289,7 +294,8 @@ public class LeaderboardsController : ControllerBase
                 draws = entry.Value.draws,
                 games = entry.Value.games,
                 totalMatches = entry.Value.games,
-                points = (entry.Value.wins * 3) + entry.Value.draws
+                points = (entry.Value.wins * 3) + entry.Value.draws,
+                pointsDifference = RankCalculator.CalculateMatchExperience(entry.Value.wins, entry.Value.losses, entry.Value.draws)
             })
             .OrderByDescending(r => r.points)
             .ThenByDescending(r => r.wins)

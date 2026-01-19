@@ -26,6 +26,7 @@ public record LeaderboardRowDto(
     int RankPosition,
     int TotalPlayers,
     int ExperiencePoints,
+    int GameExperiencePoints,
     int Wins,
     int Losses,
     double PointsDifference);

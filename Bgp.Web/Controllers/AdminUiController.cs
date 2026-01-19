@@ -588,6 +588,17 @@ public class AdminUiController : Controller
             return RedirectToUsers(search);
         }
 
+        var delta = user.BonusExperience - original;
+        if (delta != 0)
+        {
+            var actorId = _users.GetUserId(User);
+            await _activityLogger.LogAsync(ActivityLogType.ExperienceGained, actorId, log =>
+            {
+                log.TargetUserId = user.Id;
+                log.Message = ExperienceLogFormatter.BuildMessage(delta, "admin", input.Reason, input.Operation.ToString());
+            });
+        }
+
         _logger.LogInformation("Updated XP for user {UserId} via {Operation} (delta: {Amount}, original: {Original}, new: {NewValue}). Reason: {Reason}",
              user.Id,
              input.Operation,
@@ -938,7 +949,8 @@ public class AdminUiController : Controller
             return RedirectToAction(nameof(Games));
         }
 
-        await ClearGameRankingDataAsync(id);
+        var actorId = _users.GetUserId(User);
+        await ClearGameRankingDataAsync(id, actorId);
 
         await _db.SaveChangesAsync();
 
@@ -1614,7 +1626,8 @@ public class AdminUiController : Controller
             return RedirectToAction(nameof(Games));
         }
 
-        await ClearGameRankingDataAsync(game.Id);
+        var actorId = _users.GetUserId(User);
+        await ClearGameRankingDataAsync(game.Id, actorId);
 
         var versions = await _db.GameVersions
             .Where(v => v.GameId == game.Id)
@@ -1648,8 +1661,27 @@ public class AdminUiController : Controller
         return RedirectToAction(nameof(Games));
     }
 
-    private async Task ClearGameRankingDataAsync(Guid gameId)
+    private async Task ClearGameRankingDataAsync(Guid gameId, string? actorUserId)
     {
+        var affectedUsers = await _db.Scores
+            .Where(s => s.GameId == gameId)
+            .Select(s => s.UserId)
+            .Distinct()
+            .ToListAsync();
+
+        if (affectedUsers.Count == 0)
+        {
+            affectedUsers = await _db.SessionPlayers
+                .Where(p => p.SessionId != Guid.Empty)
+                .Join(_db.MatchSessions,
+                    player => player.SessionId,
+                    session => session.Id,
+                    (player, session) => new { session.GameId, player.UserId })
+                .Where(entry => entry.GameId == gameId)
+                .Select(entry => entry.UserId)
+                .Distinct()
+                .ToListAsync();
+        }
         var sessionIds = await _db.MatchSessions
             .Where(s => s.GameId == gameId)
             .Select(s => s.Id)
@@ -1677,6 +1709,19 @@ public class AdminUiController : Controller
             .Where(s => s.GameId == gameId)
             .ToListAsync();
         _db.Scores.RemoveRange(scores);
+
+
+        if (affectedUsers.Count > 0)
+        {
+            foreach (var userId in affectedUsers)
+            {
+                await _activityLogger.LogAsync(ActivityLogType.GameRankingCleared, actorUserId, log =>
+                {
+                    log.TargetUserId = userId;
+                    log.GameId = gameId;
+                });
+            }
+        }
     }
 
     private async Task LogHomeContentChangeAsync(string message, Guid? gameId = null)

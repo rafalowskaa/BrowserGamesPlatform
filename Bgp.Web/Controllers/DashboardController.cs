@@ -1021,7 +1021,7 @@ public class DashboardController : Controller
                 ActivityLogType.CommentLiked => string.Format(Localize("Dashboard_Notifications_CommentLiked"), actorName, gameTitle),
                 ActivityLogType.CommentDisliked => string.Format(Localize("Dashboard_Notifications_CommentDisliked"), actorName, gameTitle),
                 ActivityLogType.RatingSubmitted => string.Format(Localize("Dashboard_Notifications_Rating"), actorName, gameTitle),
-                ActivityLogType.ExperienceGained => string.Format(Localize("Dashboard_Notifications_Experience"), log.Message ?? "0"),
+                ActivityLogType.ExperienceGained => BuildExperienceNotificationMessage(log),
                 ActivityLogType.NewEventAvailable => string.Format(Localize("Dashboard_Notifications_Event"), log.Message ?? Localize("Dashboard_Notifications_Event_Default")),
                 _ => string.Format(Localize("Dashboard_Notifications_Generic"), actorName)
             };
@@ -1062,6 +1062,18 @@ public class DashboardController : Controller
             }
 
             return null;
+        }
+
+        string BuildExperienceNotificationMessage(ActivityLog log)
+        {
+            var details = ExperienceLogFormatter.Parse(log.Message);
+            return details.Code switch
+            {
+                "match" => string.Format(Localize("Dashboard_Notifications_Experience_Match"), details.Amount),
+                "ranking" => string.Format(Localize("Dashboard_Notifications_Experience_Ranking"), details.Amount),
+                "admin" => string.Format(Localize("Dashboard_Notifications_Experience_Admin"), details.Amount),
+                _ => string.Format(Localize("Dashboard_Notifications_Experience"), details.Amount)
+            };
         }
 
         var notifications = notificationLogs
@@ -1115,6 +1127,25 @@ public class DashboardController : Controller
             })
             .ToListAsync();
 
+        var matchExperienceByGame = await _db.SessionPlayers
+           .AsNoTracking()
+           .Where(player => player.UserId == user.Id)
+           .Join(_db.MatchSessions.AsNoTracking(),
+               player => player.SessionId,
+               session => session.Id,
+               (player, session) => new { session.GameId, player.Role })
+           .GroupBy(entry => entry.GameId)
+           .Select(group => new
+           {
+               GameId = group.Key,
+               Wins = group.Count(entry => entry.Role == "winner"),
+               Losses = group.Count(entry => entry.Role == "loser"),
+               Draws = group.Count(entry => entry.Role == "draw")
+           })
+           .ToDictionaryAsync(
+               entry => entry.GameId,
+               entry => RankCalculator.CalculateMatchExperience(entry.Wins, entry.Losses, entry.Draws));
+
         if (userScoreGroups.Count > 0)
         {
             var gameIds = userScoreGroups.Select(g => g.GameId).ToArray();
@@ -1155,6 +1186,8 @@ public class DashboardController : Controller
 
                 var title = gameTitles.TryGetValue(userGame.GameId, out var name) ? name ?? string.Empty : string.Empty;
 
+                var matchExperience = matchExperienceByGame.GetValueOrDefault(userGame.GameId);
+
                 performances.Add(new GamePerformanceStat(
                     userGame.GameId,
                     title,
@@ -1162,6 +1195,7 @@ public class DashboardController : Controller
                     userGame.BestScore,
                     rankPosition,
                     totalPlayers,
+                    matchExperience,
                     userGame.LastPlayedAt));
             }
 
@@ -1181,7 +1215,20 @@ public class DashboardController : Controller
                                      && !string.IsNullOrWhiteSpace(user.SecurityQuestion2AnswerHash)
                                      && !string.IsNullOrWhiteSpace(user.SecurityQuestion3AnswerHash);
         var hasAvatar = !string.IsNullOrWhiteSpace(user.AvatarUrl);
-        var dailyGoals = BuildDailyGoals(user, stats, hasAvatar, hasRecoveryConfigured);
+        var todayStart = DateTime.UtcNow.Date;
+        var playedToday = await _db.Scores
+            .AsNoTracking()
+            .AnyAsync(s => s.UserId == user.Id && s.SubmittedAtUtc >= todayStart);
+        var todayActivityTypes = await _db.ActivityLogs
+            .AsNoTracking()
+            .Where(log => log.ActorUserId == user.Id && log.CreatedAtUtc >= todayStart)
+            .Select(log => log.Type)
+            .ToListAsync();
+        var ratedToday = todayActivityTypes.Contains(ActivityLogType.RatingSubmitted);
+        var commentedToday = todayActivityTypes.Contains(ActivityLogType.CommentAdded);
+        var reactedToday = todayActivityTypes.Contains(ActivityLogType.CommentLiked)
+                           || todayActivityTypes.Contains(ActivityLogType.CommentDisliked);
+        var dailyGoals = BuildDailyGoals(user, stats, hasAvatar, hasRecoveryConfigured, playedToday, ratedToday, commentedToday, reactedToday);
 
         var rank = RankCalculator.CalculateRank(stats);
 
@@ -1219,6 +1266,7 @@ public class DashboardController : Controller
         var visibilityOptions = BuildVisibilityOptions();
 
         var formattedDisplayName = DisplayNameFormatter.Format(user);
+        var experienceHistory = await BuildExperienceHistoryAsync(user.Id);
 
         var profile = new ProfileSectionViewModel
         {
@@ -1240,6 +1288,7 @@ public class DashboardController : Controller
             Rank = rank,
             BestGame = bestGame,
             Highlights = BuildHighlights(user, rank, bestGame),
+            ExperienceHistory = experienceHistory,
             VisibilityOptions = visibilityOptions
         };
 
@@ -1652,23 +1701,160 @@ public class DashboardController : Controller
         return highlights;
     }
 
-    private IReadOnlyList<ProfileGoalViewModel> BuildDailyGoals(ApplicationUser user, DashboardStatsViewModel stats, bool hasAvatar, bool hasRecoveryConfigured)
+    private async Task<IReadOnlyList<ExperienceHistoryEntryViewModel>> BuildExperienceHistoryAsync(string userId)
     {
-        var goals = new List<ProfileGoalViewModel>
+        var logs = await _db.ActivityLogs
+            .AsNoTracking()
+            .Where(log => log.TargetUserId == userId
+                          && (log.Type == ActivityLogType.ExperienceGained
+                              || log.Type == ActivityLogType.GameRankingCleared))
+            .OrderByDescending(log => log.CreatedAtUtc)
+            .Take(50)
+            .ToListAsync();
+
+        if (logs.Count == 0)
         {
+            return Array.Empty<ExperienceHistoryEntryViewModel>();
+        }
+
+        var gameIds = logs
+            .Where(log => log.GameId.HasValue)
+            .Select(log => log.GameId!.Value)
+            .Distinct()
+            .ToList();
+
+        var gameLookup = gameIds.Count == 0
+            ? new Dictionary<Guid, string>()
+            : await _db.Games
+                .AsNoTracking()
+                .Where(g => gameIds.Contains(g.Id))
+                .Select(g => new { g.Id, g.Title })
+                .ToDictionaryAsync(g => g.Id, g => g.Title ?? string.Empty);
+
+        var items = new List<ExperienceHistoryEntryViewModel>(logs.Count);
+
+        foreach (var log in logs)
+        {
+            var gameTitle = log.GameId.HasValue && gameLookup.TryGetValue(log.GameId.Value, out var title)
+                ? title
+                : null;
+
+            if (log.Type == ActivityLogType.GameRankingCleared)
+            {
+                items.Add(new ExperienceHistoryEntryViewModel(
+                    log.CreatedAtUtc,
+                    0,
+                    Localize("Dashboard_Profile_History_RankingCleared_Title"),
+                    Localize("Dashboard_Profile_History_RankingCleared_Body"),
+                    gameTitle));
+                continue;
+            }
+
+            var details = ExperienceLogFormatter.Parse(log.Message);
+            var (titleKey, bodyKey) = details.Code switch
+            {
+                "match" => ("Dashboard_Profile_History_Match_Title", ResolveMatchHistoryBody(details.Details)),
+                "ranking" => ("Dashboard_Profile_History_Ranking_Title", "Dashboard_Profile_History_Ranking_Body"),
+                "admin" => ("Dashboard_Profile_History_Admin_Title", "Dashboard_Profile_History_Admin_Body"),
+                _ => ("Dashboard_Profile_History_Generic_Title", "Dashboard_Profile_History_Generic_Body")
+            };
+
+            var description = details.Code switch
+            {
+                "admin" when !string.IsNullOrWhiteSpace(details.Details)
+                    => string.Format(Localize("Dashboard_Profile_History_Admin_Body"), details.Details),
+                "admin" => Localize("Dashboard_Profile_History_Admin_Body_Fallback"),
+                _ => Localize(bodyKey)
+            };
+
+            items.Add(new ExperienceHistoryEntryViewModel(
+                log.CreatedAtUtc,
+                details.Amount,
+                Localize(titleKey),
+                description,
+                gameTitle));
+        }
+
+        return items;
+    }
+
+    private string ResolveMatchHistoryBody(string? role)
+    {
+        return role switch
+        {
+            "winner" => "Dashboard_Profile_History_Match_Win",
+            "loser" => "Dashboard_Profile_History_Match_Loss",
+            "draw" => "Dashboard_Profile_History_Match_Draw",
+            _ => "Dashboard_Profile_History_Match_Body"
+        };
+    }
+
+    private IReadOnlyList<ProfileGoalViewModel> BuildDailyGoals(
+        ApplicationUser user,
+        DashboardStatsViewModel stats,
+        bool hasAvatar,
+        bool hasRecoveryConfigured,
+        bool playedToday,
+        bool ratedToday,
+        bool commentedToday,
+        bool reactedToday)
+    {
+        var candidates = new List<(string Key, ProfileGoalViewModel Goal)>();
+
+        candidates.Add((
+            "play-match",
             new ProfileGoalViewModel(
                 Localize("Dashboard_Profile_Goal_PlayMatch_Title"),
                 Localize("Dashboard_Profile_Goal_PlayMatch_Body"),
-                stats.TotalScores > 0),
+                playedToday)));
+
+        candidates.Add((
+            "rate-game",
             new ProfileGoalViewModel(
-                Localize("Dashboard_Profile_Goal_AddAvatar_Title"),
-                Localize("Dashboard_Profile_Goal_AddAvatar_Body"),
-                hasAvatar),
+                Localize("Dashboard_Profile_Goal_RateGame_Title"),
+                Localize("Dashboard_Profile_Goal_RateGame_Body"),
+                ratedToday)));
+
+        candidates.Add((
+            "comment-game",
             new ProfileGoalViewModel(
-                Localize("Dashboard_Profile_Goal_CompleteProfile_Title"),
-                Localize("Dashboard_Profile_Goal_CompleteProfile_Body"),
-                hasRecoveryConfigured && user.BirthDay.HasValue && user.BirthMonth.HasValue)
-        };
+                 Localize("Dashboard_Profile_Goal_Comment_Title"),
+                Localize("Dashboard_Profile_Goal_Comment_Body"),
+                commentedToday)));
+
+        candidates.Add((
+            "react-comment",
+            new ProfileGoalViewModel(
+                Localize("Dashboard_Profile_Goal_React_Title"),
+                Localize("Dashboard_Profile_Goal_React_Body"),
+                reactedToday)));
+
+        if (!hasAvatar)
+        {
+            candidates.Add((
+                "add-avatar",
+                new ProfileGoalViewModel(
+                    Localize("Dashboard_Profile_Goal_AddAvatar_Title"),
+                    Localize("Dashboard_Profile_Goal_AddAvatar_Body"),
+                    hasAvatar)));
+        }
+
+        if (!(hasRecoveryConfigured && user.BirthDay.HasValue && user.BirthMonth.HasValue))
+        {
+            candidates.Add((
+                "complete-profile",
+                new ProfileGoalViewModel(
+                    Localize("Dashboard_Profile_Goal_CompleteProfile_Title"),
+                    Localize("Dashboard_Profile_Goal_CompleteProfile_Body"),
+                    hasRecoveryConfigured && user.BirthDay.HasValue && user.BirthMonth.HasValue)));
+        }
+
+        var seed = HashCode.Combine(DateTime.UtcNow.Date, user.Id);
+        var goals = candidates
+            .OrderBy(entry => Math.Abs(HashCode.Combine(seed, entry.Key)))
+            .Select(entry => entry.Goal)
+            .Take(3)
+            .ToList();
 
         stats.DailyGoalsCompleted = goals.Count(g => g.IsCompleted);
 

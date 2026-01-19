@@ -12,6 +12,10 @@ public static class RankCalculator
     private readonly record struct RankStage(string Tier, string? Division, int Threshold);
     private readonly record struct TrophyVisual(string ImagePath, string BaseColor, string HighlightColor);
 
+    public const int MatchWinExperience = 90;
+    public const int MatchLossExperience = 10;
+    public const int MatchDrawExperience = 50;
+
     private static readonly IReadOnlyList<RankStage> RankTable = BuildRankTable();
     private static readonly TrophyVisual DefaultTrophyVisual = new("/img/trophies/silver.png", "#94a3b8", "#e2e8f0");
     private static readonly IReadOnlyDictionary<string, TrophyVisual> TrophyVisuals = BuildTrophyVisuals();
@@ -68,10 +72,15 @@ public static class RankCalculator
             return 0;
         }
 
-        return CalculateGameExperience(game.TotalMatches, game.RankPosition, game.TotalPlayers);
+        return CalculateGameExperience(game.TotalMatches, game.RankPosition, game.TotalPlayers, game.MatchExperience);
     }
 
     public static int CalculateGameExperience(int totalMatches, int rankPosition, int totalPlayers)
+    {
+        return CalculateGameExperience(totalMatches, rankPosition, totalPlayers, 0);
+    }
+
+    public static int CalculateGameExperience(int totalMatches, int rankPosition, int totalPlayers, int matchExperience)
     {
         var participants = Math.Max(1, totalPlayers);
         var normalizedRank = Math.Clamp(rankPosition, 1, participants);
@@ -82,7 +91,15 @@ public static class RankCalculator
         var volumeBoost = Math.Clamp(Math.Log10(totalMatches + 1d) + 0.2d, 0.55d, 1.6d);
         var skillMultiplier = 0.55d + percentile * 0.45d;
         var xp = 85d * skillMultiplier * volumeBoost;
-        return (int)Math.Round(xp);
+        return Math.Max(0, (int)Math.Round(xp) + Math.Max(0, matchExperience));
+    }
+
+    public static int CalculateMatchExperience(int wins, int losses, int draws)
+    {
+        return Math.Max(0,
+            (wins * MatchWinExperience)
+            + (losses * MatchLossExperience)
+            + (draws * MatchDrawExperience));
     }
 
     private static int CalculateTotalExperience(DashboardStatsViewModel stats)
@@ -91,7 +108,7 @@ public static class RankCalculator
 
         foreach (var game in stats.GamePerformances)
         {
-            xpFromGames += CalculateGameExperience(game.TotalMatches, game.RankPosition, game.TotalPlayers);
+            xpFromGames += CalculateGameExperience(game.TotalMatches, game.RankPosition, game.TotalPlayers, game.MatchExperience);
         }
 
         var engagementXp = stats.UploadedGames * 140

@@ -858,6 +858,26 @@ public class FriendsController : ControllerBase
                 g => g.Key,
                 g => g.OrderByDescending(x => x.BestScore).ToList());
 
+        var matchExperienceByUserGame = await _db.SessionPlayers
+           .AsNoTracking()
+           .Where(player => ids.Contains(player.UserId))
+           .Join(_db.MatchSessions.AsNoTracking(),
+               player => player.SessionId,
+               session => session.Id,
+               (player, session) => new { player.UserId, session.GameId, player.Role })
+           .GroupBy(entry => new { entry.UserId, entry.GameId })
+           .Select(group => new
+           {
+               group.Key.UserId,
+               group.Key.GameId,
+               Wins = group.Count(entry => entry.Role == "winner"),
+               Losses = group.Count(entry => entry.Role == "loser"),
+               Draws = group.Count(entry => entry.Role == "draw")
+           })
+           .ToDictionaryAsync(
+               entry => (entry.UserId, entry.GameId),
+               entry => RankCalculator.CalculateMatchExperience(entry.Wins, entry.Losses, entry.Draws));
+
         foreach (var grouping in scoreGroups.GroupBy(x => x.UserId))
         {
             if (!statsByUser.TryGetValue(grouping.Key, out var stats))
@@ -882,6 +902,8 @@ public class FriendsController : ControllerBase
                     position = totalPlayers;
                 }
 
+                var matchExperience = matchExperienceByUserGame.GetValueOrDefault((entry.UserId, entry.GameId));
+
                 performances.Add(new GamePerformanceStat(
                     entry.GameId,
                     title,
@@ -889,6 +911,7 @@ public class FriendsController : ControllerBase
                     entry.BestScore,
                     position,
                     totalPlayers,
+                    matchExperience,
                     entry.LastPlayedAt));
             }
 

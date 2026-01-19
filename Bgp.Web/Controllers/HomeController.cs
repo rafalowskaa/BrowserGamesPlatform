@@ -359,6 +359,25 @@ public class HomeController : Controller
             })
             .ToListAsync();
 
+        var matchExperienceByGame = await _db.SessionPlayers
+            .AsNoTracking()
+            .Where(player => player.UserId == user.Id)
+            .Join(_db.MatchSessions.AsNoTracking(),
+                player => player.SessionId,
+                session => session.Id,
+                (player, session) => new { session.GameId, player.Role })
+            .GroupBy(entry => entry.GameId)
+            .Select(group => new
+            {
+                GameId = group.Key,
+                Wins = group.Count(entry => entry.Role == "winner"),
+                Losses = group.Count(entry => entry.Role == "loser"),
+                Draws = group.Count(entry => entry.Role == "draw")
+            })
+            .ToDictionaryAsync(
+                entry => entry.GameId,
+                entry => RankCalculator.CalculateMatchExperience(entry.Wins, entry.Losses, entry.Draws));
+
         if (userScoreGroups.Count > 0)
         {
             var gameIds = userScoreGroups.Select(g => g.GameId).ToArray();
@@ -398,6 +417,7 @@ public class HomeController : Controller
                 }
 
                 var title = gameTitles.TryGetValue(entry.GameId, out var name) ? name : string.Empty;
+                var matchExperience = matchExperienceByGame.GetValueOrDefault(entry.GameId);
 
                 performances.Add(new GamePerformanceStat(
                     entry.GameId,
@@ -406,6 +426,7 @@ public class HomeController : Controller
                     entry.BestScore,
                     rankPosition,
                     totalPlayers,
+                    matchExperience,
                     entry.LastPlayedAt));
             }
 

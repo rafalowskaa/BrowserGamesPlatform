@@ -22,5 +22,6 @@ public enum ActivityLogType
     MessageReceived = 17,
     HomeContentUpdated = 18,
     ExperienceGained = 19,
-    NewEventAvailable = 20
+    NewEventAvailable = 20,
+    GameRankingCleared = 21
 }

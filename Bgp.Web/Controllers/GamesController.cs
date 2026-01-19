@@ -22,12 +22,14 @@ public class GamesController : Controller
     private readonly AppDbContext _db;
     private readonly IStringLocalizer<SharedResource> _localizer;
     private readonly IGameContentResolver _contentResolver;
+    private readonly IActivityLogger _activityLogger;
 
-    public GamesController(AppDbContext db, IStringLocalizer<SharedResource> localizer, IGameContentResolver contentResolver)
+    public GamesController(AppDbContext db, IStringLocalizer<SharedResource> localizer, IGameContentResolver contentResolver, IActivityLogger activityLogger)
     {
         _db = db;
         _localizer = localizer;
         _contentResolver = contentResolver;
+        _activityLogger = activityLogger;
     }
 
     [AllowAnonymous]
@@ -165,7 +167,8 @@ public class GamesController : Controller
             return NotFound();
         }
 
-        await ClearGameRankingDataAsync(id);
+        var actorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        await ClearGameRankingDataAsync(id, actorId);
         await _db.SaveChangesAsync();
 
         return RedirectToAction(nameof(Details), new { slug = game.Slug, tab = "ranking" });
@@ -263,8 +266,27 @@ public class GamesController : Controller
             .ToList();
     }
 
-    private async Task ClearGameRankingDataAsync(Guid gameId)
+    private async Task ClearGameRankingDataAsync(Guid gameId, string? actorUserId)
     {
+        var affectedUsers = await _db.Scores
+            .Where(s => s.GameId == gameId)
+            .Select(s => s.UserId)
+            .Distinct()
+            .ToListAsync();
+
+        if (affectedUsers.Count == 0)
+        {
+            affectedUsers = await _db.SessionPlayers
+                .Where(p => p.SessionId != Guid.Empty)
+                .Join(_db.MatchSessions,
+                    player => player.SessionId,
+                    session => session.Id,
+                    (player, session) => new { session.GameId, player.UserId })
+                .Where(entry => entry.GameId == gameId)
+                .Select(entry => entry.UserId)
+                .Distinct()
+                .ToListAsync();
+        }
         var sessionIds = await _db.MatchSessions
             .Where(s => s.GameId == gameId)
             .Select(s => s.Id)
@@ -292,6 +314,18 @@ public class GamesController : Controller
             .Where(s => s.GameId == gameId)
             .ToListAsync();
         _db.Scores.RemoveRange(scores);
+
+        if (affectedUsers.Count > 0)
+        {
+            foreach (var userId in affectedUsers)
+            {
+                await _activityLogger.LogAsync(ActivityLogType.GameRankingCleared, actorUserId, log =>
+                {
+                    log.TargetUserId = userId;
+                    log.GameId = gameId;
+                });
+            }
+        }
     }
     private static GameCategory? ParseCategory(string? raw)
     {

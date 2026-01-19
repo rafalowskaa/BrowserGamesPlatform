@@ -3790,5 +3790,89 @@
   </data>
 	<data name="Games_Details_Rules_Updated" xml:space="preserve">
     <value>Ostatnia aktualizacja</value>
+		</data>
+	<data name="Dashboard_Notifications_Experience_Match" xml:space="preserve">
+    <value>Nagroda za mecz: {0} PD</value>
+  </data>
+	<data name="Dashboard_Notifications_Experience_Ranking" xml:space="preserve">
+    <value>Aktualizacja rankingu: {0} PD</value>
+  </data>
+	<data name="Dashboard_Notifications_Experience_Admin" xml:space="preserve">
+    <value>Zmiana administratora: {0} PD</value>
+  </data>
+	<data name="Dashboard_Profile_Goal_RateGame_Title" xml:space="preserve">
+    <value>Oceń grę</value>
+  </data>
+	<data name="Dashboard_Profile_Goal_RateGame_Body" xml:space="preserve">
+    <value>Wystaw dziś ocenę dowolnej gry.</value>
+  </data>
+	<data name="Dashboard_Profile_Goal_Comment_Title" xml:space="preserve">
+    <value>Dodaj komentarz</value>
+  </data>
+	<data name="Dashboard_Profile_Goal_Comment_Body" xml:space="preserve">
+    <value>Zostaw krótki komentarz pod grą.</value>
+  </data>
+	<data name="Dashboard_Profile_Goal_React_Title" xml:space="preserve">
+    <value>Zareaguj na komentarz</value>
+  </data>
+	<data name="Dashboard_Profile_Goal_React_Body" xml:space="preserve">
+    <value>Polub lub zminusuj komentarz, aby wesprzeć społeczność.</value>
+  </data>
+	<data name="Dashboard_ExperienceHistory_Tab" xml:space="preserve">
+    <value>Historia PD</value>
+  </data>
+	<data name="Dashboard_ExperienceHistory_Title" xml:space="preserve">
+    <value>Historia PD</value>
+  </data>
+	<data name="Dashboard_ExperienceHistory_Subtitle" xml:space="preserve">
+    <value>Sprawdź, skąd pochodzą Twoje punkty doświadczenia.</value>
+  </data>
+	<data name="Dashboard_ExperienceHistory_PointsLabel" xml:space="preserve">
+    <value>PD</value>
+  </data>
+	<data name="Dashboard_ExperienceHistory_Empty" xml:space="preserve">
+    <value>Brak historii PD.</value>
+  </data>
+	<data name="Dashboard_Profile_History_RankingCleared_Title" xml:space="preserve">
+    <value>Ranking wyczyszczony</value>
+  </data>
+	<data name="Dashboard_Profile_History_RankingCleared_Body" xml:space="preserve">
+    <value>Ranking gry został wyzerowany. Twoje PD zostało zachowane.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Match_Title" xml:space="preserve">
+    <value>Wynik meczu</value>
+  </data>
+	<data name="Dashboard_Profile_History_Match_Body" xml:space="preserve">
+    <value>Mecz został rozegrany.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Match_Win" xml:space="preserve">
+    <value>Wygrana w meczu.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Match_Loss" xml:space="preserve">
+    <value>Przegrana w meczu.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Match_Draw" xml:space="preserve">
+    <value>Remis w meczu.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Ranking_Title" xml:space="preserve">
+    <value>Postęp w rankingu</value>
+  </data>
+	<data name="Dashboard_Profile_History_Ranking_Body" xml:space="preserve">
+    <value>Lepszy wynik dodał PD.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Admin_Title" xml:space="preserve">
+    <value>Zmiana administratora</value>
+  </data>
+	<data name="Dashboard_Profile_History_Admin_Body" xml:space="preserve">
+    <value>Powód: {0}</value>
+  </data>
+	<data name="Dashboard_Profile_History_Admin_Body_Fallback" xml:space="preserve">
+    <value>Nie podano powodu.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Generic_Title" xml:space="preserve">
+    <value>Zdobyto PD</value>
+  </data>
+	<data name="Dashboard_Profile_History_Generic_Body" xml:space="preserve">
+    <value>Przyznano punkty doświadczenia.</value>
   </data>
 </root>

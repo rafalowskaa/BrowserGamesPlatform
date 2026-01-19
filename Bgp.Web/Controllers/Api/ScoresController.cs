@@ -154,16 +154,22 @@ public class ScoresController : ControllerBase
         await _db.SaveChangesAsync();
 
         await UpdateSessionOutcomeAsync(session.Id);
+        var matchExperience = await GetMatchExperienceAsync(session.Id, userId);
+        await AwardMatchExperienceAsync(session.Id, gameId);
 
         var currentXp = await CalculateGameXpAsync(gameId, userId);
         var gainedXp = Math.Max(0, currentXp - previousXp);
+        if (matchExperience > 0 && gainedXp > 0)
+        {
+            gainedXp = Math.Max(0, gainedXp - matchExperience);
+        }
         if (gainedXp > 0)
         {
             await _logger.LogAsync(ActivityLogType.ExperienceGained, userId, log =>
             {
                 log.GameId = gameId;
                 log.TargetUserId = userId;
-                log.Message = gainedXp.ToString(CultureInfo.InvariantCulture);
+                log.Message = ExperienceLogFormatter.BuildMessage(gainedXp, "ranking", "score");
             });
         }
 
@@ -283,6 +289,98 @@ public class ScoresController : ControllerBase
 
         var entry = rows[index];
         var position = index + 1;
-        return RankCalculator.CalculateGameExperience(entry.Matches, position, rows.Count);
+        var matchExperience = await GetMatchExperienceForGameAsync(gameId, userId);
+        return RankCalculator.CalculateGameExperience(entry.Matches, position, rows.Count, matchExperience);
+    }
+
+    private async Task<int> GetMatchExperienceAsync(Guid sessionId, string userId)
+    {
+        var role = await _db.SessionPlayers
+            .Where(p => p.SessionId == sessionId && p.UserId == userId)
+            .Select(p => p.Role)
+            .FirstOrDefaultAsync();
+
+        return role switch
+        {
+            "winner" => RankCalculator.MatchWinExperience,
+            "loser" => RankCalculator.MatchLossExperience,
+            "draw" => RankCalculator.MatchDrawExperience,
+            _ => 0
+        };
+    }
+
+    private async Task<int> GetMatchExperienceForGameAsync(Guid gameId, string userId)
+    {
+        var summary = await _db.SessionPlayers
+            .Where(p => p.UserId == userId)
+            .Join(_db.MatchSessions,
+                player => player.SessionId,
+                session => session.Id,
+                (player, session) => new { session.GameId, player.Role })
+            .Where(entry => entry.GameId == gameId)
+            .GroupBy(_ => 1)
+            .Select(group => new
+            {
+                Wins = group.Count(entry => entry.Role == "winner"),
+                Losses = group.Count(entry => entry.Role == "loser"),
+                Draws = group.Count(entry => entry.Role == "draw")
+            })
+            .FirstOrDefaultAsync();
+
+        return summary is null
+            ? 0
+            : RankCalculator.CalculateMatchExperience(summary.Wins, summary.Losses, summary.Draws);
+    }
+
+    private async Task AwardMatchExperienceAsync(Guid sessionId, Guid gameId)
+    {
+        var players = await _db.SessionPlayers
+            .Where(p => p.SessionId == sessionId)
+            .Select(p => new { p.UserId, p.Role })
+            .ToListAsync();
+
+        if (players.Count <= 1)
+        {
+            return;
+        }
+
+        var reference = sessionId.ToString("N", CultureInfo.InvariantCulture);
+
+        foreach (var player in players)
+        {
+            var amount = player.Role switch
+            {
+                "winner" => RankCalculator.MatchWinExperience,
+                "loser" => RankCalculator.MatchLossExperience,
+                "draw" => RankCalculator.MatchDrawExperience,
+                _ => 0
+            };
+
+            if (amount <= 0)
+            {
+                continue;
+            }
+
+            var alreadyLogged = await _db.ActivityLogs
+                .AsNoTracking()
+                .AnyAsync(log =>
+                    log.Type == ActivityLogType.ExperienceGained
+                    && log.GameId == gameId
+                    && log.TargetUserId == player.UserId
+                    && log.Message != null
+                    && log.Message.EndsWith(reference, StringComparison.Ordinal));
+
+            if (alreadyLogged)
+            {
+                continue;
+            }
+
+            await _logger.LogAsync(ActivityLogType.ExperienceGained, player.UserId, log =>
+            {
+                log.GameId = gameId;
+                log.TargetUserId = player.UserId;
+                log.Message = ExperienceLogFormatter.BuildMessage(amount, "match", player.Role, reference);
+            });
+        }
     }
 }
