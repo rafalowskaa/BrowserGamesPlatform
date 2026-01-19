@@ -253,6 +253,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
            .HasMaxLength(128)
            .IsRequired();
 
+        b.Entity<SessionPlayer>()
+           .HasOne(x => x.Session)
+           .WithMany(x => x.Players)
+           .HasForeignKey(x => x.SessionId)
+           .OnDelete(DeleteBehavior.Cascade);
 
         b.Entity<GameInvite>()
             .Property(x => x.Status)

@@ -9,6 +9,8 @@ public class SessionPlayer
     [Required]
     public Guid SessionId { get; set; }
 
+    public MatchSession Session { get; set; } = null!;
+
     [Required, MaxLength(450)]
     public string UserId { get; set; } = string.Empty;
 

@@ -25,4 +25,6 @@ public class MatchSession
     public string Token { get; set; } = string.Empty;
 
     public bool Used { get; set; } = false;
+
+    public ICollection<SessionPlayer> Players { get; set; } = new List<SessionPlayer>();
 }

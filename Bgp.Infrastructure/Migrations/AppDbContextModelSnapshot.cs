@@ -1252,6 +1252,17 @@ namespace Bgp.Infrastructure.Migrations
                     b.Navigation("Game");
                 });
 
+            modelBuilder.Entity("Bgp.Domain.Entities.SessionPlayer", b =>
+                {
+                    b.HasOne("Bgp.Domain.Entities.MatchSession", "Session")
+                        .WithMany("Players")
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Session");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -1321,6 +1332,11 @@ namespace Bgp.Infrastructure.Migrations
             modelBuilder.Entity("Bgp.Domain.Entities.GameReview", b =>
                 {
                     b.Navigation("Reactions");
+                });
+
+            modelBuilder.Entity("Bgp.Domain.Entities.MatchSession", b =>
+                {
+                    b.Navigation("Players");
                 });
 #pragma warning restore 612, 618
         }
