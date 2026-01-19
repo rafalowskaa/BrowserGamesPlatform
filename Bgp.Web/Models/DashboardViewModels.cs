@@ -211,6 +211,7 @@ public class CreateGameFormViewModel
 
     public List<string> SelectedCategoryValues { get; set; } = new();
 
+    public List<string> SelectedModeValues { get; set; } = new();
 
     [MaxLength(200)]
     public string? TagsRaw { get; set; }
