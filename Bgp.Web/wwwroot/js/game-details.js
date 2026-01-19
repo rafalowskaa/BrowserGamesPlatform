@@ -748,7 +748,15 @@
     }
 
     async function submitMatchResult(payload) {
-        if (!config.play?.sessionUrl || !currentSessionId || !currentToken) {
+        if (!config.play?.sessionUrl) {
+            return;
+        }
+        const sessionId = payload?.sessionId || payload?.session_id || currentSessionId;
+        const token = payload?.token || currentToken;
+        if (!sessionId || !token) {
+            return;
+        }
+        if (currentSessionId && sessionId !== currentSessionId) {
             return;
         }
         const value = Number(payload?.value ?? payload?.score ?? 0);
@@ -756,13 +764,13 @@
             return;
         }
         const outcome = typeof payload?.outcome === 'string' ? payload.outcome : undefined;
-        const url = `${config.play.sessionUrl}/${currentSessionId}/score`;
+        const url = `${config.play.sessionUrl}/${sessionId}/score`;
         try {
             const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ token: currentToken, value, outcome })
+                body: JSON.stringify({ token, value, outcome })
             });
             if (!res.ok) {
                 throw new Error('Failed to submit match result');
@@ -778,7 +786,16 @@
         if (!playerFrame?.contentWindow) {
             return false;
         }
-        if (event.origin !== window.location.origin) {
+        const allowedOrigins = new Set([window.location.origin]);
+        if (config.play?.webUrl) {
+            try {
+                const gameOrigin = new URL(config.play.webUrl, window.location.origin).origin;
+                allowedOrigins.add(gameOrigin);
+            } catch (err) {
+                console.error('Invalid game origin', err);
+            }
+        }
+        if (!allowedOrigins.has(event.origin)) {
             return false;
         }
         return event.source === playerFrame.contentWindow;
@@ -1389,7 +1406,8 @@
                 return;
             }
             if (event.data.type === 'GAME_RESULT') {
-                submitMatchResult(event.data);
+                const payload = event.data.payload ?? event.data;
+                submitMatchResult(payload);
             }
         });
     }
