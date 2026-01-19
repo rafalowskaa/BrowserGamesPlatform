@@ -1768,7 +1768,7 @@ public class DashboardController : Controller
 
             if (log.Type == ActivityLogType.GameRankingCleared)
             {
-                var description = !string.IsNullOrWhiteSpace(gameTitle)
+                var rankingDescription = !string.IsNullOrWhiteSpace(gameTitle)
                   ? string.Format(Localize("Dashboard_Profile_History_RankingCleared_Body_Game"), gameTitle)
                   : Localize("Dashboard_Profile_History_RankingCleared_Body");
 
@@ -1776,7 +1776,7 @@ public class DashboardController : Controller
                     log.CreatedAtUtc,
                     0,
                     Localize("Dashboard_Profile_History_RankingCleared_Title"),
-                    description,
+                    rankingDescription,
                     gameTitle));
                 continue;
             }

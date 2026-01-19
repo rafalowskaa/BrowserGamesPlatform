@@ -51,7 +51,7 @@ public class SessionScoreTests
             Id = sessionId,
             GameId = gameId,
             UserId = userId,
-            Mode = GameMode.Multiplayer,
+            Mode = GameMode.MultiplayerRealtime,
             CreatedAtUtc = DateTime.UtcNow.AddMinutes(-10),
             ExpiresAtUtc = DateTime.UtcNow.AddMinutes(-5)
         });
@@ -80,7 +80,7 @@ public class SessionScoreTests
         Assert.Equal(12, score.Value);
         Assert.Equal(sessionId, score.MatchSessionId);
         Assert.Equal(userId, score.UserId);
-        Assert.Equal(GameMode.Multiplayer, score.Mode);
+        Assert.Equal(GameMode.MultiplayerRealtime, score.Mode);
 
         var player = await db.SessionPlayers.SingleAsync();
         Assert.Equal("winner", player.Role);
@@ -116,7 +116,7 @@ public class SessionScoreTests
             Id = sessionId,
             GameId = gameId,
             UserId = playerOneId,
-            Mode = GameMode.Multiplayer,
+            Mode = GameMode.MultiplayerRealtime,
             CreatedAtUtc = DateTime.UtcNow.AddMinutes(-10),
             ExpiresAtUtc = DateTime.UtcNow.AddMinutes(-5)
         });
@@ -130,7 +130,7 @@ public class SessionScoreTests
                 GameId = gameId,
                 MatchSessionId = sessionId,
                 UserId = playerOneId,
-                Mode = GameMode.Multiplayer,
+                Mode = GameMode.MultiplayerRealtime,
                 Value = 10,
                 SubmittedAtUtc = DateTime.UtcNow,
                 Verified = true
@@ -140,7 +140,7 @@ public class SessionScoreTests
                 GameId = gameId,
                 MatchSessionId = sessionId,
                 UserId = playerTwoId,
-                Mode = GameMode.Multiplayer,
+                Mode = GameMode.MultiplayerRealtime,
                 Value = 5,
                 SubmittedAtUtc = DateTime.UtcNow,
                 Verified = true
