@@ -147,6 +147,30 @@ public class GamesController : Controller
         return View(vm);
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,Moderator")]
+    public async Task<IActionResult> ClearGameRankings(Guid id, string slug)
+    {
+        if (id == Guid.Empty)
+        {
+            return NotFound();
+        }
+
+        var game = await _db.Games.AsNoTracking()
+            .FirstOrDefaultAsync(g => g.Id == id && g.Slug == slug && g.ApprovalStatus == GameApprovalStatus.Approved);
+
+        if (game is null)
+        {
+            return NotFound();
+        }
+
+        await ClearGameRankingDataAsync(id);
+        await _db.SaveChangesAsync();
+
+        return RedirectToAction(nameof(Details), new { slug = game.Slug, tab = "ranking" });
+    }
+
     [Authorize]
     public async Task<IActionResult> Details(string slug)
     {
@@ -239,6 +263,36 @@ public class GamesController : Controller
             .ToList();
     }
 
+    private async Task ClearGameRankingDataAsync(Guid gameId)
+    {
+        var sessionIds = await _db.MatchSessions
+            .Where(s => s.GameId == gameId)
+            .Select(s => s.Id)
+            .ToListAsync();
+
+        if (sessionIds.Count > 0)
+        {
+            var invites = await _db.GameInvites
+                .Where(i => sessionIds.Contains(i.SessionId))
+                .ToListAsync();
+            _db.GameInvites.RemoveRange(invites);
+
+            var players = await _db.SessionPlayers
+                .Where(p => sessionIds.Contains(p.SessionId))
+                .ToListAsync();
+            _db.SessionPlayers.RemoveRange(players);
+
+            var sessions = await _db.MatchSessions
+                .Where(s => sessionIds.Contains(s.Id))
+                .ToListAsync();
+            _db.MatchSessions.RemoveRange(sessions);
+        }
+
+        var scores = await _db.Scores
+            .Where(s => s.GameId == gameId)
+            .ToListAsync();
+        _db.Scores.RemoveRange(scores);
+    }
     private static GameCategory? ParseCategory(string? raw)
     {
         if (string.IsNullOrWhiteSpace(raw))
