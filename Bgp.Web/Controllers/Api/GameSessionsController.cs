@@ -177,7 +177,13 @@ public class GameSessionsController : ControllerBase
             .FirstOrDefaultAsync(p => p.SessionId == sessionId && p.UserId == userId);
         if (player is not null)
         {
-            _db.SessionPlayers.Remove(player);
+            var hasScore = await _db.Scores.AnyAsync(s => s.MatchSessionId == sessionId
+                                                         && s.UserId == userId
+                                                         && s.Verified);
+            if (!hasScore)
+            {
+                _db.SessionPlayers.Remove(player);
+            }
         }
 
         var now = DateTime.UtcNow;

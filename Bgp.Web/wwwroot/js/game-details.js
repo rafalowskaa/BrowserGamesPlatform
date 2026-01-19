@@ -1353,12 +1353,10 @@
             return;
         }
         sendLeaveSignal();
+        playerContainer.innerHTML = '';
         currentSessionId = null;
         currentToken = null;
         leaveRequestSent = false;
-        if (playerFrame) {
-            playerFrame.remove();
-        }
         playerFrame = null;
         setPlayerStatus('idle', '');
     }
