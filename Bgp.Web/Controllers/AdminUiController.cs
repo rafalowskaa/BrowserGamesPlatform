@@ -1752,7 +1752,9 @@ public class AdminUiController : Controller
     public async Task<IActionResult> Logs(string? search = null, ActivityLogType? type = null, string? game = null, DateTime? dateFrom = null, DateTime? dateTo = null, int page = 1)
     {
         const int pageSize = 100;
-        var query = _db.ActivityLogs.AsNoTracking();
+        var query = _db.ActivityLogs
+            .AsNoTracking()
+            .Where(l => l.Type != ActivityLogType.ExperienceGained);
 
         DateTime? fromUtc = null;
         if (dateFrom.HasValue)

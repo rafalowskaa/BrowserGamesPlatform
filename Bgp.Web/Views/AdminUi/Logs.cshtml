@@ -1,11 +1,13 @@
-﻿@using Bgp.Domain.Enums
+﻿﻿@using System.Linq
+@using Bgp.Domain.Enums
 @model Bgp.Web.Models.AdminLogsViewModel
 @section Styles {
     <link rel="stylesheet" href="~/css/pages/admin.css" asp-append-version="true" />
 }
 @{
     ViewData["Title"] = L["Admin_Logs_Title"].Value;
-    var types = Enum.GetValues<ActivityLogType>();
+    var types = Enum.GetValues<ActivityLogType>()
+        .Where(type => type != ActivityLogType.ExperienceGained);
     string FormatType(ActivityLogType type) => L[$"Admin_Logs_Type_{type}"].Value;
     var dateFromValue = Model.DateFrom?.ToString("yyyy-MM-dd");
     var dateToValue = Model.DateTo?.ToString("yyyy-MM-dd");

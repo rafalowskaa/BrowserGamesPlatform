@@ -2887,7 +2887,7 @@
                 if (!friend) {
                     return;
                 }
-                if (friend.isFriend || friend.isArchived || !hasConversationHistory(friend)) {
+                if (friend.isFriend || !hasConversationHistory(friend)) {
                     return;
                 }
                 const matches = !searchTerm

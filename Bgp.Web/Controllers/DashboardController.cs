@@ -985,7 +985,6 @@ public class DashboardController : Controller
             ActivityLogType.CommentLiked,
             ActivityLogType.CommentDisliked,
             ActivityLogType.RatingSubmitted,
-            ActivityLogType.ExperienceGained,
             ActivityLogType.NewEventAvailable
         };
 
@@ -1047,7 +1046,6 @@ public class DashboardController : Controller
                 ActivityLogType.CommentLiked => string.Format(Localize("Dashboard_Notifications_CommentLiked"), actorName, gameTitle),
                 ActivityLogType.CommentDisliked => string.Format(Localize("Dashboard_Notifications_CommentDisliked"), actorName, gameTitle),
                 ActivityLogType.RatingSubmitted => string.Format(Localize("Dashboard_Notifications_Rating"), actorName, gameTitle),
-                ActivityLogType.ExperienceGained => BuildExperienceNotificationMessage(log),
                 ActivityLogType.NewEventAvailable => string.Format(Localize("Dashboard_Notifications_Event"), log.Message ?? Localize("Dashboard_Notifications_Event_Default")),
                 _ => string.Format(Localize("Dashboard_Notifications_Generic"), actorName)
             };
@@ -1077,29 +1075,12 @@ public class DashboardController : Controller
                 }
             }
 
-            if (log.Type is ActivityLogType.ExperienceGained)
-            {
-                return Url.Action(nameof(Index), new { tab = "profile", panel = "profile" });
-            }
-
             if (log.Type is ActivityLogType.NewEventAvailable)
             {
                 return Url.Action("Index", "Home");
             }
 
             return null;
-        }
-
-        string BuildExperienceNotificationMessage(ActivityLog log)
-        {
-            var details = ExperienceLogFormatter.Parse(log.Message);
-            return details.Code switch
-            {
-                "match" => string.Format(Localize("Dashboard_Notifications_Experience_Match"), details.Amount),
-                "ranking" => string.Format(Localize("Dashboard_Notifications_Experience_Ranking"), details.Amount),
-                "admin" => string.Format(Localize("Dashboard_Notifications_Experience_Admin"), details.Amount),
-                _ => string.Format(Localize("Dashboard_Notifications_Experience"), details.Amount)
-            };
         }
 
         var notifications = notificationLogs

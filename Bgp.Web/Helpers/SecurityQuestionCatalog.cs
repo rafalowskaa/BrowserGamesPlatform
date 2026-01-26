@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Bgp.Web.Helpers;
@@ -22,7 +23,9 @@ public static class SecurityQuestionCatalog
     public static IReadOnlyList<SecurityQuestionOption> Options => _options;
 
     public static SecurityQuestionOption? Find(string? key) =>
-        string.IsNullOrWhiteSpace(key) ? null : _options.FirstOrDefault(o => o.Key == key);
+        string.IsNullOrWhiteSpace(key)
+            ? null
+            : _options.FirstOrDefault(o => string.Equals(o.Key, key.Trim(), StringComparison.OrdinalIgnoreCase));
 }
 
 public record SecurityQuestionOption(string Key, string ResourceKey, bool AllowsCustomPrompt = false);

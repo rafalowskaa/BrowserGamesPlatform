@@ -585,15 +585,69 @@
     </data>
 	<data name="Dashboard_Stats_TotalReviews" xml:space="preserve">
         <value>Napisane recenzje</value>
+     </data>
+	<data name="Dashboard_Stats_TotalRatings" xml:space="preserve">
+        <value>Oddane oceny</value>
+    </data>
+	<data name="Dashboard_Stats_TotalComments" xml:space="preserve">
+        <value>Dodane komentarze</value>
     </data>
 	<data name="Dashboard_Stats_Friends" xml:space="preserve">
         <value>Znajomi</value>
+    </data>
+	<data name="Dashboard_Stats_ActivityMix" xml:space="preserve">
+        <value>Struktura aktywności</value>
+    </data>
+	<data name="Dashboard_Stats_ActivityMix_Description" xml:space="preserve">
+        <value>Udział wyników, recenzji, ocen i komentarzy w całej aktywności.</value>
+    </data>
+	<data name="Dashboard_Stats_EngagementIndex" xml:space="preserve">
+        <value>Indeks zaangażowania</value>
+    </data>
+	<data name="Dashboard_Stats_EngagementIndex_Description" xml:space="preserve">
+        <value>Skalowane tempo wyników względem sieci znajomych (0-100).</value>
+    </data>
+	<data name="Dashboard_Stats_EngagementIndex_Unit" xml:space="preserve">
+        <value>pkt indeksu</value>
+    </data>
+	<data name="Dashboard_Stats_Consistency" xml:space="preserve">
+        <value>Wskaźnik regularności</value>
+    </data>
+	<data name="Dashboard_Stats_Consistency_Description" xml:space="preserve">
+        <value>Logarytmiczny wynik oparty o liczbę dziennych logowań (0-100).</value>
+    </data>
+	<data name="Dashboard_Stats_Consistency_Unit" xml:space="preserve">
+        <value>pkt</value>
+    </data>
+	<data name="Dashboard_Stats_Freshness" xml:space="preserve">
+        <value>Świeżość wyników</value>
+    </data>
+	<data name="Dashboard_Stats_Freshness_Description" xml:space="preserve">
+        <value>Wskaźnik aktualności na bazie ostatniego przesłanego wyniku.</value>
+    </data>
+	<data name="Dashboard_Stats_Freshness_Days" xml:space="preserve">
+        <value>{0} dni od ostatniego wyniku</value>
+    </data>
+	<data name="Dashboard_Stats_Freshness_None" xml:space="preserve">
+        <value>Brak wyników</value>
+    </data>
+	<data name="Dashboard_Stats_Diversity" xml:space="preserve">
+        <value>Indeks różnorodności</value>
+    </data>
+	<data name="Dashboard_Stats_Diversity_Description" xml:space="preserve">
+        <value>Równowaga między typami aktywności (wyżej = większa różnorodność).</value>
+    </data>
+	<data name="Dashboard_Stats_Diversity_Unit" xml:space="preserve">
+        <value>pkt indeksu</value>
     </data>
 	<data name="Dashboard_Games_CreateHeading" xml:space="preserve">
         <value>Dodaj nową grę</value>
     </data>
 	<data name="Dashboard_Games_Title" xml:space="preserve">  
         <value>Tytuł</value>
+		</data>
+	<data name="Dashboard_Games_Title_Hint" xml:space="preserve">
+        <value>Krótka, unikalna nazwa widoczna w rankingach i adresach URL.</value>
     </data>
 	<data name="Dashboard_Games_Description" xml:space="preserve">
         <value>Opis</value>
@@ -750,6 +804,9 @@
   </data>
 	<data name="Dashboard_Games_Package" xml:space="preserve">
     <value>Paczka WebGL (.zip)</value>
+		</data>
+	<data name="Dashboard_Games_Package_Hint" xml:space="preserve">
+    <value>ZIP musi zawierać index.html w katalogu głównym i integrację API wyników, aby ranking mógł się zliczać.</value>
   </data>
 	<data name="Dashboard_Games_Status" xml:space="preserve">
     <value>Status</value>
