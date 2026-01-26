@@ -3481,7 +3481,15 @@
             }
 
             setLastSeenEntry(friendId, null, new Date(now).toISOString());
+            if (friend && !friend.isFriend) {
+                removeStrangerContact(friendId);
+                friends.delete(normalizeId(friendId));
+                if (conversation) {
+                    destroyConversation(conversation);
+                }
+            }
             updateUnreadBadge();
+            applyFriendFilter();
             requestUsersRender();
         }
 

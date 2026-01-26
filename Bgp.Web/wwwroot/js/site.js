@@ -137,11 +137,14 @@
             return;
         }
 
-        var addNextButton = container.querySelector('[data-questions-add]');
+        var formScope = container.closest('form') || container;
+        var addNextButton = container.querySelector('[data-questions-add]') || formScope.querySelector('[data-questions-add]');
+        var saveButton = container.querySelector('[data-questions-save]') || formScope.querySelector('[data-questions-save]');
         var emptyHint = container.querySelector('[data-empty-hint]');
         var countLabel = container.querySelector('[data-questions-count]');
         var addFirstLabel = container.getAttribute('data-label-add-first') || '';
         var addNextLabel = container.getAttribute('data-label-add-next') || '';
+        var alwaysExpanded = container.getAttribute('data-questions-layout') === 'expanded';
 
         if ((!addFirstLabel || !addNextLabel) && addNextButton) {
             var currentLabel = (addNextButton.textContent || '').trim();
@@ -711,24 +714,24 @@
                 if (atCapacity) {
                     addNextButton.disabled = true;
                     addNextButton.setAttribute('aria-disabled', 'true');
-                    return;
-                }
-
-                if (!enabled || visibleCount === 0) {
+                } else if (!enabled || visibleCount === 0) {
                     if (addFirstLabel) {
                         addNextButton.textContent = addFirstLabel;
                     }
                     addNextButton.disabled = false;
                     addNextButton.removeAttribute('aria-disabled');
-                    return;
+                } else {
+                    if (addNextLabel) {
+                        addNextButton.textContent = addNextLabel;
+                    }
+                    addNextButton.disabled = false;
+                    addNextButton.removeAttribute('aria-disabled');
                 }
-
-                if (addNextLabel) {
-                    addNextButton.textContent = addNextLabel;
+                if (saveButton) {
+                    var shouldShowSave = enabled && visibleCount >= maxVisible;
+                    saveButton.hidden = !shouldShowSave;
+                    saveButton.toggleAttribute('hidden', !shouldShowSave);
                 }
-
-                addNextButton.disabled = false;
-                addNextButton.removeAttribute('aria-disabled');
             }
         }
         function updateCountLabel() {
@@ -769,7 +772,7 @@
                 visibleCount = maxVisible;
             }
 
-            allowNoActive = evaluateAllowNoActive(visibleCount);
+            allowNoActive = alwaysExpanded ? false : evaluateAllowNoActive(visibleCount);
 
             if (visibleCount > 0) {
                 if (activeIndex >= visibleCount) {
@@ -786,6 +789,8 @@
             items.forEach(function (item, index) {
                 if (index >= visibleCount) {
                     setState(item, 'hidden');
+                } else if (alwaysExpanded) {
+                    setState(item, 'active');
                 } else if (hasActive && index === activeIndex) {
                     setState(item, 'active');
                 } else {
@@ -801,7 +806,7 @@
             updateActionButtons();
             updateCountLabel();
 
-            if (hasActive && options.focusActive !== false && items[activeIndex]) {
+            if (!alwaysExpanded && hasActive && options.focusActive !== false && items[activeIndex]) {
                 focusFirstField(items[activeIndex]);
             }
         }

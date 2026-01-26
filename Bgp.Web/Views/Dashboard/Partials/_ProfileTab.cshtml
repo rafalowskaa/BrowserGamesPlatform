@@ -642,7 +642,7 @@
                         <div class="security-questions@(enabled ? string.Empty : " security-questions--disabled")"
                              data-security-questions
                              data-custom-option="@SecurityQuestionCatalog.CustomKey"
-                                 data-answer-mask="@SecurityAnswerHelper.MaskedToken"
+                             data-questions-layout="expanded"
                              data-answer-minlength="3"
                              data-question-minlength="5"
                              data-max-questions="3"
@@ -669,11 +669,7 @@
                                                 i
                                             </button>
                                         </h3>
-                                        <p class="security-questions__description">Dodaj maks. 3. Odpowiedzi są ukryte.</p>
-                                    </div>
-                                    <div class="security-questions__controls">
-                                        <span class="security-questions__counter" data-questions-count>0/3</span>
-                                        <button type="button" class="btn-outline btn-small" data-questions-add>@L["Auth_Register_SecurityQuestions_AddAnother"].Value</button>
+                                            <p class="security-questions__description">@L["Auth_Register_SecurityQuestions_MaxHint"].Value</p>
                                     </div>
                                 </div>
                                 <p class="security-questions__empty" data-empty-hint @((emptyHintHidden ? " hidden" : string.Empty))>@L["Auth_Register_SecurityQuestions_EmptyState"].Value</p>
@@ -697,44 +693,7 @@
                                          data-question-item
                                          data-question-index="@questionNumber"
                                          data-has-error="@questionHasError" @((state.IsVisible ? string.Empty : " hidden"))>
-                                        <div class="security-question__summary" data-question-summary @((state.ShowSummary ? string.Empty : " hidden"))>
-                                            <div class="security-question__summary-main">
-                                                <div class="security-question__summary-text">
-                                                    <span class="security-question__summary-question" data-summary-question>&nbsp;</span>
-                                                <div class="security-question__summary-meta">
-                                                        <span class="security-question__summary-answer" data-summary-answer>—</span>
-                                                        <span class="security-question__summary-updated">Zmieniono: —</span>
-                                                    </div>
-                                                </div>
-                                                <div class="security-question__summary-actions">
-                                                    <button type="button"
-                                                            class="security-question__action"
-                                                            data-summary-toggle
-                                                            data-summary-show-label="@L["Auth_Password_Show"].Value"
-                                                            data-summary-hide-label="@L["Auth_Password_Hide"].Value"
-                                                            aria-pressed="false"
-                                                           aria-label="@L["Auth_Password_Show"].Value"
-                                                            title="@L["Auth_Password_Show"].Value">
-                                                        👁️
-                                                    </button>
-                                                    <button type="button"
-                                                            class="security-question__action"
-                                                            data-summary-edit
-                                                            aria-controls="@bodyId"
-                                                            aria-expanded="@((state.IsActive ? "true" : "false"))"
-                                                            title="@L["Auth_Register_SecurityQuestions_Edit"].Value">
-                                                        ✏️
-                                                    </button>
-                                                    <button type="button"
-                                                            class="security-question__action security-question__action--danger"
-                                                            data-summary-remove
-                                                            title="@L["Auth_Register_SecurityQuestions_RemoveThis"].Value"
-                                                            @((enabled && state.IsVisible ? string.Empty : " disabled aria-disabled=\"true\""))>
-                                                        🗑️
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                       
                                         <div class="security-question__body" id="@bodyId" data-question-body @((state.ShowBody ? string.Empty : " hidden"))>
                                             <div class="security-question__fields">
                                                 <div>
@@ -760,28 +719,9 @@
                                                     @Html.ValidationMessage($"SecurityQuestion{questionNumber}Custom", null, new { @class = "val", data_error_custom = string.Empty })
                                                 </div>
                                                 <div>
-                                                    <label class="security-question__answer" for="@answerId">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
-                                                    <div class="password-field password-field--answer">
-                                                        <div class="password-field__input">
-                                                                <input id="@answerId" name="SecurityAnswer@questionNumber" value="@question.AnswerValue" type="password" autocomplete="off" data-answer-input minlength="3" />
-                                                            <button type="button"
-                                                                    class="password-toggle"
-                                                                    data-password-toggle="@answerId"
-                                                                    data-password-show="@L["Auth_Password_Show"].Value"
-                                                                    data-password-hide="@L["Auth_Password_Hide"].Value"
-                                                                    data-password-default="hide"
-                                                                    aria-label="@L["Auth_Password_Show"].Value"
-                                                                    tabindex="-1">
-                                                                <span class="password-toggle__emoji" aria-hidden="true">👁️</span>
-                                                                <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
-                                                            </button>
-                                                        </div>
-                                                    </div>
+                                                    <input id="@answerId" name="SecurityAnswer@questionNumber" value="@question.AnswerValue" type="text" autocomplete="off" data-answer-input minlength="3" />
                                                     @Html.ValidationMessage($"SecurityAnswer{questionNumber}", null, new { @class = "val", data_error_answer = string.Empty })
                                                 </div>
-                                            </div>
-                                            <div class="security-question__actions">
-                                                <button type="button" class="btn-link" data-question-remove @((enabled && state.IsVisible ? string.Empty : " disabled aria-disabled=\"true\""))>@L["Auth_Register_SecurityQuestions_RemoveThis"].Value</button>
                                             </div>
                                         </div>
                                     </div>
@@ -793,7 +733,8 @@
                         <div class="form-actions">
                             <input id="RecoveryPassword" name="Password" type="hidden" />
                             @Html.ValidationMessage("Password", null, new { @class = "val" })
-                            <button class="btn-primary" type="submit">@L["Dashboard_Profile_Recovery_Save"].Value</button>
+                            <button type="button" class="btn-outline" data-questions-add>@L["Auth_Register_SecurityQuestions_AddFirst"].Value</button>
+                            <button class="btn-primary" type="submit" data-questions-save hidden>@L["Dashboard_Profile_Recovery_Save"].Value</button>
                         </div>
                     </form>
                 </article>

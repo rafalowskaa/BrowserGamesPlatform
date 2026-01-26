@@ -1308,15 +1308,15 @@ public class DashboardController : Controller
         {
             SecurityQuestion1 = user.SecurityQuestion1Key ?? string.Empty,
             SecurityQuestion1Custom = user.SecurityQuestion1CustomPrompt,
-            SecurityAnswer1 = string.IsNullOrWhiteSpace(user.SecurityQuestion1AnswerHash) ? string.Empty : SecurityAnswerHelper.MaskedToken,
+            SecurityAnswer1 = string.Empty,
             HasSecurityAnswer1 = !string.IsNullOrWhiteSpace(user.SecurityQuestion1AnswerHash),
             SecurityQuestion2 = user.SecurityQuestion2Key ?? string.Empty,
             SecurityQuestion2Custom = user.SecurityQuestion2CustomPrompt,
-            SecurityAnswer2 = string.IsNullOrWhiteSpace(user.SecurityQuestion2AnswerHash) ? string.Empty : SecurityAnswerHelper.MaskedToken,
+            SecurityAnswer2 = string.Empty,
             HasSecurityAnswer2 = !string.IsNullOrWhiteSpace(user.SecurityQuestion2AnswerHash),
             SecurityQuestion3 = user.SecurityQuestion3Key ?? string.Empty,
             SecurityQuestion3Custom = user.SecurityQuestion3CustomPrompt,
-            SecurityAnswer3 = string.IsNullOrWhiteSpace(user.SecurityQuestion3AnswerHash) ? string.Empty : SecurityAnswerHelper.MaskedToken,
+            SecurityAnswer3 = string.Empty,
             HasSecurityAnswer3 = !string.IsNullOrWhiteSpace(user.SecurityQuestion3AnswerHash),
             SecurityQuestionOptions = recoveryOptions
         };
