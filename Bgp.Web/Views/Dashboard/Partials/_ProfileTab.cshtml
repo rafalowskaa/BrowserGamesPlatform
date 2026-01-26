@@ -626,7 +626,13 @@
                 <article class="profile-card profile-card--recovery">
                     <h4>@L["Dashboard_Profile_Recovery_Title"].Value</h4>
                     <p>@L["Dashboard_Profile_Recovery_Subtitle"].Value</p>
-                    <form asp-action="UpdateRecoveryQuestions" method="post" class="profile-form" data-profile-security-form>
+                        <form asp-action="UpdateRecoveryQuestions"
+                              method="post"
+                              class="profile-form"
+                              data-profile-security-form
+                              data-recovery-questions-form
+                              data-recovery-confirm-message="@L["Dashboard_Profile_Recovery_ConfirmMessage"].Value"
+                              data-recovery-password-required="@L["Dashboard_Profile_Recovery_ConfirmPasswordRequired"].Value">
                         @Html.AntiForgeryToken()
                         @Html.ValidationSummary(true, null, new { @class = "val-summary" })
                         <input type="hidden" name="HasExistingAnswer1" value="@security.Recovery.HasSecurityAnswer1" />
@@ -785,8 +791,7 @@
                         </div>
 
                         <div class="form-actions">
-                            <label for="RecoveryPassword">@L["Dashboard_Security_CurrentPassword"].Value</label>
-                            <input id="RecoveryPassword" name="Password" type="password" autocomplete="current-password" class="form-control-sm" />
+                            <input id="RecoveryPassword" name="Password" type="hidden" />
                             @Html.ValidationMessage("Password", null, new { @class = "val" })
                             <button class="btn-primary" type="submit">@L["Dashboard_Profile_Recovery_Save"].Value</button>
                         </div>
@@ -840,6 +845,27 @@
                 </footer>
             </div>
             <div class="modal__backdrop" data-modal-close></div>
+        </div>
+
+        <div class="modal" id="recoveryConfirmModal" hidden data-profile-recovery-modal>
+            <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="recoveryConfirmTitle">
+                <header class="modal__header">
+                    <h3 id="recoveryConfirmTitle">@L["Dashboard_Profile_Recovery_ConfirmTitle"].Value</h3>
+                </header>
+                <div class="modal__body">
+                    <p class="modal__message" data-recovery-modal-message>@L["Dashboard_Profile_Recovery_ConfirmMessage"].Value</p>
+                    <p class="modal__warning" data-recovery-modal-warning hidden></p>
+                    <div class="modal__field">
+                        <label for="recoveryConfirmPassword">@L["Dashboard_Profile_Recovery_ConfirmPasswordLabel"].Value</label>
+                        <input type="password" id="recoveryConfirmPassword" autocomplete="current-password" />
+                    </div>
+                </div>
+                <footer class="modal__footer">
+                    <button type="button" class="btn-outline" data-recovery-modal-close>@L["Dashboard_Profile_Recovery_ConfirmCancel"].Value</button>
+                    <button type="button" class="btn-primary" data-recovery-modal-confirm>@L["Dashboard_Profile_Recovery_ConfirmSave"].Value</button>
+                </footer>
+            </div>
+            <div class="modal__backdrop" data-recovery-modal-close></div>
         </div>
 
         <div class="modal" id="avatarCropModal" hidden data-profile-avatar-modal>

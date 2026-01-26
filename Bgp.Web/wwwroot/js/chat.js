@@ -2883,6 +2883,7 @@
             }
             usersList.innerHTML = '';
             const entries = [];
+            const seenIds = new Set();
             friends.forEach((friend) => {
                 if (!friend) {
                     return;
@@ -2902,6 +2903,34 @@
                 const lastSeenMs = lastSeen?.sentAtUtc ? (toUtcDate(lastSeen.sentAtUtc)?.getTime() || 0) : 0;
                 const lastActive = conversation?.latestSentAtMs || lastSeenMs || 0;
                 entries.push({ friend, conversation, lastActive });
+                seenIds.add(normalizeId(friend.userId));
+            });
+
+            strangerContacts.forEach((contact) => {
+                if (!contact || !contact.userId) {
+                    return;
+                }
+                const normalizedId = normalizeId(contact.userId);
+                if (!normalizedId || seenIds.has(normalizedId)) {
+                    return;
+                }
+                const friend = getFriend(contact.userId) || contact;
+                if (friend.isFriend || !hasConversationHistory(friend)) {
+                    return;
+                }
+                const matches = !searchTerm
+                    || (friend.displayName && friend.displayName.toLowerCase().includes(searchTerm))
+                    || (friend.userName && friend.userName.toLowerCase().includes(searchTerm))
+                    || (friend.statusMessage && friend.statusMessage.toLowerCase().includes(searchTerm));
+                if (!matches) {
+                    return;
+                }
+                const conversation = getConversation(friend.userId);
+                const lastSeen = getLastSeenEntry(friend.userId);
+                const lastSeenMs = lastSeen?.sentAtUtc ? (toUtcDate(lastSeen.sentAtUtc)?.getTime() || 0) : 0;
+                const lastActive = conversation?.latestSentAtMs || lastSeenMs || 0;
+                entries.push({ friend, conversation, lastActive });
+                seenIds.add(normalizeId(friend.userId));
             });
 
             entries.sort((a, b) => {

@@ -1134,3 +1134,96 @@
         initSecurityQuestions(container);
     });
 })();
+
+(function () {
+    var forms = Array.from(document.querySelectorAll('[data-recovery-questions-form]'));
+    if (!forms.length) {
+        return;
+    }
+
+    var modal = document.querySelector('[data-profile-recovery-modal]');
+    if (!modal) {
+        return;
+    }
+
+    var passwordInput = modal.querySelector('#recoveryConfirmPassword');
+    var warning = modal.querySelector('[data-recovery-modal-warning]');
+    var message = modal.querySelector('[data-recovery-modal-message]');
+    var confirmButton = modal.querySelector('[data-recovery-modal-confirm]');
+    var closeButtons = Array.from(modal.querySelectorAll('[data-recovery-modal-close]'));
+    var activeForm = null;
+
+    function openModal(form) {
+        activeForm = form;
+        if (message && form && form.dataset.recoveryConfirmMessage) {
+            message.textContent = form.dataset.recoveryConfirmMessage;
+        }
+        if (warning) {
+            warning.hidden = true;
+            warning.textContent = '';
+        }
+        if (passwordInput) {
+            passwordInput.value = '';
+        }
+        modal.removeAttribute('hidden');
+        if (passwordInput) {
+            passwordInput.focus();
+        }
+    }
+
+    function closeModal() {
+        modal.setAttribute('hidden', '');
+        if (passwordInput) {
+            passwordInput.value = '';
+        }
+        activeForm = null;
+        if (warning) {
+            warning.hidden = true;
+            warning.textContent = '';
+        }
+    }
+
+    closeButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            closeModal();
+        });
+    });
+
+    if (confirmButton) {
+        confirmButton.addEventListener('click', function () {
+            if (!activeForm) {
+                closeModal();
+                return;
+            }
+            var hiddenInput = activeForm.querySelector('input[name="Password"]');
+            var value = passwordInput ? passwordInput.value.trim() : '';
+            if (!value) {
+                if (warning) {
+                    warning.textContent = activeForm.dataset.recoveryPasswordRequired || 'Enter your password.';
+                    warning.hidden = false;
+                }
+                if (passwordInput) {
+                    passwordInput.focus();
+                }
+                return;
+            }
+            if (hiddenInput) {
+                hiddenInput.value = value;
+            }
+            closeModal();
+            activeForm.submit();
+        });
+    }
+
+    forms.forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            var hiddenInput = form.querySelector('input[name="Password"]');
+            var value = hiddenInput ? hiddenInput.value.trim() : '';
+            if (value) {
+                return;
+            }
+            event.preventDefault();
+            openModal(form);
+        });
+    });
+})();

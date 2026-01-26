@@ -2980,6 +2980,12 @@
 	<data name="Dashboard_Profile_Recovery_Subtitle" xml:space="preserve"><value>Ustaw unikalne odpowiedzi, aby łatwiej odzyskać dostęp.</value></data>
 	<data name="Dashboard_Profile_Recovery_QuestionLabel" xml:space="preserve"><value>Pytanie {0}</value></data>
 	<data name="Dashboard_Profile_Recovery_Save" xml:space="preserve"><value>Zapisz pytania odzyskiwania</value></data>
+	<data name="Dashboard_Profile_Recovery_ConfirmTitle" xml:space="preserve"><value>Potwierdź pytania odzyskiwania</value></data>
+	<data name="Dashboard_Profile_Recovery_ConfirmMessage" xml:space="preserve"><value>Wpisz obecne hasło, aby zapisać pytania odzyskiwania.</value></data>
+	<data name="Dashboard_Profile_Recovery_ConfirmPasswordLabel" xml:space="preserve"><value>Obecne hasło</value></data>
+	<data name="Dashboard_Profile_Recovery_ConfirmCancel" xml:space="preserve"><value>Anuluj</value></data>
+	<data name="Dashboard_Profile_Recovery_ConfirmSave" xml:space="preserve"><value>Zapisz pytania</value></data>
+	<data name="Dashboard_Profile_Recovery_ConfirmPasswordRequired" xml:space="preserve"><value>Wpisz hasło.</value></data>
 	<data name="Dashboard_Profile_Preferences_Title" xml:space="preserve"><value>Preferencje</value></data>
 	<data name="Dashboard_Profile_Preferences_Subtitle" xml:space="preserve"><value>Spersonalizuj Browser Games Platform.</value></data>
 	<data name="Dashboard_Profile_Preferences_Language" xml:space="preserve"><value>Język interfejsu</value></data>

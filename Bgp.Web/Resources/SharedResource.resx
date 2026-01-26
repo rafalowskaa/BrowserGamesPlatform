@@ -2990,6 +2990,12 @@
 	<data name="Dashboard_Profile_Recovery_Subtitle" xml:space="preserve"><value>Set unique answers so we can help you recover access.</value></data>
 	<data name="Dashboard_Profile_Recovery_QuestionLabel" xml:space="preserve"><value>Question {0}</value></data>
 	<data name="Dashboard_Profile_Recovery_Save" xml:space="preserve"><value>Save recovery answers</value></data>
+	<data name="Dashboard_Profile_Recovery_ConfirmTitle" xml:space="preserve"><value>Confirm recovery questions</value></data>
+	<data name="Dashboard_Profile_Recovery_ConfirmMessage" xml:space="preserve"><value>Enter your current password to save recovery questions.</value></data>
+	<data name="Dashboard_Profile_Recovery_ConfirmPasswordLabel" xml:space="preserve"><value>Current password</value></data>
+	<data name="Dashboard_Profile_Recovery_ConfirmCancel" xml:space="preserve"><value>Cancel</value></data>
+	<data name="Dashboard_Profile_Recovery_ConfirmSave" xml:space="preserve"><value>Save questions</value></data>
+	<data name="Dashboard_Profile_Recovery_ConfirmPasswordRequired" xml:space="preserve"><value>Please enter your password.</value></data>
 	<data name="Dashboard_Profile_Preferences_Title" xml:space="preserve"><value>Preferences</value></data>
 	<data name="Dashboard_Profile_Preferences_Subtitle" xml:space="preserve"><value>Personalise your Browser Games Platform experience.</value></data>
 	<data name="Dashboard_Profile_Preferences_Language" xml:space="preserve"><value>Interface language</value></data>
