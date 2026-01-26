@@ -694,6 +694,37 @@
     gap: var(--space-1);
 }
 
+.home-dashboard__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-bottom: var(--space-4);
+}
+
+    .home-dashboard__nav a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 0.85rem;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        color: rgba(226, 232, 240, 0.85);
+        background: rgba(15, 23, 42, 0.55);
+        transition: 0.2s ease;
+    }
+
+        .home-dashboard__nav a:hover,
+        .home-dashboard__nav a:focus-visible {
+            color: #fff;
+            border-color: rgba(148, 163, 184, 0.4);
+        }
+
+        .home-dashboard__nav a.is-active {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.45);
+            color: #e0f2fe;
+        }
+
 .home-dashboard__grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));

@@ -62,6 +62,7 @@
     var showQuestion2Custom = ShouldShowCustom(security.Recovery.SecurityQuestion2, security.Recovery.SecurityQuestion2Custom, "SecurityQuestion2Custom");
     var showQuestion3Custom = ShouldShowCustom(security.Recovery.SecurityQuestion3, security.Recovery.SecurityQuestion3Custom, "SecurityQuestion3Custom");
 
+    var maskedToken = SecurityAnswerHelper.MaskedToken;
     var recoveryQuestions = new[]
     {
         new
@@ -69,36 +70,48 @@
             Index = 1,
             QuestionValue = security.Recovery.SecurityQuestion1 ?? string.Empty,
             CustomValue = security.Recovery.SecurityQuestion1Custom ?? string.Empty,
-            AnswerValue = security.Recovery.SecurityAnswer1 ?? string.Empty,
+            AnswerValue = string.IsNullOrWhiteSpace(security.Recovery.SecurityAnswer1) && security.Recovery.HasSecurityAnswer1
+                ? maskedToken
+                : (security.Recovery.SecurityAnswer1 ?? string.Empty),
             ShowCustom = showQuestion1Custom,
             HasError = question1HasError,
+            HasExistingAnswer = security.Recovery.HasSecurityAnswer1,
             HasValue = !string.IsNullOrWhiteSpace(security.Recovery.SecurityQuestion1)
                       || !string.IsNullOrWhiteSpace(security.Recovery.SecurityQuestion1Custom)
                       || !string.IsNullOrWhiteSpace(security.Recovery.SecurityAnswer1)
+                      || security.Recovery.HasSecurityAnswer1
         },
         new
         {
             Index = 2,
             QuestionValue = security.Recovery.SecurityQuestion2 ?? string.Empty,
             CustomValue = security.Recovery.SecurityQuestion2Custom ?? string.Empty,
-            AnswerValue = security.Recovery.SecurityAnswer2 ?? string.Empty,
+            AnswerValue = string.IsNullOrWhiteSpace(security.Recovery.SecurityAnswer2) && security.Recovery.HasSecurityAnswer2
+                ? maskedToken
+                : (security.Recovery.SecurityAnswer2 ?? string.Empty),
             ShowCustom = showQuestion2Custom,
             HasError = question2HasError,
+            HasExistingAnswer = security.Recovery.HasSecurityAnswer2,
             HasValue = !string.IsNullOrWhiteSpace(security.Recovery.SecurityQuestion2)
                       || !string.IsNullOrWhiteSpace(security.Recovery.SecurityQuestion2Custom)
                       || !string.IsNullOrWhiteSpace(security.Recovery.SecurityAnswer2)
+                      || security.Recovery.HasSecurityAnswer2
         },
         new
         {
             Index = 3,
             QuestionValue = security.Recovery.SecurityQuestion3 ?? string.Empty,
             CustomValue = security.Recovery.SecurityQuestion3Custom ?? string.Empty,
-            AnswerValue = security.Recovery.SecurityAnswer3 ?? string.Empty,
+            AnswerValue = string.IsNullOrWhiteSpace(security.Recovery.SecurityAnswer3) && security.Recovery.HasSecurityAnswer3
+                ? maskedToken
+                : (security.Recovery.SecurityAnswer3 ?? string.Empty),
             ShowCustom = showQuestion3Custom,
             HasError = question3HasError,
+            HasExistingAnswer = security.Recovery.HasSecurityAnswer3,
             HasValue = !string.IsNullOrWhiteSpace(security.Recovery.SecurityQuestion3)
                       || !string.IsNullOrWhiteSpace(security.Recovery.SecurityQuestion3Custom)
                       || !string.IsNullOrWhiteSpace(security.Recovery.SecurityAnswer3)
+                      || security.Recovery.HasSecurityAnswer3
         }
     };
 
@@ -236,6 +249,12 @@
     }
         .Where(hint => !string.IsNullOrWhiteSpace(hint))
         .Select(hint => $"• {hint}"));
+
+    var recoveryUnlockKeys = ViewData.ModelState.Keys
+   .Where(key => key.StartsWith("SecurityQuestion", StringComparison.OrdinalIgnoreCase)
+                 || key.StartsWith("SecurityAnswer", StringComparison.OrdinalIgnoreCase))
+   .ToList();
+    var recoveryUnlocked = recoveryUnlockKeys.Any();
 
 }
 
@@ -631,110 +650,145 @@
                               class="profile-form"
                               data-profile-security-form
                               data-recovery-questions-form
+                              data-recovery-unlocked="@((recoveryUnlocked ? "true" : "false"))"
                               data-recovery-confirm-message="@L["Dashboard_Profile_Recovery_ConfirmMessage"].Value"
-                              data-recovery-password-required="@L["Dashboard_Profile_Recovery_ConfirmPasswordRequired"].Value">
+                              data-recovery-password-required="@L["Dashboard_Profile_Recovery_ConfirmPasswordRequired"].Value"
+                              data-recovery-unlock-message="@L["Dashboard_Profile_Recovery_UnlockMessage"].Value"
+                              data-recovery-unlock-required="@L["Dashboard_Profile_Recovery_UnlockPasswordRequired"].Value">
                         @Html.AntiForgeryToken()
                         @Html.ValidationSummary(true, null, new { @class = "val-summary" })
                         <input type="hidden" name="HasExistingAnswer1" value="@security.Recovery.HasSecurityAnswer1" />
                         <input type="hidden" name="HasExistingAnswer2" value="@security.Recovery.HasSecurityAnswer2" />
                         <input type="hidden" name="HasExistingAnswer3" value="@security.Recovery.HasSecurityAnswer3" />
 
-                        <div class="security-questions@(enabled ? string.Empty : " security-questions--disabled")"
-                             data-security-questions
-                             data-custom-option="@SecurityQuestionCatalog.CustomKey"
-                             data-questions-layout="expanded"
-                             data-answer-minlength="3"
-                             data-question-minlength="5"
-                             data-max-questions="3"
-                             data-initial-count="@initialCount"
-                             data-initial-active="@activeIndex"
-                             data-initial-enabled="@((enabled ? "true" : "false"))"
-                             data-label-add-first="@L["Auth_Register_SecurityQuestions_AddFirst"].Value"
-                             data-label-add-next="@L["Auth_Register_SecurityQuestions_AddAnother"].Value"
-                             data-message-question-required="@L["Auth_Register_SecurityQuestions_SelectRequired"].Value"
-                             data-message-custom-min="@L["Auth_Register_SecurityQuestions_Custom_MinLength"].Value"
-                             data-message-answer-min="@L["Auth_SecurityQuestions_Answer_MinLength"].Value"
-                             data-message-answer-common="@L["Auth_SecurityQuestions_Answer_Common"].Value"
-                             data-message-answer-matches="@L["Auth_SecurityQuestions_Answer_MatchesQuestion"].Value">
-                            <div class="security-questions__header">
-                                <div class="security-questions__heading">
-                                    <div class="security-questions__title">
-                                        <h3 class="form-label-with-hint">
-                                            <span>@L["Auth_Register_SecurityQuestions_Title"].Value</span>
-                                            <button type="button"
-                                                    class="info-hint"
-                                                    data-tooltip="@securityQuestionsTooltip"
-                                                    title="@securityQuestionsTooltip"
-                                                    aria-label="@securityQuestionsTooltip">
-                                                i
-                                            </button>
-                                        </h3>
-                                            <p class="security-questions__description">@L["Auth_Register_SecurityQuestions_MaxHint"].Value</p>
-                                    </div>
-                                </div>
-                                <p class="security-questions__empty" data-empty-hint @((emptyHintHidden ? " hidden" : string.Empty))>@L["Auth_Register_SecurityQuestions_EmptyState"].Value</p>
-                               
+                            <div class="security-questions__lock" data-recovery-lock-banner>
+                                <p>@L["Dashboard_Profile_Recovery_UnlockHint"].Value</p>
+                                <button type="button" class="btn-outline" data-recovery-unlock>@L["Dashboard_Profile_Recovery_UnlockAction"].Value</button>
                             </div>
 
-                            <div class="security-questions__list" data-question-list @((listHidden ? " hidden" : string.Empty))>
-                                @for (var i = 0; i < questionStates.Length; i++)
-                                {
-                                    var state = questionStates[i];
-                                    var question = recoveryQuestions[i];
-                                    var questionNumber = state.Index;
-                                    var selectId = $"SecurityQuestion{questionNumber}";
-                                    var bodyId = $"SecurityQuestion{questionNumber}Body";
-                                    var customId = $"SecurityQuestion{questionNumber}Custom";
-                                    var answerId = $"SecurityAnswer{questionNumber}";
-                                    var questionKey = question.QuestionValue;
-                                    var isCustomSelected = string.Equals(questionKey, SecurityQuestionCatalog.CustomKey, StringComparison.OrdinalIgnoreCase);
-                                    var questionHasError = state.HasError ? "true" : "false";
-                                    <div class="security-question@(state.IsActive ? " is-active" : string.Empty)@(state.IsCollapsed ? " is-collapsed" : string.Empty)@(state.IsComplete ? " is-complete" : string.Empty)"
-                                         data-question-item
-                                         data-question-index="@questionNumber"
-                                         data-has-error="@questionHasError" @((state.IsVisible ? string.Empty : " hidden"))>
-                                       
-                                        <div class="security-question__body" id="@bodyId" data-question-body @((state.ShowBody ? string.Empty : " hidden"))>
-                                            <div class="security-question__fields">
-                                                <div>
-                                                    <label for="@selectId">@string.Format(L["Dashboard_Profile_Recovery_QuestionLabel"].Value, questionNumber)</label>
-                                                    <select id="@selectId" name="SecurityQuestion@questionNumber" data-question-select data-custom-option="@SecurityQuestionCatalog.CustomKey">
-                                                        <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
-                                                        @foreach (var option in security.Recovery.SecurityQuestionOptions)
-                                                        {
-                                                            var isCustom = string.Equals(option.Key, SecurityQuestionCatalog.CustomKey, StringComparison.Ordinal);
-                                                            if (!isCustom)
+                            <div class="security-questions__content" data-recovery-lock-scope>
+                                <div class="security-questions@(enabled ? string.Empty : " security-questions--disabled")"
+                                     data-security-questions
+                                     data-custom-option="@SecurityQuestionCatalog.CustomKey"
+                                     data-answer-mask="@SecurityAnswerHelper.MaskedToken"
+                                     data-answer-minlength="3"
+                                     data-question-minlength="5"
+                                     data-max-questions="3"
+                                     data-initial-count="@initialCount"
+                                     data-initial-active="@activeIndex"
+                                     data-initial-enabled="@((enabled ? "true" : "false"))"
+                                     data-label-add-first="@L["Auth_Register_SecurityQuestions_AddFirst"].Value"
+                                     data-label-add-next="@L["Auth_Register_SecurityQuestions_AddAnother"].Value"
+                                     data-message-question-required="@L["Auth_Register_SecurityQuestions_SelectRequired"].Value"
+                                     data-message-custom-min="@L["Auth_Register_SecurityQuestions_Custom_MinLength"].Value"
+                                     data-message-answer-min="@L["Auth_SecurityQuestions_Answer_MinLength"].Value"
+                                     data-message-answer-common="@L["Auth_SecurityQuestions_Answer_Common"].Value"
+                                     data-message-answer-matches="@L["Auth_SecurityQuestions_Answer_MatchesQuestion"].Value">
+                                    <div class="security-questions__header">
+                                        <div class="security-questions__heading">
+                                            <div class="security-questions__title">
+                                                <h3 class="form-label-with-hint">
+                                                    <span>@L["Auth_Register_SecurityQuestions_Title"].Value</span>
+                                                    <button type="button"
+                                                            class="info-hint"
+                                                            data-tooltip="@securityQuestionsTooltip"
+                                                            title="@securityQuestionsTooltip"
+                                                            aria-label="@securityQuestionsTooltip">
+                                                        
+                                                    </button>
+                                                </h3>
+                                            <p class="security-questions__description">@L["Auth_Register_SecurityQuestions_MaxHint"].Value</p>
+                                        </div>
+                                    </div>
+                                    <p class="security-questions__empty" data-empty-hint @((emptyHintHidden ? " hidden" : string.Empty))>@L["Auth_Register_SecurityQuestions_EmptyState"].Value</p>
+                                </div>
+
+                                    <div class="security-questions__list" data-question-list @((listHidden ? " hidden" : string.Empty))>
+                                        @for (var i = 0; i < questionStates.Length; i++)
+                                        {
+                                            var state = questionStates[i];
+                                            var question = recoveryQuestions[i];
+                                            var questionNumber = state.Index;
+                                            var selectId = $"SecurityQuestion{questionNumber}";
+                                            var bodyId = $"SecurityQuestion{questionNumber}Body";
+                                            var customId = $"SecurityQuestion{questionNumber}Custom";
+                                            var answerId = $"SecurityAnswer{questionNumber}";
+                                            var questionKey = question.QuestionValue;
+                                            var isCustomSelected = string.Equals(questionKey, SecurityQuestionCatalog.CustomKey, StringComparison.OrdinalIgnoreCase);
+                                            var questionHasError = state.HasError ? "true" : "false";
+                                            <div class="security-question@(state.IsActive ? " is-active" : string.Empty)@(state.IsCollapsed ? " is-collapsed" : string.Empty)@(state.IsComplete ? " is-complete" : string.Empty)"
+                                                 data-question-item
+                                                 data-question-index="@questionNumber"
+                                                 data-has-error="@questionHasError" @((state.IsVisible ? string.Empty : " hidden"))>
+                                                <div class="security-question__summary" data-question-summary @((state.ShowSummary ? string.Empty : " hidden"))>
+                                                    <button type="button"
+                                                            class="security-question__summary-button"
+                                                            data-summary-edit
+                                                            aria-controls="@bodyId"
+                                                            aria-expanded="@((state.IsActive ? "true" : "false"))">
+                                                        <span class="security-question__summary-question" data-summary-question>&nbsp;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="security-question__body" id="@bodyId" data-question-body @((state.ShowBody ? string.Empty : " hidden"))>
+                                                    <div class="security-question__fields">
+                                                        <div>
+                                                            <label for="@selectId">@string.Format(L["Dashboard_Profile_Recovery_QuestionLabel"].Value, questionNumber)</label>
+                                                            <select id="@selectId" name="SecurityQuestion@questionNumber" data-question-select data-custom-option="@SecurityQuestionCatalog.CustomKey">
+                                                                <option value="">@L["Auth_Register_SecurityQuestions_Select"].Value</option>
+                                                                @foreach (var option in security.Recovery.SecurityQuestionOptions)
                                                             {
-                                                                var isSelected = string.Equals(option.Key, questionKey, StringComparison.OrdinalIgnoreCase);
-                                                                <option value="@option.Key" data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")" selected="@(isSelected ? "selected" : null)">@option.Label</option>
+                                                                var isCustom = string.Equals(option.Key, SecurityQuestionCatalog.CustomKey, StringComparison.Ordinal);
+                                                                if (!isCustom)
+                                                                {
+                                                                    var isSelected = string.Equals(option.Key, questionKey, StringComparison.OrdinalIgnoreCase);
+                                                                    <option value="@option.Key" data-allows-multiple="@(option.AllowsCustomPrompt ? "true" : "false")" selected="@(isSelected ? "selected" : null)">@option.Label</option>
+                                                                }
                                                             }
-                                                        }
-                                                        <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true" selected="@(isCustomSelected ? "selected" : null)">@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
-                                                    </select>
-                                                    @Html.ValidationMessage($"SecurityQuestion{questionNumber}", null, new { @class = "val", data_error_question = string.Empty })
-                                                </div>
-                                                <div class="security-question__custom-group" data-custom-container @((question.ShowCustom ? string.Empty : " hidden"))>
-                                                    <label class="sr-only" for="@customId">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
-                                                    <input id="@customId" name="SecurityQuestion@questionNumber@("Custom")" value="@question.CustomValue" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
-                                                    @Html.ValidationMessage($"SecurityQuestion{questionNumber}Custom", null, new { @class = "val", data_error_custom = string.Empty })
-                                                </div>
-                                                <div>
-                                                    <input id="@answerId" name="SecurityAnswer@questionNumber" value="@question.AnswerValue" type="text" autocomplete="off" data-answer-input minlength="3" />
-                                                    @Html.ValidationMessage($"SecurityAnswer{questionNumber}", null, new { @class = "val", data_error_answer = string.Empty })
+                                                                <option value="@SecurityQuestionCatalog.CustomKey" data-custom="true" data-allows-multiple="true" selected="@(isCustomSelected ? "selected" : null)">@L["Auth_Register_SecurityQuestions_Custom"].Value</option>
+                                                            </select>
+                                                            @Html.ValidationMessage($"SecurityQuestion{questionNumber}", null, new { @class = "val", data_error_question = string.Empty })
+                                                        </div>
+                                                        <div class="security-question__custom-group" data-custom-container @((question.ShowCustom ? string.Empty : " hidden"))>
+                                                            <label class="sr-only" for="@customId">@L["Auth_Register_SecurityQuestions_Custom"].Value</label>
+                                                            <input id="@customId" name="SecurityQuestion@questionNumber@("Custom")" value="@question.CustomValue" placeholder="@L["Auth_Register_SecurityQuestions_CustomPlaceholder"].Value" />
+                                                            @Html.ValidationMessage($"SecurityQuestion{questionNumber}Custom", null, new { @class = "val", data_error_custom = string.Empty })
+                                                        </div>
+                                                        <div>
+                                                            <label class="security-question__answer" for="@answerId">@L["Auth_Register_SecurityQuestions_Answer"].Value</label>
+                                                            <div class="password-field password-field--answer">
+                                                                <div class="password-field__input">
+                                                                    <input id="@answerId" name="SecurityAnswer@questionNumber" value="@question.AnswerValue" type="password" autocomplete="off" data-answer-input minlength="3" />
+                                                                    <button type="button"
+                                                                            class="password-toggle"
+                                                                            data-password-toggle="@answerId"
+                                                                            data-password-show="@L["Auth_Password_Show"].Value"
+                                                                            data-password-hide="@L["Auth_Password_Hide"].Value"
+                                                                            data-password-default="hide"
+                                                                            aria-label="@L["Auth_Password_Show"].Value"
+                                                                            tabindex="-1">
+                                                                        <span class="password-toggle__emoji" aria-hidden="true">👁️</span>
+                                                                        <span class="sr-only" data-password-label>@L["Auth_Password_Show"].Value</span>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            @Html.ValidationMessage($"SecurityAnswer{questionNumber}", null, new { @class = "val", data_error_answer = string.Empty })
+                                                        </div>
+                                                    </div>
+                                                    <div class="security-question__actions">
+                                                        <button type="button" class="btn-link" data-question-remove @((enabled && state.IsVisible ? string.Empty : " disabled aria-disabled=\"true\""))>@L["Auth_Register_SecurityQuestions_RemoveThis"].Value</button>
                                                 </div>
                                             </div>
                                         </div>
+                                        }
                                     </div>
-                                }
                             </div>
 
-                        </div>
-
-                        <div class="form-actions">
-                            <input id="RecoveryPassword" name="Password" type="hidden" />
-                            @Html.ValidationMessage("Password", null, new { @class = "val" })
-                            <button type="button" class="btn-outline" data-questions-add>@L["Auth_Register_SecurityQuestions_AddFirst"].Value</button>
-                            <button class="btn-primary" type="submit" data-questions-save hidden>@L["Dashboard_Profile_Recovery_Save"].Value</button>
+                                <div class="form-actions">
+                                    <input id="RecoveryPassword" name="Password" type="hidden" />
+                                    @Html.ValidationMessage("Password", null, new { @class = "val" })
+                                    <button type="button" class="btn-outline" data-questions-add>@L["Auth_Register_SecurityQuestions_AddFirst"].Value</button>
+                                    <button class="btn-primary" type="submit" data-questions-save hidden>@L["Dashboard_Profile_Recovery_Save"].Value</button>
+                                </div>
                         </div>
                     </form>
                 </article>
@@ -786,6 +840,27 @@
                 </footer>
             </div>
             <div class="modal__backdrop" data-modal-close></div>
+        </div>
+
+        <div class="modal" id="recoveryUnlockModal" hidden data-profile-recovery-unlock-modal>
+            <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="recoveryUnlockTitle">
+                <header class="modal__header">
+                    <h3 id="recoveryUnlockTitle">@L["Dashboard_Profile_Recovery_UnlockTitle"].Value</h3>
+                </header>
+                <div class="modal__body">
+                    <p class="modal__message" data-recovery-unlock-message>@L["Dashboard_Profile_Recovery_UnlockMessage"].Value</p>
+                    <p class="modal__warning" data-recovery-unlock-warning hidden></p>
+                    <div class="modal__field">
+                        <label for="recoveryUnlockPassword">@L["Dashboard_Profile_Recovery_UnlockPasswordLabel"].Value</label>
+                        <input type="password" id="recoveryUnlockPassword" autocomplete="current-password" />
+                    </div>
+                </div>
+                <footer class="modal__footer">
+                    <button type="button" class="btn-outline" data-recovery-unlock-close>@L["Dashboard_Profile_Recovery_UnlockCancel"].Value</button>
+                    <button type="button" class="btn-primary" data-recovery-unlock-confirm>@L["Dashboard_Profile_Recovery_UnlockConfirm"].Value</button>
+                </footer>
+            </div>
+            <div class="modal__backdrop" data-recovery-unlock-close></div>
         </div>
 
         <div class="modal" id="recoveryConfirmModal" hidden data-profile-recovery-modal>

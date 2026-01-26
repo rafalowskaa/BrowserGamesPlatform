@@ -1146,6 +1146,123 @@
         return;
     }
 
+    var modal = document.querySelector('[data-profile-recovery-unlock-modal]');
+    if (!modal) {
+        return;
+    }
+
+    var passwordInput = modal.querySelector('#recoveryUnlockPassword');
+    var warning = modal.querySelector('[data-recovery-unlock-warning]');
+    var message = modal.querySelector('[data-recovery-unlock-message]');
+    var confirmButton = modal.querySelector('[data-recovery-unlock-confirm]');
+    var closeButtons = Array.from(modal.querySelectorAll('[data-recovery-unlock-close]'));
+    var activeForm = null;
+
+    function setLocked(form, locked) {
+        if (!form) {
+            return;
+        }
+        var lockScope = form.querySelector('[data-recovery-lock-scope]');
+        var lockBanner = form.querySelector('[data-recovery-lock-banner]');
+        var questionsContainer = form.querySelector('[data-security-questions]');
+        if (questionsContainer) {
+            questionsContainer.classList.toggle('security-questions--locked', locked);
+        }
+        if (lockBanner) {
+            lockBanner.hidden = !locked;
+        }
+        if (lockScope) {
+            Array.from(lockScope.querySelectorAll('input, select, textarea, button')).forEach(function (field) {
+                if (field.closest('[data-recovery-lock-exempt]')) {
+                    return;
+                }
+                field.disabled = locked;
+                if (locked) {
+                    field.setAttribute('aria-disabled', 'true');
+                } else {
+                    field.removeAttribute('aria-disabled');
+                }
+            });
+        }
+        form.dataset.recoveryUnlocked = locked ? 'false' : 'true';
+    }
+
+    function openModal(form) {
+        activeForm = form;
+        if (message && form && form.dataset.recoveryUnlockMessage) {
+            message.textContent = form.dataset.recoveryUnlockMessage;
+        }
+        if (warning) {
+            warning.hidden = true;
+            warning.textContent = '';
+        }
+        if (passwordInput) {
+            passwordInput.value = '';
+        }
+        modal.removeAttribute('hidden');
+        if (passwordInput) {
+            passwordInput.focus();
+        }
+    }
+
+    function closeModal() {
+        modal.setAttribute('hidden', '');
+        if (passwordInput) {
+            passwordInput.value = '';
+        }
+        activeForm = null;
+        if (warning) {
+            warning.hidden = true;
+            warning.textContent = '';
+        }
+    }
+
+    closeButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            closeModal();
+        });
+    });
+
+    if (confirmButton) {
+        confirmButton.addEventListener('click', function () {
+            if (!activeForm) {
+                closeModal();
+                return;
+            }
+            var value = passwordInput ? passwordInput.value.trim() : '';
+            if (!value) {
+                if (warning) {
+                    warning.textContent = activeForm.dataset.recoveryUnlockRequired || 'Enter your password.';
+                    warning.hidden = false;
+                }
+                if (passwordInput) {
+                    passwordInput.focus();
+                }
+                return;
+            }
+            setLocked(activeForm, false);
+            closeModal();
+        });
+    }
+
+    forms.forEach(function (form) {
+        var unlockButton = form.querySelector('[data-recovery-unlock]');
+        if (unlockButton) {
+            unlockButton.addEventListener('click', function () {
+                openModal(form);
+            });
+        }
+        var initialUnlocked = form.dataset.recoveryUnlocked === 'true';
+        setLocked(form, !initialUnlocked);
+    });
+})();
+
+(function () {
+    var forms = Array.from(document.querySelectorAll('[data-recovery-questions-form]'));
+    if (!forms.length) {
+        return;
+    }
+
     var modal = document.querySelector('[data-profile-recovery-modal]');
     if (!modal) {
         return;

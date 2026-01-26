@@ -208,6 +208,15 @@
                     <ul class="chat-contacts chat-contacts--search" data-chat-local-results></ul>
                     <p class="chat-empty" data-chat-local-empty>@L["Chat_NoMatches"].Value</p>
                 </section>
+                <section class="chat-panel__section" data-chat-section="strangers">
+                    <div class="chat-panel__section-header">
+                        <button type="button" class="chat-panel__section-toggle" data-chat-section-toggle>
+                            <span>@L["Chat_Strangers"].Value</span>
+                        </button>
+                    </div>
+                    <ul class="chat-contacts" data-chat-strangers></ul>
+                    <p class="chat-empty" data-chat-strangers-empty>@L["Chat_NoStrangers"].Value</p>
+                </section>
                 <div class="chat-panel__profile" data-chat-status>
                     <button type="button"
                             class="chat-status-toggle"

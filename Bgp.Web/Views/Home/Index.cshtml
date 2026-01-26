@@ -211,6 +211,20 @@
 else
 {
         <section class="home-section home-dashboard">
+        <nav class="home-dashboard__nav" aria-label="@L["Dashboard_Title"].Value">
+            <a class="is-active" asp-controller="Home" asp-action="Index">@L["Navigation_Home"].Value</a>
+            <a asp-controller="Dashboard" asp-action="Index" asp-route-tab="overview">@L["Dashboard_Overview_Tab"].Value</a>
+            <a asp-controller="Dashboard" asp-action="Index" asp-route-tab="profile">@L["Dashboard_Profile_Tab"].Value</a>
+            <a asp-controller="Dashboard" asp-action="Index" asp-route-tab="stats">@L["Dashboard_Stats_Tab"].Value</a>
+            <a asp-controller="Dashboard" asp-action="Index" asp-route-tab="games">@L["Dashboard_Games_AddTab"].Value</a>
+            <a asp-controller="Dashboard" asp-action="Index" asp-route-tab="friends">@L["Dashboard_Friends_Tab"].Value</a>
+            <a asp-controller="Dashboard" asp-action="Index" asp-route-tab="notifications">
+                @L["Dashboard_Notifications_Tab"].Value
+                <span class="notification-badge" data-notifications-badge hidden>0</span>
+            </a>
+            <a asp-controller="Dashboard" asp-action="Index" asp-route-tab="ranking">@L["Dashboard_Ranking_Tab"].Value</a>
+            <a asp-controller="Dashboard" asp-action="Index" asp-route-tab="history">@L["Dashboard_ExperienceHistory_Tab"].Value</a>
+        </nav>
             <div class="home-dashboard__welcome">
                 <h2>@L["Home_Dashboard_Welcome_Title"].Value</h2>
                 <p>@L["Home_Dashboard_Welcome_Description"].Value</p>

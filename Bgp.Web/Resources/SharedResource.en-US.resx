@@ -2986,6 +2986,14 @@
 	<data name="Dashboard_Profile_Recovery_ConfirmCancel" xml:space="preserve"><value>Cancel</value></data>
 	<data name="Dashboard_Profile_Recovery_ConfirmSave" xml:space="preserve"><value>Save questions</value></data>
 	<data name="Dashboard_Profile_Recovery_ConfirmPasswordRequired" xml:space="preserve"><value>Please enter your password.</value></data>
+	<data name="Dashboard_Profile_Recovery_UnlockTitle" xml:space="preserve"><value>Unlock recovery questions</value></data>
+	<data name="Dashboard_Profile_Recovery_UnlockMessage" xml:space="preserve"><value>Enter your current password to edit recovery questions.</value></data>
+	<data name="Dashboard_Profile_Recovery_UnlockPasswordLabel" xml:space="preserve"><value>Current password</value></data>
+	<data name="Dashboard_Profile_Recovery_UnlockCancel" xml:space="preserve"><value>Cancel</value></data>
+	<data name="Dashboard_Profile_Recovery_UnlockConfirm" xml:space="preserve"><value>Unlock</value></data>
+	<data name="Dashboard_Profile_Recovery_UnlockPasswordRequired" xml:space="preserve"><value>Please enter your password.</value></data>
+	<data name="Dashboard_Profile_Recovery_UnlockHint" xml:space="preserve"><value>To edit recovery questions, confirm your password first.</value></data>
+	<data name="Dashboard_Profile_Recovery_UnlockAction" xml:space="preserve"><value>Unlock editing</value></data>
 	<data name="Dashboard_Profile_Preferences_Title" xml:space="preserve"><value>Preferences</value></data>
 	<data name="Dashboard_Profile_Preferences_Subtitle" xml:space="preserve"><value>Personalise your Browser Games Platform experience.</value></data>
 	<data name="Dashboard_Profile_Preferences_Language" xml:space="preserve"><value>Interface language</value></data>
