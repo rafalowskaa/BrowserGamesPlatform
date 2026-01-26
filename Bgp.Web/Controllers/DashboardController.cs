@@ -1786,6 +1786,8 @@ public class DashboardController : Controller
             {
                 "match" => ("Dashboard_Profile_History_Match_Title", ResolveMatchHistoryBody(details.Details)),
                 "ranking" => ("Dashboard_Profile_History_Ranking_Title", "Dashboard_Profile_History_Ranking_Body"),
+                "comment" => ("Dashboard_Profile_History_Comment_Title", "Dashboard_Profile_History_Comment_Body"),
+                "rating" => ("Dashboard_Profile_History_Rating_Title", "Dashboard_Profile_History_Rating_Body"),
                 "admin" => ("Dashboard_Profile_History_Admin_Title", "Dashboard_Profile_History_Admin_Body"),
                 _ => ("Dashboard_Profile_History_Generic_Title", "Dashboard_Profile_History_Generic_Body")
             };

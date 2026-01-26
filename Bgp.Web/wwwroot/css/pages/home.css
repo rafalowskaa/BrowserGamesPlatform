@@ -922,6 +922,10 @@
     justify-content: center;
 }
 
+.home-guest__section--facts {
+    margin-bottom: var(--space-6);
+}
+
 .home-guest__section--facts + .home-community,
 .home-facts-section + .home-community {
     margin-top: calc(var(--space-7) * 2);

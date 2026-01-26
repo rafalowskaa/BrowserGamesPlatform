@@ -184,6 +184,13 @@ public class GameCommentsController : ControllerBase
             }
         });
 
+        await _logger.LogAsync(ActivityLogType.ExperienceGained, userId, log =>
+        {
+            log.GameId = gameId;
+            log.TargetUserId = userId;
+            log.Message = ExperienceLogFormatter.BuildMessage(RankCalculator.CommentExperience, "comment", reference: comment.Id.ToString("N"));
+        });
+
         return Created(string.Empty, new
         {
             id = comment.Id,

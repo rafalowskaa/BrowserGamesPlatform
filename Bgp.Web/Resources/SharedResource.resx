@@ -3843,6 +3843,18 @@
   </data>
 	<data name="Dashboard_Profile_History_Ranking_Body" xml:space="preserve">
     <value>Score improvement added experience.</value>
+		</data>
+	<data name="Dashboard_Profile_History_Comment_Title" xml:space="preserve">
+    <value>Comment added</value>
+  </data>
+	<data name="Dashboard_Profile_History_Comment_Body" xml:space="preserve">
+    <value>Adding a comment awarded experience.</value>
+  </data>
+	<data name="Dashboard_Profile_History_Rating_Title" xml:space="preserve">
+    <value>Game rating</value>
+  </data>
+	<data name="Dashboard_Profile_History_Rating_Body" xml:space="preserve">
+    <value>Submitting a rating awarded experience.</value>
   </data>
 	<data name="Dashboard_Profile_History_Admin_Title" xml:space="preserve">
     <value>Admin adjustment</value>

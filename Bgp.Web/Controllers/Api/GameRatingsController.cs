@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using Bgp.Infrastructure.Persistence;
 using Bgp.Domain.Enums;
+using Bgp.Web.Helpers;
 using Bgp.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -104,6 +105,14 @@ public class GameRatingsController : ControllerBase
             log.GameId = gameId;
             log.Rating = dto.Value;
         });
+
+        await _logger.LogAsync(ActivityLogType.ExperienceGained, userId, log =>
+        {
+            log.GameId = gameId;
+            log.TargetUserId = userId;
+            log.Message = ExperienceLogFormatter.BuildMessage(RankCalculator.RatingExperience, "rating", reference: $"{gameId:N}:{userId}");
+        });
+
         return Ok(new { value = dto.Value });
     }
 }

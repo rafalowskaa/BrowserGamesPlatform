@@ -15,6 +15,8 @@ public static class RankCalculator
     public const int MatchWinExperience = 90;
     public const int MatchLossExperience = 10;
     public const int MatchDrawExperience = 50;
+    public const int RatingExperience = 10;
+    public const int CommentExperience = 5;
 
     private static readonly IReadOnlyList<RankStage> RankTable = BuildRankTable();
     private static readonly TrophyVisual DefaultTrophyVisual = new("/img/trophies/silver.png", "#94a3b8", "#e2e8f0");
@@ -112,8 +114,8 @@ public static class RankCalculator
         }
 
         var engagementXp = stats.UploadedGames * 140
-                           + stats.TotalRatings * 35
-                           + stats.TotalComments * 20
+                           + stats.TotalRatings * RatingExperience
+                           + stats.TotalComments * CommentExperience
                            + stats.FriendsCount * 15
                            + stats.MultiplayerMatches * 20
                            + stats.DailyLoginCount * 12;
