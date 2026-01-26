@@ -24,8 +24,8 @@
     const archivedEmpty = panel ? panel.querySelector('[data-chat-archived-empty]') : null;
     const requestsList = panel ? panel.querySelector('[data-chat-requests]') : null;
     const requestsEmpty = panel ? panel.querySelector('[data-chat-requests-empty]') : null;
-    const strangersList = panel ? panel.querySelector('[data-chat-strangers]') : null;
-    const strangersEmpty = panel ? panel.querySelector('[data-chat-strangers-empty]') : null;
+    const strangersList = usersList || (panel ? panel.querySelector('[data-chat-strangers]') : null);
+    const strangersEmpty = usersEmpty || (panel ? panel.querySelector('[data-chat-strangers-empty]') : null);
     const localResultsSection = panel ? panel.querySelector('[data-chat-search-section]') : null;
     const localResultsList = panel ? panel.querySelector('[data-chat-local-results]') : null;
     const localResultsEmpty = panel ? panel.querySelector('[data-chat-local-empty]') : null;
@@ -2423,19 +2423,19 @@
             panel.classList.toggle('is-searching', !!enabled);
             if (enabled) {
                 const localSection = panel.querySelector('[data-chat-section="local-results"]');
-                const strangerSection = panel.querySelector('[data-chat-section="strangers"]');
+                const usersSection = panel.querySelector('[data-chat-section="users"]');
                 searchSectionSnapshot = {
                     local: !!(localSection && localSection.classList.contains('is-collapsed')),
-                    strangers: !!(strangerSection && strangerSection.classList.contains('is-collapsed'))
+                    users: !!(usersSection && usersSection.classList.contains('is-collapsed'))
                 };
                 setSectionCollapsed('local-results', false, { persist: false });
-                setSectionCollapsed('strangers', false, { persist: false });
+                setSectionCollapsed('users', false, { persist: false });
             } else if (searchSectionSnapshot) {
                 if (searchSectionSnapshot.local) {
                     setSectionCollapsed('local-results', true, { persist: false });
                 }
-                if (searchSectionSnapshot.strangers) {
-                    setSectionCollapsed('strangers', true, { persist: false });
+                if (searchSectionSnapshot.users) {
+                    setSectionCollapsed('users', true, { persist: false });
                 }
                 searchSectionSnapshot = null;
             }
@@ -2693,7 +2693,7 @@
 
                 const button = document.createElement('button');
                 button.type = 'button';
-                button.className = 'chat-contact__button chat-contact__button--ghost';
+                button.className = 'chat-contact__button';
                 button.addEventListener('click', (event) => {
                     event.preventDefault();
                     hydrateFriendSnapshot(entry);
@@ -2790,7 +2790,7 @@
                     } else {
                         visibleActive++;
                     }
-                } else if (hasConversationHistory(friend)) {
+                } else {
                     visibleStrangers++;
                 }
             }
@@ -2877,6 +2877,95 @@
             });
         }
 
+        function createDirectoryEntry(entry, options = {}) {
+            const li = document.createElement('li');
+            li.className = 'chat-contact';
+            if (options.isSearchResult) {
+                li.dataset.strangerSearch = '';
+            }
+            li.dataset.chatFriend = entry.userId;
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'chat-contact__button';
+            button.dataset.chatFriend = entry.userId;
+            button.addEventListener('click', () => {
+                hydrateFriendSnapshot(entry);
+                if (entry.relation === 'pending-out') {
+                    return;
+                }
+                openConversation(entry.userId, entry.displayName);
+            });
+
+            const avatar = document.createElement('span');
+            avatar.className = 'chat-contact__avatar';
+            avatar.setAttribute('aria-hidden', 'true');
+            buildAvatarImage(avatar, entry.avatarUrl || '', entry.displayName || entry.userId || '');
+
+            const statusDot = document.createElement('span');
+            statusDot.className = 'chat-status-dot';
+            statusDot.dataset.friendDot = '';
+            avatar.appendChild(statusDot);
+
+            const meta = document.createElement('span');
+            meta.className = 'chat-contact__meta';
+
+            const name = document.createElement('span');
+            name.className = 'chat-contact__name';
+            name.dataset.friendName = '';
+            name.textContent = entry.displayName || entry.userName || entry.userId;
+            meta.appendChild(name);
+
+            const status = document.createElement('span');
+            status.className = 'chat-contact__status';
+            status.dataset.friendStatus = '';
+            if (entry.relation === 'pending-out') {
+                status.textContent = strings.searchPending || strings.pendingOutgoing;
+            } else if (entry.relation === 'pending-in') {
+                status.textContent = strings.searchApprovalRequired || strings.searchPending;
+            } else {
+                status.textContent = entry.statusMessage || presenceLabel(entry);
+            }
+            meta.appendChild(status);
+
+            button.appendChild(avatar);
+            button.appendChild(meta);
+            li.appendChild(button);
+
+            const actions = document.createElement('div');
+            actions.className = 'chat-contact__actions';
+            const requestActions = createSearchActionButtons(entry);
+            if (requestActions && requestActions.childNodes.length > 0) {
+                actions.append(...Array.from(requestActions.childNodes));
+            }
+            const menuBtn = document.createElement('button');
+            menuBtn.type = 'button';
+            menuBtn.className = 'chat-contact__menu';
+            menuBtn.dataset.chatContextTrigger = entry.userId;
+            menuBtn.setAttribute('aria-label', strings.contextProfile || 'More options');
+            menuBtn.innerHTML = '⋮';
+            menuBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                openContextMenu(entry.userId, menuBtn, {
+                    userId: entry.userId,
+                    displayName: entry.displayName,
+                    userName: entry.userName,
+                    isFriend: entry.relation === 'friend',
+                    avatarUrl: entry.avatarUrl || null,
+                    isArchived: false,
+                    keepArchived: false,
+                    isBlocked: false
+                });
+            });
+            actions.appendChild(menuBtn);
+            li.appendChild(actions);
+
+            applyStatusDot(statusDot, entry);
+
+            return { element: li, menuButton: menuBtn };
+        }
+
         function renderUsersDirectory() {
             if (!usersList) {
                 return;
@@ -2884,118 +2973,122 @@
             usersList.innerHTML = '';
             const entries = [];
             const seenIds = new Set();
-            friends.forEach((friend) => {
-                if (!friend) {
+            const pendingLookup = new Map();
+            incomingRequests.forEach((request) => {
+                if (!request || !request.userId) {
                     return;
                 }
-                if (friend.isFriend || !hasConversationHistory(friend)) {
+                pendingLookup.set(normalizeId(request.userId), 'pending-in');
+            });
+            outgoingRequests.forEach((request) => {
+                if (!request || !request.userId) {
                     return;
                 }
-                const matches = !searchTerm
-                    || (friend.displayName && friend.displayName.toLowerCase().includes(searchTerm))
-                    || (friend.userName && friend.userName.toLowerCase().includes(searchTerm))
-                    || (friend.statusMessage && friend.statusMessage.toLowerCase().includes(searchTerm));
-                if (!matches) {
-                    return;
-                }
-                const conversation = getConversation(friend.userId);
-                const lastSeen = getLastSeenEntry(friend.userId);
-                const lastSeenMs = lastSeen?.sentAtUtc ? (toUtcDate(lastSeen.sentAtUtc)?.getTime() || 0) : 0;
-                const lastActive = conversation?.latestSentAtMs || lastSeenMs || 0;
-                entries.push({ friend, conversation, lastActive });
-                seenIds.add(normalizeId(friend.userId));
+                pendingLookup.set(normalizeId(request.userId), 'pending-out');
             });
 
-            strangerContacts.forEach((contact) => {
-                if (!contact || !contact.userId) {
+            const addEntry = (entry) => {
+                if (!entry || !entry.userId) {
                     return;
                 }
-                const normalizedId = normalizeId(contact.userId);
+                const normalizedId = normalizeId(entry.userId);
                 if (!normalizedId || seenIds.has(normalizedId)) {
                     return;
                 }
-                const friend = getFriend(contact.userId) || contact;
-                if (friend.isFriend || !hasConversationHistory(friend)) {
+                if (!matchesSearch(entry, searchTerm)) {
                     return;
                 }
-                const matches = !searchTerm
-                    || (friend.displayName && friend.displayName.toLowerCase().includes(searchTerm))
-                    || (friend.userName && friend.userName.toLowerCase().includes(searchTerm))
-                    || (friend.statusMessage && friend.statusMessage.toLowerCase().includes(searchTerm));
-                if (!matches) {
+                entries.push(entry);
+                seenIds.add(normalizedId);
+            };
+
+            friends.forEach((friend) => {
+                if (!friend || friend.isFriend) {
                     return;
                 }
-                const conversation = getConversation(friend.userId);
-                const lastSeen = getLastSeenEntry(friend.userId);
-                const lastSeenMs = lastSeen?.sentAtUtc ? (toUtcDate(lastSeen.sentAtUtc)?.getTime() || 0) : 0;
-                const lastActive = conversation?.latestSentAtMs || lastSeenMs || 0;
-                entries.push({ friend, conversation, lastActive });
-                seenIds.add(normalizeId(friend.userId));
+                const relation = pendingLookup.get(normalizeId(friend.userId)) || 'stranger';
+                const friendEntry = {
+                    userId: friend.userId,
+                    displayName: friend.displayName || friend.userName || friend.userId,
+                    userName: friend.userName,
+                    avatarUrl: friend.avatarUrl,
+                    statusMessage: friend.statusMessage,
+                    presence: friend.presence,
+                    isInvisible: friend.isInvisible,
+                    relation,
+                    outgoingRequest: relation === 'pending-out',
+                    incomingRequest: relation === 'pending-in',
+                    friendRef: relation === 'stranger' ? friend : null
+                };
+                addEntry(friendEntry);
+            });
+
+            incomingRequests.forEach((request) => {
+                if (!request || !request.userId) {
+                    return;
+                }
+                addEntry({
+                    userId: request.userId,
+                    displayName: request.displayName,
+                    userName: request.userName,
+                    avatarUrl: request.avatarUrl,
+                    statusMessage: request.statusMessage,
+                    presence: normalizePresence(request.presence),
+                    isInvisible: !!request.isInvisible,
+                    relation: 'pending-in',
+                    outgoingRequest: false,
+                    incomingRequest: true,
+                    friendRef: null
+                });
+            });
+
+            outgoingRequests.forEach((request) => {
+                if (!request || !request.userId) {
+                    return;
+                }
+                addEntry({
+                    userId: request.userId,
+                    displayName: request.displayName,
+                    userName: request.userName,
+                    avatarUrl: request.avatarUrl,
+                    statusMessage: request.statusMessage,
+                    presence: normalizePresence(request.presence),
+                    isInvisible: !!request.isInvisible,
+                    relation: 'pending-out',
+                    outgoingRequest: true,
+                    incomingRequest: false,
+                    friendRef: null
+                });
             });
 
             entries.sort((a, b) => {
-                const diff = (b.lastActive || 0) - (a.lastActive || 0);
-                if (diff !== 0) {
-                    return diff;
+                const relationOrder = {
+                    'pending-in': 0,
+                    'pending-out': 1,
+                    stranger: 2
+                };
+                const relationDiff = (relationOrder[a.relation] || 9) - (relationOrder[b.relation] || 9);
+                if (relationDiff !== 0) {
+                    return relationDiff;
                 }
-                const nameA = (a.friend.displayName || a.friend.userName || a.friend.userId || '').toLowerCase();
-                const nameB = (b.friend.displayName || b.friend.userName || b.friend.userId || '').toLowerCase();
+                const nameA = (a.displayName || a.userName || a.userId || '').toLowerCase();
+                const nameB = (b.displayName || b.userName || b.userId || '').toLowerCase();
                 return nameA.localeCompare(nameB);
             });
 
             const fragment = document.createDocumentFragment();
-            entries.forEach(entry => {
-                const friend = entry.friend;
-                const li = document.createElement('li');
-                li.className = 'chat-contact';
-
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'chat-contact__button';
-                button.dataset.chatFriend = friend.userId;
-                button.addEventListener('click', () => openConversation(friend.userId, friend.displayName));
-
-                const avatar = document.createElement('span');
-                avatar.className = 'chat-contact__avatar';
-                avatar.setAttribute('aria-hidden', 'true');
-                buildAvatarImage(avatar, friend.avatarUrl || '', friend.displayName || friend.userId || '');
-                const statusDot = document.createElement('span');
-                statusDot.className = 'chat-status-dot';
-                statusDot.dataset.friendDot = '';
-                avatar.appendChild(statusDot);
-                applyStatusDot(statusDot, friend);
-
-                const meta = document.createElement('span');
-                meta.className = 'chat-contact__meta';
-
-                const name = document.createElement('span');
-                name.className = 'chat-contact__name';
-                name.textContent = friend.displayName || friend.userName || friend.userId;
-                meta.appendChild(name);
-
-                const status = document.createElement('span');
-                status.className = 'chat-contact__status';
-                if (entry.conversation && entry.conversation.latestSentAtMs) {
-                    status.textContent = formatDayFromDate(new Date(entry.conversation.latestSentAtMs));
-                } else {
-                    status.textContent = presenceLabel(friend);
+            entries.forEach((entry) => {
+                const { element, menuButton } = createDirectoryEntry(entry, { isSearchResult: false });
+                if (entry.friendRef) {
+                    entry.friendRef.element = element;
+                    entry.friendRef.menuButton = menuButton;
+                    updateFriendUnreadState(entry.friendRef, (entry.friendRef.unreadCount || 0) > 0);
                 }
-                meta.appendChild(status);
-
-                button.appendChild(avatar);
-                button.appendChild(meta);
-                li.appendChild(button);
-                fragment.appendChild(li);
+                fragment.appendChild(element);
             });
 
             usersList.appendChild(fragment);
-            if (usersEmpty) {
-                const emptyText = searchTerm && strings.noMatches
-                    ? strings.noMatches
-                    : (usersEmptyDefault || usersEmpty.textContent || '');
-                usersEmpty.textContent = emptyText;
-                usersEmpty.style.display = entries.length > 0 ? 'none' : 'block';
-            }
+            updateStrangerEmptyState(entries.length);
     }
 
     function updateActiveEmptyState(count) {
@@ -3018,28 +3111,7 @@
     }
 
     function renderStrangerContacts() {
-        if (!strangersList) {
-            return;
-        }
-        const expected = new Set();
-        strangerContacts.forEach((contact) => {
-            if (!contact || !contact.element) {
-                return;
-            }
-            expected.add(contact.element);
-            if (!contact.element.parentElement) {
-                strangersList.insertBefore(contact.element, strangersList.firstChild);
-            }
-            contact.element.dataset.strangerContact = '';
-        });
-
-        Array.from(strangersList.querySelectorAll('[data-stranger-contact]')).forEach((node) => {
-            if (!expected.has(node)) {
-                node.remove();
-            }
-        });
-
-        updateStrangerEmptyState();
+        renderUsersDirectory();
     }
 
         function ensureStrangerContact(friend, options = {}) {
@@ -3066,7 +3138,7 @@
                 || hasConversationHistory(friend);
             contact.hasConversationHistory = hasHistory;
             if (!contact.element && strangersList) {
-            contact.element = createFriendElement(contact, { ghost: true });
+            contact.element = createFriendElement(contact);
         }
         contact.isFriend = false;
         setStrangerContact(contact.userId, contact);
@@ -3112,8 +3184,20 @@
             ? visibleContacts
             : Array.from(friends.values()).filter((f) => !f.isFriend && f.element && !f.element.hidden).length;
         const hasSearchResults = !!(strangersList && strangersList.querySelector('[data-stranger-search]'));
-        const shouldShow = strangerMessageForced || ((visibleCount === 0) && !hasSearchResults && strangerMessage);
-        strangersEmpty.textContent = strangerMessage;
+        let shouldShow = false;
+        let emptyText = '';
+        if (strangerMessage && (strangerMessageForced || ((visibleCount === 0) && !hasSearchResults))) {
+            emptyText = strangerMessage;
+            shouldShow = true;
+        } else if (visibleCount === 0 && !hasSearchResults) {
+            emptyText = searchTerm && strings.noMatches
+                ? strings.noMatches
+                : (usersEmptyDefault || strangersEmpty.textContent || '');
+            shouldShow = true;
+        }
+        if (shouldShow) {
+            strangersEmpty.textContent = emptyText;
+        }
         strangersEmpty.style.display = shouldShow ? 'block' : 'none';
     }
 
@@ -3185,88 +3269,9 @@
 
 
             seen.add(identifier);
-            
-            const li = document.createElement('li');
-            li.className = 'chat-contact';
-            li.dataset.strangerSearch = '';
-            li.dataset.chatFriend = rawUserId;
-
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = ['chat-contact__button', 'chat-contact__button--ghost'].join(' ').trim();
-            button.addEventListener('click', () => {
-                hydrateFriendSnapshot(actionEntry);
-                if (relation === 'pending-out') {
-                    return;
-                }
-                openConversation(rawUserId, displayName);
-            });
-
-            const avatar = document.createElement('span');
-            avatar.className = 'chat-contact__avatar';
-            avatar.setAttribute('aria-hidden', 'true');
-            buildAvatarImage(avatar, player.avatarUrl || player.AvatarUrl || '', '');
-
-            const statusDot = document.createElement('span');
-            statusDot.className = 'chat-status-dot';
-            statusDot.dataset.friendDot = '';
-            avatar.appendChild(statusDot);
-
-            const meta = document.createElement('span');
-            meta.className = 'chat-contact__meta';
-
-            const name = document.createElement('span');
-            name.className = 'chat-contact__name';
-            name.textContent = displayName;
-            meta.appendChild(name);
-
-            const prompt = document.createElement('span');
-            prompt.className = 'chat-contact__status';
-            if (relation === 'pending-out') {
-                prompt.textContent = strings.searchPending || strings.pendingOutgoing;
-            } else if (relation === 'pending-in') {
-                prompt.textContent = strings.searchApprovalRequired || strings.searchPending;
-            } else if (relation === 'friend') {
-                prompt.textContent = strings.searchOpenChat || strings.strangersPrompt;
-            } else {
-                prompt.textContent = strings.searchWrite || strings.strangersPrompt;
-            }
-            meta.appendChild(prompt);
-
-            button.appendChild(avatar);
-            button.appendChild(meta);
-            li.appendChild(button);
-            const actions = document.createElement('div');
-            actions.className = 'chat-contact__actions';
-            
-            const requestActions = createSearchActionButtons(actionEntry);
-            if (requestActions && requestActions.childNodes.length > 0) {
-                actions.append(...Array.from(requestActions.childNodes));
-            }
-            const menuBtn = document.createElement('button');
-            menuBtn.type = 'button';
-            menuBtn.className = 'chat-contact__menu';
-            menuBtn.dataset.chatContextTrigger = rawUserId;
-            menuBtn.setAttribute('aria-label', strings.contextProfile || 'More options');
-            menuBtn.innerHTML = '⋮';
-            menuBtn.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                openContextMenu(rawUserId, menuBtn, {
-                    userId: rawUserId,
-                    displayName,
-                    userName: playerUserName,
-                    isFriend: false,
-                    avatarUrl: player.avatarUrl || null,
-                    isArchived: false,
-                    keepArchived: false,
-                    isBlocked: false
-                });
-            });
-            actions.appendChild(menuBtn);
-            li.appendChild(actions);
-            fragment.appendChild(li);
-            applyStatusDot(statusDot, actionEntry);
+          
+            const { element } = createDirectoryEntry(actionEntry, { isSearchResult: true });
+            fragment.appendChild(element);
         });
         strangersList.appendChild(fragment);
         showStrangerMessage('', false);
