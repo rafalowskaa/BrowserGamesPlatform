@@ -1759,6 +1759,24 @@
 	<data name="Admin_Games_Metadata_Cover_Upload_Error" xml:space="preserve">
 		<value>Plik okładki musi być obrazem i nie może przekraczać 5 MB.</value>
 	</data>
+	<data name="Admin_Games_Metadata_Package" xml:space="preserve">
+		<value>Pakiet gry (.zip)</value>
+	</data>
+	<data name="Admin_Games_Metadata_Package_Help" xml:space="preserve">
+		<value>Wgraj nową paczkę gry w formacie .zip.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Package_Version" xml:space="preserve">
+		<value>Wersja pakietu</value>
+	</data>
+	<data name="Admin_Games_Metadata_Package_Version_Help" xml:space="preserve">
+		<value>Wpisz numer wersji, np. 1.0.1. Wymagane przy wgrywaniu paczki.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Package_Upload_Error" xml:space="preserve">
+		<value>Plik gry musi być archiwum .zip z buildem.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Package_Version_Required" xml:space="preserve">
+		<value>Podaj wersję paczki, aby wgrać plik gry.</value>
+	</data>
 	<data name="Admin_Games_Accordion_Classification" xml:space="preserve">
         <value>Klasyfikacja</value>
     </data>

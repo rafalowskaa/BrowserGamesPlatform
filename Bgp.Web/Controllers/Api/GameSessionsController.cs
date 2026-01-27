@@ -119,12 +119,22 @@ public class GameSessionsController : ControllerBase
 
         if (isNewSession)
         {
-            await _logger.LogAsync(ActivityLogType.GameSessionCreated, userId, log =>
+            var recentlyLogged = await _db.ActivityLogs
+                .AsNoTracking()
+                .AnyAsync(log =>
+                    log.Type == ActivityLogType.GameSessionCreated &&
+                    log.ActorUserId == userId &&
+                    log.GameId == gameId &&
+                    log.CreatedAtUtc >= now.AddSeconds(-15));
+            if (!recentlyLogged)
             {
-                log.GameId = gameId;
-                log.InviteId = null;
-                log.TargetUserId = null;
-            });
+                await _logger.LogAsync(ActivityLogType.GameSessionCreated, userId, log =>
+                {
+                    log.GameId = gameId;
+                    log.InviteId = null;
+                    log.TargetUserId = null;
+                });
+            }
         }
 
         var joinUrl = Url.Action("Details", "Games", new { slug = game.Slug, tab = "play", sessionId = session.Id, token }, Request.Scheme);

@@ -605,8 +605,8 @@
 }
 
 .leaderboard__trophy {
-    width: calc(1.9rem * var(--ranking-scale));
-    height: calc(1.9rem * var(--ranking-scale));
+    width: 1em;
+    height: 1em;
     object-fit: contain;
     filter: drop-shadow(0 4px 10px rgba(15, 23, 42, 0.4));
 }

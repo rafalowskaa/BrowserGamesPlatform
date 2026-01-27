@@ -140,6 +140,10 @@ public class AdminUpdateGameMetadataInputModel
     public string? CoverImagePath { get; set; }
 
     public IFormFile? CoverImageUpload { get; set; }
+    [MaxLength(40)]
+    public string? PackageVersion { get; set; }
+
+    public IFormFile? PackageUpload { get; set; }
 
     public List<int> Categories { get; set; } = new();
 

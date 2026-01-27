@@ -1112,9 +1112,19 @@
     gap: 1.25rem;
 }
 
+.profile-section__body--security {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
     .profile-section__body--security .profile-card--sessions {
         grid-column: 1 / -1;
     }
+
+@media (max-width: 60rem) {
+    .profile-section__body--security {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
 
 .profile-column {
     display: grid;

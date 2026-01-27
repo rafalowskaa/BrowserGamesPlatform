@@ -90,37 +90,19 @@
     const TIME_GAP_THRESHOLD_MS = 15 * 60 * 1000;
     const MIN_SEARCH_LENGTH = 3;
 
-        let messageAudioContext = null;
-
-        function getMessageAudioContext() {
-            if (messageAudioContext) {
-                return messageAudioContext;
-            }
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) {
-                return null;
-            }
-            messageAudioContext = new AudioContext();
-            return messageAudioContext;
+        const messageSoundUrl = '/audio/message-wave.mp3';
+        const messageSound = typeof Audio !== 'undefined' ? new Audio(messageSoundUrl) : null;
+        if (messageSound) {
+            messageSound.preload = 'auto';
         }
 
         function playMessageSound() {
-            const ctx = getMessageAudioContext();
-            if (!ctx) {
+            if (!messageSound) {
                 return;
             }
-            if (ctx.state === 'suspended') {
-                ctx.resume().catch(() => { });
-            }
-            const oscillator = ctx.createOscillator();
-            const gain = ctx.createGain();
-            oscillator.type = 'triangle';
-            oscillator.frequency.value = 520;
-            gain.gain.value = 0.08;
-            oscillator.connect(gain);
-            gain.connect(ctx.destination);
-            oscillator.start();
-            oscillator.stop(ctx.currentTime + 0.14);
+            const sound = messageSound.cloneNode(true);
+            sound.volume = 0.45;
+            sound.play().catch(() => { });
         }
 
     const friends = new Map();

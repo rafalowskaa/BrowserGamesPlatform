@@ -36,6 +36,15 @@
     <Folder Include="wwwroot\img\flags\" />
     <Folder Include="wwwroot\img\trophies\" />
   </ItemGroup>
+	
+  <ItemGroup>
+    <Content Update="wwwroot\audio\message-wave.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\audio\soundmess.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>

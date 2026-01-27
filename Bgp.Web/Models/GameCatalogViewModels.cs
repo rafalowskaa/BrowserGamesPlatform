@@ -18,6 +18,7 @@ public record GameCatalogItemViewModel(
     string Slug,
     string? CoverImagePath,
     double AverageRating,
+    int ReviewCount,
     GameMode Modes,
     GameCategory Categories,
     IReadOnlyList<string> Tags,

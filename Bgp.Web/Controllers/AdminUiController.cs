@@ -902,6 +902,67 @@ public class AdminUiController : Controller
             }
         }
 
+        if (input.PackageUpload is { Length: > 0 })
+        {
+            var version = input.PackageVersion?.Trim();
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                if (IsAjaxRequest())
+                {
+                    return BadRequest(_localizer["Admin_Games_Metadata_Package_Version_Required"].Value);
+                }
+                TempData["AdminGamesError"] = "Admin_Games_Metadata_Package_Version_Required";
+                return RedirectToAction(nameof(Games));
+            }
+
+            var extension = Path.GetExtension(input.PackageUpload.FileName);
+            if (!string.Equals(extension, ".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                if (IsAjaxRequest())
+                {
+                    return BadRequest(_localizer["Admin_Games_Metadata_Package_Upload_Error"].Value);
+                }
+                TempData["AdminGamesError"] = "Admin_Games_Metadata_Package_Upload_Error";
+                return RedirectToAction(nameof(Games));
+            }
+
+            var target = $"games/{normalizedSlug}/{version}";
+            try
+            {
+                await using var stream = input.PackageUpload.OpenReadStream();
+                await _fileStorage.ExtractZipAsync(stream, target);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to upload package for game {GameId}", game.Id);
+                if (IsAjaxRequest())
+                {
+                    return BadRequest(_localizer["Admin_Games_Metadata_Package_Upload_Error"].Value);
+                }
+                TempData["AdminGamesError"] = "Admin_Games_Metadata_Package_Upload_Error";
+                return RedirectToAction(nameof(Games));
+            }
+
+            var contentPath = "/" + target.TrimStart('/');
+            var existingVersion = await _db.GameVersions
+                .FirstOrDefaultAsync(v => v.GameId == game.Id && v.Version == version);
+            if (existingVersion is null)
+            {
+                _db.GameVersions.Add(new GameVersion
+                {
+                    GameId = game.Id,
+                    Version = version,
+                    ContentPath = contentPath,
+                    PublishedAtUtc = DateTime.UtcNow
+                });
+            }
+            else
+            {
+                existingVersion.ContentPath = contentPath;
+                existingVersion.PublishedAtUtc = DateTime.UtcNow;
+            }
+        }
+
         GameCategory categories = GameCategory.None;
         if (input.Categories is not null)
         {

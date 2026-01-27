@@ -542,6 +542,10 @@
             this.fieldCoverUpload = this.drawer?.querySelector('[data-field-cover-upload]');
             this.coverUploadLabel = this.drawer?.querySelector('[data-cover-upload-label]');
             this.coverUploadLabelDefault = this.coverUploadLabel?.dataset.defaultLabel || this.coverUploadLabel?.textContent || '';
+            this.fieldPackageVersion = this.drawer?.querySelector('[data-field-package-version]');
+            this.fieldPackageUpload = this.drawer?.querySelector('[data-field-package-upload]');
+            this.packageUploadLabel = this.drawer?.querySelector('[data-package-upload-label]');
+            this.packageUploadLabelDefault = this.packageUploadLabel?.dataset.defaultLabel || this.packageUploadLabel?.textContent || '';
             this.fieldDescription = this.drawer?.querySelector('[data-field-description]');
             this.fieldRules = this.drawer?.querySelector('[data-field-rules]');
             this.fieldStatus = this.drawer?.querySelector('[data-field-status]');
@@ -694,6 +698,12 @@
             this.fieldCoverUpload?.addEventListener('change', (event) => {
                 const file = event.target?.files?.length ? event.target.files[0] : null;
                 this.handleCoverUploadChange(file);
+                this.onMetadataChanged();
+            });
+
+            this.fieldPackageUpload?.addEventListener('change', (event) => {
+                const file = event.target?.files?.length ? event.target.files[0] : null;
+                this.handlePackageUploadChange(file);
                 this.onMetadataChanged();
             });
 
@@ -915,6 +925,10 @@
                 this.fieldCover.value = game.coverImagePath || '';
             }
             this.resetCoverUpload();
+            this.resetPackageUpload();
+            if (this.fieldPackageVersion) {
+                this.fieldPackageVersion.value = '';
+            }
             if (this.fieldDescription) {
                 this.fieldDescription.value = game.description || '';
             }
@@ -1038,6 +1052,15 @@
             }
         }
 
+        resetPackageUpload() {
+            if (this.fieldPackageUpload) {
+                this.fieldPackageUpload.value = '';
+            }
+            if (this.packageUploadLabel) {
+                this.packageUploadLabel.textContent = this.packageUploadLabelDefault;
+            }
+        }
+
         handleCoverUploadChange(file) {
             if (this.coverUploadObjectUrl) {
                 URL.revokeObjectURL(this.coverUploadObjectUrl);
@@ -1055,6 +1078,12 @@
                 }
                 const current = this.fieldCover?.value?.trim();
                 this.setCoverPreview(current || null);
+            }
+        }
+
+        handlePackageUploadChange(file) {
+            if (this.packageUploadLabel) {
+                this.packageUploadLabel.textContent = file ? file.name : this.packageUploadLabelDefault;
             }
         }
 
@@ -1137,6 +1166,7 @@
                 }
 
                 this.resetCoverUpload();
+                this.resetPackageUpload();
                 this.isDirty = false;
                 this.setSaveStatus('saved');
                 showToast(this.messages.saveSuccess, 'success');

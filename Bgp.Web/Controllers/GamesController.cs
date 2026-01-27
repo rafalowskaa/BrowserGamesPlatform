@@ -72,6 +72,7 @@ public class GamesController : Controller
                 g.Description,
                 g.Modes,
                 g.Categories,
+                ReviewCount = g.Reviews.Count(r => r.IsRating),
                 AverageRating = g.Reviews.Any(r => r.IsRating) ? g.Reviews.Where(r => r.IsRating).Average(r => r.Stars) : 0.0,
                 Tags = g.Tags
                     .Where(t => t.IsApproved)
@@ -109,6 +110,7 @@ public class GamesController : Controller
                 g.Slug,
                 g.CoverImagePath,
                 g.AverageRating,
+                g.ReviewCount,
                 g.Modes,
                 g.Categories,
                 g.Tags,

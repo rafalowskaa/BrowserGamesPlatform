@@ -54,37 +54,19 @@
         }
     };
 
-    let notificationAudioContext = null;
-
-    function getNotificationAudioContext() {
-        if (notificationAudioContext) {
-            return notificationAudioContext;
-        }
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) {
-            return null;
-        }
-        notificationAudioContext = new AudioContext();
-        return notificationAudioContext;
+    const notificationSoundUrl = '/audio/soundmess.mp3';
+    const notificationSound = typeof Audio !== 'undefined' ? new Audio(notificationSoundUrl) : null;
+    if (notificationSound) {
+        notificationSound.preload = 'auto';
     }
 
     function playNotificationSound() {
-        const ctx = getNotificationAudioContext();
-        if (!ctx) {
+        if (!notificationSound) {
             return;
         }
-        if (ctx.state === 'suspended') {
-            ctx.resume().catch(() => { });
-        }
-        const oscillator = ctx.createOscillator();
-        const gain = ctx.createGain();
-        oscillator.type = 'sine';
-        oscillator.frequency.value = 740;
-        gain.gain.value = 0.08;
-        oscillator.connect(gain);
-        gain.connect(ctx.destination);
-        oscillator.start();
-        oscillator.stop(ctx.currentTime + 0.18);
+        const sound = notificationSound.cloneNode(true);
+        sound.volume = 0.4;
+        sound.play().catch(() => { });
     }
 
     scanImages();

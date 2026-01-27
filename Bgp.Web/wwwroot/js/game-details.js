@@ -91,6 +91,7 @@
     const commentVotes = new Map();
     let rulesImageInput = null;
     let leaveRequestSent = false;
+    let sessionRequestInFlight = false;
 
     initialize();
 
@@ -272,12 +273,21 @@
             setPlayerStatus('error', config.text?.playError);
             return false;
         }
+        if (sessionRequestInFlight) {
+            return false;
+        }
         ensurePlayerFrame();
         if (!playerFrame) {
             setPlayerStatus('error', config.text?.playError);
             return false;
         }
+        if (currentSessionId && playerContainer?.dataset.state === 'ready') {
+            setPlayerStatus('ready', config.text?.playReady);
+            return true;
+        }
         setPlayerStatus('loading', config.text?.playLoading);
+        setPlayControlsDisabled(true);
+        sessionRequestInFlight = true;
 
         try {
             const created = await createSession(mode);
@@ -292,6 +302,18 @@
             console.error(err);
             setPlayerStatus('error', config.text?.playError);
             return false;
+        } finally {
+            sessionRequestInFlight = false;
+            setPlayControlsDisabled(false);
+        }
+    }
+
+    function setPlayControlsDisabled(disabled) {
+        playButtons.forEach(btn => {
+            btn.disabled = disabled;
+        });
+        if (retryButton) {
+            retryButton.disabled = disabled;
         }
     }
 

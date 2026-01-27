@@ -367,6 +367,22 @@
                                                     <span class="metadata-cover-upload__filename" data-cover-upload-label data-default-label="@L["Dashboard_Common_NoFile"].Value">@L["Dashboard_Common_NoFile"].Value</span>
                                                 </div>
                                             </label>
+                                            <label class="form-field">
+                                                <span>@L["Admin_Games_Metadata_Package_Version"].Value</span>
+                                                <input type="text" name="PackageVersion" data-field-package-version maxlength="40" />
+                                                <small>@L["Admin_Games_Metadata_Package_Version_Help"].Value</small>
+                                            </label>
+                                            <label class="form-field">
+                                                <span>@L["Admin_Games_Metadata_Package"].Value</span>
+                                                <div class="metadata-cover-upload">
+                                                    <label class="metadata-cover-upload__button">
+                                                        <span>@L["Dashboard_Common_SelectFile"].Value</span>
+                                                        <input type="file" name="PackageUpload" accept=".zip" data-field-package-upload />
+                                                    </label>
+                                                    <span class="metadata-cover-upload__filename" data-package-upload-label data-default-label="@L["Dashboard_Common_NoFile"].Value">@L["Dashboard_Common_NoFile"].Value</span>
+                                                </div>
+                                                <small>@L["Admin_Games_Metadata_Package_Help"].Value</small>
+                                            </label>
                                         </div>
                                     </article>
 

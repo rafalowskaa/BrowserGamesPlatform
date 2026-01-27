@@ -1869,6 +1869,24 @@
 	<data name="Admin_Games_Metadata_Cover_Upload_Error" xml:space="preserve">
 		<value>Cover image upload must be an image file up to 5 MB.</value>
 	</data>
+	<data name="Admin_Games_Metadata_Package" xml:space="preserve">
+		<value>Game package (.zip)</value>
+	</data>
+	<data name="Admin_Games_Metadata_Package_Help" xml:space="preserve">
+		<value>Upload a new game build in .zip format.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Package_Version" xml:space="preserve">
+		<value>Package version</value>
+	</data>
+	<data name="Admin_Games_Metadata_Package_Version_Help" xml:space="preserve">
+		<value>Enter a version string, e.g. 1.0.1. Required when uploading a package.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Package_Upload_Error" xml:space="preserve">
+		<value>Game package must be a .zip archive with the build.</value>
+	</data>
+	<data name="Admin_Games_Metadata_Package_Version_Required" xml:space="preserve">
+		<value>Provide a package version to upload the game build.</value>
+	</data>
 	<data name="Admin_Games_Accordion_Classification" xml:space="preserve">
         <value>Classification</value>
     </data>
