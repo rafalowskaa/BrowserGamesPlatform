@@ -3928,6 +3928,12 @@
   </data>
 	<data name="Dashboard_Profile_History_Rating_Body" xml:space="preserve">
     <value>Submitting a rating awarded experience.</value>
+		</data>
+	<data name="Dashboard_Profile_History_Avatar_Title" xml:space="preserve">
+    <value>Avatar bonus</value>
+  </data>
+	<data name="Dashboard_Profile_History_Avatar_Body" xml:space="preserve">
+    <value>Thanks for adding an avatar to your profile.</value>
   </data>
 	<data name="Dashboard_Profile_History_Admin_Title" xml:space="preserve">
     <value>Admin adjustment</value>

@@ -205,6 +205,7 @@ public class AccountController : Controller
             DisplayNameLastApprovedAtUtc = DateTime.UtcNow,
             PresenceStatus = UserPresenceStatus.Available,
             IsInvisible = false,
+            DisplayNameVisibility = ProfileVisibility.Everyone,
             BirthDate = vm.BirthDate?.Date,
             BirthMonth = vm.BirthDate?.Month,
             BirthDay = vm.BirthDate?.Day,

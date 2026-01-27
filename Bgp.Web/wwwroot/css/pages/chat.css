@@ -1091,7 +1091,8 @@
 .chat-window {
     flex: 0 0 clamp(16rem, 22vw, 21rem);
     width: clamp(16rem, 22vw, 21rem);
-    height: auto;
+    height: min(70vh, 32rem);
+    min-height: min(70vh, 32rem);
     max-height: min(70vh, 32rem);
     position: relative;
     align-self: flex-start;

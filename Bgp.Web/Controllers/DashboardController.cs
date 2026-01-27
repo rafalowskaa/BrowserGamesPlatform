@@ -43,9 +43,11 @@ public class DashboardController : Controller
     private readonly ILogger<DashboardController> _logger;
     private readonly IStringLocalizer<SharedResource> _localizer;
     private readonly GlobalRankingService _globalRankingService;
+    private readonly IActivityLogger _activityLogger;
 
     private const long MaxAvatarBytes = 2 * 1024 * 1024;
     private const int AvatarTargetSize = 256;
+    private const int AvatarExperienceBonus = 50;
     private const string ThemeCookieName = "bgp-theme";
 
     private static readonly Regex SlugRegex = new("[^a-z0-9-]", RegexOptions.Compiled);
@@ -68,7 +70,8 @@ public class DashboardController : Controller
         IWebHostEnvironment env,
         ILogger<DashboardController> logger,
         IStringLocalizer<SharedResource> localizer,
-        GlobalRankingService globalRankingService)
+        GlobalRankingService globalRankingService,
+        IActivityLogger activityLogger)
     {
         _users = users;
         _signInManager = signInManager;
@@ -77,6 +80,7 @@ public class DashboardController : Controller
         _logger = logger;
         _localizer = localizer;
         _globalRankingService = globalRankingService;
+        _activityLogger = activityLogger;
     }
 
     public async Task<IActionResult> Index(string tab = "overview", string? panel = null)
@@ -241,6 +245,8 @@ public class DashboardController : Controller
         user.EnableEmailNotifications = input.EnableEmailNotifications;
         user.EnableFriendInvites = input.EnableFriendInvites;
 
+        var hadAvatar = !string.IsNullOrWhiteSpace(user.AvatarUrl);
+        var awardAvatarExperience = false;
 
         if (input.Avatar is not null && input.Avatar.Length > 0)
         {
@@ -261,6 +267,12 @@ public class DashboardController : Controller
 
             var cacheBuster = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             user.AvatarUrl = $"/uploads/avatars/{fileName}?v={cacheBuster}";
+            awardAvatarExperience = !hadAvatar;
+        }
+
+        if (awardAvatarExperience)
+        {
+            user.BonusExperience += AvatarExperienceBonus;
         }
 
         var result = await _users.UpdateAsync(user);
@@ -277,6 +289,14 @@ public class DashboardController : Controller
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogInformation("User {UserId} updated profile settings.", user.Id);
         ApplyPreferenceCookies(user);
+
+        if (awardAvatarExperience)
+        {
+            await _activityLogger.LogAsync(ActivityLogType.ExperienceGained, user.Id, log =>
+            {
+                log.Message = ExperienceLogFormatter.BuildMessage(AvatarExperienceBonus, "avatar");
+            });
+        }
 
         if (IsAjaxRequest())
         {
@@ -1768,6 +1788,7 @@ public class DashboardController : Controller
                 "match" => ("Dashboard_Profile_History_Match_Title", ResolveMatchHistoryBody(details.Details)),
                 "ranking" => ("Dashboard_Profile_History_Ranking_Title", "Dashboard_Profile_History_Ranking_Body"),
                 "comment" => ("Dashboard_Profile_History_Comment_Title", "Dashboard_Profile_History_Comment_Body"),
+                "avatar" => ("Dashboard_Profile_History_Avatar_Title", "Dashboard_Profile_History_Avatar_Body"),
                 "rating" => ("Dashboard_Profile_History_Rating_Title", "Dashboard_Profile_History_Rating_Body"),
                 "admin" => ("Dashboard_Profile_History_Admin_Title", "Dashboard_Profile_History_Admin_Body"),
                 _ => ("Dashboard_Profile_History_Generic_Title", "Dashboard_Profile_History_Generic_Body")
@@ -1869,16 +1890,6 @@ public class DashboardController : Controller
                     Localize("Dashboard_Profile_Goal_AddAvatar_Title"),
                     Localize("Dashboard_Profile_Goal_AddAvatar_Body"),
                     hasAvatar)));
-        }
-
-        if (!(hasRecoveryConfigured && user.BirthDay.HasValue && user.BirthMonth.HasValue))
-        {
-            candidates.Add((
-                "complete-profile",
-                new ProfileGoalViewModel(
-                    Localize("Dashboard_Profile_Goal_CompleteProfile_Title"),
-                    Localize("Dashboard_Profile_Goal_CompleteProfile_Body"),
-                    hasRecoveryConfigured && user.BirthDay.HasValue && user.BirthMonth.HasValue)));
         }
 
         var seed = HashCode.Combine(DateTime.UtcNow.Date, user.Id);

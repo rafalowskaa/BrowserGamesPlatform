@@ -144,6 +144,7 @@ public static class RankCalculator
         }
 
         totalXp += Math.Max(0, stats.BonusExperience);
+        totalXp = Math.Max(0, totalXp);
 
         return (int)Math.Round(totalXp);
     }

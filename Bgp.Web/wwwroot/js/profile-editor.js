@@ -856,6 +856,17 @@
             } else {
                 restoreAvatarPlaceholder();
             }
+
+            const avatarChanged = payload.avatarUrl && payload.avatarUrl !== avatarInitialState.src;
+            avatarInitialState = {
+                hasAvatar: !!payload.avatarUrl,
+                src: payload.avatarUrl || null
+            };
+            if (avatarChanged) {
+                window.setTimeout(() => {
+                    window.location.reload();
+                }, 300);
+            }
         }
 
         updatePendingDisplayNameHint(payload);
@@ -1128,6 +1139,8 @@
 
         avatarState = {
             scale: 1,
+            minScale: 1,
+            maxScale: 3,
             offsetX: 0,
             offsetY: 0,
             initialX: 0,
@@ -1162,6 +1175,17 @@
             avatarState.naturalWidth = image.naturalWidth || image.width;
             avatarState.naturalHeight = image.naturalHeight || image.height;
             const rect = viewport.getBoundingClientRect();
+            const viewportSize = rect.width || rect.height || 1;
+            const widthScale = viewportSize / (avatarState.naturalWidth || viewportSize);
+            const heightScale = viewportSize / (avatarState.naturalHeight || viewportSize);
+            const minScale = Math.max(widthScale, heightScale);
+            const maxScale = Math.max(parseFloat(zoom.max) || 3, minScale);
+            avatarState.minScale = minScale;
+            avatarState.maxScale = maxScale;
+            avatarState.scale = minScale;
+            zoom.min = String(minScale);
+            zoom.max = String(maxScale);
+            zoom.value = String(minScale);
             clampAvatarOffset(rect);
             updateAvatarTransform();
         };
@@ -1212,7 +1236,7 @@
                 return;
             }
             const delta = event.deltaY < 0 ? 0.05 : -0.05;
-            const newScale = Math.min(3, Math.max(1, avatarState.scale + delta));
+            const newScale = Math.min(avatarState.maxScale, Math.max(avatarState.minScale, avatarState.scale + delta));
             avatarState.scale = newScale;
             zoom.value = String(newScale);
             const rect = viewport.getBoundingClientRect();
@@ -1225,7 +1249,8 @@
                 return;
             }
             const rect = viewport.getBoundingClientRect();
-            avatarState.scale = parseFloat(zoom.value) || 1;
+            const parsed = parseFloat(zoom.value);
+            avatarState.scale = Math.min(avatarState.maxScale, Math.max(avatarState.minScale, parsed || avatarState.minScale));
             clampAvatarOffset(rect);
             updateAvatarTransform();
         }

@@ -574,6 +574,7 @@
             }
             options = options || {};
             var showErrors = options.showErrors === true;
+            var requireInput = options.requireInput === true;
             var selectValue = item.select ? trim(item.select.value) : '';
             var option = getSelectedOption(item);
             var isCustom = isCustomOption(item, option);
@@ -586,14 +587,15 @@
             var answerError = '';
 
             if (!hasInput) {
-                if (showErrors) {
-                    applyError(item.questionError, '');
+                if (showErrors || requireInput) {
+                    questionError = messages.questionRequired;
+                    applyError(item.questionError, questionError);
                     if (item.customError) {
                         applyError(item.customError, '');
                     }
                     applyError(item.answerError, '');
                 }
-                return true;
+                return !requireInput;
             }
 
             if (!selectValue) {
@@ -1111,7 +1113,7 @@
                 }
 
                 var currentItem = activeIndex >= 0 && activeIndex < visibleCount ? items[activeIndex] : null;
-                if (currentItem && !validateItem(currentItem, { showErrors: true })) {
+                if (currentItem && !validateItem(currentItem, { showErrors: true, requireInput: true })) {
                     focusFirstField(currentItem);
                     updateActionButtons();
                     return;
