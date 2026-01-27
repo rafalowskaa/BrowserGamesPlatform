@@ -396,6 +396,15 @@
     </data>
 	<data name="Dashboard_Notifications_Subtitle" xml:space="preserve">
         <value>Bądź na bieżąco z aktywnościami i zaproszeniami.</value>
+		</data>
+	<data name="Dashboard_Notifications_SelectAll" xml:space="preserve">
+        <value>Zaznacz wszystko</value>
+    </data>
+	<data name="Dashboard_Notifications_Select" xml:space="preserve">
+        <value>Zaznacz powiadomienie</value>
+    </data>
+	<data name="Dashboard_Notifications_DeleteSelected" xml:space="preserve">
+        <value>Usuń zaznaczone</value>
     </data>
 	<data name="Dashboard_Notifications_Empty" xml:space="preserve">
         <value>Brak powiadomień.</value>
@@ -975,6 +984,21 @@
   </data>
 	<data name="Admin_Logs_Subtitle" xml:space="preserve">
     <value>Podgląd zdarzeń na stronie.</value>
+		</data>
+	<data name="Admin_Logs_Count_Total" xml:space="preserve">
+    <value>Łącznie logów: {0}</value>
+  </data>
+	<data name="Admin_Logs_Count_Filtered" xml:space="preserve">
+    <value>Wyniki: {0}</value>
+  </data>
+	<data name="Admin_Logs_SelectAll" xml:space="preserve">
+    <value>Zaznacz wszystko</value>
+  </data>
+	<data name="Admin_Logs_Select" xml:space="preserve">
+    <value>Zaznacz log</value>
+  </data>
+	<data name="Admin_Logs_DeleteSelected" xml:space="preserve">
+    <value>Usuń zaznaczone</value>
   </data>
 	<data name="Admin_Logs_Filter_SearchLabel" xml:space="preserve">
     <value>Użytkownik / treść</value>

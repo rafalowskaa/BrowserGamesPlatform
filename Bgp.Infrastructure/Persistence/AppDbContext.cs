@@ -18,8 +18,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<GameReview> GameReviews => Set<GameReview>();
     public DbSet<GameCommentReaction> GameCommentReactions => Set<GameCommentReaction>();
     public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
+    public DbSet<AdminLogDismissal> AdminLogDismissals => Set<AdminLogDismissal>();
     public DbSet<MatchSession> MatchSessions => Set<MatchSession>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<NotificationDismissal> NotificationDismissals => Set<NotificationDismissal>();
     public DbSet<GameTag> GameTags => Set<GameTag>();
     public DbSet<GameLocale> GameLocales => Set<GameLocale>();
     public DbSet<GameAsset> GameAssets => Set<GameAsset>();

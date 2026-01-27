@@ -328,7 +328,6 @@
                         .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
                     let latest = since;
-                    let playedSound = false;
                     items.forEach((item) => {
                         if (item.id && alertedIds.includes(item.id)) {
                             return;
@@ -342,14 +341,11 @@
                         if (item.id) {
                             alertedIds.push(item.id);
                         }
-                        playedSound = true;
+                        playNotificationSound();
                     });
 
                     updateStoredTimestamp(latest);
                     storeAlertedIds();
-                    if (playedSound && !notificationsView) {
-                        playNotificationSound();
-                    }
                 })
                 .catch(() => { })
                 .finally(() => {

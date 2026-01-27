@@ -495,6 +495,19 @@
                         <h2>@L["Dashboard_Notifications_Title"].Value</h2>
                         <p>@L["Dashboard_Notifications_Subtitle"].Value</p>
                     </div>
+                    @if (Model.Notifications.Any())
+                    {
+                        <form asp-action="DeleteNotifications" method="post" class="notification-bulk" id="notificationBulkDelete">
+                            @Html.AntiForgeryToken()
+                            <label class="notification-bulk__toggle">
+                                <input type="checkbox" data-notifications-select-all />
+                                <span>@L["Dashboard_Notifications_SelectAll"].Value</span>
+                            </label>
+                            <button type="submit" class="btn-outline btn-compact text-danger" data-notifications-delete disabled>
+                                @L["Dashboard_Notifications_DeleteSelected"].Value
+                            </button>
+                        </form>
+                    }
                 </header>
                 <ul class="notification-list" role="list">
                     @if (Model.Notifications.Any())
@@ -502,6 +515,12 @@
                         foreach (var notification in Model.Notifications)
                         {
                             <li class="notification-item">
+                                <input type="checkbox"
+                                       name="ids"
+                                       value="@notification.Id"
+                                       form="notificationBulkDelete"
+                                       data-notification-select
+                                       aria-label="@L["Dashboard_Notifications_Select"].Value" />
                                 @if (!string.IsNullOrWhiteSpace(notification.Link))
                                 {
                                     <a class="notification-link" href="@notification.Link">
@@ -706,6 +725,37 @@
                     upload.addEventListener('mouseleave', hideTooltip);
                 }
             });
+            const notificationBulkForm = document.getElementById('notificationBulkDelete');
+            if (notificationBulkForm) {
+                const selectAll = notificationBulkForm.querySelector('[data-notifications-select-all]');
+                const deleteButton = notificationBulkForm.querySelector('[data-notifications-delete]');
+                const checkboxes = Array.from(document.querySelectorAll('[data-notification-select]'));
+
+                const updateBulkState = () => {
+                    const anyChecked = checkboxes.some(cb => cb.checked);
+                    if (deleteButton) {
+                        deleteButton.disabled = !anyChecked;
+                    }
+                    if (selectAll) {
+                        selectAll.checked = checkboxes.length > 0 && checkboxes.every(cb => cb.checked);
+                    }
+                };
+
+                if (selectAll) {
+                    selectAll.addEventListener('change', () => {
+                        checkboxes.forEach(cb => {
+                            cb.checked = selectAll.checked;
+                        });
+                        updateBulkState();
+                    });
+                }
+
+                checkboxes.forEach(cb => {
+                    cb.addEventListener('change', updateBulkState);
+                });
+
+                updateBulkState();
+            }
         });
     </script>
         @if (includeProfileScripts)

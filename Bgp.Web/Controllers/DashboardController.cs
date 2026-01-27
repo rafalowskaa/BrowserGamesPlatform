@@ -690,8 +690,89 @@ public class DashboardController : Controller
             return Forbid();
         }
 
-        _db.ActivityLogs.Remove(log);
-        await _db.SaveChangesAsync();
+        var alreadyDismissed = await _db.NotificationDismissals
+            .AnyAsync(d => d.UserId == user.Id && d.ActivityLogId == log.Id);
+        if (!alreadyDismissed)
+        {
+            _db.NotificationDismissals.Add(new NotificationDismissal
+            {
+                UserId = user.Id,
+                ActivityLogId = log.Id
+            });
+            await _db.SaveChangesAsync();
+        }
+        TempData["DashboardSuccess"] = "Dashboard_Notifications_Delete_Success";
+        return RedirectToAction(nameof(Index), new { tab = "notifications" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteNotifications([FromForm] Guid[] ids)
+    {
+        var user = await _users.GetUserAsync(User);
+        if (user is null)
+        {
+            return Challenge();
+        }
+
+        if (ids is null || ids.Length == 0)
+        {
+            return RedirectToAction(nameof(Index), new { tab = "notifications" });
+        }
+
+        var distinctIds = ids.Where(id => id != Guid.Empty).Distinct().ToList();
+        if (distinctIds.Count == 0)
+        {
+            return RedirectToAction(nameof(Index), new { tab = "notifications" });
+        }
+
+        var friendIds = await _db.Friendships
+            .Where(f => (f.RequesterId == user.Id || f.AddresseeId == user.Id)
+                        && f.Status == FriendshipStatus.Accepted)
+            .Select(f => f.RequesterId == user.Id ? f.AddresseeId : f.RequesterId)
+            .Distinct()
+            .ToListAsync();
+
+        var logs = await _db.ActivityLogs
+            .Where(l => distinctIds.Contains(l.Id))
+            .ToListAsync();
+
+        var existing = await _db.NotificationDismissals
+            .Where(d => d.UserId == user.Id && distinctIds.Contains(d.ActivityLogId))
+            .Select(d => d.ActivityLogId)
+            .ToListAsync();
+
+        var toAdd = new List<NotificationDismissal>();
+        foreach (var log in logs)
+        {
+            if (existing.Contains(log.Id))
+            {
+                continue;
+            }
+
+            var canDelete = string.Equals(log.TargetUserId, user.Id, StringComparison.Ordinal);
+            if (!canDelete && !string.IsNullOrWhiteSpace(log.ActorUserId))
+            {
+                canDelete = friendIds.Contains(log.ActorUserId);
+            }
+
+            if (!canDelete)
+            {
+                continue;
+            }
+
+            toAdd.Add(new NotificationDismissal
+            {
+                UserId = user.Id,
+                ActivityLogId = log.Id
+            });
+        }
+
+        if (toAdd.Count > 0)
+        {
+            _db.NotificationDismissals.AddRange(toAdd);
+            await _db.SaveChangesAsync();
+        }
         TempData["DashboardSuccess"] = "Dashboard_Notifications_Delete_Success";
         return RedirectToAction(nameof(Index), new { tab = "notifications" });
     }
@@ -1013,7 +1094,8 @@ public class DashboardController : Controller
             .AsNoTracking()
             .Where(l => notificationTypes.Contains(l.Type)
                         && (l.TargetUserId == user.Id
-                            || (l.ActorUserId != null && friendIds.Contains(l.ActorUserId))))
+                            || (l.ActorUserId != null && friendIds.Contains(l.ActorUserId)))
+                        && !_db.NotificationDismissals.Any(d => d.UserId == user.Id && d.ActivityLogId == l.Id))
             .OrderByDescending(l => l.CreatedAtUtc)
             .Take(50)
             .ToListAsync();

@@ -393,6 +393,15 @@
     </data>
 	<data name="Dashboard_Notifications_Subtitle" xml:space="preserve">
         <value>Stay up to date with your activity and invites.</value>
+		</data>
+	<data name="Dashboard_Notifications_SelectAll" xml:space="preserve">
+        <value>Select all</value>
+    </data>
+	<data name="Dashboard_Notifications_Select" xml:space="preserve">
+        <value>Select notification</value>
+    </data>
+	<data name="Dashboard_Notifications_DeleteSelected" xml:space="preserve">
+        <value>Delete selected</value>
     </data>
 	<data name="Dashboard_Notifications_Empty" xml:space="preserve">
         <value>No notifications yet.</value>
@@ -951,6 +960,21 @@
   </data>
 	<data name="Admin_Logs_Subtitle" xml:space="preserve">
     <value>Monitor actions taken across the platform.</value>
+		 </data>
+	<data name="Admin_Logs_Count_Total" xml:space="preserve">
+    <value>Total logs: {0}</value>
+  </data>
+	<data name="Admin_Logs_Count_Filtered" xml:space="preserve">
+    <value>Results: {0}</value>
+  </data>
+	<data name="Admin_Logs_SelectAll" xml:space="preserve">
+    <value>Select all</value>
+  </data>
+	<data name="Admin_Logs_Select" xml:space="preserve">
+    <value>Select log</value>
+  </data>
+	<data name="Admin_Logs_DeleteSelected" xml:space="preserve">
+    <value>Delete selected</value>
   </data>
 	<data name="Admin_Logs_Filter_SearchLabel" xml:space="preserve">
     <value>User / text</value>

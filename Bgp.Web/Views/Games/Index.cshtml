@@ -94,7 +94,9 @@
                         </h3>
                         <p class="game-card__rating" data-rating-value="@g.AverageRating">
                             @L["Games_Index_Rating"].Value:
-                            @(g.ReviewCount > 0 ? $"{g.AverageRating:0.0}" : L["Games_Details_Rating_None"].Value)
+                            <span aria-hidden="true">★</span>
+                            <span>@g.AverageRating.ToString("0.0")</span>
+                            <span class="muted">(@g.ReviewCount)</span>
                         </p>
                         <p class="game-card__stat" data-current-players="@g.ActivePlayerCount">@FormatPlayers(g.ActivePlayerCount)</p>
                         @{

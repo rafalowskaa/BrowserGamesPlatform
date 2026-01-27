@@ -34,17 +34,26 @@ public class FileStorageLocal : IFileStorage
     public async Task ExtractZipAsync(Stream zipStream, string targetSubfolder, CancellationToken ct = default)
     {
         var root = Path.Combine(_env.WebRootPath ?? "wwwroot", targetSubfolder);
-        if (Directory.Exists(root)) Directory.Delete(root, true);
+        if (Directory.Exists(root))
+        {
+            try
+            {
+                Directory.Delete(root, true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to clear existing game directory {Directory}", root);
+            }
+        }
         Directory.CreateDirectory(root);
 
-        // Musimy skopiować zip do pliku tymczasowego aby użyć ZipArchive
         var temp = Path.GetTempFileName();
         await using (var f = File.OpenWrite(temp))
         {
             await zipStream.CopyToAsync(f, ct);
         }
 
-        ZipFile.ExtractToDirectory(temp, root);
+        ZipFile.ExtractToDirectory(temp, root, true);
         File.Delete(temp);
     }
 }

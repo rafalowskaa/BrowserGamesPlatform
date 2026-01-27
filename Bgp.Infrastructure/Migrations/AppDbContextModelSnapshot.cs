@@ -69,6 +69,26 @@ namespace Bgp.Infrastructure.Migrations
                     b.ToTable("ActivityLogs");
                 });
 
+            modelBuilder.Entity("Bgp.Domain.Entities.AdminLogDismissal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ActivityLogId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AdminLogDismissals");
+                });
+
             modelBuilder.Entity("Bgp.Domain.Entities.ChatMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -700,6 +720,27 @@ namespace Bgp.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("Bgp.Domain.Entities.NotificationDismissal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ActivityLogId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("NotificationDismissals");
                 });
 
             modelBuilder.Entity("Bgp.Domain.Entities.Report", b =>

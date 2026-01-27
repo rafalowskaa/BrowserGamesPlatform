@@ -31,6 +31,7 @@
     justify-content: center;
     padding: 0.5rem 0;
     margin-left: 1rem;
+    transform: translateX(-1cm);
 }
 
 .profile-hero__trophy-frame {
@@ -71,9 +72,9 @@
     }
 
 .profile-hero__trophy {
-    height: min(calc(var(--profile-hero-height, 24rem) * 0.72), 22rem);
+    height: min(calc(var(--profile-hero-height, 24rem) * 1.08), 33rem);
     width: auto;
-    max-height: calc(var(--profile-hero-height, 24rem) * 0.75);
+    max-height: calc(var(--profile-hero-height, 24rem) * 1.125);
     display: block;
     transform-origin: 50% 75%;
     filter: drop-shadow(0 16px 28px color-mix(in srgb, var(--rank-glow, rgba(56,189,248,0.45)) 85%, transparent));

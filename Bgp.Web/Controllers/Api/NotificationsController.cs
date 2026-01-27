@@ -58,7 +58,8 @@ public class NotificationsController : ControllerBase
             .AsNoTracking()
             .Where(l => notificationTypes.Contains(l.Type)
                         && (l.TargetUserId == userId
-                            || (l.ActorUserId != null && friendIds.Contains(l.ActorUserId))));
+                            || (l.ActorUserId != null && friendIds.Contains(l.ActorUserId)))
+                        && !_db.NotificationDismissals.Any(d => d.UserId == userId && d.ActivityLogId == l.Id));
 
         if (since.HasValue)
         {
@@ -110,7 +111,8 @@ public class NotificationsController : ControllerBase
             .AsNoTracking()
             .Where(l => notificationTypes.Contains(l.Type)
                         && (l.TargetUserId == userId
-                            || (l.ActorUserId != null && friendIds.Contains(l.ActorUserId))));
+                            || (l.ActorUserId != null && friendIds.Contains(l.ActorUserId)))
+                        && !_db.NotificationDismissals.Any(d => d.UserId == userId && d.ActivityLogId == l.Id));
 
         if (since.HasValue)
         {

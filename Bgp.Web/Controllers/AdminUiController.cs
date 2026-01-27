@@ -1645,11 +1645,7 @@ public class AdminUiController : Controller
             return RedirectToAction(nameof(Games));
         }
 
-        var game = await _db.Games
-            .Include(g => g.Tags)
-            .Include(g => g.Versions)
-            .Include(g => g.Reviews)
-            .FirstOrDefaultAsync(g => g.Id == input.Id);
+        var game = await _db.Games.FirstOrDefaultAsync(g => g.Id == input.Id);
 
         if (game is null)
         {
@@ -1657,11 +1653,8 @@ public class AdminUiController : Controller
             return RedirectToAction(nameof(Games));
         }
 
-        game.ApprovalStatus = GameApprovalStatus.Rejected;
-        game.ApprovedAtUtc = null;
-        game.RejectedAtUtc = game.RejectedAtUtc ?? DateTime.UtcNow;
-        game.UpdatedAtUtc = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        var actorId = _users.GetUserId(User);
+        await RemoveGameDataAsync(game, actorId);
 
         TempData["AdminGamesSuccess"] = "Admin_Games_Delete_Success";
         return RedirectToAction(nameof(Games));
@@ -1691,6 +1684,14 @@ public class AdminUiController : Controller
         }
 
         var actorId = _users.GetUserId(User);
+        await RemoveGameDataAsync(game, actorId);
+
+        TempData["AdminGamesSuccess"] = "Admin_Games_Remove_Success";
+        return RedirectToAction(nameof(Games));
+    }
+
+    private async Task RemoveGameDataAsync(Game game, string? actorId)
+    {
         await ClearGameRankingDataAsync(game.Id, actorId);
 
         var versions = await _db.GameVersions
@@ -1727,9 +1728,6 @@ public class AdminUiController : Controller
         await _db.SaveChangesAsync();
 
         DeleteGameFiles(game.CoverImagePath, contentPaths, assetUrls);
-
-        TempData["AdminGamesSuccess"] = "Admin_Games_Remove_Success";
-        return RedirectToAction(nameof(Games));
     }
 
     private void DeleteGameFiles(string? coverImagePath, IEnumerable<string> contentPaths, IEnumerable<string> assetUrls)
@@ -1918,7 +1916,8 @@ public class AdminUiController : Controller
         const int pageSize = 100;
         var query = _db.ActivityLogs
             .AsNoTracking()
-            .Where(l => l.Type != ActivityLogType.ExperienceGained);
+            .Where(l => l.Type != ActivityLogType.ExperienceGained)
+            .Where(l => !_db.AdminLogDismissals.Any(d => d.ActivityLogId == l.Id));
 
         DateTime? fromUtc = null;
         if (dateFrom.HasValue)
@@ -2049,7 +2048,9 @@ public class AdminUiController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteLogs(string? search = null, ActivityLogType? type = null, string? game = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? returnUrl = null)
     {
-        var query = _db.ActivityLogs.AsQueryable();
+        var query = _db.ActivityLogs
+            .Where(l => l.Type != ActivityLogType.ExperienceGained)
+            .Where(l => !_db.AdminLogDismissals.Any(d => d.ActivityLogId == l.Id));
 
         if (dateFrom.HasValue)
         {
@@ -2095,12 +2096,8 @@ public class AdminUiController : Controller
                 (l.Message != null && EF.Functions.Like(l.Message, $"%{term}%")));
         }
 
-        var logs = await query.ToListAsync();
-        if (logs.Count > 0)
-        {
-            _db.ActivityLogs.RemoveRange(logs);
-            await _db.SaveChangesAsync();
-        }
+        var logIds = await query.Select(l => l.Id).ToListAsync();
+        await AddAdminLogDismissalsAsync(logIds);
 
         TempData["AdminLogsSuccess"] = "Admin_Logs_DeleteAll_Success";
 
@@ -2116,14 +2113,7 @@ public class AdminUiController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteLog(Guid id, string? returnUrl = null)
     {
-        var log = await _db.ActivityLogs.FirstOrDefaultAsync(l => l.Id == id);
-        if (log is null)
-        {
-            return RedirectToAction(nameof(Logs));
-        }
-
-        _db.ActivityLogs.Remove(log);
-        await _db.SaveChangesAsync();
+        await AddAdminLogDismissalsAsync(new[] { id });
         TempData["AdminLogsSuccess"] = "Admin_Logs_Delete_Success";
 
         if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -2132,6 +2122,51 @@ public class AdminUiController : Controller
         }
 
         return RedirectToAction(nameof(Logs));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteSelectedLogs([FromForm] Guid[] ids, string? returnUrl = null)
+    {
+        await AddAdminLogDismissalsAsync(ids);
+        TempData["AdminLogsSuccess"] = "Admin_Logs_Delete_Success";
+
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
+        return RedirectToAction(nameof(Logs));
+    }
+    private async Task AddAdminLogDismissalsAsync(IEnumerable<Guid> logIds)
+    {
+        var distinctIds = logIds.Where(id => id != Guid.Empty).Distinct().ToList();
+        if (distinctIds.Count == 0)
+        {
+            return;
+        }
+
+        var existing = await _db.AdminLogDismissals
+            .Where(d => distinctIds.Contains(d.ActivityLogId))
+            .Select(d => d.ActivityLogId)
+            .ToListAsync();
+        var actorId = _users.GetUserId(User);
+        var toAdd = distinctIds
+            .Except(existing)
+            .Select(id => new AdminLogDismissal
+            {
+                ActivityLogId = id,
+                DeletedByUserId = actorId
+            })
+            .ToList();
+
+        if (toAdd.Count == 0)
+        {
+            return;
+        }
+
+        _db.AdminLogDismissals.AddRange(toAdd);
+        await _db.SaveChangesAsync();
     }
 }
 

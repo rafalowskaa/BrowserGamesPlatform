@@ -12,6 +12,11 @@
     var dateFromValue = Model.DateFrom?.ToString("yyyy-MM-dd");
     var dateToValue = Model.DateTo?.ToString("yyyy-MM-dd");
     var polishCulture = System.Globalization.CultureInfo.GetCultureInfo("pl-PL");
+    var hasFilters = !string.IsNullOrWhiteSpace(Model.Search)
+       || Model.Type.HasValue
+       || !string.IsNullOrWhiteSpace(Model.Game)
+       || Model.DateFrom.HasValue
+       || Model.DateTo.HasValue;
 }
 <section class="admin-section">
     <nav class="admin-nav">
@@ -27,6 +32,9 @@
             <div>
                 <h1>@L["Admin_Logs_Title"].Value</h1>
                 <p class="admin-reports__subtitle">@L["Admin_Logs_Subtitle"].Value</p>
+                <p class="admin-reports__count">
+                    @string.Format(hasFilters ? L["Admin_Logs_Count_Filtered"].Value : L["Admin_Logs_Count_Total"].Value, Model.Total)
+                </p>
             </div>
         </header>
 
@@ -87,11 +95,27 @@
                 </button>
             </div>
         </form>
+        <form asp-action="DeleteSelectedLogs" method="post" class="admin-reports__filters admin-reports__filters--actions" id="adminLogBulkDelete">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+            <div class="filter-actions">
+                <label class="filter-item">
+                    <input type="checkbox" data-admin-logs-select-all />
+                    <span>@L["Admin_Logs_SelectAll"].Value</span>
+                </label>
+                <button type="submit" class="btn-outline btn-compact text-danger" data-admin-logs-delete disabled>
+                    @L["Admin_Logs_DeleteSelected"].Value
+                </button>
+            </div>
+        </form>
 
         <div class="table-wrapper">
             <table class="admin-table">
                 <thead>
                     <tr>
+                        <th>
+                            <span class="sr-only">@L["Admin_Logs_SelectAll"].Value</span>
+                        </th>
                         <th>@L["Admin_Logs_Table_Date"].Value</th>
                         <th>@L["Admin_Logs_Table_Type"].Value</th>
                         <th>@L["Admin_Logs_Table_User"].Value</th>
@@ -107,6 +131,14 @@
                         foreach (var log in Model.Logs)
                         {
                             <tr>
+                                <td>
+                                    <input type="checkbox"
+                                           name="ids"
+                                           value="@log.Id"
+                                           form="adminLogBulkDelete"
+                                           data-admin-log-select
+                                           aria-label="@L["Admin_Logs_Select"].Value" />
+                                </td>
                                 <td><span class="badge">@log.CreatedAtUtc.ToLocalTime().ToString("g", polishCulture)</span></td>
                                 <td><span class="status status-open">@FormatType(log.Type)</span></td>
                                 <td>
@@ -169,7 +201,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="7" class="empty">@L["Admin_Logs_Empty"].Value</td>
+                            <td colspan="8" class="empty">@L["Admin_Logs_Empty"].Value</td>
                         </tr>
                     }
                 </tbody>
@@ -177,3 +209,43 @@
         </div>
     </section>
 </section>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const bulkForm = document.getElementById('adminLogBulkDelete');
+            if (!bulkForm) {
+                return;
+            }
+
+            const selectAll = bulkForm.querySelector('[data-admin-logs-select-all]');
+            const deleteButton = bulkForm.querySelector('[data-admin-logs-delete]');
+            const checkboxes = Array.from(document.querySelectorAll('[data-admin-log-select]'));
+
+            const updateBulkState = () => {
+                const anyChecked = checkboxes.some(cb => cb.checked);
+                if (deleteButton) {
+                    deleteButton.disabled = !anyChecked;
+                }
+                if (selectAll) {
+                    selectAll.checked = checkboxes.length > 0 && checkboxes.every(cb => cb.checked);
+                }
+            };
+
+            if (selectAll) {
+                selectAll.addEventListener('change', () => {
+                    checkboxes.forEach(cb => {
+                        cb.checked = selectAll.checked;
+                    });
+                    updateBulkState();
+                });
+            }
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', updateBulkState);
+            });
+
+            updateBulkState();
+        });
+    </script>
+}
