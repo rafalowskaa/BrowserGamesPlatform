@@ -47,6 +47,7 @@
     let lastSavedAt = null;
     let autosaveTimer = null;
     let avatarState = null;
+    let avatarModalCleanup = null;
     let activePreviewObjectUrl = null;
     let canRequestDisplayNameChange = form.dataset.displayNameCanRequest === 'true';
     let hasPendingDisplayName = form.dataset.displayNamePending === 'true';
@@ -300,6 +301,9 @@
         const original = originalValues.get(el) ?? '';
         return original !== el.value;
     }
+    function isAvatarDirty() {
+        return avatarInput instanceof HTMLInputElement && avatarInput.files && avatarInput.files.length > 0;
+    }
 
     function markFieldDirty(el) {
         const wrapper = el.closest('[data-profile-field]');
@@ -427,6 +431,9 @@
             return false;
         }
         if (!hasDirtyFields()) {
+            return false;
+        }
+        if (isAvatarDirty()) {
             return false;
         }
         if (displayNameChanged()) {
@@ -806,6 +813,11 @@
             return;
         }
 
+        if (payload.forceReload) {
+            window.location.reload();
+            return;
+        }
+
         if (payload.displayName !== undefined && displayNameInput) {
             displayNameInput.value = payload.displayName;
         }
@@ -1064,6 +1076,10 @@
             avatarTriggers.forEach((trigger) => {
                 trigger.addEventListener('click', (event) => {
                     event.preventDefault();
+                    if (avatarInitialState.hasAvatar && avatarInitialState.src) {
+                        openAvatarModalFromUrl(avatarInitialState.src);
+                        return;
+                    }
                     avatarInput.click();
                 });
             });
@@ -1124,13 +1140,43 @@
         reader.readAsDataURL(file);
     }
 
+    function openAvatarModalFromUrl(url) {
+        if (!url) {
+            return;
+        }
+        fetch(url, { credentials: 'same-origin' })
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error('Failed to load avatar');
+                }
+                return res.blob();
+            })
+            .then((blob) => {
+                const fileName = blob.type === 'image/png' ? 'avatar.png' : 'avatar.jpg';
+                const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+                const reader = new FileReader();
+                reader.onload = () => {
+                    openAvatarModal(reader.result, file);
+                };
+                reader.onerror = () => setStatus(errorText, 'error');
+                reader.readAsDataURL(file);
+            })
+            .catch(() => {
+                setStatus(errorText, 'error');
+            });
+    }
+
     function openAvatarModal(dataUrl, originalFile) {
         if (!avatarModal) {
             return;
         }
+        if (avatarModalCleanup) {
+            avatarModalCleanup();
+        }
         const image = avatarModal.querySelector('[data-avatar-crop-image]');
         const zoom = avatarModal.querySelector('[data-avatar-crop-zoom]');
         const confirm = avatarModal.querySelector('[data-avatar-crop-confirm]');
+        const upload = avatarModal.querySelector('[data-avatar-crop-upload]');
         const cancel = avatarModal.querySelectorAll('[data-avatar-crop-cancel]');
         const viewport = avatarModal.querySelector('[data-avatar-cropper] .avatar-cropper__viewport');
         if (!(image instanceof HTMLImageElement) || !(zoom instanceof HTMLInputElement) || !viewport) {
@@ -1161,11 +1207,15 @@
             viewport.removeEventListener('wheel', onWheel);
             zoom.removeEventListener('input', onZoomChange);
             confirm?.removeEventListener('click', onConfirm);
+            if (upload instanceof HTMLButtonElement) {
+                upload.removeEventListener('click', onUpload);
+            }
             cancel.forEach((btn) => btn.removeEventListener('click', onCancel));
             avatarModal.removeEventListener('keydown', onModalKeydown);
             image.onload = null;
             image.onerror = null;
             avatarState = null;
+            avatarModalCleanup = null;
         }
 
         image.onload = () => {
@@ -1276,6 +1326,13 @@
             });
         }
 
+        function onUpload(event) {
+            event.preventDefault();
+            if (avatarInput instanceof HTMLInputElement) {
+                avatarInput.click();
+            }
+        }
+
         function onCancel() {
             cleanup();
         }
@@ -1294,8 +1351,12 @@
         viewport.addEventListener('wheel', onWheel, { passive: false });
         zoom.addEventListener('input', onZoomChange);
         confirm?.addEventListener('click', onConfirm);
+        if (upload instanceof HTMLButtonElement) {
+            upload.addEventListener('click', onUpload);
+        }
         cancel.forEach((btn) => btn.addEventListener('click', onCancel));
         avatarModal.addEventListener('keydown', onModalKeydown);
+        avatarModalCleanup = cleanup;
     }
 
     function clampAvatarOffset(rect) {

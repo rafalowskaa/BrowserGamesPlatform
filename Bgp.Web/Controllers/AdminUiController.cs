@@ -14,6 +14,7 @@ using Bgp.Web.Models;
 using Bgp.Web.Resources;
 using Bgp.Web.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -35,8 +36,9 @@ public class AdminUiController : Controller
     private readonly IFileStorage _fileStorage;
     private readonly IActivityLogger _activityLogger;
     private readonly IStringLocalizer<SharedResource> _localizer;
+    private readonly IWebHostEnvironment _environment;
 
-    public AdminUiController(AppDbContext db, UserManager<ApplicationUser> users, ILogger<AdminUiController> logger, IGameContentResolver contentResolver, IFileStorage fileStorage, IActivityLogger activityLogger, IStringLocalizer<SharedResource> localizer)
+    public AdminUiController(AppDbContext db, UserManager<ApplicationUser> users, ILogger<AdminUiController> logger, IGameContentResolver contentResolver, IFileStorage fileStorage, IActivityLogger activityLogger, IStringLocalizer<SharedResource> localizer, IWebHostEnvironment environment)
     {
         _db = db;
         _users = users;
@@ -45,6 +47,7 @@ public class AdminUiController : Controller
         _fileStorage = fileStorage;
         _activityLogger = activityLogger;
         _localizer = localizer;
+        _environment = environment;
     }
 
     private IActionResult RedirectToUsers(string? search, string? fallbackSearch = null)
@@ -1632,6 +1635,10 @@ public class AdminUiController : Controller
         var versions = await _db.GameVersions
             .Where(v => v.GameId == game.Id)
             .ToListAsync();
+        var contentPaths = versions
+            .Select(v => v.ContentPath)
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .ToList();
         _db.GameVersions.RemoveRange(versions);
 
         var reviews = await _db.GameReviews
@@ -1652,13 +1659,109 @@ public class AdminUiController : Controller
         var assets = await _db.GameAssets
             .Where(a => a.GameId == game.Id)
             .ToListAsync();
+        var assetUrls = assets.Select(a => a.Url).Where(url => !string.IsNullOrWhiteSpace(url)).ToList();
         _db.GameAssets.RemoveRange(assets);
 
         _db.Games.Remove(game);
         await _db.SaveChangesAsync();
 
+        DeleteGameFiles(game.CoverImagePath, contentPaths, assetUrls);
+
         TempData["AdminGamesSuccess"] = "Admin_Games_Remove_Success";
         return RedirectToAction(nameof(Games));
+    }
+
+    private void DeleteGameFiles(string? coverImagePath, IEnumerable<string> contentPaths, IEnumerable<string> assetUrls)
+    {
+        var webRoot = _environment.WebRootPath ?? "wwwroot";
+
+        TryDeleteWebFile(coverImagePath, webRoot);
+
+        foreach (var url in assetUrls)
+        {
+            TryDeleteWebFile(url, webRoot);
+        }
+
+        foreach (var contentPath in contentPaths)
+        {
+            TryDeleteWebDirectory(contentPath, webRoot);
+        }
+    }
+
+    private void TryDeleteWebFile(string? relativePath, string webRoot)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath))
+        {
+            return;
+        }
+
+        if (Uri.TryCreate(relativePath, UriKind.Absolute, out var absolute) && absolute.IsAbsoluteUri && absolute.Scheme != Uri.UriSchemeFile)
+        {
+            return;
+        }
+
+        var pathValue = absolute?.IsAbsoluteUri == true ? absolute.LocalPath : relativePath;
+        var sanitized = pathValue.Split('?', '#')[0].TrimStart('~', '/');
+        if (string.IsNullOrWhiteSpace(sanitized))
+        {
+            return;
+        }
+
+        var fullPath = Path.GetFullPath(Path.Combine(webRoot, sanitized.Replace('/', Path.DirectorySeparatorChar)));
+        if (!fullPath.StartsWith(Path.GetFullPath(webRoot), StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        try
+        {
+            if (System.IO.File.Exists(fullPath))
+            {
+                System.IO.File.Delete(fullPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to delete game file {FilePath}", fullPath);
+        }
+    }
+
+    private void TryDeleteWebDirectory(string? relativePath, string webRoot)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath))
+        {
+            return;
+        }
+
+        if (Uri.TryCreate(relativePath, UriKind.Absolute, out var absolute) && absolute.IsAbsoluteUri && absolute.Scheme != Uri.UriSchemeFile)
+        {
+            return;
+        }
+
+        var pathValue = absolute?.IsAbsoluteUri == true ? absolute.LocalPath : relativePath;
+        var sanitized = pathValue.Split('?', '#')[0].TrimStart('~', '/');
+        if (string.IsNullOrWhiteSpace(sanitized))
+        {
+            return;
+        }
+
+        var fullPath = Path.GetFullPath(Path.Combine(webRoot, sanitized.Replace('/', Path.DirectorySeparatorChar)));
+        if (!fullPath.StartsWith(Path.GetFullPath(webRoot), StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        try
+        {
+            if (Directory.Exists(fullPath))
+            {
+                Directory.Delete(fullPath, true);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to delete game directory {DirectoryPath}", fullPath);
+        }
     }
 
     private async Task ClearGameRankingDataAsync(Guid gameId, string? actorUserId)

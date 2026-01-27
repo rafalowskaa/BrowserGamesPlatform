@@ -388,26 +388,7 @@
             <h3 id="@securityHeadingId" tabindex="-1">@L["Dashboard_Profile_Security_Title"].Value</h3>
             <p>@L["Dashboard_Profile_Security_Subtitle"].Value</p>
         </header>
-        <div class="profile-section__body profile-section__body--columns">
-            <div class="profile-column">
-                <article class="profile-card">
-                    <h4>@L["Dashboard_Profile_EmailTitle"].Value</h4>
-                    <p>@string.Format(L["Dashboard_Profile_EmailDescription"].Value, security.Email)</p>
-                    <form asp-action="UpdateEmail" method="post" class="profile-form" data-profile-security-form>
-                        @Html.AntiForgeryToken()
-                        @Html.ValidationSummary(true, null, new { @class = "val-summary" })
-                        <label for="Email">@L["Dashboard_Security_Email"].Value</label>
-                        <input id="Email" name="Email" type="email" value="@security.Email" autocomplete="email" class="form-control-sm" />
-                        @Html.ValidationMessage("Email", null, new { @class = "val" })
-
-                        <label for="EmailPassword">@L["Dashboard_Security_EmailPassword"].Value</label>
-                        <input id="EmailPassword" name="Password" type="password" autocomplete="current-password" class="form-control-sm" />
-                        @Html.ValidationMessage("Password", null, new { @class = "val" })
-
-                        <button class="btn-primary" type="submit">@L["Dashboard_Profile_Security_SaveEmail"].Value</button>
-                    </form>
-                </article>
-
+            <div class="profile-section__body profile-section__body--security">
                 <article class="profile-card">
                     <h4>@L["Dashboard_Profile_PasswordTitle"].Value</h4>
                     <p>@L["Dashboard_Profile_PasswordDescription"].Value</p>
@@ -430,9 +411,26 @@
                         <button class="btn-primary" type="submit">@L["Dashboard_Profile_Security_SavePassword"].Value</button>
                     </form>
                 </article>
-            </div>
 
-            <div class="profile-column">
+                <article class="profile-card">
+                    <h4>@L["Dashboard_Profile_EmailTitle"].Value</h4>
+                    <p>@string.Format(L["Dashboard_Profile_EmailDescription"].Value, security.Email)</p>
+                    <form asp-action="UpdateEmail" method="post" class="profile-form" data-profile-security-form>
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, null, new { @class = "val-summary" })
+                        <label for="Email">@L["Dashboard_Security_Email"].Value</label>
+                        <input id="Email" name="Email" type="email" value="@security.Email" autocomplete="email" class="form-control-sm" />
+                        @Html.ValidationMessage("Email", null, new { @class = "val" })
+
+                        <label for="EmailPassword">@L["Dashboard_Security_EmailPassword"].Value</label>
+                        <input id="EmailPassword" name="Password" type="password" autocomplete="current-password" class="form-control-sm" />
+                        @Html.ValidationMessage("Password", null, new { @class = "val" })
+
+                        <button class="btn-primary" type="submit">@L["Dashboard_Profile_Security_SaveEmail"].Value</button>
+                    </form>
+                </article>
+
+
                 <article class="profile-card profile-card--sessions">
                     <h4>@L["Dashboard_Profile_Sessions_Title"].Value</h4>
                     <p>@L["Dashboard_Profile_Sessions_Description"].Value</p>
@@ -451,7 +449,6 @@
                     </form>
                 </article>
             </div>
-        </div>
     </section>
     </div>
 
@@ -498,8 +495,9 @@
                     <input type="range" id="avatarCropZoom" min="0.5" max="3" step="0.05" value="1" data-avatar-crop-zoom />
                 </div>
                 <footer class="modal__footer">
+                    <button type="button" class="btn-outline" data-avatar-crop-upload>@L["Dashboard_Profile_Avatar_CropChoose"].Value</button>
                     <button type="button" class="btn-outline" data-avatar-crop-cancel>@L["Dashboard_Profile_Avatar_CropCancel"].Value</button>
-                    <button type="button" class="btn-primary" data-avatar-crop-confirm>@L["Dashboard_Profile_Avatar_CropConfirm"].Value</button>
+                    <button type="button" class="btn-primary" data-avatar-crop-confirm>@L["Dashboard_Profile_Avatar_CropSave"].Value</button>
                 </footer>
             </div>
             <div class="modal__backdrop" data-avatar-crop-cancel></div>

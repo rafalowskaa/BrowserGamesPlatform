@@ -26,6 +26,7 @@ public class GlobalRankingEntryViewModel
     public string PresenceLabel { get; set; } = string.Empty;
     public string AccentColor { get; set; } = "#38bdf8";
     public string AccentHighlightColor { get; set; } = "#a855f7";
+    public string? TrophyImage { get; set; }
     public bool IsFriend { get; set; }
     public IReadOnlyList<ExperienceBreakdownViewModel> ExperienceBreakdown { get; set; } = Array.Empty<ExperienceBreakdownViewModel>();
 }

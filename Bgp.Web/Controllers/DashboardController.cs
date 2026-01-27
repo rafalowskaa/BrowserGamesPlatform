@@ -304,6 +304,7 @@ public class DashboardController : Controller
             {
                 success = true,
                 displayNameRequested,
+                forceReload = awardAvatarExperience,
                 displayName = user.DisplayName,
                 pendingDisplayName = user.PendingDisplayName,
                 pendingDisplayNameRequestedAt = user.PendingDisplayNameRequestedAtUtc,
@@ -1675,6 +1676,7 @@ public class DashboardController : Controller
                 Text = Localize(option.ResourceKey, option.Category.ToString()),
                 Selected = selected.Contains(((int)option.Category).ToString(CultureInfo.InvariantCulture))
             })
+            .OrderBy(option => option.Text, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
     }
 

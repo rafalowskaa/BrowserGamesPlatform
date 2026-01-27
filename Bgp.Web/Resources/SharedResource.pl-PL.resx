@@ -3010,8 +3010,9 @@
 	<data name="Dashboard_Profile_Avatar_FormatDescription" xml:space="preserve"><value>PNG lub JPG do 2 MB</value></data>
 	<data name="Dashboard_Profile_Avatar_CropTitle" xml:space="preserve"><value>Dopasuj avatar</value></data>
 	<data name="Dashboard_Profile_Avatar_CropZoom" xml:space="preserve"><value>Powiększenie</value></data>
+	<data name="Dashboard_Profile_Avatar_CropChoose" xml:space="preserve"><value>Wybierz plik</value></data>
 	<data name="Dashboard_Profile_Avatar_CropCancel" xml:space="preserve"><value>Anuluj</value></data>
-	<data name="Dashboard_Profile_Avatar_CropConfirm" xml:space="preserve"><value>Zastosuj</value></data>
+	<data name="Dashboard_Profile_Avatar_CropSave" xml:space="preserve"><value>Zapisz</value></data>
 	<data name="Dashboard_Profile_Goal_PlayMatch_Title" xml:space="preserve"><value>Zagraj mecz</value></data>
 	<data name="Dashboard_Profile_Goal_PlayMatch_Body" xml:space="preserve"><value>Rozgrzej się, rozgrywając dziś przynajmniej jedną grę.</value></data>
 	<data name="Dashboard_Profile_Goal_AddAvatar_Title" xml:space="preserve"><value>Dodaj avatar</value></data>

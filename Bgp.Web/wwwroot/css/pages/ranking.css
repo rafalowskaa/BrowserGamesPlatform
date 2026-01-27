@@ -591,6 +591,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
     padding: 0.25rem 0.75rem;
     border-radius: 0.75rem;
     background: rgba(94, 234, 212, 0.12);
@@ -602,6 +603,18 @@
     min-width: 7rem;
     text-transform: uppercase;
 }
+
+.leaderboard__trophy {
+    width: calc(1.9rem * var(--ranking-scale));
+    height: calc(1.9rem * var(--ranking-scale));
+    object-fit: contain;
+    filter: drop-shadow(0 4px 10px rgba(15, 23, 42, 0.4));
+}
+
+.leaderboard__tier-label {
+    display: inline-block;
+}
+
 
 .leaderboard__presence-chip {
     display: inline-flex;

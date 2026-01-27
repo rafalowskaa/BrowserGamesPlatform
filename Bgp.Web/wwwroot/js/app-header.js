@@ -54,6 +54,39 @@
         }
     };
 
+    let notificationAudioContext = null;
+
+    function getNotificationAudioContext() {
+        if (notificationAudioContext) {
+            return notificationAudioContext;
+        }
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) {
+            return null;
+        }
+        notificationAudioContext = new AudioContext();
+        return notificationAudioContext;
+    }
+
+    function playNotificationSound() {
+        const ctx = getNotificationAudioContext();
+        if (!ctx) {
+            return;
+        }
+        if (ctx.state === 'suspended') {
+            ctx.resume().catch(() => { });
+        }
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 740;
+        gain.gain.value = 0.08;
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+        oscillator.start();
+        oscillator.stop(ctx.currentTime + 0.18);
+    }
+
     scanImages();
     function initUserMenus() {
         const menus = document.querySelectorAll('[data-user-menu]');
@@ -313,6 +346,7 @@
                         .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
                     let latest = since;
+                    let playedSound = false;
                     items.forEach((item) => {
                         if (item.id && alertedIds.includes(item.id)) {
                             return;
@@ -326,10 +360,14 @@
                         if (item.id) {
                             alertedIds.push(item.id);
                         }
+                        playedSound = true;
                     });
 
                     updateStoredTimestamp(latest);
                     storeAlertedIds();
+                    if (playedSound && !notificationsView) {
+                        playNotificationSound();
+                    }
                 })
                 .catch(() => { })
                 .finally(() => {

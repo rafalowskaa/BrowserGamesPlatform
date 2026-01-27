@@ -79,6 +79,7 @@
 
     var categoryOptions = GameMetadataOptions.CategoryDefinitions
         .Select(def => new { value = (int)def.Category, label = L[def.ResourceKey].Value })
+        .OrderBy(def => def.label, StringComparer.CurrentCultureIgnoreCase)
         .ToList();
 
     var statusLabels = statuses

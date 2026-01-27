@@ -263,6 +263,7 @@ public class GamesController : Controller
                 Text = _localizer[option.ResourceKey],
                 Selected = selected.HasValue && option.Category == selected.Value
             })
+            .OrderBy(option => option.Text, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
     }
 

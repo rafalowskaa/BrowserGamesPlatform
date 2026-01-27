@@ -1106,10 +1106,15 @@
     gap: 1rem;
 }
 
-.profile-section__body--columns {
+.profile-section__body--columns,
+.profile-section__body--security {
     grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
     gap: 1.25rem;
 }
+
+    .profile-section__body--security .profile-card--sessions {
+        grid-column: 1 / -1;
+    }
 
 .profile-column {
     display: grid;

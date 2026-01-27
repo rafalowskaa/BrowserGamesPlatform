@@ -113,7 +113,11 @@
                         </td>
                         <td class="leaderboard__cell leaderboard__cell--tier" data-label="@Model.RankTitleLabel">
                             <span class="leaderboard__tier" title="@entry.RankTitle">
-                                @(!string.IsNullOrWhiteSpace(entry.RankTitle) ? entry.RankTitle : Model.RankTitleUnknownLabel)
+                                @if (!string.IsNullOrWhiteSpace(entry.TrophyImage))
+                                {
+                                    <img src="@entry.TrophyImage" alt="@entry.RankTitle" class="leaderboard__trophy" loading="lazy" decoding="async" />
+                                }
+                                <span class="leaderboard__tier-label">@(!string.IsNullOrWhiteSpace(entry.RankTitle) ? entry.RankTitle : Model.RankTitleUnknownLabel)</span>
                             </span>
                         </td>
                         <td class="leaderboard__cell leaderboard__cell--player" data-label="@Model.PlayerLabel">

@@ -265,6 +265,7 @@ public class GlobalRankingService
                 ExperiencePoints = xp,
                 Level = level,
                 AvatarUrl = user.AvatarUrl,
+                TrophyImage = rank.TrophyImage,
                 MostPlayedGameTitle = mostPlayedByUser.TryGetValue(user.Id, out var mostPlayed) && gameTitles.TryGetValue(mostPlayed.GameId, out var title)
                     ? title
                     : null,

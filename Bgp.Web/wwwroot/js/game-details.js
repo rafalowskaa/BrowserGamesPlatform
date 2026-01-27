@@ -85,6 +85,8 @@
     let ratingFeedbackTimer = null;
     let inviteStatusTimer = null;
     let rankingLoaded = false;
+    let rankingRefreshTimer = null;
+    let rankingRefreshAttempts = 0;
     const commentReactions = new Map();
     const commentVotes = new Map();
     let rulesImageInput = null;
@@ -747,6 +749,25 @@
         }
     }
 
+    function scheduleRankingRefresh() {
+        if (!rankingPanel) {
+            return;
+        }
+        if (rankingRefreshTimer) {
+            window.clearInterval(rankingRefreshTimer);
+        }
+        rankingRefreshAttempts = 0;
+        rankingRefreshTimer = window.setInterval(async () => {
+            if (rankingRefreshAttempts >= 4) {
+                window.clearInterval(rankingRefreshTimer);
+                rankingRefreshTimer = null;
+                return;
+            }
+            rankingRefreshAttempts += 1;
+            await loadRanking(true);
+        }, 2500);
+    }
+
     async function submitMatchResult(payload) {
         if (!config.play?.sessionUrl) {
             return;
@@ -777,6 +798,7 @@
             }
             rankingLoaded = false;
             await loadRanking(true);
+            scheduleRankingRefresh();
         } catch (err) {
             console.error(err);
         }

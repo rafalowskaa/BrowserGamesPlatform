@@ -90,6 +90,39 @@
     const TIME_GAP_THRESHOLD_MS = 15 * 60 * 1000;
     const MIN_SEARCH_LENGTH = 3;
 
+        let messageAudioContext = null;
+
+        function getMessageAudioContext() {
+            if (messageAudioContext) {
+                return messageAudioContext;
+            }
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) {
+                return null;
+            }
+            messageAudioContext = new AudioContext();
+            return messageAudioContext;
+        }
+
+        function playMessageSound() {
+            const ctx = getMessageAudioContext();
+            if (!ctx) {
+                return;
+            }
+            if (ctx.state === 'suspended') {
+                ctx.resume().catch(() => { });
+            }
+            const oscillator = ctx.createOscillator();
+            const gain = ctx.createGain();
+            oscillator.type = 'triangle';
+            oscillator.frequency.value = 520;
+            gain.gain.value = 0.08;
+            oscillator.connect(gain);
+            gain.connect(ctx.destination);
+            oscillator.start();
+            oscillator.stop(ctx.currentTime + 0.14);
+        }
+
     const friends = new Map();
     const conversations = new Map();
     const pendingMessages = new Map();
@@ -5391,6 +5424,7 @@
                 if (shouldSignalAttention) {
                     friend.lastNotifiedMessageId = message.id || null;
                     triggerConversationAttention(conversation, message);
+                    playMessageSound();
 
                     const toastLabel = friend.displayName
                         ? `${strings.newMessage || 'New message'}: ${friend.displayName}`
