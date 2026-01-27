@@ -90,20 +90,43 @@
     const TIME_GAP_THRESHOLD_MS = 15 * 60 * 1000;
     const MIN_SEARCH_LENGTH = 3;
 
-        const messageSoundUrl = '/audio/message-wave.mp3';
+        const messageSoundUrl = '/audio/soundmess.mp3';
         const messageSound = typeof Audio !== 'undefined' ? new Audio(messageSoundUrl) : null;
+        let messageSoundUnlocked = false;
         if (messageSound) {
             messageSound.preload = 'auto';
         }
+
+        function unlockMessageSound() {
+            if (!messageSound || messageSoundUnlocked) {
+                return;
+            }
+            messageSound.volume = 0;
+            const unlockPromise = messageSound.play();
+            if (!unlockPromise || typeof unlockPromise.then !== 'function') {
+                return;
+            }
+            unlockPromise.then(() => {
+                messageSound.pause();
+                messageSound.currentTime = 0;
+                messageSound.volume = 0.45;
+                messageSoundUnlocked = true;
+            }).catch(() => { });
+        }
+
 
         function playMessageSound() {
             if (!messageSound) {
                 return;
             }
+            unlockMessageSound();
             const sound = messageSound.cloneNode(true);
             sound.volume = 0.45;
             sound.play().catch(() => { });
         }
+
+        document.addEventListener('click', unlockMessageSound, { once: true, capture: true });
+        document.addEventListener('keydown', unlockMessageSound, { once: true, capture: true });
 
     const friends = new Map();
     const conversations = new Map();

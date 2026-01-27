@@ -81,25 +81,11 @@
             </div>
         </form>
 
-        <form asp-action="DeleteLogs" method="post" class="admin-reports__filters admin-reports__filters--actions">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="search" value="@Model.Search" />
-            <input type="hidden" name="type" value="@(Model.Type.HasValue ? ((int)Model.Type.Value).ToString() : string.Empty)" />
-            <input type="hidden" name="game" value="@Model.Game" />
-            <input type="hidden" name="dateFrom" value="@dateFromValue" />
-            <input type="hidden" name="dateTo" value="@dateToValue" />
-            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-            <div class="filter-actions">
-                <button type="submit" class="btn-outline btn-compact text-danger" onclick="return confirm('@L["Admin_Logs_DeleteAll_Confirm"].Value');">
-                    @L["Admin_Logs_DeleteAll"].Value
-                </button>
-            </div>
-        </form>
         <form asp-action="DeleteSelectedLogs" method="post" class="admin-reports__filters admin-reports__filters--actions" id="adminLogBulkDelete">
             @Html.AntiForgeryToken()
             <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
             <div class="filter-actions">
-                <label class="filter-item">
+                <label class="filter-item filter-item--inline">
                     <input type="checkbox" data-admin-logs-select-all />
                     <span>@L["Admin_Logs_SelectAll"].Value</span>
                 </label>

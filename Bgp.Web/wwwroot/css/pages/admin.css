@@ -290,6 +290,17 @@ html[data-theme='light'] .admin-section {
     font-size: 0.875rem;
 }
 
+.filter-item--inline {
+    flex-direction: row;
+    align-items: center;
+    min-width: auto;
+}
+
+    .filter-item--inline input {
+        width: auto;
+        margin: 0;
+    }
+
     .filter-item input,
     .filter-item select {
         background: var(--admin-surface-muted);

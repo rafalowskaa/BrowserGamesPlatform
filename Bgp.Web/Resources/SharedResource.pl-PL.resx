@@ -1092,6 +1092,9 @@
   </data>
 	<data name="Admin_Logs_Type_GameSessionCreated" xml:space="preserve">
     <value>Utworzono sesję gry</value>
+		</data>
+	<data name="Admin_Logs_Type_GameRankingCleared" xml:space="preserve">
+    <value>Wyczyszczono ranking gry</value>
   </data>
 	<data name="Admin_Logs_Type_ReportUpdated" xml:space="preserve">
     <value>Aktualizacja zgłoszenia</value>

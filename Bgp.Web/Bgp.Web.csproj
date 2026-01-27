@@ -41,7 +41,7 @@
     <Content Update="wwwroot\audio\message-wave.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="wwwroot\audio\soundmess.mp3">
+    <Content Update="wwwroot\audio\soundnotifi.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
