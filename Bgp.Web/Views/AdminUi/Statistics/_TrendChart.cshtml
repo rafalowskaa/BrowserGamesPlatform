@@ -23,7 +23,9 @@
         </div>
     </header>
     <div class="stats-chart-card" data-trend-chart>
-        <canvas data-trend-canvas height="120"></canvas>
+        <div class="stats-chart-card__canvas">
+            <canvas data-trend-canvas height="120"></canvas>
+        </div>
         <div class="stats-legend" data-trend-legend>
             <span class="stats-legend__item" data-tone="active">@L["Admin_Stats_Kpi_ActiveUsers"].Value</span>
             <span class="stats-legend__item" data-tone="logins">@L["Admin_Stats_Kpi_Logins"].Value</span>
