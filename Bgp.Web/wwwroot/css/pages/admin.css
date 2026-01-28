@@ -1793,6 +1793,139 @@ html[data-theme='light'] .admin-section {
     background: var(--admin-surface-strong);
 }
 
+.admin-activity {
+    margin: 1.5rem 0 2rem;
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+}
+
+.admin-activity__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+    .admin-activity__header h2 {
+        margin-bottom: 0.25rem;
+    }
+
+.admin-activity__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.admin-activity__card {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+    .admin-activity__card h3 {
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+    }
+
+.admin-activity__totals {
+    display: grid;
+    gap: 0.75rem;
+}
+
+    .admin-activity__totals span {
+        display: block;
+        font-size: 0.75rem;
+        color: rgba(226, 232, 240, 0.7);
+    }
+
+    .admin-activity__totals strong {
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+.admin-activity__trend header {
+    margin-bottom: 1rem;
+}
+
+.admin-activity__trend-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.admin-activity__trend-row {
+    display: grid;
+    grid-template-columns: minmax(90px, 120px) repeat(4, minmax(120px, 1fr));
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+    .admin-activity__trend-row:last-child {
+        border-bottom: none;
+    }
+
+.admin-activity__trend-date {
+    font-size: 0.85rem;
+    color: rgba(226, 232, 240, 0.75);
+}
+
+.admin-activity__trend-metric {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.admin-activity__trend-bar {
+    position: relative;
+    flex: 1;
+    height: 0.4rem;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.2);
+    overflow: hidden;
+}
+
+    .admin-activity__trend-bar::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        width: calc(var(--value, 0) * 1%);
+        background: var(--bar-color, #38bdf8);
+        border-radius: inherit;
+    }
+
+.admin-activity__trend-metric[data-tone="logins"] .admin-activity__trend-bar::after {
+    --bar-color: #38bdf8;
+}
+
+.admin-activity__trend-metric[data-tone="games"] .admin-activity__trend-bar::after {
+    --bar-color: #34d399;
+}
+
+.admin-activity__trend-metric[data-tone="comments"] .admin-activity__trend-bar::after {
+    --bar-color: #fbbf24;
+}
+
+.admin-activity__trend-metric[data-tone="ratings"] .admin-activity__trend-bar::after {
+    --bar-color: #a78bfa;
+}
+
+@media (max-width: 900px) {
+    .admin-activity__trend-row {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-activity__trend-metric {
+        width: 100%;
+    }
+}
+
 @media (max-width: 1200px) {
     .admin-home-grid {
         grid-template-columns: 1fr;

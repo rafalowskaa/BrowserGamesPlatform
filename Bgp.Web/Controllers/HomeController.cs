@@ -97,8 +97,11 @@ public class HomeController : Controller
         baseModel.Trending = await _homeContentService.GetTrendingAsync(6);
         baseModel.FriendActivity = await FetchFriendActivityAsync(6);
         baseModel.CreatorHighlights = await FetchCreatorHighlightsAsync(3);
-        baseModel.ExperiencePanel = await BuildExperiencePanelAsync();
-        baseModel.DailyChallenges = FetchDailyChallengesFallback();
+        var dailyChallengeStatus = user is null
+            ? new DailyChallengeStatus()
+            : await GetDailyChallengeStatusAsync(user);
+        baseModel.ExperiencePanel = await BuildExperiencePanelAsync(dailyChallengeStatus);
+        baseModel.DailyChallenges = BuildDailyChallenges(dailyChallengeStatus);
 
         return baseModel;
     }
@@ -306,7 +309,7 @@ public class HomeController : Controller
         };
     }
 
-    private async Task<ExperiencePanelViewModel> BuildExperiencePanelAsync()
+    private async Task<ExperiencePanelViewModel> BuildExperiencePanelAsync(DailyChallengeStatus dailyStatus)
     {
         var user = await _userManager.GetUserAsync(User);
         if (user is null)
@@ -314,12 +317,12 @@ public class HomeController : Controller
             return new ExperiencePanelViewModel();
         }
 
-        var stats = await BuildUserStatsSnapshotAsync(user);
+        var stats = await BuildUserStatsSnapshotAsync(user, dailyStatus);
         var rank = RankCalculator.CalculateRank(stats);
         return BuildExperiencePanel(rank);
     }
 
-    private async Task<DashboardStatsViewModel> BuildUserStatsSnapshotAsync(ApplicationUser user)
+    private async Task<DashboardStatsViewModel> BuildUserStatsSnapshotAsync(ApplicationUser user, DailyChallengeStatus dailyStatus)
     {
         var completedSessionIds = MatchSessionQueryHelper.BuildCompletedSessionIds(_db);
         var stats = new DashboardStatsViewModel
@@ -344,7 +347,8 @@ public class HomeController : Controller
             FriendsCount = await _db.Friendships.CountAsync(f =>
                 f.Status == FriendshipStatus.Accepted &&
                (f.RequesterId == user.Id || f.AddresseeId == user.Id)),
-            BonusExperience = user.BonusExperience
+            BonusExperience = user.BonusExperience,
+            DailyGoalsCompleted = dailyStatus.CompletedCount
         };
 
         var userScoreGroups = await _db.Scores
@@ -446,14 +450,50 @@ public class HomeController : Controller
         return stats;
     }
 
-    private IReadOnlyList<DailyChallengeViewModel> FetchDailyChallengesFallback()
+    private IReadOnlyList<DailyChallengeViewModel> BuildDailyChallenges(DailyChallengeStatus dailyStatus)
     {
         return new List<DailyChallengeViewModel>
         {
-           new() { Key = "challenge-play", Title = _localizer["Home_Challenge_Play"].Value, RewardXp = 10, IsCompleted = false },
-            new() { Key = "challenge-rate", Title = _localizer["Home_Challenge_Rate"].Value, RewardXp = 10, IsCompleted = false },
-            new() { Key = "challenge-share", Title = _localizer["Home_Challenge_Share"].Value, RewardXp = 10, IsCompleted = false }
+           new()
+            {
+                Key = "challenge-play",
+                Title = _localizer["Home_Challenge_Play"].Value,
+                RewardXp = 10,
+                IsCompleted = dailyStatus.PlayedToday
+            },
+            new()
+            {
+                Key = "challenge-rate",
+                Title = _localizer["Home_Challenge_Rate"].Value,
+                RewardXp = 10,
+                IsCompleted = dailyStatus.RatedToday
+            },
+            new()
+            {
+                Key = "challenge-share",
+                Title = _localizer["Home_Challenge_Share"].Value,
+                RewardXp = 10,
+                IsCompleted = dailyStatus.SharedToday
+            }
         };
+    }
+
+    private async Task<DailyChallengeStatus> GetDailyChallengeStatusAsync(ApplicationUser user)
+    {
+        var todayStart = DateTime.UtcNow.Date;
+        var playedToday = await _db.Scores
+            .AsNoTracking()
+            .AnyAsync(s => s.UserId == user.Id && s.SubmittedAtUtc >= todayStart);
+        var todayActivityTypes = await _db.ActivityLogs
+            .AsNoTracking()
+            .Where(log => log.ActorUserId == user.Id && log.CreatedAtUtc >= todayStart)
+            .Select(log => log.Type)
+            .ToListAsync();
+
+        return new DailyChallengeStatus(
+            playedToday,
+            todayActivityTypes.Contains(ActivityLogType.RatingSubmitted),
+            todayActivityTypes.Contains(ActivityLogType.GameInviteSent));
     }
 
     private static GameSummaryViewModel MapToSummary(GameProjection game)
@@ -497,5 +537,9 @@ public class HomeController : Controller
         public double AvgRating { get; init; }
         public int ReviewsCount { get; init; }
         public string? HighlightTag { get; init; }
+    }
+    private readonly record struct DailyChallengeStatus(bool PlayedToday = false, bool RatedToday = false, bool SharedToday = false)
+    {
+        public int CompletedCount => (PlayedToday ? 1 : 0) + (RatedToday ? 1 : 0) + (SharedToday ? 1 : 0);
     }
 }

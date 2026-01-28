@@ -2028,9 +2028,12 @@ public class AdminUiController : Controller
             };
         }).ToList();
 
+        var activityOverview = await BuildAdminActivityOverviewAsync();
+
         var vm = new AdminLogsViewModel
         {
             Logs = logs,
+            ActivityOverview = activityOverview,
             Search = search,
             Type = type,
             Game = game,
@@ -2042,6 +2045,90 @@ public class AdminUiController : Controller
         };
 
         return View(vm);
+    }
+
+    private async Task<AdminActivityOverviewViewModel> BuildAdminActivityOverviewAsync()
+    {
+        var today = DateTime.UtcNow.Date;
+        var startYear = today.AddDays(-364);
+        var startWeek = today.AddDays(-6);
+        var startMonth = today.AddDays(-29);
+
+        var activityGroups = await _db.ActivityLogs
+            .AsNoTracking()
+            .Where(log => log.CreatedAtUtc >= startYear)
+            .Where(log => log.Type == ActivityLogType.DailyLogin
+                || log.Type == ActivityLogType.CommentAdded
+                || log.Type == ActivityLogType.RatingSubmitted)
+            .GroupBy(log => new { Day = log.CreatedAtUtc.Date, log.Type })
+            .Select(group => new { group.Key.Day, group.Key.Type, Count = group.Count() })
+            .ToListAsync();
+
+        var scoreGroups = await _db.Scores
+            .AsNoTracking()
+            .Where(score => score.SubmittedAtUtc >= startYear)
+            .GroupBy(score => score.SubmittedAtUtc.Date)
+            .Select(group => new { Day = group.Key, Count = group.Count() })
+            .ToListAsync();
+
+        var loginsByDay = activityGroups
+            .Where(entry => entry.Type == ActivityLogType.DailyLogin)
+            .ToDictionary(entry => entry.Day, entry => entry.Count);
+        var commentsByDay = activityGroups
+            .Where(entry => entry.Type == ActivityLogType.CommentAdded)
+            .ToDictionary(entry => entry.Day, entry => entry.Count);
+        var ratingsByDay = activityGroups
+            .Where(entry => entry.Type == ActivityLogType.RatingSubmitted)
+            .ToDictionary(entry => entry.Day, entry => entry.Count);
+        var gamesByDay = scoreGroups.ToDictionary(entry => entry.Day, entry => entry.Count);
+
+        var last7Days = Enumerable.Range(0, 7)
+            .Select(offset => today.AddDays(-6 + offset))
+            .Select(day => new AdminActivitySeriesPoint
+            {
+                Date = day,
+                Logins = loginsByDay.GetValueOrDefault(day),
+                GamesPlayed = gamesByDay.GetValueOrDefault(day),
+                Comments = commentsByDay.GetValueOrDefault(day),
+                Ratings = ratingsByDay.GetValueOrDefault(day)
+            })
+            .ToList();
+
+        int SumRange(Dictionary<DateTime, int> values, DateTime from)
+            => values.Where(entry => entry.Key >= from).Sum(entry => entry.Value);
+
+        return new AdminActivityOverviewViewModel
+        {
+            Logins = new AdminActivityMetricTotals
+            {
+                Today = loginsByDay.GetValueOrDefault(today),
+                Last7Days = SumRange(loginsByDay, startWeek),
+                Last30Days = SumRange(loginsByDay, startMonth),
+                Last365Days = SumRange(loginsByDay, startYear)
+            },
+            GamesPlayed = new AdminActivityMetricTotals
+            {
+                Today = gamesByDay.GetValueOrDefault(today),
+                Last7Days = SumRange(gamesByDay, startWeek),
+                Last30Days = SumRange(gamesByDay, startMonth),
+                Last365Days = SumRange(gamesByDay, startYear)
+            },
+            Comments = new AdminActivityMetricTotals
+            {
+                Today = commentsByDay.GetValueOrDefault(today),
+                Last7Days = SumRange(commentsByDay, startWeek),
+                Last30Days = SumRange(commentsByDay, startMonth),
+                Last365Days = SumRange(commentsByDay, startYear)
+            },
+            Ratings = new AdminActivityMetricTotals
+            {
+                Today = ratingsByDay.GetValueOrDefault(today),
+                Last7Days = SumRange(ratingsByDay, startWeek),
+                Last30Days = SumRange(ratingsByDay, startMonth),
+                Last365Days = SumRange(ratingsByDay, startYear)
+            },
+            Last7Days = last7Days
+        };
     }
 
     [HttpPost]

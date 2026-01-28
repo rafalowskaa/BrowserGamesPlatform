@@ -588,6 +588,9 @@
   </data>
 	<data name="Dashboard_Stats_UploadedGames" xml:space="preserve"> 
         <value>Dodane gry</value>
+		</data>
+	<data name="Dashboard_Stats_RatedGames" xml:space="preserve">
+        <value>Ocenione gry</value>
     </data>
 	<data name="Dashboard_Stats_TotalScores" xml:space="preserve">
         <value>Wysłane wyniki</value>
@@ -608,13 +611,13 @@
         <value>Struktura aktywności</value>
     </data>
 	<data name="Dashboard_Stats_ActivityMix_Description" xml:space="preserve">
-        <value>Udział wyników, recenzji, ocen i komentarzy w całej aktywności.</value>
+        <value>Udział dodanych gier i ocen w całej aktywności.</value>
     </data>
 	<data name="Dashboard_Stats_EngagementIndex" xml:space="preserve">
         <value>Indeks zaangażowania</value>
     </data>
 	<data name="Dashboard_Stats_EngagementIndex_Description" xml:space="preserve">
-        <value>Skalowane tempo wyników względem sieci znajomych (0-100).</value>
+        <value>Skalowane tempo dodawania gier i ocen (0-100).</value>
     </data>
 	<data name="Dashboard_Stats_EngagementIndex_Unit" xml:space="preserve">
         <value>pkt indeksu</value>
@@ -985,6 +988,42 @@
 	<data name="Admin_Logs_Subtitle" xml:space="preserve">
     <value>Podgląd zdarzeń na stronie.</value>
 		</data>
+	<data name="Admin_Logs_Stats_Title" xml:space="preserve">
+    <value>Aktywność w serwisie</value>
+  </data>
+	<data name="Admin_Logs_Stats_Subtitle" xml:space="preserve">
+    <value>Podsumowanie logowań, rozgrywek i reakcji z ostatnich dni.</value>
+  </data>
+	<data name="Admin_Logs_Stats_Logins" xml:space="preserve">
+    <value>Logowania</value>
+  </data>
+	<data name="Admin_Logs_Stats_GamesPlayed" xml:space="preserve">
+    <value>Rozegrane gry</value>
+  </data>
+	<data name="Admin_Logs_Stats_Comments" xml:space="preserve">
+    <value>Komentarze</value>
+  </data>
+	<data name="Admin_Logs_Stats_Ratings" xml:space="preserve">
+    <value>Oceny</value>
+  </data>
+	<data name="Admin_Logs_Stats_Period_Today" xml:space="preserve">
+    <value>Dziś</value>
+  </data>
+	<data name="Admin_Logs_Stats_Period_Week" xml:space="preserve">
+    <value>Ostatnie 7 dni</value>
+  </data>
+	<data name="Admin_Logs_Stats_Period_Month" xml:space="preserve">
+    <value>Ostatnie 30 dni</value>
+  </data>
+	<data name="Admin_Logs_Stats_Period_Year" xml:space="preserve">
+    <value>Ostatnie 12 miesięcy</value>
+  </data>
+	<data name="Admin_Logs_Stats_Trend_Title" xml:space="preserve">
+    <value>Dzienne tempo aktywności</value>
+  </data>
+	<data name="Admin_Logs_Stats_Trend_Subtitle" xml:space="preserve">
+    <value>Porównanie ostatnich 7 dni według typów aktywności.</value>
+  </data>
 	<data name="Admin_Logs_Count_Total" xml:space="preserve">
     <value>Łącznie logów: {0}</value>
   </data>

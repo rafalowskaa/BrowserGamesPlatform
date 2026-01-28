@@ -117,22 +117,15 @@
                 <h2>@L["Dashboard_Stats_Tab"].Value</h2>
                 <ul class="stats-list compact">
                     <li><span>@L["Dashboard_Stats_UploadedGames"].Value</span><strong>@Model.Stats.UploadedGames</strong></li>
-                    <li><span>@L["Dashboard_Stats_TotalScores"].Value</span><strong>@Model.Stats.TotalScores</strong></li>
-                    <li><span>@L["Dashboard_Stats_TotalReviews"].Value</span><strong>@Model.Stats.TotalReviews</strong></li>
-                    <li><span>@L["Dashboard_Stats_Friends"].Value</span><strong>@Model.Stats.FriendsCount</strong></li>
+                    <li><span>@L["Dashboard_Stats_RatedGames"].Value</span><strong>@Model.Stats.TotalRatings</strong></li>
                 </ul>
                 @{
-                    var totalActivity = Model.Stats.TotalScores
-                    + Model.Stats.TotalReviews
-                    + Model.Stats.TotalRatings
-                    + Model.Stats.TotalComments;
+                    var totalActivity = Model.Stats.UploadedGames + Model.Stats.TotalRatings;
                     var totalActivityValue = totalActivity > 0 ? (double)totalActivity : 0d;
-                    var scoreShare = totalActivityValue > 0 ? Model.Stats.TotalScores * 100d / totalActivityValue : 0d;
-                    var reviewShare = totalActivityValue > 0 ? Model.Stats.TotalReviews * 100d / totalActivityValue : 0d;
+                    var uploadShare = totalActivityValue > 0 ? Model.Stats.UploadedGames * 100d / totalActivityValue : 0d;
                     var ratingShare = totalActivityValue > 0 ? Model.Stats.TotalRatings * 100d / totalActivityValue : 0d;
-                    var commentShare = totalActivityValue > 0 ? Model.Stats.TotalComments * 100d / totalActivityValue : 0d;
                     var engagementIndex = totalActivityValue > 0
-                    ? Math.Min(100d, Math.Round(totalActivityValue / Math.Max(1, Model.Stats.FriendsCount + 1d) * 10d, 1))
+                    ? Math.Min(100d, Math.Round(totalActivityValue * 10d, 1))
                     : 0d;
                     var consistencyIndex = Math.Min(100d, Math.Round(Math.Log10(Model.Stats.DailyLoginCount + 1d) * 40d, 1));
                     var daysSinceScore = Model.Stats.LastScoreSubmittedAt.HasValue
@@ -142,10 +135,8 @@
                     ? Math.Max(0d, Math.Min(100d, Math.Round(100d - daysSinceScore.Value * 10d, 1)))
                     : 0d;
                     var diversityIndex = totalActivityValue > 0
-                    ? Math.Max(0d, Math.Min(100d, Math.Round((1d - (Math.Pow(scoreShare / 100d, 2)
-                    + Math.Pow(reviewShare / 100d, 2)
-                    + Math.Pow(ratingShare / 100d, 2)
-                    + Math.Pow(commentShare / 100d, 2))) * 100d, 1)))
+                    ? Math.Max(0d, Math.Min(100d, Math.Round((1d - (Math.Pow(uploadShare / 100d, 2)
+                    + Math.Pow(ratingShare / 100d, 2))) * 100d, 1)))
                     : 0d;
                     var freshnessLabel = daysSinceScore.HasValue
                     ? string.Format(L["Dashboard_Stats_Freshness_Days"].Value, Math.Max(0, (int)Math.Round(daysSinceScore.Value)))
@@ -158,16 +149,12 @@
                             <p>@L["Dashboard_Stats_ActivityMix_Description"].Value</p>
                         </header>
                         <div class="stat-stack" role="presentation">
-                            <span class="stat-stack__segment" style="--value:@scoreShare.ToString("F1", CultureInfo.InvariantCulture); --color:#38bdf8;"></span>
-                            <span class="stat-stack__segment" style="--value:@reviewShare.ToString("F1", CultureInfo.InvariantCulture); --color:#34d399;"></span>
+                            <span class="stat-stack__segment" style="--value:@uploadShare.ToString("F1", CultureInfo.InvariantCulture); --color:#38bdf8;"></span>
                             <span class="stat-stack__segment" style="--value:@ratingShare.ToString("F1", CultureInfo.InvariantCulture); --color:#fbbf24;"></span>
-                            <span class="stat-stack__segment" style="--value:@commentShare.ToString("F1", CultureInfo.InvariantCulture); --color:#a78bfa;"></span>
                         </div>
                         <ul class="stat-legend">
-                            <li><span class="stat-legend__dot" style="--color:#38bdf8"></span>@L["Dashboard_Stats_TotalScores"].Value <strong>@scoreShare.ToString("F0", CultureInfo.CurrentCulture)%</strong></li>
-                            <li><span class="stat-legend__dot" style="--color:#34d399"></span>@L["Dashboard_Stats_TotalReviews"].Value <strong>@reviewShare.ToString("F0", CultureInfo.CurrentCulture)%</strong></li>
+                            <li><span class="stat-legend__dot" style="--color:#38bdf8"></span>@L["Dashboard_Stats_UploadedGames"].Value <strong>@uploadShare.ToString("F0", CultureInfo.CurrentCulture)%</strong></li>
                             <li><span class="stat-legend__dot" style="--color:#fbbf24"></span>@L["Dashboard_Stats_TotalRatings"].Value <strong>@ratingShare.ToString("F0", CultureInfo.CurrentCulture)%</strong></li>
-                            <li><span class="stat-legend__dot" style="--color:#a78bfa"></span>@L["Dashboard_Stats_TotalComments"].Value <strong>@commentShare.ToString("F0", CultureInfo.CurrentCulture)%</strong></li>
                         </ul>
                     </article>
                     <article class="stats-insight-card">
