@@ -168,8 +168,8 @@ public class HomeController : Controller
                 Description = g.Description ?? string.Empty,
                 CreatedAtUtc = g.CreatedAtUtc,
                 UpdatedAtUtc = g.UpdatedAtUtc,
-                AvgRating = g.Reviews.Where(r => r.IsRating).Select(r => (double?)r.Stars).Average() ?? 0,
-                ReviewsCount = g.Reviews.Count(r => r.IsRating),
+                AvgRating = g.Reviews.Where(r => r.IsRating && r.Stars > 0).Select(r => (double?)r.Stars).Average() ?? 0,
+                ReviewsCount = g.Reviews.Count(r => r.IsRating && r.Stars > 0),
                 HighlightTag = g.Tags.Where(t => t.IsApproved).OrderBy(t => t.Value).Select(t => t.Value).FirstOrDefault()
             });
     }

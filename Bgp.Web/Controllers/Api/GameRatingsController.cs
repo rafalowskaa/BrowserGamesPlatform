@@ -42,7 +42,7 @@ public class GameRatingsController : ControllerBase
         }
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var reviews = game.Reviews.Where(r => r.IsRating).ToList();
+        var reviews = game.Reviews.Where(r => r.IsRating && r.Stars > 0).ToList();
         var avg = reviews.Count > 0 ? reviews.Average(r => r.Stars) : 0;
         var distribution = Enumerable.Range(1, 5)
             .ToDictionary(v => v, v => reviews.Count(r => r.Stars == v));

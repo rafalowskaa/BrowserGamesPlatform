@@ -42,8 +42,10 @@ public class GamesController : ControllerBase
             .OrderByDescending(g => g.CreatedAtUtc)
             .Select(g => new GameListItemDto(
                 g.Id, g.Title, g.Slug, g.CoverImagePath,
-                g.Reviews.Any() ? g.Reviews.Average(r => r.Stars) : 0,
-                g.Reviews.Count, g.Modes, g.Categories,
+                g.Reviews.Any(r => r.IsRating && r.Stars > 0)
+                    ? g.Reviews.Where(r => r.IsRating && r.Stars > 0).Average(r => r.Stars)
+                    : 0,
+                g.Reviews.Count(r => r.IsRating && r.Stars > 0), g.Modes, g.Categories,
                 g.Tags.Where(t => t.IsApproved).OrderBy(t => t.Value).Select(t => t.Value).ToList()))
             .ToListAsync();
 
@@ -87,8 +89,10 @@ public class GamesController : ControllerBase
             g.CoverImagePath,
             LatestVersion = latest?.Version,
             PlayUrl = latest?.ContentPath is null ? null : $"{latest.ContentPath.TrimEnd('/')}/index.html",
-            AvgRating = g.Reviews.Any(r => r.IsRating) ? g.Reviews.Where(r => r.IsRating).Average(r => r.Stars) : 0,
-            ReviewsCount = g.Reviews.Count,
+            AvgRating = g.Reviews.Any(r => r.IsRating && r.Stars > 0)
+                ? g.Reviews.Where(r => r.IsRating && r.Stars > 0).Average(r => r.Stars)
+                : 0,
+            ReviewsCount = g.Reviews.Count(r => r.IsRating && r.Stars > 0),
             Tags = g.Tags.Where(t => t.IsApproved).OrderBy(t => t.Value).Select(t => t.Value).ToList(),
             UpdatedAt = g.UpdatedAtUtc ?? g.CreatedAtUtc,
             Assets = new

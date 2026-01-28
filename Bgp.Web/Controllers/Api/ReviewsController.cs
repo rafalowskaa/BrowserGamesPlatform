@@ -30,7 +30,7 @@ public class ReviewsController : ControllerBase
         var game = await _db.Games.Include(g => g.Reviews).FirstOrDefaultAsync(g => g.Id == gameId);
         if (game is null) return NotFound();
 
-        var ratingReviews = game.Reviews.Where(r => r.IsRating).ToList();
+        var ratingReviews = game.Reviews.Where(r => r.IsRating && r.Stars > 0).ToList();
         var userIds = ratingReviews.Select(r => r.UserId).Distinct().ToList();
         var userLookup = userIds.Count == 0
             ? new Dictionary<string, string>()

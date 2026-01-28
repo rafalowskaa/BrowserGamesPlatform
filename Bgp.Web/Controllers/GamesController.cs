@@ -103,7 +103,7 @@ public class GamesController : Controller
 
             ratingLookup = await _db.GameReviews
                 .AsNoTracking()
-                .Where(r => gameIds.Contains(r.GameId) && r.IsRating)
+                .Where(r => gameIds.Contains(r.GameId) && r.IsRating && r.Stars > 0)
                 .GroupBy(r => r.GameId)
                 .Select(group => new
                 {
@@ -216,7 +216,8 @@ public class GamesController : Controller
             .Distinct()
             .CountAsync();
 
-        var reviewsQuery = _db.GameReviews.AsNoTracking().Where(r => r.GameId == g.Id && r.IsRating);
+        var reviewsQuery = _db.GameReviews.AsNoTracking()
+            .Where(r => r.GameId == g.Id && r.IsRating && r.Stars > 0);
         var ratingStats = await reviewsQuery
             .GroupBy(_ => 1)
             .Select(group => new
