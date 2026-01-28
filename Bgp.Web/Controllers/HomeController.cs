@@ -483,7 +483,10 @@ public class HomeController : Controller
         var todayStart = DateTime.UtcNow.Date;
         var playedToday = await _db.Scores
             .AsNoTracking()
-            .AnyAsync(s => s.UserId == user.Id && s.SubmittedAtUtc >= todayStart);
+            .AnyAsync(s => s.UserId == user.Id && s.SubmittedAtUtc >= todayStart)
+            || await _db.SessionPlayers
+                .AsNoTracking()
+                .AnyAsync(player => player.UserId == user.Id && player.JoinedAtUtc >= todayStart);
         var todayActivityTypes = await _db.ActivityLogs
             .AsNoTracking()
             .Where(log => log.ActorUserId == user.Id && log.CreatedAtUtc >= todayStart)
