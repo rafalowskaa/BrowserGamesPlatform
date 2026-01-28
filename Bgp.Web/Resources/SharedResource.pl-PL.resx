@@ -1055,7 +1055,7 @@
     <value>Zastosuj filtry</value>
   </data>
 	<data name="Admin_Stats_Kpi_Title" xml:space="preserve">
-    <value>Podsumowanie KPI</value>
+    <value>Podsumowanie kluczowych wskaźników efektywności (KPI)</value>
   </data>
 	<data name="Admin_Stats_Kpi_Subtitle" xml:space="preserve">
     <value>Łączne wartości dla {0} ({1}).</value>

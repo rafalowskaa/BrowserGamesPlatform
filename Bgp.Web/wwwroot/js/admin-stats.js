@@ -285,7 +285,8 @@
             backgroundColor: colorMap[metric] || '#38bdf8',
             borderWidth: 2,
             fill: false,
-            tension: 0.32,
+            tension: 0,
+            cubicInterpolationMode: 'monotone',
             borderDash: dashed ? [6, 6] : undefined,
             pointRadius: 2
         };
@@ -341,12 +342,14 @@
                         }
                     }
                 },
+                animation: false,
                 scales: {
                     x: {
                         ticks: { color: '#94a3b8' },
                         grid: { display: false }
                     },
                     y: {
+                        beginAtZero: true,
                         ticks: { color: '#94a3b8' },
                         grid: { color: 'rgba(148,163,184,0.1)' }
                     }

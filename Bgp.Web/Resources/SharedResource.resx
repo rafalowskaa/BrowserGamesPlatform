@@ -100,7 +100,7 @@
         <value>Apply filters</value>
     </data>
 	<data name="Admin_Stats_Kpi_Title" xml:space="preserve">
-        <value>Overview KPIs</value>
+         <value>Key performance indicators (KPI) overview</value>
     </data>
 	<data name="Admin_Stats_Kpi_Subtitle" xml:space="preserve">
         <value>Activity totals for {0} ({1}).</value>
