@@ -589,6 +589,9 @@
 	<data name="Dashboard_Stats_UploadedGames" xml:space="preserve"> 
         <value>Dodane gry</value>
 		</data>
+	<data name="Dashboard_Stats_PlayedGames" xml:space="preserve">
+        <value>Rozegrane gry</value>
+    </data>
 	<data name="Dashboard_Stats_RatedGames" xml:space="preserve">
         <value>Ocenione gry</value>
     </data>
@@ -606,6 +609,9 @@
     </data>
 	<data name="Dashboard_Stats_Friends" xml:space="preserve">
         <value>Znajomi</value>
+		</data>
+	<data name="Dashboard_Stats_AddedPlayers" xml:space="preserve">
+        <value>Dodani gracze</value>
     </data>
 	<data name="Dashboard_Stats_ActivityMix" xml:space="preserve">
         <value>Struktura aktywności</value>
@@ -978,9 +984,162 @@
 		</data>
 	<data name="Admin_Nav_Logs" xml:space="preserve">
     <value>Logi</value>
+		</data>
+	<data name="Admin_Nav_Stats" xml:space="preserve">
+    <value>Statystyki</value>
   </data>
 	<data name="Admin_Nav_Content" xml:space="preserve">
     <value>Treści</value>
+		</data>
+	<data name="Admin_Stats_Title" xml:space="preserve">
+    <value>Statystyki serwisu</value>
+  </data>
+	<data name="Admin_Stats_Subtitle" xml:space="preserve">
+    <value>Śledź aktywność, zaangażowanie i obciążenie moderacji.</value>
+  </data>
+	<data name="Admin_Stats_Filter_Range" xml:space="preserve">
+    <value>Zakres</value>
+  </data>
+	<data name="Admin_Stats_Filter_Range_7d" xml:space="preserve">
+    <value>Ostatnie 7 dni</value>
+  </data>
+	<data name="Admin_Stats_Filter_Range_30d" xml:space="preserve">
+    <value>Ostatnie 30 dni</value>
+  </data>
+	<data name="Admin_Stats_Filter_Range_12m" xml:space="preserve">
+    <value>Ostatnie 12 miesięcy</value>
+  </data>
+	<data name="Admin_Stats_Filter_Range_Custom" xml:space="preserve">
+    <value>Własny zakres</value>
+  </data>
+	<data name="Admin_Stats_Filter_Start" xml:space="preserve">
+    <value>Start</value>
+  </data>
+	<data name="Admin_Stats_Filter_End" xml:space="preserve">
+    <value>Koniec</value>
+  </data>
+	<data name="Admin_Stats_Filter_Granularity" xml:space="preserve">
+    <value>Agregacja</value>
+  </data>
+	<data name="Admin_Stats_Filter_Granularity_Day" xml:space="preserve">
+    <value>Dzień</value>
+  </data>
+	<data name="Admin_Stats_Filter_Granularity_Week" xml:space="preserve">
+    <value>Tydzień</value>
+  </data>
+	<data name="Admin_Stats_Filter_Granularity_Month" xml:space="preserve">
+    <value>Miesiąc</value>
+  </data>
+	<data name="Admin_Stats_Filter_Compare" xml:space="preserve">
+    <value>Porównaj z poprzednim okresem</value>
+  </data>
+	<data name="Admin_Stats_Filter_ShowInactive" xml:space="preserve">
+    <value>Pokaż dni bez aktywności</value>
+  </data>
+	<data name="Admin_Stats_Filter_Apply" xml:space="preserve">
+    <value>Zastosuj filtry</value>
+  </data>
+	<data name="Admin_Stats_Kpi_Title" xml:space="preserve">
+    <value>Podsumowanie KPI</value>
+  </data>
+	<data name="Admin_Stats_Kpi_Subtitle" xml:space="preserve">
+    <value>Łączne wartości dla {0} ({1}).</value>
+  </data>
+	<data name="Admin_Stats_Kpi_ActiveUsers" xml:space="preserve">
+    <value>Aktywni użytkownicy</value>
+  </data>
+	<data name="Admin_Stats_Kpi_Logins" xml:space="preserve">
+    <value>Logowania</value>
+  </data>
+	<data name="Admin_Stats_Kpi_GamesPlayed" xml:space="preserve">
+    <value>Rozegrane gry</value>
+  </data>
+	<data name="Admin_Stats_Kpi_Comments" xml:space="preserve">
+    <value>Komentarze</value>
+  </data>
+	<data name="Admin_Stats_Kpi_Ratings" xml:space="preserve">
+    <value>Oceny</value>
+  </data>
+	<data name="Admin_Stats_Kpi_GamesPublished" xml:space="preserve">
+    <value>Opublikowane gry</value>
+  </data>
+	<data name="Admin_Stats_Trends_Title" xml:space="preserve">
+    <value>Aktywność platformy w czasie</value>
+  </data>
+	<data name="Admin_Stats_Trends_Subtitle" xml:space="preserve">
+    <value>Tempo dzienne, tygodniowe lub miesięczne dla {0}.</value>
+  </data>
+	<data name="Admin_Stats_Heatmap_Title" xml:space="preserve">
+    <value>Dzienny rozkład</value>
+  </data>
+	<data name="Admin_Stats_Heatmap_Subtitle" xml:space="preserve">
+    <value>Mapa intensywności dla wybranego zakresu.</value>
+  </data>
+	<data name="Admin_Stats_Heatmap_Date" xml:space="preserve">
+    <value>Data</value>
+  </data>
+	<data name="Admin_Stats_Insights_Title" xml:space="preserve">
+    <value>Wnioski i alerty</value>
+  </data>
+	<data name="Admin_Stats_Insights_Subtitle" xml:space="preserve">
+    <value>Najważniejsze zmiany opisane prostymi regułami.</value>
+  </data>
+	<data name="Admin_Stats_Insights_Empty" xml:space="preserve">
+    <value>Brak wniosków dla wybranego okresu.</value>
+  </data>
+	<data name="Admin_Stats_Insight_Peak_Title" xml:space="preserve">
+    <value>Najwyższa aktywność</value>
+  </data>
+	<data name="Admin_Stats_Insight_Peak_Description" xml:space="preserve">
+    <value>Największa aktywność dnia {0}.</value>
+  </data>
+	<data name="Admin_Stats_Insight_Logins_Title" xml:space="preserve">
+    <value>Trend logowań</value>
+  </data>
+	<data name="Admin_Stats_Insight_Logins_Description" xml:space="preserve">
+    <value>Logowania {0}.</value>
+  </data>
+	<data name="Admin_Stats_Insight_Reports_Title" xml:space="preserve">
+    <value>Obciążenie moderacji</value>
+  </data>
+	<data name="Admin_Stats_Insight_Reports_Description" xml:space="preserve">
+    <value>Nowe zgłoszenia: {0}.</value>
+  </data>
+	<data name="Admin_Stats_Details_Title" xml:space="preserve">
+    <value>Szczegóły</value>
+  </data>
+	<data name="Admin_Stats_Details_Subtitle" xml:space="preserve">
+    <value>Najlepsze dni, gry i nowe publikacje.</value>
+  </data>
+	<data name="Admin_Stats_TopDays_Title" xml:space="preserve">
+    <value>Najlepsze dni aktywności</value>
+  </data>
+	<data name="Admin_Stats_TopGames_Title" xml:space="preserve">
+    <value>Najpopularniejsze gry</value>
+  </data>
+	<data name="Admin_Stats_TopGames_Meta" xml:space="preserve">
+    <value>{0} rozgrywek · {1} ocen · {2} komentarzy</value>
+  </data>
+	<data name="Admin_Stats_NewGames_Title" xml:space="preserve">
+    <value>Nowe opublikowane gry</value>
+  </data>
+	<data name="Admin_Stats_Moderation_Title" xml:space="preserve">
+    <value>Moderacja</value>
+  </data>
+	<data name="Admin_Stats_Moderation_Subtitle" xml:space="preserve">
+    <value>Zgłoszenia i rozkład ocen.</value>
+  </data>
+	<data name="Admin_Stats_Moderation_Reports" xml:space="preserve">
+    <value>Zgłoszenia wg powodu</value>
+  </data>
+	<data name="Admin_Stats_RatingDist_Title" xml:space="preserve">
+    <value>Rozkład ocen</value>
+  </data>
+	<data name="Admin_Stats_RatingDist_Item" xml:space="preserve">
+    <value>{0} gwiazdek</value>
+  </data>
+	<data name="Admin_Stats_Empty" xml:space="preserve">
+    <value>Brak danych dla wybranego zakresu.</value>
   </data>
 	<data name="Admin_Logs_Title" xml:space="preserve">
     <value>Logi</value>

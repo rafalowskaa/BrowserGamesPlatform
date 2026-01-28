@@ -170,6 +170,7 @@ public class RecoverySettingsFormViewModel
 public class DashboardStatsViewModel
 {
     public int UploadedGames { get; set; }
+    public int PlayedGames { get; set; }
     public int TotalScores { get; set; }
     public int TotalReviews { get; set; }
     public int TotalRatings { get; set; }
@@ -177,6 +178,7 @@ public class DashboardStatsViewModel
     public int DailyLoginCount { get; set; }
     public int MultiplayerMatches { get; set; }
     public int FriendsCount { get; set; }
+    public int AddedPlayersCount { get; set; }
     public int DailyGoalsCompleted { get; set; }
     public IReadOnlyList<GamePerformanceStat> GamePerformances { get; set; } = Array.Empty<GamePerformanceStat>();
     public DateTime? LastScoreSubmittedAt { get; set; }

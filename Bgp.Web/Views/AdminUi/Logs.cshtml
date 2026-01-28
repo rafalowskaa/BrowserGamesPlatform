@@ -1,5 +1,4 @@
-﻿﻿﻿@using System.Globalization
-@using System.Linq
+﻿@using System.Linq
 @using Bgp.Domain.Enums
 @model Bgp.Web.Models.AdminLogsViewModel
 @section Styles {
@@ -12,13 +11,6 @@
     string FormatType(ActivityLogType type) => L[$"Admin_Logs_Type_{type}"].Value;
     var dateFromValue = Model.DateFrom?.ToString("yyyy-MM-dd");
     var dateToValue = Model.DateTo?.ToString("yyyy-MM-dd");
-    var polishCulture = System.Globalization.CultureInfo.GetCultureInfo("pl-PL");
-    var activity = Model.ActivityOverview;
-    var activityDays = activity.Last7Days.ToList();
-    var maxLogins = Math.Max(1, activityDays.Any() ? activityDays.Max(point => point.Logins) : 1);
-    var maxGames = Math.Max(1, activityDays.Any() ? activityDays.Max(point => point.GamesPlayed) : 1);
-    var maxComments = Math.Max(1, activityDays.Any() ? activityDays.Max(point => point.Comments) : 1);
-    var maxRatings = Math.Max(1, activityDays.Any() ? activityDays.Max(point => point.Ratings) : 1);
     var hasFilters = !string.IsNullOrWhiteSpace(Model.Search)
        || Model.Type.HasValue
        || !string.IsNullOrWhiteSpace(Model.Game)
@@ -32,6 +24,7 @@
         <a class="admin-nav__item" asp-action="Content">@L["Admin_Nav_Content"].Value</a>
         <a class="admin-nav__item" asp-action="Reports">@L["Admin_Nav_Reports"].Value</a>
         <a class="admin-nav__item active" asp-action="Logs">@L["Admin_Nav_Logs"].Value</a>
+        <a class="admin-nav__item" asp-action="Statistics">@L["Admin_Nav_Stats"].Value</a>
     </nav>
 
     <section class="admin-reports">
@@ -49,135 +42,6 @@
         {
             <div class="alert success">@L[successKey].Value</div>
         }
-
-        <section class="admin-activity">
-            <header class="admin-activity__header">
-                <div>
-                    <h2>@L["Admin_Logs_Stats_Title"].Value</h2>
-                    <p>@L["Admin_Logs_Stats_Subtitle"].Value</p>
-                </div>
-            </header>
-            <div class="admin-activity__grid">
-                <article class="admin-activity__card">
-                    <h3>@L["Admin_Logs_Stats_Logins"].Value</h3>
-                    <div class="admin-activity__totals">
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Today"].Value</span>
-                            <strong>@activity.Logins.Today</strong>
-                        </div>
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Week"].Value</span>
-                            <strong>@activity.Logins.Last7Days</strong>
-                        </div>
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Month"].Value</span>
-                            <strong>@activity.Logins.Last30Days</strong>
-                        </div>
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Year"].Value</span>
-                            <strong>@activity.Logins.Last365Days</strong>
-                        </div>
-                    </div>
-                </article>
-                <article class="admin-activity__card">
-                    <h3>@L["Admin_Logs_Stats_GamesPlayed"].Value</h3>
-                    <div class="admin-activity__totals">
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Today"].Value</span>
-                            <strong>@activity.GamesPlayed.Today</strong>
-                        </div>
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Week"].Value</span>
-                            <strong>@activity.GamesPlayed.Last7Days</strong>
-                        </div>
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Month"].Value</span>
-                            <strong>@activity.GamesPlayed.Last30Days</strong>
-                        </div>
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Year"].Value</span>
-                            <strong>@activity.GamesPlayed.Last365Days</strong>
-                        </div>
-                    </div>
-                </article>
-                <article class="admin-activity__card">
-                    <h3>@L["Admin_Logs_Stats_Comments"].Value</h3>
-                    <div class="admin-activity__totals">
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Today"].Value</span>
-                            <strong>@activity.Comments.Today</strong>
-                        </div>
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Week"].Value</span>
-                            <strong>@activity.Comments.Last7Days</strong>
-                        </div>
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Month"].Value</span>
-                            <strong>@activity.Comments.Last30Days</strong>
-                        </div>
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Year"].Value</span>
-                            <strong>@activity.Comments.Last365Days</strong>
-                        </div>
-                    </div>
-                </article>
-                <article class="admin-activity__card">
-                    <h3>@L["Admin_Logs_Stats_Ratings"].Value</h3>
-                    <div class="admin-activity__totals">
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Today"].Value</span>
-                            <strong>@activity.Ratings.Today</strong>
-                        </div>
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Week"].Value</span>
-                            <strong>@activity.Ratings.Last7Days</strong>
-                        </div>
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Month"].Value</span>
-                            <strong>@activity.Ratings.Last30Days</strong>
-                        </div>
-                        <div>
-                            <span>@L["Admin_Logs_Stats_Period_Year"].Value</span>
-                            <strong>@activity.Ratings.Last365Days</strong>
-                        </div>
-                    </div>
-                </article>
-            </div>
-            <div class="admin-activity__trend">
-                <header>
-                    <h3>@L["Admin_Logs_Stats_Trend_Title"].Value</h3>
-                    <p>@L["Admin_Logs_Stats_Trend_Subtitle"].Value</p>
-                </header>
-                <div class="admin-activity__trend-grid" role="list">
-                    @foreach (var point in activityDays)
-                    {
-                        var loginShare = point.Logins * 100d / maxLogins;
-                        var gamesShare = point.GamesPlayed * 100d / maxGames;
-                        var commentsShare = point.Comments * 100d / maxComments;
-                        var ratingsShare = point.Ratings * 100d / maxRatings;
-                        <div class="admin-activity__trend-row" role="listitem">
-                            <span class="admin-activity__trend-date">@point.Date.ToString("ddd dd.MM", polishCulture)</span>
-                            <div class="admin-activity__trend-metric" data-tone="logins">
-                                <span class="admin-activity__trend-bar" style="--value:@loginShare.ToString("F1", CultureInfo.InvariantCulture);"></span>
-                                <strong>@point.Logins</strong>
-                            </div>
-                            <div class="admin-activity__trend-metric" data-tone="games">
-                                <span class="admin-activity__trend-bar" style="--value:@gamesShare.ToString("F1", CultureInfo.InvariantCulture);"></span>
-                                <strong>@point.GamesPlayed</strong>
-                            </div>
-                            <div class="admin-activity__trend-metric" data-tone="comments">
-                                <span class="admin-activity__trend-bar" style="--value:@commentsShare.ToString("F1", CultureInfo.InvariantCulture);"></span>
-                                <strong>@point.Comments</strong>
-                            </div>
-                            <div class="admin-activity__trend-metric" data-tone="ratings">
-                                <span class="admin-activity__trend-bar" style="--value:@ratingsShare.ToString("F1", CultureInfo.InvariantCulture);"></span>
-                                <strong>@point.Ratings</strong>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        </section>
 
         <form method="get" class="admin-reports__filters">
             <label class="filter-item">

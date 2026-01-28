@@ -1200,6 +1200,13 @@ public class DashboardController : Controller
         var totalComments = await _db.GameReviews.CountAsync(r => r.UserId == user.Id && !string.IsNullOrEmpty(r.Comment));
         var dailyLogins = await _db.ActivityLogs.CountAsync(log => log.ActorUserId == user.Id && log.Type == ActivityLogType.DailyLogin);
         var completedSessionIds = MatchSessionQueryHelper.BuildCompletedSessionIds(_db);
+        var playedGames = await _db.Scores
+            .Where(s => s.UserId == user.Id && completedSessionIds.Contains(s.MatchSessionId))
+            .Select(s => s.GameId)
+            .Distinct()
+            .CountAsync();
+        var addedPlayers = await _db.Friendships.CountAsync(f =>
+            f.RequesterId == user.Id && f.Status != FriendshipStatus.Blocked);
         var multiplayerMatches = await _db.SessionPlayers
             .Where(player => player.UserId == user.Id && completedSessionIds.Contains(player.SessionId))
             .Select(player => player.SessionId)
@@ -1215,6 +1222,7 @@ public class DashboardController : Controller
         var stats = new DashboardStatsViewModel
         {
             UploadedGames = await _db.Games.CountAsync(g => g.CreatedByUserId == user.Id),
+            PlayedGames = playedGames,
             TotalScores = await _db.Scores.CountAsync(s => s.UserId == user.Id && completedSessionIds.Contains(s.MatchSessionId)),
             TotalReviews = await _db.GameReviews.CountAsync(r => r.UserId == user.Id),
             TotalRatings = totalRatings,
@@ -1222,6 +1230,7 @@ public class DashboardController : Controller
             DailyLoginCount = dailyLogins,
             MultiplayerMatches = multiplayerMatches,
             FriendsCount = friendVms.Count,
+            AddedPlayersCount = addedPlayers,
             BonusExperience = user.BonusExperience
         };
 

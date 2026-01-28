@@ -117,99 +117,11 @@
                 <h2>@L["Dashboard_Stats_Tab"].Value</h2>
                 <ul class="stats-list compact">
                     <li><span>@L["Dashboard_Stats_UploadedGames"].Value</span><strong>@Model.Stats.UploadedGames</strong></li>
+                    <li><span>@L["Dashboard_Stats_PlayedGames"].Value</span><strong>@Model.Stats.PlayedGames</strong></li>
+                    <li><span>@L["Dashboard_Stats_Friends"].Value</span><strong>@Model.Stats.FriendsCount</strong></li>
+                    <li><span>@L["Dashboard_Stats_AddedPlayers"].Value</span><strong>@Model.Stats.AddedPlayersCount</strong></li>
                     <li><span>@L["Dashboard_Stats_RatedGames"].Value</span><strong>@Model.Stats.TotalRatings</strong></li>
                 </ul>
-                @{
-                    var totalActivity = Model.Stats.UploadedGames + Model.Stats.TotalRatings;
-                    var totalActivityValue = totalActivity > 0 ? (double)totalActivity : 0d;
-                    var uploadShare = totalActivityValue > 0 ? Model.Stats.UploadedGames * 100d / totalActivityValue : 0d;
-                    var ratingShare = totalActivityValue > 0 ? Model.Stats.TotalRatings * 100d / totalActivityValue : 0d;
-                    var engagementIndex = totalActivityValue > 0
-                    ? Math.Min(100d, Math.Round(totalActivityValue * 10d, 1))
-                    : 0d;
-                    var consistencyIndex = Math.Min(100d, Math.Round(Math.Log10(Model.Stats.DailyLoginCount + 1d) * 40d, 1));
-                    var daysSinceScore = Model.Stats.LastScoreSubmittedAt.HasValue
-                    ? (DateTime.UtcNow - Model.Stats.LastScoreSubmittedAt.Value).TotalDays
-                    : (double?)null;
-                    var freshnessIndex = daysSinceScore.HasValue
-                    ? Math.Max(0d, Math.Min(100d, Math.Round(100d - daysSinceScore.Value * 10d, 1)))
-                    : 0d;
-                    var diversityIndex = totalActivityValue > 0
-                    ? Math.Max(0d, Math.Min(100d, Math.Round((1d - (Math.Pow(uploadShare / 100d, 2)
-                    + Math.Pow(ratingShare / 100d, 2))) * 100d, 1)))
-                    : 0d;
-                    var freshnessLabel = daysSinceScore.HasValue
-                    ? string.Format(L["Dashboard_Stats_Freshness_Days"].Value, Math.Max(0, (int)Math.Round(daysSinceScore.Value)))
-                    : L["Dashboard_Stats_Freshness_None"].Value;
-                }
-                <div class="stats-insights">
-                    <article class="stats-insight-card">
-                        <header>
-                            <h3>@L["Dashboard_Stats_ActivityMix"].Value</h3>
-                            <p>@L["Dashboard_Stats_ActivityMix_Description"].Value</p>
-                        </header>
-                        <div class="stat-stack" role="presentation">
-                            <span class="stat-stack__segment" style="--value:@uploadShare.ToString("F1", CultureInfo.InvariantCulture); --color:#38bdf8;"></span>
-                            <span class="stat-stack__segment" style="--value:@ratingShare.ToString("F1", CultureInfo.InvariantCulture); --color:#fbbf24;"></span>
-                        </div>
-                        <ul class="stat-legend">
-                            <li><span class="stat-legend__dot" style="--color:#38bdf8"></span>@L["Dashboard_Stats_UploadedGames"].Value <strong>@uploadShare.ToString("F0", CultureInfo.CurrentCulture)%</strong></li>
-                            <li><span class="stat-legend__dot" style="--color:#fbbf24"></span>@L["Dashboard_Stats_TotalRatings"].Value <strong>@ratingShare.ToString("F0", CultureInfo.CurrentCulture)%</strong></li>
-                        </ul>
-                    </article>
-                    <article class="stats-insight-card">
-                        <header>
-                            <h3>@L["Dashboard_Stats_EngagementIndex"].Value</h3>
-                            <p>@L["Dashboard_Stats_EngagementIndex_Description"].Value</p>
-                        </header>
-                        <div class="stat-meter" role="presentation">
-                            <span class="stat-meter__fill" style="--value:@engagementIndex.ToString("F1", CultureInfo.InvariantCulture)"></span>
-                        </div>
-                        <div class="stat-meter__meta">
-                            <strong>@engagementIndex.ToString("F1", CultureInfo.CurrentCulture)</strong>
-                            <span>@L["Dashboard_Stats_EngagementIndex_Unit"].Value</span>
-                        </div>
-                    </article>
-                    <article class="stats-insight-card">
-                        <header>
-                            <h3>@L["Dashboard_Stats_Consistency"].Value</h3>
-                            <p>@L["Dashboard_Stats_Consistency_Description"].Value</p>
-                        </header>
-                        <div class="stat-meter" role="presentation">
-                            <span class="stat-meter__fill" style="--value:@consistencyIndex.ToString("F1", CultureInfo.InvariantCulture)"></span>
-                        </div>
-                        <div class="stat-meter__meta">
-                            <strong>@consistencyIndex.ToString("F1", CultureInfo.CurrentCulture)</strong>
-                            <span>@L["Dashboard_Stats_Consistency_Unit"].Value</span>
-                        </div>
-                    </article>
-                    <article class="stats-insight-card">
-                        <header>
-                            <h3>@L["Dashboard_Stats_Freshness"].Value</h3>
-                            <p>@L["Dashboard_Stats_Freshness_Description"].Value</p>
-                        </header>
-                        <div class="stat-meter" role="presentation">
-                            <span class="stat-meter__fill" style="--value:@freshnessIndex.ToString("F1", CultureInfo.InvariantCulture)"></span>
-                        </div>
-                        <div class="stat-meter__meta">
-                            <strong>@freshnessIndex.ToString("F1", CultureInfo.CurrentCulture)</strong>
-                            <span>@freshnessLabel</span>
-                        </div>
-                    </article>
-                    <article class="stats-insight-card">
-                        <header>
-                            <h3>@L["Dashboard_Stats_Diversity"].Value</h3>
-                            <p>@L["Dashboard_Stats_Diversity_Description"].Value</p>
-                        </header>
-                        <div class="stat-meter" role="presentation">
-                            <span class="stat-meter__fill" style="--value:@diversityIndex.ToString("F1", CultureInfo.InvariantCulture)"></span>
-                        </div>
-                        <div class="stat-meter__meta">
-                            <strong>@diversityIndex.ToString("F1", CultureInfo.CurrentCulture)</strong>
-                            <span>@L["Dashboard_Stats_Diversity_Unit"].Value</span>
-                        </div>
-                    </article>
-                </div>
             </section>
             break;
         case "games":

@@ -325,9 +325,17 @@ public class HomeController : Controller
     private async Task<DashboardStatsViewModel> BuildUserStatsSnapshotAsync(ApplicationUser user, DailyChallengeStatus dailyStatus)
     {
         var completedSessionIds = MatchSessionQueryHelper.BuildCompletedSessionIds(_db);
+        var playedGames = await _db.Scores
+            .Where(s => s.UserId == user.Id && completedSessionIds.Contains(s.MatchSessionId))
+            .Select(s => s.GameId)
+            .Distinct()
+            .CountAsync();
+        var addedPlayers = await _db.Friendships.CountAsync(f =>
+            f.RequesterId == user.Id && f.Status != FriendshipStatus.Blocked);
         var stats = new DashboardStatsViewModel
         {
             UploadedGames = await _db.Games.CountAsync(g => g.CreatedByUserId == user.Id),
+            PlayedGames = playedGames,
             TotalScores = await _db.Scores.CountAsync(s => s.UserId == user.Id && completedSessionIds.Contains(s.MatchSessionId)),
             TotalReviews = await _db.GameReviews.CountAsync(r => r.UserId == user.Id),
             TotalRatings = await _db.GameReviews.CountAsync(r => r.UserId == user.Id && r.IsRating),
@@ -347,6 +355,7 @@ public class HomeController : Controller
             FriendsCount = await _db.Friendships.CountAsync(f =>
                 f.Status == FriendshipStatus.Accepted &&
                (f.RequesterId == user.Id || f.AddresseeId == user.Id)),
+            AddedPlayersCount = addedPlayers,
             BonusExperience = user.BonusExperience,
             DailyGoalsCompleted = dailyStatus.CompletedCount
         };

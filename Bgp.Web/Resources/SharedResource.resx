@@ -35,9 +35,162 @@
 		</data>
 	<data name="Admin_Nav_Logs" xml:space="preserve">
         <value>Logs</value>
+		</data>
+	<data name="Admin_Stats_Title" xml:space="preserve">
+        <value>Platform statistics</value>
+    </data>
+	<data name="Admin_Stats_Subtitle" xml:space="preserve">
+        <value>Track activity, engagement, and moderation workload.</value>
+    </data>
+	<data name="Admin_Stats_Filter_Range" xml:space="preserve">
+        <value>Range</value>
+    </data>
+	<data name="Admin_Stats_Filter_Range_7d" xml:space="preserve">
+        <value>Last 7 days</value>
+    </data>
+	<data name="Admin_Stats_Filter_Range_30d" xml:space="preserve">
+        <value>Last 30 days</value>
+    </data>
+	<data name="Admin_Stats_Filter_Range_12m" xml:space="preserve">
+        <value>Last 12 months</value>
+    </data>
+	<data name="Admin_Stats_Filter_Range_Custom" xml:space="preserve">
+        <value>Custom</value>
+    </data>
+	<data name="Admin_Stats_Filter_Start" xml:space="preserve">
+        <value>Start</value>
+    </data>
+	<data name="Admin_Stats_Filter_End" xml:space="preserve">
+        <value>End</value>
+    </data>
+	<data name="Admin_Stats_Filter_Granularity" xml:space="preserve">
+        <value>Granularity</value>
+    </data>
+	<data name="Admin_Stats_Filter_Granularity_Day" xml:space="preserve">
+        <value>Day</value>
+    </data>
+	<data name="Admin_Stats_Filter_Granularity_Week" xml:space="preserve">
+        <value>Week</value>
+    </data>
+	<data name="Admin_Stats_Filter_Granularity_Month" xml:space="preserve">
+        <value>Month</value>
+    </data>
+	<data name="Admin_Stats_Filter_Compare" xml:space="preserve">
+        <value>Compare to previous period</value>
+    </data>
+	<data name="Admin_Stats_Filter_ShowInactive" xml:space="preserve">
+        <value>Show inactive days</value>
+    </data>
+	<data name="Admin_Stats_Filter_Apply" xml:space="preserve">
+        <value>Apply filters</value>
+    </data>
+	<data name="Admin_Stats_Kpi_Title" xml:space="preserve">
+        <value>Overview KPIs</value>
+    </data>
+	<data name="Admin_Stats_Kpi_Subtitle" xml:space="preserve">
+        <value>Activity totals for {0} ({1}).</value>
+    </data>
+	<data name="Admin_Stats_Kpi_ActiveUsers" xml:space="preserve">
+        <value>Active users</value>
+    </data>
+	<data name="Admin_Stats_Kpi_Logins" xml:space="preserve">
+        <value>Logins</value>
+    </data>
+	<data name="Admin_Stats_Kpi_GamesPlayed" xml:space="preserve">
+        <value>Games played</value>
+    </data>
+	<data name="Admin_Stats_Kpi_Comments" xml:space="preserve">
+        <value>Comments</value>
+    </data>
+	<data name="Admin_Stats_Kpi_Ratings" xml:space="preserve">
+        <value>Ratings</value>
+    </data>
+	<data name="Admin_Stats_Kpi_GamesPublished" xml:space="preserve">
+        <value>Games published</value>
+    </data>
+	<data name="Admin_Stats_Trends_Title" xml:space="preserve">
+        <value>Platform activity over time</value>
+    </data>
+	<data name="Admin_Stats_Trends_Subtitle" xml:space="preserve">
+        <value>Daily, weekly, or monthly pace for {0}.</value>
+    </data>
+	<data name="Admin_Stats_Heatmap_Title" xml:space="preserve">
+        <value>Daily breakdown</value>
+    </data>
+	<data name="Admin_Stats_Heatmap_Subtitle" xml:space="preserve">
+        <value>Intensity table for the selected range.</value>
+    </data>
+	<data name="Admin_Stats_Heatmap_Date" xml:space="preserve">
+        <value>Date</value>
+    </data>
+	<data name="Admin_Stats_Insights_Title" xml:space="preserve">
+        <value>Insights &amp; alerts</value>
+    </data>
+	<data name="Admin_Stats_Insights_Subtitle" xml:space="preserve">
+        <value>Explainable highlights for admins.</value>
+    </data>
+	<data name="Admin_Stats_Insights_Empty" xml:space="preserve">
+        <value>No insights for the selected period.</value>
+    </data>
+	<data name="Admin_Stats_Insight_Peak_Title" xml:space="preserve">
+        <value>Peak activity day</value>
+    </data>
+	<data name="Admin_Stats_Insight_Peak_Description" xml:space="preserve">
+        <value>Top activity on {0}.</value>
+    </data>
+	<data name="Admin_Stats_Insight_Logins_Title" xml:space="preserve">
+        <value>Logins trend</value>
+    </data>
+	<data name="Admin_Stats_Insight_Logins_Description" xml:space="preserve">
+        <value>Logins {0}.</value>
+    </data>
+	<data name="Admin_Stats_Insight_Reports_Title" xml:space="preserve">
+        <value>Moderation workload</value>
+    </data>
+	<data name="Admin_Stats_Insight_Reports_Description" xml:space="preserve">
+        <value>{0} new reports in this range.</value>
+    </data>
+	<data name="Admin_Stats_Details_Title" xml:space="preserve">
+        <value>Details</value>
+    </data>
+	<data name="Admin_Stats_Details_Subtitle" xml:space="preserve">
+        <value>Top days, games, and new releases.</value>
+    </data>
+	<data name="Admin_Stats_TopDays_Title" xml:space="preserve">
+        <value>Top days by activity</value>
+    </data>
+	<data name="Admin_Stats_TopGames_Title" xml:space="preserve">
+        <value>Top games by plays</value>
+    </data>
+	<data name="Admin_Stats_TopGames_Meta" xml:space="preserve">
+        <value>{0} plays · {1} ratings · {2} comments</value>
+    </data>
+	<data name="Admin_Stats_NewGames_Title" xml:space="preserve">
+        <value>New games published</value>
+    </data>
+	<data name="Admin_Stats_Moderation_Title" xml:space="preserve">
+        <value>Moderation workload</value>
+    </data>
+	<data name="Admin_Stats_Moderation_Subtitle" xml:space="preserve">
+        <value>Reports and rating distribution.</value>
+    </data>
+	<data name="Admin_Stats_Moderation_Reports" xml:space="preserve">
+        <value>Reports by reason</value>
+    </data>
+	<data name="Admin_Stats_RatingDist_Title" xml:space="preserve">
+        <value>Rating distribution</value>
+    </data>
+	<data name="Admin_Stats_RatingDist_Item" xml:space="preserve">
+        <value>{0}-star</value>
+    </data>
+	<data name="Admin_Stats_Empty" xml:space="preserve">
+        <value>No data for the selected range.</value>
     </data>
 	<data name="Admin_Logs_Title" xml:space="preserve">
         <value>Logs</value>
+		</data>
+	<data name="Admin_Nav_Stats" xml:space="preserve">
+        <value>Statistics</value>
     </data>
 	<data name="Admin_Logs_Subtitle" xml:space="preserve">
         <value>Monitor actions taken across the platform.</value>
@@ -750,6 +903,9 @@
 	<data name="Dashboard_Stats_UploadedGames" xml:space="preserve"> 
         <value>Games uploaded</value>
 		</data>
+	<data name="Dashboard_Stats_PlayedGames" xml:space="preserve">
+        <value>Games played</value>
+    </data>
 	<data name="Dashboard_Stats_RatedGames" xml:space="preserve">
         <value>Games rated</value>
     </data>
@@ -767,6 +923,9 @@
     </data>
 	<data name="Dashboard_Stats_Friends" xml:space="preserve"> 
         <value>Friends</value>
+		</data>
+	<data name="Dashboard_Stats_AddedPlayers" xml:space="preserve">
+        <value>Players added</value>
     </data>
 	<data name="Dashboard_Stats_ActivityMix" xml:space="preserve">
         <value>Activity mix</value>

@@ -1,0 +1,320 @@
+﻿@using System.Globalization
+@using System.Linq
+@model Bgp.Web.Models.AdminStatisticsViewModel
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/admin.css" asp-append-version="true" />
+}
+@{
+    ViewData["Title"] = L["Admin_Stats_Title"].Value;
+    var filter = Model.Filter;
+    var series = Model.Series.ToList();
+    var maxLogins = Math.Max(1, series.Any() ? series.Max(p => p.Logins) : 1);
+    var maxGames = Math.Max(1, series.Any() ? series.Max(p => p.GamesPlayed) : 1);
+    var maxComments = Math.Max(1, series.Any() ? series.Max(p => p.Comments) : 1);
+    var maxRatings = Math.Max(1, series.Any() ? series.Max(p => p.Ratings) : 1);
+    var maxPublished = Math.Max(1, series.Any() ? series.Max(p => p.GamesPublished) : 1);
+    var maxReports = Math.Max(1, series.Any() ? series.Max(p => p.Reports) : 1);
+
+    string FormatDelta(int current, int previous)
+    {
+        if (previous == 0)
+        {
+            return current == 0 ? "0%" : "+100%";
+        }
+
+        var delta = (current - previous) / (double)previous * 100d;
+        return delta > 0 ? $"+{delta:F0}%" : $"{delta:F0}%";
+    }
+}
+
+<section class="admin-section admin-stats">
+    <nav class="admin-nav">
+        <a class="admin-nav__item" asp-action="Users">@L["Admin_Nav_Users"].Value</a>
+        <a class="admin-nav__item" asp-action="Games">@L["Admin_Nav_Games"].Value</a>
+        <a class="admin-nav__item" asp-action="Content">@L["Admin_Nav_Content"].Value</a>
+        <a class="admin-nav__item" asp-action="Reports">@L["Admin_Nav_Reports"].Value</a>
+        <a class="admin-nav__item" asp-action="Logs">@L["Admin_Nav_Logs"].Value</a>
+        <a class="admin-nav__item active" asp-action="Statistics">@L["Admin_Nav_Stats"].Value</a>
+    </nav>
+
+    <header class="admin-header">
+        <div>
+            <h1>@L["Admin_Stats_Title"].Value</h1>
+            <p>@L["Admin_Stats_Subtitle"].Value</p>
+        </div>
+    </header>
+
+    <form method="get" class="stats-filter-bar">
+        <div class="stats-filter-bar__group">
+            <label class="stats-filter">
+                <span>@L["Admin_Stats_Filter_Range"].Value</span>
+                <select name="range">
+                    <option value="7d" selected="@(filter.RangePreset == "7d")">@L["Admin_Stats_Filter_Range_7d"].Value</option>
+                    <option value="30d" selected="@(filter.RangePreset == "30d")">@L["Admin_Stats_Filter_Range_30d"].Value</option>
+                    <option value="12m" selected="@(filter.RangePreset == "12m")">@L["Admin_Stats_Filter_Range_12m"].Value</option>
+                    <option value="custom" selected="@(filter.RangePreset == "custom")">@L["Admin_Stats_Filter_Range_Custom"].Value</option>
+                </select>
+            </label>
+            <label class="stats-filter">
+                <span>@L["Admin_Stats_Filter_Start"].Value</span>
+                <input type="date" name="start" value="@filter.StartDate.ToString("yyyy-MM-dd")" />
+            </label>
+            <label class="stats-filter">
+                <span>@L["Admin_Stats_Filter_End"].Value</span>
+                <input type="date" name="end" value="@filter.EndDate.ToString("yyyy-MM-dd")" />
+            </label>
+            <label class="stats-filter">
+                <span>@L["Admin_Stats_Filter_Granularity"].Value</span>
+                <select name="granularity">
+                    <option value="day" selected="@(filter.Granularity == "day")">@L["Admin_Stats_Filter_Granularity_Day"].Value</option>
+                    <option value="week" selected="@(filter.Granularity == "week")">@L["Admin_Stats_Filter_Granularity_Week"].Value</option>
+                    <option value="month" selected="@(filter.Granularity == "month")">@L["Admin_Stats_Filter_Granularity_Month"].Value</option>
+                </select>
+            </label>
+        </div>
+        <div class="stats-filter-bar__toggles">
+            <label class="stats-toggle">
+                <input type="checkbox" name="compare" value="true" @(filter.CompareEnabled ? "checked" : null) />
+                <span>@L["Admin_Stats_Filter_Compare"].Value</span>
+            </label>
+            <label class="stats-toggle">
+                <input type="checkbox" name="showInactive" value="true" @(filter.ShowInactiveDays ? "checked" : null) />
+                <span>@L["Admin_Stats_Filter_ShowInactive"].Value</span>
+            </label>
+            <button type="submit" class="btn-primary btn-compact">@L["Admin_Stats_Filter_Apply"].Value</button>
+        </div>
+    </form>
+
+    <section class="stats-section">
+        <header class="stats-section__header">
+            <div>
+                <h2>@L["Admin_Stats_Kpi_Title"].Value</h2>
+                <p>@string.Format(L["Admin_Stats_Kpi_Subtitle"].Value, filter.RangeLabel, filter.Granularity)</p>
+            </div>
+        </header>
+        <div class="stats-kpi-grid">
+            <article class="stats-kpi-card">
+                <span>@L["Admin_Stats_Kpi_ActiveUsers"].Value</span>
+                <strong>@Model.Totals.ActiveUsers</strong>
+                @if (Model.PreviousTotals is not null)
+                {
+                    <em>@FormatDelta(Model.Totals.ActiveUsers, Model.PreviousTotals.ActiveUsers)</em>
+                }
+            </article>
+            <article class="stats-kpi-card">
+                <span>@L["Admin_Stats_Kpi_Logins"].Value</span>
+                <strong>@Model.Totals.Logins</strong>
+                @if (Model.PreviousTotals is not null)
+                {
+                    <em>@FormatDelta(Model.Totals.Logins, Model.PreviousTotals.Logins)</em>
+                }
+            </article>
+            <article class="stats-kpi-card">
+                <span>@L["Admin_Stats_Kpi_GamesPlayed"].Value</span>
+                <strong>@Model.Totals.GamesPlayed</strong>
+                @if (Model.PreviousTotals is not null)
+                {
+                    <em>@FormatDelta(Model.Totals.GamesPlayed, Model.PreviousTotals.GamesPlayed)</em>
+                }
+            </article>
+            <article class="stats-kpi-card">
+                <span>@L["Admin_Stats_Kpi_Comments"].Value</span>
+                <strong>@Model.Totals.Comments</strong>
+                @if (Model.PreviousTotals is not null)
+                {
+                    <em>@FormatDelta(Model.Totals.Comments, Model.PreviousTotals.Comments)</em>
+                }
+            </article>
+            <article class="stats-kpi-card">
+                <span>@L["Admin_Stats_Kpi_Ratings"].Value</span>
+                <strong>@Model.Totals.Ratings</strong>
+                @if (Model.PreviousTotals is not null)
+                {
+                    <em>@FormatDelta(Model.Totals.Ratings, Model.PreviousTotals.Ratings)</em>
+                }
+            </article>
+            <article class="stats-kpi-card">
+                <span>@L["Admin_Stats_Kpi_GamesPublished"].Value</span>
+                <strong>@Model.Totals.GamesPublished</strong>
+                @if (Model.PreviousTotals is not null)
+                {
+                    <em>@FormatDelta(Model.Totals.GamesPublished, Model.PreviousTotals.GamesPublished)</em>
+                }
+            </article>
+        </div>
+    </section>
+
+    <section class="stats-section">
+        <header class="stats-section__header">
+            <div>
+                <h2>@L["Admin_Stats_Trends_Title"].Value</h2>
+                <p>@string.Format(L["Admin_Stats_Trends_Subtitle"].Value, filter.RangeLabel, filter.Granularity)</p>
+            </div>
+            <div class="stats-legend">
+                <span class="stats-legend__item" data-tone="logins">@L["Admin_Stats_Kpi_Logins"].Value</span>
+                <span class="stats-legend__item" data-tone="games">@L["Admin_Stats_Kpi_GamesPlayed"].Value</span>
+                <span class="stats-legend__item" data-tone="comments">@L["Admin_Stats_Kpi_Comments"].Value</span>
+                <span class="stats-legend__item" data-tone="ratings">@L["Admin_Stats_Kpi_Ratings"].Value</span>
+            </div>
+        </header>
+        <div class="stats-trend-chart" role="list">
+            @foreach (var point in series)
+            {
+                var loginShare = point.Logins * 100d / maxLogins;
+                var gameShare = point.GamesPlayed * 100d / maxGames;
+                var commentShare = point.Comments * 100d / maxComments;
+                var ratingShare = point.Ratings * 100d / maxRatings;
+                <div class="stats-trend-chart__column" role="listitem">
+                    <span class="stats-trend-chart__label">@point.PeriodStart.ToString(filter.Granularity == "month" ? "MMM yy" : "dd MMM", CultureInfo.CurrentCulture)</span>
+                    <div class="stats-trend-chart__bars">
+                        <span class="stats-trend-chart__bar" data-tone="logins" style="--value:@loginShare.ToString("F1", CultureInfo.InvariantCulture);"></span>
+                        <span class="stats-trend-chart__bar" data-tone="games" style="--value:@gameShare.ToString("F1", CultureInfo.InvariantCulture);"></span>
+                        <span class="stats-trend-chart__bar" data-tone="comments" style="--value:@commentShare.ToString("F1", CultureInfo.InvariantCulture);"></span>
+                        <span class="stats-trend-chart__bar" data-tone="ratings" style="--value:@ratingShare.ToString("F1", CultureInfo.InvariantCulture);"></span>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="stats-section stats-section--grid">
+        <div class="stats-card">
+            <header class="stats-card__header">
+                <h3>@L["Admin_Stats_Heatmap_Title"].Value</h3>
+                <p>@L["Admin_Stats_Heatmap_Subtitle"].Value</p>
+            </header>
+            <div class="stats-heatmap">
+                <div class="stats-heatmap__head">
+                    <span>@L["Admin_Stats_Heatmap_Date"].Value</span>
+                    <span>@L["Admin_Stats_Kpi_Logins"].Value</span>
+                    <span>@L["Admin_Stats_Kpi_GamesPlayed"].Value</span>
+                    <span>@L["Admin_Stats_Kpi_Comments"].Value</span>
+                    <span>@L["Admin_Stats_Kpi_Ratings"].Value</span>
+                    <span>@L["Admin_Stats_Kpi_GamesPublished"].Value</span>
+                </div>
+                @foreach (var row in Model.HeatmapRows)
+                {
+                    var loginHeat = row.Logins * 100d / maxLogins;
+                    var gamesHeat = row.GamesPlayed * 100d / maxGames;
+                    var commentsHeat = row.Comments * 100d / maxComments;
+                    var ratingsHeat = row.Ratings * 100d / maxRatings;
+                    var publishHeat = row.GamesPublished * 100d / maxPublished;
+                    <div class="stats-heatmap__row">
+                        <span>@row.PeriodStart.ToString(filter.Granularity == "month" ? "MMM yy" : "dd MMM", CultureInfo.CurrentCulture)</span>
+                        <span class="stats-heatmap__cell" style="--value:@loginHeat.ToString("F1", CultureInfo.InvariantCulture);">@row.Logins</span>
+                        <span class="stats-heatmap__cell" style="--value:@gamesHeat.ToString("F1", CultureInfo.InvariantCulture);">@row.GamesPlayed</span>
+                        <span class="stats-heatmap__cell" style="--value:@commentsHeat.ToString("F1", CultureInfo.InvariantCulture);">@row.Comments</span>
+                        <span class="stats-heatmap__cell" style="--value:@ratingsHeat.ToString("F1", CultureInfo.InvariantCulture);">@row.Ratings</span>
+                        <span class="stats-heatmap__cell" style="--value:@publishHeat.ToString("F1", CultureInfo.InvariantCulture);">@row.GamesPublished</span>
+                    </div>
+                }
+                @if (!Model.HeatmapRows.Any())
+                {
+                    <p class="stats-empty">@L["Admin_Stats_Empty"].Value</p>
+                }
+            </div>
+        </div>
+        <div class="stats-card">
+            <header class="stats-card__header">
+                <h3>@L["Admin_Stats_Insights_Title"].Value</h3>
+                <p>@L["Admin_Stats_Insights_Subtitle"].Value</p>
+            </header>
+            <div class="stats-insights">
+                @foreach (var insight in Model.Insights)
+                {
+                    <article class="stats-insight" data-tone="@insight.Tone">
+                        <strong>@insight.Title</strong>
+                        <span>@insight.Description</span>
+                    </article>
+                }
+                @if (!Model.Insights.Any())
+                {
+                    <p class="stats-empty">@L["Admin_Stats_Insights_Empty"].Value</p>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="stats-section stats-section--grid">
+        <div class="stats-card">
+            <header class="stats-card__header">
+                <h3>@L["Admin_Stats_Details_Title"].Value</h3>
+                <p>@L["Admin_Stats_Details_Subtitle"].Value</p>
+            </header>
+            <div class="stats-details">
+                <div class="stats-details__block">
+                    <h4>@L["Admin_Stats_TopDays_Title"].Value</h4>
+                    <ul>
+                        @foreach (var day in Model.TopDays)
+                        {
+                            <li>
+                                <span>@day.PeriodStart.ToString(filter.Granularity == "month" ? "MMM yy" : "dd MMM", CultureInfo.CurrentCulture)</span>
+                                <strong>@day.TotalActivity</strong>
+                            </li>
+                        }
+                    </ul>
+                </div>
+                <div class="stats-details__block">
+                    <h4>@L["Admin_Stats_TopGames_Title"].Value</h4>
+                    <ul>
+                        @foreach (var game in Model.TopGames)
+                        {
+                            <li>
+                                <span>@game.Title</span>
+                                <strong>@string.Format(L["Admin_Stats_TopGames_Meta"].Value, game.Plays, game.Ratings, game.Comments)</strong>
+                            </li>
+                        }
+                    </ul>
+                </div>
+                <div class="stats-details__block">
+                    <h4>@L["Admin_Stats_NewGames_Title"].Value</h4>
+                    <ul>
+                        @foreach (var game in Model.NewGames)
+                        {
+                            <li>
+                                <span>@game.Title</span>
+                                <strong>@game.PublishedAtUtc.ToLocalTime().ToString("dd MMM", CultureInfo.CurrentCulture)</strong>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="stats-card">
+            <header class="stats-card__header">
+                <h3>@L["Admin_Stats_Moderation_Title"].Value</h3>
+                <p>@L["Admin_Stats_Moderation_Subtitle"].Value</p>
+            </header>
+            <div class="stats-details">
+                <div class="stats-details__block">
+                    <h4>@L["Admin_Stats_Moderation_Reports"].Value</h4>
+                    <ul>
+                        @foreach (var item in Model.ReportsByReason)
+                        {
+                            <li>
+                                <span>@item.Reason</span>
+                                <strong>@item.Total</strong>
+                            </li>
+                        }
+                        @if (!Model.ReportsByReason.Any())
+                        {
+                            <li class="stats-empty">@L["Admin_Stats_Empty"].Value</li>
+                        }
+                    </ul>
+                </div>
+                <div class="stats-details__block">
+                    <h4>@L["Admin_Stats_RatingDist_Title"].Value</h4>
+                    <ul>
+                        @foreach (var rating in Model.RatingDistribution)
+                        {
+                            <li>
+                                <span>@string.Format(L["Admin_Stats_RatingDist_Item"].Value, rating.Stars)</span>
+                                <strong>@rating.Total</strong>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+</section>
