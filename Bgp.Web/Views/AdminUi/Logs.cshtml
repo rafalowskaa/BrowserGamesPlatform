@@ -1,4 +1,5 @@
 ﻿@using System.Linq
+@using System.Globalization
 @using Bgp.Domain.Enums
 @model Bgp.Web.Models.AdminLogsViewModel
 @section Styles {
@@ -11,6 +12,7 @@
     string FormatType(ActivityLogType type) => L[$"Admin_Logs_Type_{type}"].Value;
     var dateFromValue = Model.DateFrom?.ToString("yyyy-MM-dd");
     var dateToValue = Model.DateTo?.ToString("yyyy-MM-dd");
+    var polishCulture = new CultureInfo("pl-PL");
     var hasFilters = !string.IsNullOrWhiteSpace(Model.Search)
        || Model.Type.HasValue
        || !string.IsNullOrWhiteSpace(Model.Game)
