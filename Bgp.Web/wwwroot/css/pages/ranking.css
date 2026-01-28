@@ -210,8 +210,17 @@
 }
 
 .leaderboard__cell--tier {
-    width: 14%;
+    width: 16%;
+    overflow: hidden;
 }
+
+    .leaderboard__cell--tier img {
+        width: 2rem;
+        height: 2rem;
+        max-width: 2rem;
+        max-height: 2rem;
+        object-fit: contain;
+    }
 
 .leaderboard__cell--most-played {
     width: 17%;

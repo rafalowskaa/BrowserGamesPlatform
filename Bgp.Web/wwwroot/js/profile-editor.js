@@ -23,6 +23,7 @@
     const avatarTriggers = Array.from(profileRoot.querySelectorAll('[data-profile-avatar-trigger]'));
     const avatarPlaceholderText = avatarContainer?.dataset.avatarPlaceholder || '';
     const avatarAltText = avatarContainer?.dataset.avatarAlt || '';
+    const dailyGoalsSection = profileRoot.querySelector('[data-profile-daily-goals]');
     const displayNamePendingHint = form.querySelector('[data-display-name-pending-hint]');
     const savingText = form.dataset.savingText || 'Saving…';
     const savedText = form.dataset.savedText || 'Saved';
@@ -65,6 +66,7 @@
     let pendingLanguage = initialLanguage;
     let pendingTheme = initialTheme;
     let languageReloadTimer = null;
+    let dailyGoalsRefreshTimer = null;
 
     function getDisplayNameBlockedMessage() {
         return form.dataset.displayNameBlockedMessage || '';
@@ -110,6 +112,27 @@
         }
         languageReloadTimer = window.setTimeout(() => window.location.reload(), 750);
     }
+
+    function scheduleDailyGoalsRefresh() {
+        if (!dailyGoalsSection) {
+            return;
+        }
+        const now = new Date();
+        const nextMidnight = new Date(now);
+        nextMidnight.setHours(24, 0, 0, 0);
+        const delay = nextMidnight.getTime() - now.getTime();
+        if (delay <= 0) {
+            return;
+        }
+        dailyGoalsRefreshTimer = window.setTimeout(() => window.location.reload(), delay);
+        window.addEventListener('beforeunload', () => {
+            if (dailyGoalsRefreshTimer) {
+                window.clearTimeout(dailyGoalsRefreshTimer);
+            }
+        }, { once: true });
+    }
+
+    scheduleDailyGoalsRefresh();
 
     function setStatus(message, tone) {
         if (!statusEl) {
