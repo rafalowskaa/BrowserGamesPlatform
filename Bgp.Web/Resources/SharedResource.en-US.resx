@@ -644,7 +644,7 @@
         <value>Your games</value>
     </data>
 	<data name="Dashboard_Games_Rating" xml:space="preserve">
-        <value>Rating</value>
+        <value>Rating: {0}</value>
     </data>
 	<data name="Dashboard_Games_Empty" xml:space="preserve">
         <value>No games uploaded yet.</value>

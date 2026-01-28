@@ -671,7 +671,7 @@
         <value>Twoje gry</value>
     </data>
 	<data name="Dashboard_Games_Rating" xml:space="preserve">
-        <value>Ocena</value>
+        <value>Ocena: {0}</value>
     </data>
 	<data name="Dashboard_Games_Empty" xml:space="preserve">    
         <value>Nie dodałeś jeszcze żadnej gry.</value>

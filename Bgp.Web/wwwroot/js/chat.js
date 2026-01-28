@@ -90,7 +90,7 @@
     const TIME_GAP_THRESHOLD_MS = 15 * 60 * 1000;
     const MIN_SEARCH_LENGTH = 3;
 
-        const messageSoundUrl = '/audio/soundmess.mp3';
+        const messageSoundUrl = '/audio/message-wave.mp3';
         const messageSound = typeof Audio !== 'undefined' ? new Audio(messageSoundUrl) : null;
         let messageSoundUnlocked = false;
         if (messageSound) {

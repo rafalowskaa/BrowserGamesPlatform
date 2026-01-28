@@ -154,6 +154,7 @@ public class GameSessionsController : ControllerBase
         var sessionId = await _db.SessionPlayers
             .Where(player => player.Session.GameId == gameId
                 && player.Session.Mode == mode
+                && !player.Session.Used
                 && player.Session.ExpiresAtUtc > now)
             .GroupBy(player => player.SessionId)
             .Select(group => new
@@ -174,7 +175,7 @@ public class GameSessionsController : ControllerBase
         }
 
         return await _db.MatchSessions.FirstOrDefaultAsync(session =>
-            session.Id == sessionId && session.ExpiresAtUtc > now);
+            session.Id == sessionId && !session.Used && session.ExpiresAtUtc > now);
     }
 
     [AllowAnonymous]
