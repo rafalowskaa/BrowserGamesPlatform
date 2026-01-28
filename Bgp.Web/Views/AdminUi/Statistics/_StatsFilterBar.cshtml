@@ -1,0 +1,40 @@
+﻿@model Bgp.Web.Models.StatsPageVm
+<form class="stats-filter-bar" data-stats-filter>
+    <div class="stats-filter-bar__group">
+        <label class="stats-filter">
+            <span>@L["Admin_Stats_Filter_Range"].Value</span>
+            <select name="range">
+                <option value="7d" selected="@(Model.Filter.RangePreset == "7d")">@L["Admin_Stats_Filter_Range_7d"].Value</option>
+                <option value="30d" selected="@(Model.Filter.RangePreset == "30d")">@L["Admin_Stats_Filter_Range_30d"].Value</option>
+                <option value="12m" selected="@(Model.Filter.RangePreset == "12m")">@L["Admin_Stats_Filter_Range_12m"].Value</option>
+                <option value="custom" selected="@(Model.Filter.RangePreset == "custom")">@L["Admin_Stats_Filter_Range_Custom"].Value</option>
+            </select>
+        </label>
+        <label class="stats-filter">
+            <span>@L["Admin_Stats_Filter_Start"].Value</span>
+            <input type="date" name="start" value="@Model.Filter.StartDate.ToString("yyyy-MM-dd")" />
+        </label>
+        <label class="stats-filter">
+            <span>@L["Admin_Stats_Filter_End"].Value</span>
+            <input type="date" name="end" value="@Model.Filter.EndDate.ToString("yyyy-MM-dd")" />
+        </label>
+        <label class="stats-filter">
+            <span>@L["Admin_Stats_Filter_Granularity"].Value</span>
+            <select name="granularity">
+                <option value="day" selected="@(Model.Filter.Granularity == "day")">@L["Admin_Stats_Filter_Granularity_Day"].Value</option>
+                <option value="week" selected="@(Model.Filter.Granularity == "week")">@L["Admin_Stats_Filter_Granularity_Week"].Value</option>
+                <option value="month" selected="@(Model.Filter.Granularity == "month")">@L["Admin_Stats_Filter_Granularity_Month"].Value</option>
+            </select>
+        </label>
+    </div>
+    <div class="stats-filter-bar__toggles">
+        <label class="stats-toggle">
+            <input type="checkbox" name="compare" value="true" @(Model.Filter.CompareEnabled ? "checked" : null) />
+            <span>@L["Admin_Stats_Filter_Compare"].Value</span>
+        </label>
+        <label class="stats-toggle">
+            <input type="checkbox" name="showInactive" value="true" @(Model.Filter.ShowInactiveDays ? "checked" : null) />
+            <span>@L["Admin_Stats_Filter_ShowInactive"].Value</span>
+        </label>
+    </div>
+</form>

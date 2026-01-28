@@ -1,0 +1,29 @@
+﻿<div class="stats-drawer" data-stats-drawer>
+    <div class="stats-drawer__overlay" data-drawer-close></div>
+    <aside class="stats-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="statsDrawerTitle">
+        <header class="stats-drawer__header">
+            <div>
+                <h3 id="statsDrawerTitle">@L["Admin_Stats_Drilldown_Title"].Value</h3>
+                <p class="stats-drawer__subtitle" data-drawer-subtitle></p>
+            </div>
+            <button class="stats-drawer__close" type="button" data-drawer-close aria-label="@L["Admin_Stats_Drilldown_Close"].Value">×</button>
+        </header>
+        <div class="stats-drawer__content">
+            <div class="stats-drawer__totals" data-drawer-totals></div>
+            <div class="stats-drawer__lists">
+                <div>
+                    <h4>@L["Admin_Stats_TopGames_Title"].Value</h4>
+                    <ul data-drawer-top-games></ul>
+                </div>
+                <div>
+                    <h4>@L["Admin_Stats_Drawer_TopCommented"].Value</h4>
+                    <ul data-drawer-top-commented></ul>
+                </div>
+                <div>
+                    <h4>@L["Admin_Stats_RatingDist_Title"].Value</h4>
+                    <ul data-drawer-rating-distribution></ul>
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>

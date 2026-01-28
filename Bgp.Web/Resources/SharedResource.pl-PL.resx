@@ -996,6 +996,21 @@
   </data>
 	<data name="Admin_Stats_Subtitle" xml:space="preserve">
     <value>Śledź aktywność, zaangażowanie i obciążenie moderacji.</value>
+		</data>
+	<data name="Admin_Stats_Tab_Overview" xml:space="preserve">
+    <value>Przegląd</value>
+  </data>
+	<data name="Admin_Stats_Tab_Engagement" xml:space="preserve">
+    <value>Zaangażowanie</value>
+  </data>
+	<data name="Admin_Stats_Tab_Content" xml:space="preserve">
+    <value>Treści</value>
+  </data>
+	<data name="Admin_Stats_Tab_Ratings" xml:space="preserve">
+    <value>Oceny</value>
+  </data>
+	<data name="Admin_Stats_Tab_Moderation" xml:space="preserve">
+    <value>Moderacja</value>
   </data>
 	<data name="Admin_Stats_Filter_Range" xml:space="preserve">
     <value>Zakres</value>
@@ -1062,12 +1077,21 @@
   </data>
 	<data name="Admin_Stats_Kpi_GamesPublished" xml:space="preserve">
     <value>Opublikowane gry</value>
+		</data>
+	<data name="Admin_Stats_AverageRating" xml:space="preserve">
+    <value>Średnia ocena</value>
   </data>
 	<data name="Admin_Stats_Trends_Title" xml:space="preserve">
     <value>Aktywność platformy w czasie</value>
   </data>
 	<data name="Admin_Stats_Trends_Subtitle" xml:space="preserve">
-    <value>Tempo dzienne, tygodniowe lub miesięczne dla {0}.</value>
+    <value>Tempo dzienne, tygodniowe lub miesięczne dla wybranego zakresu.</value>
+  </data>
+	<data name="Admin_Stats_Trends_Metric" xml:space="preserve">
+    <value>Metryka</value>
+  </data>
+	<data name="Admin_Stats_Trends_Multi" xml:space="preserve">
+    <value>Wiele serii</value>
   </data>
 	<data name="Admin_Stats_Heatmap_Title" xml:space="preserve">
     <value>Dzienny rozkład</value>
@@ -1137,6 +1161,15 @@
   </data>
 	<data name="Admin_Stats_RatingDist_Item" xml:space="preserve">
     <value>{0} gwiazdek</value>
+		</data>
+	<data name="Admin_Stats_Drilldown_Title" xml:space="preserve">
+    <value>Szczegóły dnia</value>
+  </data>
+	<data name="Admin_Stats_Drilldown_Close" xml:space="preserve">
+    <value>Zamknij</value>
+  </data>
+	<data name="Admin_Stats_Drawer_TopCommented" xml:space="preserve">
+    <value>Najczęściej komentowane gry</value>
   </data>
 	<data name="Admin_Stats_Empty" xml:space="preserve">
     <value>Brak danych dla wybranego zakresu.</value>

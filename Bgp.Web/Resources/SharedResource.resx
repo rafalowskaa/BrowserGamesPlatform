@@ -41,6 +41,21 @@
     </data>
 	<data name="Admin_Stats_Subtitle" xml:space="preserve">
         <value>Track activity, engagement, and moderation workload.</value>
+		</data>
+	<data name="Admin_Stats_Tab_Overview" xml:space="preserve">
+        <value>Overview</value>
+    </data>
+	<data name="Admin_Stats_Tab_Engagement" xml:space="preserve">
+        <value>Engagement</value>
+    </data>
+	<data name="Admin_Stats_Tab_Content" xml:space="preserve">
+        <value>Content</value>
+    </data>
+	<data name="Admin_Stats_Tab_Ratings" xml:space="preserve">
+        <value>Ratings</value>
+    </data>
+	<data name="Admin_Stats_Tab_Moderation" xml:space="preserve">
+        <value>Moderation</value>
     </data>
 	<data name="Admin_Stats_Filter_Range" xml:space="preserve">
         <value>Range</value>
@@ -107,12 +122,21 @@
     </data>
 	<data name="Admin_Stats_Kpi_GamesPublished" xml:space="preserve">
         <value>Games published</value>
+		</data>
+	<data name="Admin_Stats_AverageRating" xml:space="preserve">
+        <value>Average rating</value>
     </data>
 	<data name="Admin_Stats_Trends_Title" xml:space="preserve">
         <value>Platform activity over time</value>
     </data>
 	<data name="Admin_Stats_Trends_Subtitle" xml:space="preserve">
-        <value>Daily, weekly, or monthly pace for {0}.</value>
+        <value>Daily, weekly, or monthly pace for the selected range.</value>
+    </data>
+	<data name="Admin_Stats_Trends_Metric" xml:space="preserve">
+        <value>Metric</value>
+    </data>
+	<data name="Admin_Stats_Trends_Multi" xml:space="preserve">
+        <value>Multi-series</value>
     </data>
 	<data name="Admin_Stats_Heatmap_Title" xml:space="preserve">
         <value>Daily breakdown</value>
@@ -182,6 +206,15 @@
     </data>
 	<data name="Admin_Stats_RatingDist_Item" xml:space="preserve">
         <value>{0}-star</value>
+		</data>
+	<data name="Admin_Stats_Drilldown_Title" xml:space="preserve">
+        <value>Day details</value>
+    </data>
+	<data name="Admin_Stats_Drilldown_Close" xml:space="preserve">
+        <value>Close</value>
+    </data>
+	<data name="Admin_Stats_Drawer_TopCommented" xml:space="preserve">
+        <value>Top commented games</value>
     </data>
 	<data name="Admin_Stats_Empty" xml:space="preserve">
         <value>No data for the selected range.</value>

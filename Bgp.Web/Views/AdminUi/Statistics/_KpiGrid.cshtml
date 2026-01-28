@@ -1,0 +1,20 @@
+﻿@model Bgp.Web.Models.StatsPageVm
+<section class="stats-section" data-kpi-section>
+    <header class="stats-section__header">
+        <div>
+            <h2>@L["Admin_Stats_Kpi_Title"].Value</h2>
+            <p>@string.Format(L["Admin_Stats_Kpi_Subtitle"].Value, Model.Filter.RangeLabel, Model.Filter.Granularity)</p>
+        </div>
+        <div class="stats-kpi-summary" data-kpi-summary></div>
+    </header>
+    <div class="stats-kpi-grid" data-kpi-grid>
+        @foreach (var kpi in Model.Kpis)
+        {
+            <article class="stats-kpi-card" data-kpi="@kpi.Key">
+                <span>@kpi.Label</span>
+                <strong class="stats-kpi-value">--</strong>
+                <em class="stats-kpi-delta" hidden></em>
+            </article>
+        }
+    </div>
+</section>

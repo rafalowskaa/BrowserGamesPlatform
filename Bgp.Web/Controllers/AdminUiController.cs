@@ -2045,63 +2045,16 @@ public class AdminUiController : Controller
         return View(vm);
     }
 
-    public async Task<IActionResult> Statistics(string range = "30d", string? granularity = null, bool compare = false, bool showInactive = false, DateTime? start = null, DateTime? end = null)
+    public IActionResult Statistics(string range = "30d", string? granularity = null, bool compare = false, bool showInactive = false, DateTime? start = null, DateTime? end = null)
     {
         var today = DateTime.UtcNow.Date;
         var (rangeStart, rangeEnd) = ResolveStatsRange(range, start, end, today);
         var selectedGranularity = ResolveGranularity(granularity, rangeStart, rangeEnd);
+        var rangeLabel = BuildRangeLabel(range, rangeStart, rangeEnd);
 
-        var rangeLabel = range switch
+        var vm = new StatsPageVm
         {
-            "7d" => _localizer["Admin_Stats_Filter_Range_7d"].Value,
-            "30d" => _localizer["Admin_Stats_Filter_Range_30d"].Value,
-            "12m" => _localizer["Admin_Stats_Filter_Range_12m"].Value,
-            _ => $"{rangeStart:dd.MM.yyyy} - {rangeEnd:dd.MM.yyyy}"
-        };
-        var current = await BuildAdminStatisticsSeriesAsync(rangeStart, rangeEnd, selectedGranularity);
-
-        AdminStatisticsTotalsViewModel? previousTotals = null;
-        IReadOnlyList<AdminStatisticsSeriesPoint> previousSeries = Array.Empty<AdminStatisticsSeriesPoint>();
-        if (compare)
-        {
-            var spanDays = Math.Max(1, (rangeEnd - rangeStart).Days + 1);
-            var prevEnd = rangeStart.AddDays(-1);
-            var prevStart = prevEnd.AddDays(-spanDays + 1);
-            var previous = await BuildAdminStatisticsSeriesAsync(prevStart, prevEnd, selectedGranularity);
-            previousTotals = previous.Totals;
-            previousSeries = previous.Series;
-        }
-
-        var heatmapRows = current.Series
-            .Select(point => new AdminStatisticsHeatmapRow
-            {
-                PeriodStart = point.PeriodStart,
-                Logins = point.Logins,
-                GamesPlayed = point.GamesPlayed,
-                Comments = point.Comments,
-                Ratings = point.Ratings,
-                GamesPublished = point.GamesPublished
-            })
-            .Where(row => showInactive || row.Logins + row.GamesPlayed + row.Comments + row.Ratings + row.GamesPublished > 0)
-            .ToList();
-
-        var topDays = current.Series
-            .Select(point => new AdminStatisticsTopDay(point.PeriodStart,
-                point.Logins + point.GamesPlayed + point.Comments + point.Ratings + point.GamesPublished))
-            .OrderByDescending(point => point.TotalActivity)
-            .ThenByDescending(point => point.PeriodStart)
-            .Take(5)
-            .ToList();
-
-        var topGames = await BuildTopGamesAsync(rangeStart, rangeEnd);
-        var newGames = await BuildNewGamesAsync(rangeStart, rangeEnd);
-        var reportReasons = await BuildReportReasonStatsAsync(rangeStart, rangeEnd);
-        var ratingDistribution = await BuildRatingDistributionAsync(rangeStart, rangeEnd);
-        var insights = BuildInsights(current, previousTotals);
-
-        var vm = new AdminStatisticsViewModel
-        {
-            Filter = new AdminStatisticsFilterViewModel
+            Filter = new StatsFilterVm
             {
                 RangePreset = range,
                 Granularity = selectedGranularity,
@@ -2111,20 +2064,156 @@ public class AdminUiController : Controller
                 EndDate = rangeEnd,
                 RangeLabel = rangeLabel
             },
-            Totals = current.Totals,
-            PreviousTotals = previousTotals,
-            Series = current.Series,
-            PreviousSeries = previousSeries,
-            HeatmapRows = heatmapRows,
-            Insights = insights,
-            TopDays = topDays,
-            TopGames = topGames,
-            NewGames = newGames,
-            ReportsByReason = reportReasons,
-            RatingDistribution = ratingDistribution
+            Kpis = new List<KpiCardVm>
+            {
+                new() { Key = "activeUsers", Label = _localizer["Admin_Stats_Kpi_ActiveUsers"].Value },
+                new() { Key = "logins", Label = _localizer["Admin_Stats_Kpi_Logins"].Value },
+                new() { Key = "gamesPlayed", Label = _localizer["Admin_Stats_Kpi_GamesPlayed"].Value },
+                new() { Key = "comments", Label = _localizer["Admin_Stats_Kpi_Comments"].Value },
+                new() { Key = "ratings", Label = _localizer["Admin_Stats_Kpi_Ratings"].Value },
+                new() { Key = "gamesPublished", Label = _localizer["Admin_Stats_Kpi_GamesPublished"].Value }
+            }
         };
 
         return View(vm);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> StatsSummary(string range = "30d", string? granularity = null, bool compare = false, DateTime? start = null, DateTime? end = null)
+    {
+        var (rangeStart, rangeEnd, selectedGranularity) = ResolveStatsQuery(range, start, end, granularity);
+        var current = await BuildAdminStatisticsSeriesAsync(rangeStart, rangeEnd, selectedGranularity);
+        var averageRating = await BuildAverageRatingAsync(rangeStart, rangeEnd);
+        var totals = BuildTotalsDto(current.Totals, averageRating);
+
+        AdminStatsCompareDto compareDto = new() { Enabled = compare };
+        AdminStatsDeltaDto? deltaDto = null;
+
+        AdminStatisticsTotalsViewModel? previousTotals = null;
+        if (compare)
+        {
+            var (prevStart, prevEnd) = ResolvePreviousRange(rangeStart, rangeEnd);
+            var previous = await BuildAdminStatisticsSeriesAsync(prevStart, prevEnd, selectedGranularity);
+            var previousAverageRating = await BuildAverageRatingAsync(prevStart, prevEnd);
+            previousTotals = previous.Totals;
+            compareDto = new AdminStatsCompareDto { Enabled = true, PrevStart = prevStart, PrevEnd = prevEnd };
+            deltaDto = BuildDeltaDto(current.Totals, averageRating, previous.Totals, previousAverageRating);
+        }
+
+        var response = new AdminStatsSummaryResponse
+        {
+            Range = BuildRangeDto(rangeStart, rangeEnd, selectedGranularity),
+            Compare = compareDto,
+            Totals = totals,
+            DeltasPct = deltaDto,
+            Insights = BuildInsights(current, previousTotals)
+        };
+
+        return Json(response);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> StatsSeries(string range = "30d", string? granularity = null, bool compare = false, DateTime? start = null, DateTime? end = null)
+    {
+        var (rangeStart, rangeEnd, selectedGranularity) = ResolveStatsQuery(range, start, end, granularity);
+        var current = await BuildAdminStatisticsSeriesAsync(rangeStart, rangeEnd, selectedGranularity);
+
+        IReadOnlyList<AdminStatsSeriesBucketDto> previousSeries = Array.Empty<AdminStatsSeriesBucketDto>();
+        AdminStatsCompareDto compareDto = new() { Enabled = compare };
+
+        if (compare)
+        {
+            var (prevStart, prevEnd) = ResolvePreviousRange(rangeStart, rangeEnd);
+            var previous = await BuildAdminStatisticsSeriesAsync(prevStart, prevEnd, selectedGranularity);
+            previousSeries = previous.Series.Select(MapSeriesBucket).ToList();
+            compareDto = new AdminStatsCompareDto { Enabled = true, PrevStart = prevStart, PrevEnd = prevEnd };
+        }
+
+        var response = new AdminStatsSeriesResponse
+        {
+            Range = BuildRangeDto(rangeStart, rangeEnd, selectedGranularity),
+            Compare = compareDto,
+            Series = current.Series.Select(MapSeriesBucket).ToList(),
+            PreviousSeries = previousSeries
+        };
+
+        return Json(response);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> StatsHeatmap(string range = "30d", string? granularity = null, bool showInactive = false, DateTime? start = null, DateTime? end = null)
+    {
+        var (rangeStart, rangeEnd, selectedGranularity) = ResolveStatsQuery(range, start, end, granularity);
+        var current = await BuildAdminStatisticsSeriesAsync(rangeStart, rangeEnd, selectedGranularity);
+
+        var rows = current.Series
+            .Select(point => new AdminStatsHeatmapBucketDto
+            {
+                Bucket = point.PeriodStart,
+                Logins = point.Logins,
+                GamesPlayed = point.GamesPlayed,
+                Comments = point.Comments,
+                Ratings = point.Ratings,
+                GamesPublished = point.GamesPublished
+            })
+            .Where(row => showInactive || row.Logins + row.GamesPlayed + row.Comments + row.Ratings + row.GamesPublished > 0)
+            .ToList();
+
+        var response = new AdminStatsHeatmapResponse
+        {
+            Range = BuildRangeDto(rangeStart, rangeEnd, selectedGranularity),
+            ShowInactiveDays = showInactive,
+            Heatmap = rows
+        };
+
+        return Json(response);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> StatsTop(string range = "30d", string? granularity = null, DateTime? start = null, DateTime? end = null)
+    {
+        var (rangeStart, rangeEnd, selectedGranularity) = ResolveStatsQuery(range, start, end, granularity);
+        var current = await BuildAdminStatisticsSeriesAsync(rangeStart, rangeEnd, selectedGranularity);
+
+        var topDays = current.Series
+            .Select(point => new AdminStatisticsTopDay(point.PeriodStart,
+                point.Logins + point.GamesPlayed + point.Comments + point.Ratings + point.GamesPublished))
+            .OrderByDescending(point => point.TotalActivity)
+            .ThenByDescending(point => point.PeriodStart)
+            .Take(5)
+            .ToList();
+
+        var response = new AdminStatsTopResponse
+        {
+            Range = BuildRangeDto(rangeStart, rangeEnd, selectedGranularity),
+            TopDays = topDays,
+            TopGames = await BuildTopGamesAsync(rangeStart, rangeEnd),
+            NewGames = await BuildNewGamesAsync(rangeStart, rangeEnd),
+            ReportsByReason = await BuildReportReasonStatsAsync(rangeStart, rangeEnd),
+            RatingDistribution = await BuildRatingDistributionAsync(rangeStart, rangeEnd)
+        };
+
+        return Json(response);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> StatsDrilldown(DateTime bucket, string granularity = "day")
+    {
+        var (bucketStart, bucketEnd) = ResolveBucketRange(bucket, granularity);
+        var current = await BuildAdminStatisticsSeriesAsync(bucketStart, bucketEnd, granularity);
+        var averageRating = await BuildAverageRatingAsync(bucketStart, bucketEnd);
+        var totals = BuildTotalsDto(current.Totals, averageRating);
+
+        var response = new AdminStatsDrilldownResponse
+        {
+            Range = BuildRangeDto(bucketStart, bucketEnd, granularity),
+            Totals = totals,
+            TopGames = await BuildTopGamesAsync(bucketStart, bucketEnd),
+            TopCommented = await BuildTopCommentedGamesAsync(bucketStart, bucketEnd),
+            RatingDistribution = await BuildRatingDistributionAsync(bucketStart, bucketEnd)
+        };
+
+        return Json(response);
     }
 
     private async Task<AdminActivityOverviewViewModel> BuildAdminActivityOverviewAsync()
@@ -2242,6 +2331,161 @@ public class AdminUiController : Controller
         }
 
         return "month";
+    }
+
+    private (DateTime Start, DateTime End, string Granularity) ResolveStatsQuery(string range, DateTime? start, DateTime? end, string? granularity)
+    {
+        var today = DateTime.UtcNow.Date;
+        var (rangeStart, rangeEnd) = ResolveStatsRange(range, start, end, today);
+        var selectedGranularity = ResolveGranularity(granularity, rangeStart, rangeEnd);
+        return (rangeStart, rangeEnd, selectedGranularity);
+    }
+
+    private string BuildRangeLabel(string range, DateTime rangeStart, DateTime rangeEnd)
+    {
+        return range switch
+        {
+            "7d" => _localizer["Admin_Stats_Filter_Range_7d"].Value,
+            "30d" => _localizer["Admin_Stats_Filter_Range_30d"].Value,
+            "12m" => _localizer["Admin_Stats_Filter_Range_12m"].Value,
+            _ => $"{rangeStart:dd.MM.yyyy} - {rangeEnd:dd.MM.yyyy}"
+        };
+    }
+
+    private static (DateTime Start, DateTime End) ResolvePreviousRange(DateTime rangeStart, DateTime rangeEnd)
+    {
+        var spanDays = Math.Max(1, (rangeEnd - rangeStart).Days + 1);
+        var prevEnd = rangeStart.AddDays(-1);
+        var prevStart = prevEnd.AddDays(-spanDays + 1);
+        return (prevStart, prevEnd);
+    }
+
+    private static (DateTime Start, DateTime End) ResolveBucketRange(DateTime bucket, string granularity)
+    {
+        var start = GetBucketStart(bucket, granularity);
+        var end = granularity switch
+        {
+            "week" => start.AddDays(6),
+            "month" => start.AddMonths(1).AddDays(-1),
+            _ => start
+        };
+        return (start, end);
+    }
+
+    private static AdminStatsRangeDto BuildRangeDto(DateTime rangeStart, DateTime rangeEnd, string granularity)
+    {
+        return new AdminStatsRangeDto
+        {
+            Start = rangeStart,
+            End = rangeEnd,
+            Granularity = granularity,
+            Timezone = TimeZoneInfo.Local.Id
+        };
+    }
+
+    private static AdminStatsSeriesBucketDto MapSeriesBucket(AdminStatisticsSeriesPoint point)
+    {
+        return new AdminStatsSeriesBucketDto
+        {
+            Bucket = point.PeriodStart,
+            ActiveUsers = point.ActiveUsers,
+            Logins = point.Logins,
+            GamesPlayed = point.GamesPlayed,
+            Comments = point.Comments,
+            Ratings = point.Ratings,
+            GamesPublished = point.GamesPublished,
+            Reports = point.Reports
+        };
+    }
+
+    private static AdminStatsTotalsDto BuildTotalsDto(AdminStatisticsTotalsViewModel totals, double averageRating)
+    {
+        return new AdminStatsTotalsDto
+        {
+            ActiveUsers = totals.ActiveUsers,
+            Logins = totals.Logins,
+            GamesPlayed = totals.GamesPlayed,
+            Comments = totals.Comments,
+            Ratings = totals.Ratings,
+            GamesPublished = totals.GamesPublished,
+            Reports = totals.Reports,
+            AverageRating = averageRating
+        };
+    }
+
+    private static AdminStatsDeltaDto BuildDeltaDto(AdminStatisticsTotalsViewModel current, double currentAvg, AdminStatisticsTotalsViewModel previous, double previousAvg)
+    {
+        return new AdminStatsDeltaDto
+        {
+            ActiveUsers = CalculateDeltaPct(current.ActiveUsers, previous.ActiveUsers),
+            Logins = CalculateDeltaPct(current.Logins, previous.Logins),
+            GamesPlayed = CalculateDeltaPct(current.GamesPlayed, previous.GamesPlayed),
+            Comments = CalculateDeltaPct(current.Comments, previous.Comments),
+            Ratings = CalculateDeltaPct(current.Ratings, previous.Ratings),
+            GamesPublished = CalculateDeltaPct(current.GamesPublished, previous.GamesPublished),
+            Reports = CalculateDeltaPct(current.Reports, previous.Reports),
+            AverageRating = CalculateDeltaPct(currentAvg, previousAvg)
+        };
+    }
+
+    private static double CalculateDeltaPct(int current, int previous)
+    {
+        if (previous == 0)
+        {
+            return current == 0 ? 0 : 1;
+        }
+
+        return (current - previous) / (double)previous;
+    }
+
+    private static double CalculateDeltaPct(double current, double previous)
+    {
+        if (Math.Abs(previous) < 0.0001)
+        {
+            return Math.Abs(current) < 0.0001 ? 0 : 1;
+        }
+
+        return (current - previous) / previous;
+    }
+
+    private async Task<double> BuildAverageRatingAsync(DateTime rangeStart, DateTime rangeEnd)
+    {
+        var startUtc = rangeStart.Date;
+        var endUtc = rangeEnd.Date.AddDays(1).AddTicks(-1);
+
+        return await _db.GameReviews
+            .AsNoTracking()
+            .Where(review => review.IsRating && review.CreatedAtUtc >= startUtc && review.CreatedAtUtc <= endUtc)
+            .Select(review => (double?)review.Stars)
+            .AverageAsync() ?? 0d;
+    }
+
+    private async Task<IReadOnlyList<AdminStatisticsTopGame>> BuildTopCommentedGamesAsync(DateTime rangeStart, DateTime rangeEnd)
+    {
+        var startUtc = rangeStart.Date;
+        var endUtc = rangeEnd.Date.AddDays(1).AddTicks(-1);
+
+        var comments = await _db.GameReviews
+            .AsNoTracking()
+            .Where(review => !string.IsNullOrEmpty(review.Comment) && review.CreatedAtUtc >= startUtc && review.CreatedAtUtc <= endUtc)
+            .GroupBy(review => review.GameId)
+            .Select(group => new { group.Key, Comments = group.Count() })
+            .OrderByDescending(group => group.Comments)
+            .Take(5)
+            .ToListAsync();
+
+        var gameIds = comments.Select(entry => entry.Key).ToList();
+        var gameLookup = gameIds.Count == 0
+            ? new Dictionary<Guid, string>()
+            : await _db.Games
+                .AsNoTracking()
+                .Where(game => gameIds.Contains(game.Id))
+                .Select(game => new { game.Id, game.Title })
+                .ToDictionaryAsync(game => game.Id, game => game.Title);
+
+        return comments.Select(entry =>
+                new AdminStatisticsTopGame(entry.Key, gameLookup.GetValueOrDefault(entry.Key, "-"), 0, 0, entry.Comments))
+            .ToList();
     }
 
     private static DateTime GetBucketStart(DateTime timestamp, string granularity)
