@@ -72,8 +72,6 @@ public class GamesController : Controller
                 g.Description,
                 g.Modes,
                 g.Categories,
-                ReviewCount = g.Reviews.Count(r => r.IsRating),
-                AverageRating = g.Reviews.Any(r => r.IsRating) ? g.Reviews.Where(r => r.IsRating).Average(r => r.Stars) : 0.0,
                 Tags = g.Tags
                     .Where(t => t.IsApproved)
                     .OrderBy(t => t.Value)
@@ -84,6 +82,7 @@ public class GamesController : Controller
 
         var gameIds = projectedGames.Select(g => g.Id).ToList();
         var activeLookup = new Dictionary<Guid, int>();
+        var ratingLookup = new Dictionary<Guid, (double Average, int Count)>();
 
         if (gameIds.Count > 0)
         {
@@ -101,6 +100,18 @@ public class GamesController : Controller
                         .Count()
                 })
                 .ToDictionaryAsync(x => x.GameId, x => x.Count);
+
+            ratingLookup = await _db.GameReviews
+                .AsNoTracking()
+                .Where(r => gameIds.Contains(r.GameId) && r.IsRating)
+                .GroupBy(r => r.GameId)
+                .Select(group => new
+                {
+                    GameId = group.Key,
+                    Average = group.Average(r => r.Stars),
+                    Count = group.Count()
+                })
+                .ToDictionaryAsync(x => x.GameId, x => (x.Average, x.Count));
         }
 
         var games = projectedGames
@@ -109,8 +120,8 @@ public class GamesController : Controller
                 g.Title,
                 g.Slug,
                 g.CoverImagePath,
-                g.AverageRating,
-                g.ReviewCount,
+                ratingLookup.TryGetValue(g.Id, out var rating) ? rating.Average : 0.0,
+                ratingLookup.TryGetValue(g.Id, out rating) ? rating.Count : 0,
                 g.Modes,
                 g.Categories,
                 g.Tags,

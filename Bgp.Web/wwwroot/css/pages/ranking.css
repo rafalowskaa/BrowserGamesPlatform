@@ -604,14 +604,15 @@
     text-transform: uppercase;
 }
 
-.leaderboard__trophy {
-    width: 1.15rem;
-    height: 1.15rem;
-    max-width: 1.15rem;
-    max-height: 1.15rem;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 10px rgba(15, 23, 42, 0.4));
-}
+    .leaderboard__tier .leaderboard__trophy {
+        width: 1.15rem;
+        height: 1.15rem;
+        max-width: 1.15rem;
+        max-height: 1.15rem;
+        flex: 0 0 auto;
+        object-fit: contain;
+        filter: drop-shadow(0 4px 10px rgba(15, 23, 42, 0.4));
+    }
 
 .leaderboard__tier-label {
     display: inline-block;

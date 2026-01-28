@@ -54,17 +54,27 @@
         }
     };
 
-    const notificationSoundUrl = '/audio/soundnotifi.mp3'
+    const notificationSoundUrl = '/audio/soundnotifi.mp3';
     const notificationSound = typeof Audio !== 'undefined' ? new Audio(notificationSoundUrl) : null;
+    const notificationSoundPool = notificationSound
+        ? Array.from({ length: 3 }, () => {
+            const audio = new Audio(notificationSoundUrl);
+            audio.preload = 'auto';
+            return audio;
+        })
+        : [];
     if (notificationSound) {
         notificationSound.preload = 'auto';
+        notificationSound.load?.();
+        notificationSoundPool.forEach(audio => audio.load?.());
     }
 
     function playNotificationSound() {
         if (!notificationSound) {
             return;
         }
-        const sound = notificationSound.cloneNode(true);
+        const sound = notificationSoundPool.find(audio => audio.paused) || notificationSound;
+        sound.currentTime = 0;
         sound.volume = 0.4;
         sound.play().catch(() => { });
     }

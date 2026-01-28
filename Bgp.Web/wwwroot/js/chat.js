@@ -92,9 +92,18 @@
 
         const messageSoundUrl = '/audio/message-wave.mp3';
         const messageSound = typeof Audio !== 'undefined' ? new Audio(messageSoundUrl) : null;
+        const messageSoundPool = messageSound
+            ? Array.from({ length: 3 }, () => {
+                const audio = new Audio(messageSoundUrl);
+                audio.preload = 'auto';
+                return audio;
+            })
+            : [];
         let messageSoundUnlocked = false;
         if (messageSound) {
             messageSound.preload = 'auto';
+            messageSound.load?.();
+            messageSoundPool.forEach(audio => audio.load?.());
         }
 
         function unlockMessageSound() {
@@ -120,7 +129,8 @@
                 return;
             }
             unlockMessageSound();
-            const sound = messageSound.cloneNode(true);
+            const sound = messageSoundPool.find(audio => audio.paused) || messageSound;
+            sound.currentTime = 0;
             sound.volume = 0.45;
             sound.play().catch(() => { });
         }
