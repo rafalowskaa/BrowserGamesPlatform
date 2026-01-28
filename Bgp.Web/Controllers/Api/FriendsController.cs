@@ -157,6 +157,10 @@ public class FriendsController : ControllerBase
 
             foreach (var session in latestSessions)
             {
+                if (!ChatHub.HasActiveConnection(session.UserId))
+                {
+                    continue;
+                }
                 if (gameLookup.TryGetValue(session.GameId, out var game))
                 {
                     currentGameLookup[session.UserId] = game;
