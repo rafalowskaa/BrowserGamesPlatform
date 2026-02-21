@@ -145,7 +145,7 @@ public class ChatController : ControllerBase
     [HttpPost("attachments")]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(15 * 1024 * 1024)]
-    public async Task<ActionResult> UploadAttachment([FromForm] IFormFile? file)
+    public async Task<ActionResult> UploadAttachment(IFormFile? file)
     {
         if (file is null || file.Length == 0)
         {

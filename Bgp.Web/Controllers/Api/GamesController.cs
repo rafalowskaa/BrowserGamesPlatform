@@ -108,7 +108,7 @@ public class GamesController : ControllerBase
     [HttpPost]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(10_000_000)]
-    public async Task<ActionResult> Create([FromForm] CreateGameDto dto, [FromForm] IFormFile? cover)
+    public async Task<ActionResult> Create([FromForm] CreateGameDto dto, IFormFile? cover)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
@@ -223,7 +223,7 @@ public class GamesController : ControllerBase
     [HttpPost("{id:guid}/versions")]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(200_000_000)]
-    public async Task<ActionResult> UploadVersion(Guid id, [FromForm] CreateGameVersionDto dto, [FromForm] IFormFile package)
+    public async Task<ActionResult> UploadVersion(Guid id, [FromForm] CreateGameVersionDto dto, IFormFile package)
     {
         var game = await _db.Games.FindAsync(id);
         if (game is null) return NotFound();
