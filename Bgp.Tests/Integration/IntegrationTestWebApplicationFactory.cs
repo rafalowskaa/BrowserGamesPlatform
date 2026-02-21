@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
 using Bgp.Infrastructure.Persistence;
-using WebProgram = Bgp.Web.TestEntryPoint;
+using WebProgram = Program;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
