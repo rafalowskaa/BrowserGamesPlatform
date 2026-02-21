@@ -14,7 +14,17 @@ public static class AppDbInitializer
     {
         using var scope = sp.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await db.Database.MigrateAsync();
+
+        var providerName = db.Database.ProviderName ?? string.Empty;
+        var usesSqlite = providerName.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
+        if (usesSqlite)
+        {
+            await db.Database.EnsureCreatedAsync();
+        }
+        else
+        {
+            await db.Database.MigrateAsync();
+        }
 
         var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
