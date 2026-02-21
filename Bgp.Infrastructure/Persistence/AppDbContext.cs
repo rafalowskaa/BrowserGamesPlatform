@@ -225,6 +225,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(x => x.GameId);
 
         b.Entity(typeof(Score)).HasIndex(nameof(Score.GameId), nameof(Score.UserId));
+        b.Entity<Score>()
+            .HasIndex(x => new { x.MatchSessionId, x.UserId })
+            .IsUnique();
+
         b.Entity(typeof(MatchSession)).HasIndex(nameof(MatchSession.GameId), nameof(MatchSession.UserId));
         b.Entity<MatchSession>()
             .Property(x => x.Mode)

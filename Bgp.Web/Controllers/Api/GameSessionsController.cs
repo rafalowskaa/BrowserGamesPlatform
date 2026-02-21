@@ -37,7 +37,6 @@ public class GameSessionsController : ControllerBase
 
     public class SubmitSessionScoreRequest
     {
-        [Required]
         public string Token { get; set; } = string.Empty;
 
         [Range(0, double.MaxValue)]
@@ -236,6 +235,7 @@ public class GameSessionsController : ControllerBase
         var existingScore = await _db.Scores
             .FirstOrDefaultAsync(s => s.MatchSessionId == sessionId && s.UserId == player.UserId);
 
+        var now = DateTime.UtcNow;
         if (existingScore is null)
         {
             _db.Scores.Add(new Score
@@ -246,7 +246,7 @@ public class GameSessionsController : ControllerBase
                 Mode = session.Mode,
                 Value = request.Value,
                 Verified = true,
-                SubmittedAtUtc = DateTime.UtcNow
+                SubmittedAtUtc = now
             });
         }
         else
@@ -254,13 +254,55 @@ public class GameSessionsController : ControllerBase
             existingScore.Value = request.Value;
             existingScore.Verified = true;
             existingScore.Mode = session.Mode;
-            existingScore.SubmittedAtUtc = DateTime.UtcNow;
+            existingScore.SubmittedAtUtc = now;
         }
 
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (IsUniqueScoreConstraintViolation(ex))
+        {
+            _db.ChangeTracker.Clear();
+
+            var persistedScore = await _db.Scores
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.MatchSessionId == sessionId && s.UserId == player.UserId);
+            if (persistedScore is null)
+            {
+                throw;
+            }
+        }
 
         return Ok(new { session_id = sessionId });
     }
+
+    private static bool IsUniqueScoreConstraintViolation(DbUpdateException ex)
+    {
+        var inner = ex.InnerException;
+        if (inner is null)
+        {
+            return false;
+        }
+
+        var typeName = inner.GetType().Name;
+        if (typeName.Contains("SqliteException", StringComparison.OrdinalIgnoreCase))
+        {
+            return inner.Message.Contains("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase);
+        }
+
+        if (typeName.Contains("SqlException", StringComparison.OrdinalIgnoreCase))
+        {
+            var numberProperty = inner.GetType().GetProperty("Number");
+            if (numberProperty?.GetValue(inner) is int number)
+            {
+                return number is 2601 or 2627;
+            }
+        }
+
+        return false;
+    }
+
 
     [Authorize]
     [HttpPost("{sessionId:guid}/leave")]
