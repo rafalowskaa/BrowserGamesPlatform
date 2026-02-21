@@ -430,16 +430,6 @@ html[data-theme='light'] .admin-section {
     min-height: 16rem;
 }
 
-.stats-chart-card__canvas {
-    height: 12rem;
-}
-
-    .stats-chart-card__canvas canvas {
-        width: 100% !important;
-        height: 100% !important;
-        display: block;
-    }
-
 .stats-trend-chart {
     display: grid;
     grid-auto-flow: column;
