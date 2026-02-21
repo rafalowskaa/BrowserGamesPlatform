@@ -12,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using System;
 using System.Globalization;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace Bgp.Tests;
 
@@ -53,7 +52,7 @@ public class SessionScoreTests
             UserId = userId,
             Mode = GameMode.MultiplayerRealtime,
             CreatedAtUtc = DateTime.UtcNow.AddMinutes(-10),
-            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(-5)
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(20)
         });
         db.SessionPlayers.Add(new SessionPlayer
         {
@@ -86,6 +85,123 @@ public class SessionScoreTests
         Assert.Equal("winner", player.Role);
     }
 
+
+    [Fact]
+    public async Task SubmitScore_Is_Idempotent_For_10_Retries_And_Returns_Ok()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase($"score-idempotency-{Guid.NewGuid()}")
+            .Options;
+
+        var gameId = Guid.NewGuid();
+        var userId = "user-1";
+        var sessionId = Guid.NewGuid();
+        var token = SessionTokenUtilities.GenerateToken();
+        var tokenHash = SessionTokenUtilities.HashToken(token);
+
+        await using var db = new AppDbContext(options);
+        SeedBasicSession(db, gameId, userId, sessionId, tokenHash, DateTime.UtcNow.AddMinutes(20));
+        await db.SaveChangesAsync();
+
+        var controller = new GameSessionsController(db, new TestStringLocalizer(), new NullActivityLogger());
+        for (var attempt = 0; attempt < 10; attempt++)
+        {
+            var result = await controller.SubmitScore(gameId, sessionId, new GameSessionsController.SubmitSessionScoreRequest
+            {
+                Token = token,
+                Value = 100 + attempt,
+                Outcome = "win"
+            });
+
+            Assert.IsType<OkObjectResult>(result);
+        }
+
+        Assert.Equal(1, await db.Scores.CountAsync());
+        var score = await db.Scores.SingleAsync();
+        Assert.Equal(109, score.Value);
+    }
+
+    [Fact]
+    public async Task SubmitScore_Without_Token_Returns_Unauthorized()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase($"score-no-token-{Guid.NewGuid()}")
+            .Options;
+
+        var gameId = Guid.NewGuid();
+        var userId = "user-1";
+        var sessionId = Guid.NewGuid();
+
+        await using var db = new AppDbContext(options);
+        SeedBasicSession(db, gameId, userId, sessionId, tokenHash: "unused", DateTime.UtcNow.AddMinutes(20));
+        await db.SaveChangesAsync();
+
+        var controller = new GameSessionsController(db, new TestStringLocalizer(), new NullActivityLogger());
+        var result = await controller.SubmitScore(gameId, sessionId, new GameSessionsController.SubmitSessionScoreRequest
+        {
+            Token = "",
+            Value = 10
+        });
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
+    public async Task SubmitScore_After_Session_Expiry_Returns_Unauthorized()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase($"score-expired-{Guid.NewGuid()}")
+            .Options;
+
+        var gameId = Guid.NewGuid();
+        var userId = "user-1";
+        var sessionId = Guid.NewGuid();
+        var token = SessionTokenUtilities.GenerateToken();
+        var tokenHash = SessionTokenUtilities.HashToken(token);
+
+        await using var db = new AppDbContext(options);
+        SeedBasicSession(db, gameId, userId, sessionId, tokenHash, DateTime.UtcNow.AddMinutes(-1));
+        await db.SaveChangesAsync();
+
+        var controller = new GameSessionsController(db, new TestStringLocalizer(), new NullActivityLogger());
+        var result = await controller.SubmitScore(gameId, sessionId, new GameSessionsController.SubmitSessionScoreRequest
+        {
+            Token = token,
+            Value = 20
+        });
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
+    public async Task SubmitScore_With_Wrong_GameId_Returns_BadRequest()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase($"score-wrong-game-{Guid.NewGuid()}")
+            .Options;
+
+        var gameId = Guid.NewGuid();
+        var wrongGameId = Guid.NewGuid();
+        var userId = "user-1";
+        var sessionId = Guid.NewGuid();
+        var token = SessionTokenUtilities.GenerateToken();
+        var tokenHash = SessionTokenUtilities.HashToken(token);
+
+        await using var db = new AppDbContext(options);
+        SeedBasicSession(db, gameId, userId, sessionId, tokenHash, DateTime.UtcNow.AddMinutes(20));
+        await db.SaveChangesAsync();
+
+        var controller = new GameSessionsController(db, new TestStringLocalizer(), new NullActivityLogger());
+        var result = await controller.SubmitScore(wrongGameId, sessionId, new GameSessionsController.SubmitSessionScoreRequest
+        {
+            Token = token,
+            Value = 20
+        });
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+
     [Fact]
     public async Task Leaderboard_Uses_Scores_For_Wins_And_Losses()
     {
@@ -116,6 +232,7 @@ public class SessionScoreTests
             Id = sessionId,
             GameId = gameId,
             UserId = playerOneId,
+            Used = true,
             Mode = GameMode.MultiplayerRealtime,
             CreatedAtUtc = DateTime.UtcNow.AddMinutes(-10),
             ExpiresAtUtc = DateTime.UtcNow.AddMinutes(-5)
@@ -160,6 +277,41 @@ public class SessionScoreTests
         Assert.Equal(0, list[1].Wins);
         Assert.Equal(1, list[1].Losses);
         Assert.All(list, row => Assert.True(row.TotalMatches > 0, row.UserName));
+    }
+
+    private static void SeedBasicSession(AppDbContext db, Guid gameId, string userId, Guid sessionId, string tokenHash, DateTime expiresAtUtc)
+    {
+        db.Games.Add(new Game
+        {
+            Id = gameId,
+            Title = "Test Game",
+            Slug = "test-game",
+            CreatedByUserId = userId,
+            ApprovalStatus = GameApprovalStatus.Approved
+        });
+        db.Users.Add(new ApplicationUser
+        {
+            Id = userId,
+            UserName = "player-one",
+            Email = "player-one@example.com"
+        });
+        db.MatchSessions.Add(new MatchSession
+        {
+            Id = sessionId,
+            GameId = gameId,
+            UserId = userId,
+            Mode = GameMode.MultiplayerRealtime,
+            CreatedAtUtc = DateTime.UtcNow.AddMinutes(-10),
+            ExpiresAtUtc = expiresAtUtc
+        });
+        db.SessionPlayers.Add(new SessionPlayer
+        {
+            SessionId = sessionId,
+            UserId = userId,
+            TokenHash = tokenHash,
+            Role = "host",
+            JoinedAtUtc = DateTime.UtcNow.AddMinutes(-10)
+        });
     }
 
     private sealed class NullActivityLogger : IActivityLogger

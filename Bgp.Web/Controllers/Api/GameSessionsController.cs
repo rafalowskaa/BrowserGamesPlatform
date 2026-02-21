@@ -203,6 +203,11 @@ public class GameSessionsController : ControllerBase
             return BadRequest("Nieprawidłowe powiązanie gry z sesją.");
         }
 
+        if (session.ExpiresAtUtc <= DateTime.UtcNow || session.Used)
+        {
+            return Unauthorized();
+        }
+
         var tokenHash = SessionTokenUtilities.HashToken(request.Token);
         var player = await _db.SessionPlayers
             .FirstOrDefaultAsync(p => p.SessionId == sessionId && p.TokenHash == tokenHash);
