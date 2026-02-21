@@ -1,0 +1,132 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - heading "An unhandled exception occurred while processing the request." [level=1] [ref=e2]
+  - generic [ref=e3]:
+    - text: "InvalidOperationException: The default Identity UI layout requires a partial view '_LoginPartial' usually located at '/Pages/_LoginPartial' or at '/Views/Shared/_LoginPartial' to work. Based on your configuration we have looked at it in the following locations:"
+    - text: /Areas/Identity/Pages/Account/_LoginPartial.en-US.en-US.cshtml
+    - text: /Areas/Identity/Pages/Account/_LoginPartial.en.en-US.cshtml
+    - text: /Areas/Identity/Pages/Account/_LoginPartial.en-US.cshtml
+    - text: /Areas/Identity/Pages/_LoginPartial.en-US.en-US.cshtml
+    - text: /Areas/Identity/Pages/_LoginPartial.en.en-US.cshtml
+    - text: /Areas/Identity/Pages/_LoginPartial.en-US.cshtml
+    - text: /Areas/Identity/Pages/Account/_LoginPartial.en-US.en.cshtml
+    - text: /Areas/Identity/Pages/Account/_LoginPartial.en.en.cshtml
+    - text: /Areas/Identity/Pages/Account/_LoginPartial.en.cshtml
+    - text: /Areas/Identity/Pages/_LoginPartial.en-US.en.cshtml
+    - text: /Areas/Identity/Pages/_LoginPartial.en.en.cshtml
+    - text: /Areas/Identity/Pages/_LoginPartial.en.cshtml
+    - text: /Areas/Identity/Pages/Account/_LoginPartial.en-US.cshtml
+    - text: /Areas/Identity/Pages/Account/_LoginPartial.en.cshtml
+    - text: /Areas/Identity/Pages/Account/_LoginPartial.cshtml
+    - text: /Areas/Identity/Pages/_LoginPartial.en-US.cshtml
+    - text: /Areas/Identity/Pages/_LoginPartial.en.cshtml
+    - text: /Areas/Identity/Pages/_LoginPartial.cshtml
+    - text: /Areas/Identity/Pages/Shared/_LoginPartial.en-US.en-US.cshtml
+    - text: /Areas/Identity/Pages/Shared/_LoginPartial.en.en-US.cshtml
+    - text: /Areas/Identity/Pages/Shared/_LoginPartial.en-US.cshtml
+    - text: /Areas/Identity/Pages/Shared/_LoginPartial.en-US.en.cshtml
+    - text: /Areas/Identity/Pages/Shared/_LoginPartial.en.en.cshtml
+    - text: /Areas/Identity/Pages/Shared/_LoginPartial.en.cshtml
+    - text: /Areas/Identity/Pages/Shared/_LoginPartial.en-US.cshtml
+    - text: /Areas/Identity/Pages/Shared/_LoginPartial.en.cshtml
+    - text: /Areas/Identity/Pages/Shared/_LoginPartial.cshtml
+    - text: /Areas/Identity/Views/Shared/_LoginPartial.en-US.en-US.cshtml
+    - text: /Areas/Identity/Views/Shared/_LoginPartial.en.en-US.cshtml
+    - text: /Areas/Identity/Views/Shared/_LoginPartial.en-US.cshtml
+    - text: /Areas/Identity/Views/Shared/_LoginPartial.en-US.en.cshtml
+    - text: /Areas/Identity/Views/Shared/_LoginPartial.en.en.cshtml
+    - text: /Areas/Identity/Views/Shared/_LoginPartial.en.cshtml
+    - text: /Areas/Identity/Views/Shared/_LoginPartial.en-US.cshtml
+    - text: /Areas/Identity/Views/Shared/_LoginPartial.en.cshtml
+    - text: /Areas/Identity/Views/Shared/_LoginPartial.cshtml
+    - text: /Pages/Shared/_LoginPartial.en-US.en-US.cshtml
+    - text: /Pages/Shared/_LoginPartial.en.en-US.cshtml
+    - text: /Pages/Shared/_LoginPartial.en-US.cshtml
+    - text: /Pages/Shared/_LoginPartial.en-US.en.cshtml
+    - text: /Pages/Shared/_LoginPartial.en.en.cshtml
+    - text: /Pages/Shared/_LoginPartial.en.cshtml
+    - text: /Pages/Shared/_LoginPartial.en-US.cshtml
+    - text: /Pages/Shared/_LoginPartial.en.cshtml
+    - text: /Pages/Shared/_LoginPartial.cshtml
+    - text: /Views/Shared/_LoginPartial.en-US.en-US.cshtml
+    - text: /Views/Shared/_LoginPartial.en.en-US.cshtml
+    - text: /Views/Shared/_LoginPartial.en-US.cshtml
+    - text: /Views/Shared/_LoginPartial.en-US.en.cshtml
+    - text: /Views/Shared/_LoginPartial.en.en.cshtml
+    - text: /Views/Shared/_LoginPartial.en.cshtml
+    - text: /Views/Shared/_LoginPartial.en-US.cshtml
+    - text: /Views/Shared/_LoginPartial.en.cshtml
+    - text: /Views/Shared/_LoginPartial.cshtml.
+  - paragraph [ref=e4]: Microsoft.AspNetCore.Identity.UI.V5.Pages.Internal.Areas_Identity_Pages_V5__Layout.<ExecuteAsync>b__43_1()
+  - list [ref=e5]:
+    - listitem [ref=e6] [cursor=pointer]: Stack
+    - listitem [ref=e7] [cursor=pointer]: Query
+    - listitem [ref=e8] [cursor=pointer]: Cookies
+    - listitem [ref=e9] [cursor=pointer]: Headers
+    - listitem [ref=e10] [cursor=pointer]: Routing
+  - list [ref=e12]:
+    - listitem [ref=e13]:
+      - heading [level=2] [ref=e14]
+      - list [ref=e15]:
+        - listitem [ref=e16]:
+          - heading "Microsoft.AspNetCore.Identity.UI.V5.Pages.Internal.Areas_Identity_Pages_V5__Layout.<ExecuteAsync>b__43_1()" [level=3] [ref=e17]
+        - listitem [ref=e18]:
+          - heading "Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperExecutionContext.SetOutputContentAsync()" [level=3] [ref=e19]
+        - listitem [ref=e20]:
+          - heading "Microsoft.AspNetCore.Identity.UI.V5.Pages.Internal.Areas_Identity_Pages_V5__Layout.ExecuteAsync()" [level=3] [ref=e21]
+        - listitem [ref=e22]:
+          - heading "Microsoft.AspNetCore.Mvc.Razor.RazorView.RenderPageCoreAsync(IRazorPage page, ViewContext context)" [level=3] [ref=e23]
+        - listitem [ref=e24]:
+          - heading "Microsoft.AspNetCore.Mvc.Razor.RazorView.RenderPageAsync(IRazorPage page, ViewContext context, bool invokeViewStarts)" [level=3] [ref=e25]
+        - listitem [ref=e26]:
+          - heading "Microsoft.AspNetCore.Mvc.Razor.RazorView.RenderLayoutAsync(ViewContext context, ViewBufferTextWriter bodyWriter)" [level=3] [ref=e27]
+        - listitem [ref=e28]:
+          - heading "Microsoft.AspNetCore.Mvc.Razor.RazorView.RenderAsync(ViewContext context)" [level=3] [ref=e29]
+        - listitem [ref=e30]:
+          - heading "Microsoft.AspNetCore.Mvc.ViewFeatures.ViewExecutor.ExecuteAsync(ViewContext viewContext, string contentType, Nullable<int> statusCode)" [level=3] [ref=e31]
+        - listitem [ref=e32]:
+          - heading "Microsoft.AspNetCore.Mvc.ViewFeatures.ViewExecutor.ExecuteAsync(ViewContext viewContext, string contentType, Nullable<int> statusCode)" [level=3] [ref=e33]
+        - listitem [ref=e34]:
+          - heading "Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResultFilterAsync>g__Awaited|30_0<TFilter, TFilterAsync>(ResourceInvoker invoker, Task lastTask, State next, Scope scope, object state, bool isCompleted)" [level=3] [ref=e35]
+        - listitem [ref=e36]:
+          - heading "Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResultExecutedContextSealed context)" [level=3] [ref=e37]
+        - listitem [ref=e38]:
+          - heading "Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.ResultNext<TFilter, TFilterAsync>(ref State next, ref Scope scope, ref object state, ref bool isCompleted)" [level=3] [ref=e39]
+        - listitem [ref=e40]:
+          - heading "Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.InvokeResultFilters()" [level=3] [ref=e41]
+        - listitem [ref=e42]:
+          - heading "Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, object state, bool isCompleted)" [level=3] [ref=e43]
+        - listitem [ref=e44]:
+          - heading "Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)" [level=3] [ref=e45]
+        - listitem [ref=e46]:
+          - heading "Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(ref State next, ref Scope scope, ref object state, ref bool isCompleted)" [level=3] [ref=e47]
+        - listitem [ref=e48]:
+          - heading "Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.InvokeFilterPipelineAsync()" [level=3] [ref=e49]
+        - listitem [ref=e50]:
+          - heading "Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)" [level=3] [ref=e51]
+        - listitem [ref=e52]:
+          - heading "Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)" [level=3] [ref=e53]
+        - listitem [ref=e54]:
+          - heading "Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)" [level=3] [ref=e55]
+        - listitem [ref=e56]:
+          - heading "Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)" [level=3] [ref=e57]
+        - listitem [ref=e58]:
+          - heading "Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)" [level=3] [ref=e59]
+        - listitem [ref=e60]:
+          - heading "Bgp.Web.Middleware.UserPreferenceMiddleware.InvokeAsync(HttpContext context, UserManager<ApplicationUser> userManager) in UserPreferenceMiddleware.cs" [level=3] [ref=e61]:
+            - text: Bgp.Web.Middleware.UserPreferenceMiddleware.InvokeAsync(HttpContext context, UserManager<ApplicationUser> userManager) in
+            - code [ref=e62]: UserPreferenceMiddleware.cs
+          - button "+" [ref=e63] [cursor=pointer]
+          - list [ref=e65]:
+            - listitem [ref=e66]: await _next(context);
+        - listitem [ref=e67]:
+          - heading "Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)" [level=3] [ref=e68]
+        - listitem [ref=e69]:
+          - heading "Microsoft.AspNetCore.Localization.RequestLocalizationMiddleware.Invoke(HttpContext context)" [level=3] [ref=e70]
+        - listitem [ref=e71]:
+          - heading "Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)" [level=3] [ref=e72]
+    - listitem [ref=e73]:
+      - button "Show raw exception details" [ref=e75] [cursor=pointer]
+```
