@@ -87,6 +87,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "PlayGrid API", Version = "v1" });
     c.CustomSchemaIds(type => type.FullName?.Replace("+", ".") ?? type.Name);
+    c.DocInclusionPredicate((_, api) => api.RelativePath?.StartsWith("api/", StringComparison.OrdinalIgnoreCase) == true);
 });
 
 // SignalR (czat)
