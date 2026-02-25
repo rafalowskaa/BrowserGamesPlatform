@@ -285,9 +285,63 @@
         });
     };
 
+    const parseBucketDate = (value) => {
+        if (value instanceof Date) {
+            return Number.isNaN(value.getTime()) ? null : value;
+        }
+
+        if (typeof value === 'string') {
+            const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (dateOnlyMatch) {
+                const [, year, month, day] = dateOnlyMatch;
+                return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+            }
+
+            const normalized = value.includes(' ') ? value.replace(' ', 'T') : value;
+            const parsed = new Date(normalized);
+            if (!Number.isNaN(parsed.getTime())) {
+                return parsed;
+            }
+        }
+
+        const fallback = new Date(value);
+        return Number.isNaN(fallback.getTime()) ? null : fallback;
+    };
+
     const formatBucket = (value) => {
-        const date = value instanceof Date ? value : new Date(value);
+        const date = parseBucketDate(value);
+        if (!date) {
+            return String(value ?? '');
+        }
         return dateFormat(state.granularity).format(date);
+    };
+
+    const coerceNumber = (value) => {
+        if (typeof value === 'number') {
+            return Number.isFinite(value) ? value : 0;
+        }
+
+        if (typeof value === 'string') {
+            const normalized = value.trim().replace(/\s+/g, '').replace(',', '.');
+            const parsed = Number(normalized);
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
+
+        const parsed = Number(value ?? 0);
+        return Number.isFinite(parsed) ? parsed : 0;
+    };
+
+    const sortSeriesByBucket = (series) => {
+        return [...(series || [])].sort((a, b) => {
+            const aDate = parseBucketDate(a.bucket);
+            const bDate = parseBucketDate(b.bucket);
+
+            if (aDate && bDate) {
+                return aDate.getTime() - bDate.getTime();
+            }
+
+            return String(a.bucket ?? '').localeCompare(String(b.bucket ?? ''), locale);
+        });
     };
 
     const buildDataset = (label, metric, data, dashed = false) => {
@@ -305,9 +359,9 @@
     };
 
     const renderTrend = (data) => {
-        const labels = data.series.map((point) => formatBucket(point.bucket));
-        const series = data.series;
-        const previous = data.previousSeries || [];
+        const series = sortSeriesByBucket(data.series);
+        const previous = sortSeriesByBucket(data.previousSeries || []);
+        const labels = series.map((point) => formatBucket(point.bucket));
 
         elements.trendEmpties.forEach((empty) => {
             if (labels.length === 0) {
