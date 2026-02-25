@@ -293,7 +293,7 @@
     const buildDataset = (label, metric, data, dashed = false) => {
         return {
             label,
-            data,
+            data: data.map((value) => Number(value ?? 0)),
             borderColor: colorMap[metric] || '#38bdf8',
             backgroundColor: colorMap[metric] || '#38bdf8',
             borderWidth: 2,
@@ -357,6 +357,7 @@
                 animation: false,
                 scales: {
                     x: {
+                        type: 'category',
                         ticks: { color: '#94a3b8' },
                         grid: { display: false }
                     },
