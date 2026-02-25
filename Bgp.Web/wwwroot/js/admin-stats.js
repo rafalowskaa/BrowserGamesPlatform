@@ -73,6 +73,7 @@
 
     const chartInstances = new Map();
     let debounceTimer = null;
+    let latestSeries = null;
 
     const colorMap = {
         activeUsers: '#38bdf8',
@@ -286,7 +287,6 @@
             borderWidth: 2,
             fill: false,
             tension: 0,
-            cubicInterpolationMode: 'monotone',
             borderDash: dashed ? [6, 6] : undefined,
             pointRadius: 2
         };
@@ -465,6 +465,7 @@
             ]);
             renderKpis(summary.totals, summary.deltasPct);
             renderInsights(summary.insights);
+            latestSeries = series;
             renderTrend(series);
             renderHeatmap(heatmap);
             renderTopLists(top);
@@ -533,11 +534,19 @@
 
     elements.metricSelect?.addEventListener('change', (event) => {
         state.metric = event.target.value;
+        if (latestSeries) {
+            renderTrend(latestSeries);
+            return;
+        }
         scheduleLoad();
     });
 
     elements.multiSeriesToggle?.addEventListener('change', (event) => {
         state.multiSeries = event.target.checked;
+        if (latestSeries) {
+            renderTrend(latestSeries);
+            return;
+        }
         scheduleLoad();
     });
 
