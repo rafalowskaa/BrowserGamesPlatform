@@ -1,14 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { login } from './_helpers';
 
-test('E2E-02: catalog search -> game details', async ({ page }) => {
+test('E2E-02: catalog -> game details', async ({ page }) => {
+  await login(page, 'ania', 'ania1234');
   await page.goto('/Games');
 
-  const search = page.locator('form[role="search"]:visible input[name="search"]').first();
+  const search = page.locator('#app-search-input');
   await expect(search).toBeVisible();
   await search.fill('warcaby');
   await search.press('Enter');
-
-  await page.waitForLoadState('networkidle');
 
   const firstDetailsLink = page.locator('main a[href*="/Games/Details"]').first();
   await expect(firstDetailsLink).toBeVisible();

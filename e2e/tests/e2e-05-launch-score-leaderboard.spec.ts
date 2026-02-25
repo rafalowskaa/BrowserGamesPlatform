@@ -1,51 +1,45 @@
 import { test, expect } from '@playwright/test';
+import { setLangPL, login } from './_helpers';
 
-test('E2E-05: launch -> submit score -> leaderboard updates', async ({ page, request }) => {
+type GameItem = { id: string; slug: string };
 
-  await page.goto('/Account/Login');
-  await page.locator('input[name="LoginOrEmail"]').fill('ania');
-  await page.locator('input[name="Password"]').fill('ania1234');
-  await page.getByRole('button', { name: /zaloguj/i }).click();
-  await expect(page.locator('.user-menu__name')).toHaveText(/ania/i);
+test('E2E-05: launch -> submit score -> leaderboard updates', async ({ page }) => {
+  await setLangPL(page);
+  await login(page, 'ania', 'ania1234');
 
+  const gamesRes = await page.request.get('/api/games');
+  expect(gamesRes.ok()).toBeTruthy();
+  const games = (await gamesRes.json()) as GameItem[];
+  expect(games.length).toBeGreaterThan(0);
 
-  await page.goto('/Games');
-  const firstGameLink = page.locator('a[href*="/Games/Details"]').first();
-  await firstGameLink.click();
-  await expect(page).toHaveURL(/Games\/Details/i);
+  const { id: gameId, slug } = games[0];
 
+  await page.goto(`/Games/Details?slug=${encodeURIComponent(slug)}`);
+  await expect(page.locator('main')).toBeVisible();
 
-  const gameId = 'd4b00095-e027-4cfe-83df-788555351696';
+  const sessionRes = await page.request.post(`/api/games/${gameId}/sessions`, {
+    data: { mode: 1 },
+    headers: { 'Content-Type': 'application/json' },
+  });
+  expect(sessionRes.ok()).toBeTruthy();
 
+  const session = await sessionRes.json() as { session_id: string; token: string };
+  expect(session.session_id).toBeTruthy();
+  expect(session.token).toBeTruthy();
 
-  const session = await page.evaluate(async (gameId) => {
-    const res = await fetch(`/api/games/${gameId}/sessions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 1 })
-    });
-    const json = await res.json();
-    return json;
-  }, gameId);
+  const value = 777;
 
-  const sessionId = session.session_id;
-  const token = session.token;
+  const submitRes = await page.request.post(`/api/games/${gameId}/sessions/${session.session_id}/score`, {
+    data: { token: session.token, value, outcome: 'win' },
+    headers: { 'Content-Type': 'application/json' },
+  });
+  expect(submitRes.status()).toBe(200);
 
-  await page.evaluate(async ({ gameId, sessionId, token }) => {
-    await fetch(`/api/games/${gameId}/sessions/${sessionId}/score`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, value: 999, outcome: 'win' })
-    });
-  }, { gameId, sessionId, token });
+  const lbRes = await page.request.get(`/api/games/${gameId}/leaderboard`, {
+    headers: { Accept: 'application/json' },
+  });
+  expect(lbRes.ok()).toBeTruthy();
 
-
-  await page.goto(`/Games/Details?slug=graduren&tab=ranking`);
-
-  const leaderboardText = await page.evaluate(async (gameId) => {
-    const res = await fetch(`/api/games/${gameId}/leaderboard`);
-    return await res.text();
-  }, gameId);
-
-  expect(leaderboardText).toContain('999');
+  const lbText = await lbRes.text();
+  expect(lbText).toContain(String(value));
 });
