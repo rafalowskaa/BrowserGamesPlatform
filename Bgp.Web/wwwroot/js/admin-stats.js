@@ -126,6 +126,18 @@
         elements.panels.forEach((panel) => {
             panel.classList.toggle('is-active', panel.dataset.tabPanel === tab);
         });
+        if (latestSeries) {
+            window.requestAnimationFrame(() => renderTrend(latestSeries));
+        }
+    };
+
+    const getRenderableTrendCanvases = () => {
+        const activeCanvases = root.querySelectorAll('.stats-tab-panel.is-active [data-trend-canvas]');
+        if (activeCanvases.length > 0) {
+            return Array.from(activeCanvases);
+        }
+
+        return Array.from(root.querySelectorAll('[data-trend-canvas]'));
     };
 
     const enforceGranularity = () => {
@@ -357,11 +369,15 @@
             }
         };
 
-        root.querySelectorAll('[data-trend-canvas]').forEach((canvas) => {
+        const canvases = getRenderableTrendCanvases();
+
+        canvases.forEach((canvas) => {
             const existing = chartInstances.get(canvas);
             if (existing) {
                 existing.data = config.data;
-                existing.update();
+                existing.options = config.options;
+                existing.resize();
+                existing.update('none');
                 return;
             }
             const instance = new Chart(canvas, config);

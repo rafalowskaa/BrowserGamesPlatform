@@ -1,0 +1,53 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Bgp.Infrastructure.Identity
+@using Bgp.Web.Resources
+@using Microsoft.Extensions.Localization
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IStringLocalizer<SharedResource> L
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item">
+            <a class="nav-link"
+               asp-area="Identity"
+               asp-page="/Account/Manage/Index"
+               title="@L["Auth_Manage"].Value">
+                @User.Identity?.Name
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <form asp-area="Identity"
+                  asp-page="/Account/Logout"
+                  asp-route-returnUrl="/"
+                  method="post"
+                  class="form-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="nav-link btn btn-link">
+                    @L["Auth_Logout"].Value
+                </button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link"
+               asp-area="Identity"
+               asp-page="/Account/Register">
+                @L["Auth_Register"].Value
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link"
+               asp-area="Identity"
+               asp-page="/Account/Login">
+                @L["Auth_Login"].Value
+            </a>
+        </li>
+    }
+</ul>
