@@ -38,7 +38,7 @@ public sealed class BlockedUserMiddleware
                     var isLoginPage = context.Request.Path.StartsWithSegments("/Account/Login", StringComparison.OrdinalIgnoreCase);
                     if (!isLoginPage)
                     {
-                        context.Response.Redirect("/Account/Login?intent=blocked");
+                        context.Response.Redirect("http://localhost/Account/Login?intent=blocked");
                         return;
                     }
                 }

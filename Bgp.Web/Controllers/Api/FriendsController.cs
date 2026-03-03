@@ -638,6 +638,11 @@ public class FriendsController : ControllerBase
 
         if (fr is null) return NotFound();
 
+        if (fr.Status != FriendshipStatus.Blocked || !string.Equals(fr.BlockedByUserId, uid, StringComparison.Ordinal))
+        {
+            return Forbid();
+        }
+
         _db.Friendships.Remove(fr);
         await _db.SaveChangesAsync();
         return Ok();
