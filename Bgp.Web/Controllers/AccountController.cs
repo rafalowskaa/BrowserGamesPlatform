@@ -440,6 +440,11 @@ public class AccountController : Controller
             return _localizer["Auth_Login_PlayPrompt"].Value;
         }
 
+        if (string.Equals(intent, "blocked", StringComparison.OrdinalIgnoreCase))
+        {
+            return _localizer["Account_Blocked"].Value;
+        }
+
         return null;
     }
 

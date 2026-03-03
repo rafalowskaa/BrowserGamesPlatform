@@ -273,6 +273,7 @@ app.UseRouting();
 app.UseCors("Games");
 
 app.UseAuthentication();
+app.UseMiddleware<BlockedUserMiddleware>();
 app.UseMiddleware<UserPreferenceMiddleware>();
 app.UseAuthorization();
 

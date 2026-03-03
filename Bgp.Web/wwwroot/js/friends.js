@@ -403,31 +403,36 @@
         }
     }
 
-    function reportUser(userId, displayName) {
+    async function reportUser(userId, displayName) {
         const reason = window.prompt(labels.reportPrompt.replace('{name}', displayName || ''));
-        if (!reason || !reason.trim()) return;
+        if (reason === null) {
+            return;
+        }
 
-        fetch('/api/reports', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
-            body: JSON.stringify({ userId, reason })
-        })
-            .then(res => {
-                if (!res.ok) throw new Error('Report failed');
-                if (window.Bgp && typeof window.Bgp.showGlobalToast === 'function') {
-                    window.Bgp.showGlobalToast(labels.reportSuccess, 'success');
-                } else {
-                    window.alert(labels.reportSuccess);
-                }
-            })
-            .catch(() => {
-                if (window.Bgp && typeof window.Bgp.showGlobalToast === 'function') {
-                    window.Bgp.showGlobalToast(labels.reportError, 'error');
-                } else {
-                    window.alert(labels.reportError);
-                }
+        const description = reason.trim();
+
+        try {
+            await apiCall('/api/reports', {
+                method: 'POST',
+                body: JSON.stringify({
+                    targetUserId: userId,
+                    category: 4,
+                    description: description ? description : null
+                })
             });
+
+            if (window.Bgp && typeof window.Bgp.showGlobalToast === 'function') {
+                window.Bgp.showGlobalToast(labels.reportSuccess, 'success');
+            } else {
+                window.alert(labels.reportSuccess);
+            }
+        } catch {
+            if (window.Bgp && typeof window.Bgp.showGlobalToast === 'function') {
+                window.Bgp.showGlobalToast(labels.reportError, 'error');
+            } else {
+                window.alert(labels.reportError);
+            }
+        }
     }
 
     function openChat(userId, displayName) {
