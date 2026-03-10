@@ -79,6 +79,14 @@ public class FriendsController : ControllerBase
             .Select(f => f.RequesterId == uid ? f.AddresseeId : f.RequesterId)
             .ToListAsync();
 
+        var blockedAny = await _db.Friendships
+           .Where(f => (f.RequesterId == uid || f.AddresseeId == uid)
+                       && f.Status == FriendshipStatus.Blocked)
+           .Select(f => f.RequesterId == uid ? f.AddresseeId : f.RequesterId)
+           .Distinct()
+           .ToListAsync();
+
+
         var chatPartnerIds = await _db.ChatMessages
             .Where(m => m.SenderId == uid || m.ReceiverId == uid)
             .Select(m => m.SenderId == uid ? m.ReceiverId : m.SenderId)
@@ -309,6 +317,7 @@ public class FriendsController : ControllerBase
             .Except(friendIds)
             .Except(outgoing)
             .Except(incoming)
+            .Except(blockedAny)
             .Except(blocked)
             .ToList();
 
@@ -406,6 +415,12 @@ public class FriendsController : ControllerBase
             })
             .ToListAsync();
 
+        var blockedAnyIds = relationships
+            .Where(r => r.Status == FriendshipStatus.Blocked)
+            .Select(r => r.OtherUserId)
+            .Distinct()
+            .ToList();
+
         var acceptedFriendIds = relationships
             .Where(r => r.Status == FriendshipStatus.Accepted)
             .Select(r => r.OtherUserId)
@@ -423,9 +438,18 @@ public class FriendsController : ControllerBase
                 g =>
                 {
                     var blockedByCurrent = g.Any(x => x.Status == FriendshipStatus.Blocked && x.BlockedByUserId == uid);
-                    var status = blockedByCurrent
-                        ? FriendshipStatus.Blocked
-                        : g.Select(x => x.Status).FirstOrDefault();
+                    FriendshipStatus? status = null;
+                    if (blockedByCurrent)
+                    {
+                        status = FriendshipStatus.Blocked;
+                    }
+                    else
+                    {
+                        status = g
+                            .Where(x => x.Status != FriendshipStatus.Blocked)
+                            .Select(x => (FriendshipStatus?)x.Status)
+                            .FirstOrDefault();
+                    }
                     var outgoing = g.Any(x => x.Outgoing);
                     return (status, outgoing);
                 });
@@ -451,6 +475,7 @@ public class FriendsController : ControllerBase
             .AsNoTracking()
             .Where(u => !u.IsBlocked)
             .Where(u => u.Id != uid)
+            .Where(u => !blockedAnyIds.Contains(u.Id))
             .Where(u => u.DisplayNameVisibility == ProfileVisibility.Everyone || relatedUserIds.Contains(u.Id) || chatPartnerIds.Contains(u.Id))
             .Where(u => EF.Functions.Like((u.DisplayName ?? string.Empty).ToLower(), matchPattern)
                         || EF.Functions.Like((u.Email ?? string.Empty).ToLower(), matchPattern)
@@ -460,6 +485,7 @@ public class FriendsController : ControllerBase
             .AsNoTracking()
             .Where(u => !u.IsBlocked)
             .Where(u => u.Id != uid)
+            .Where(u => !blockedAnyIds.Contains(u.Id))
             .Where(u => u.DisplayNameVisibility == ProfileVisibility.Everyone)
             .Where(u => EF.Functions.Like((u.DisplayName ?? string.Empty).ToLower(), matchPattern)
                         || EF.Functions.Like((u.Email ?? string.Empty).ToLower(), matchPattern)
