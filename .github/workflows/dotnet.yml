@@ -1,0 +1,35 @@
+name: .NET checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore Bgp.sln
+      - name: Build
+        run: dotnet build Bgp.sln --configuration Release --no-restore
+      - name: Test
+        run: dotnet test Bgp.Tests/Bgp.Tests.csproj --configuration Release --no-build --logger trx --results-directory TestResults
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: dotnet-test-results
+          path: TestResults/
+          if-no-files-found: ignore
+          retention-days: 14
