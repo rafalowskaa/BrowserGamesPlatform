@@ -12,7 +12,7 @@ namespace Bgp.Tests.Integration;
 
 public sealed class IntegrationTestWebApplicationFactory : WebApplicationFactory<WebProgram>, IAsyncLifetime
 {
-    private readonly DbConnection _connection = new SqliteConnection("DataSource=:memory:");
+    private readonly DbConnection _connection = new SqliteConnection($"Data Source=bgp-tests-{Guid.NewGuid():N};Mode=Memory;Cache=Shared;Pooling=False");
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -31,7 +31,10 @@ public sealed class IntegrationTestWebApplicationFactory : WebApplicationFactory
                 services.Remove(dbContextDescriptor);
             }
 
-            services.AddDbContext<AppDbContext>(options => options.UseSqlite(_connection));
+            // Keep the named in-memory database alive through _connection, but give each
+            // request its own connection. Sharing one connection across parallel requests
+            // allows EF to register SQLite functions while another statement is active.
+            services.AddDbContext<AppDbContext>(options => options.UseSqlite(_connection.ConnectionString));
 
             services.AddAuthentication(options =>
             {

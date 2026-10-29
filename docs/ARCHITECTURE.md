@@ -27,6 +27,6 @@ These approaches exercise different database providers. A successful SQLite test
 
 ## Before an external deployment
 
-The source currently contains development administrator bootstrap logic, a development JWT key and permissive game CORS settings. Review those settings, credentials and game-upload boundaries before deployment. Example builds and uploaded content should also be reviewed for redistribution rights.
+Administrator bootstrap is disabled by default and requires explicit local configuration. The source still contains a development JWT key and permissive game CORS settings. Review those settings, credentials and game-upload boundaries before deployment. Example builds and uploaded content should also be reviewed for redistribution rights.
 
 No production readiness or full test-coverage claim is made by this documentation.

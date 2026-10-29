@@ -1,10 +1,12 @@
-﻿using System;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Bgp.Domain.Enums;
 using Bgp.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
 
 namespace Bgp.Infrastructure.Persistence;
 
@@ -16,8 +18,7 @@ public static class AppDbInitializer
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         var providerName = db.Database.ProviderName ?? string.Empty;
-        var usesSqlite = providerName.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
-        if (usesSqlite)
+        if (providerName.Contains("Sqlite", StringComparison.OrdinalIgnoreCase))
         {
             await db.Database.EnsureCreatedAsync();
         }
@@ -29,116 +30,71 @@ public static class AppDbInitializer
         var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        // Role
-        if (!await roleMgr.RoleExistsAsync("Admin"))
-            await roleMgr.CreateAsync(new IdentityRole("Admin"));
-
-        if (!await roleMgr.RoleExistsAsync("Moderator"))
-            await roleMgr.CreateAsync(new IdentityRole("Moderator"));
-
-        if (!await roleMgr.RoleExistsAsync("User"))
-            await roleMgr.CreateAsync(new IdentityRole("User"));
-
-        // Konto admina DEV 
-        var adminUserName = "admin";
-        var adminEmail = "admin@bgp.local";
-        var admin = await userMgr.FindByNameAsync(adminUserName) ?? await userMgr.FindByEmailAsync(adminEmail);
-
-        const string adminPassword = "admin123";
-        var adminStateChanged = false;
-
-        if (admin is null)
+        foreach (var role in new[] { "Admin", "Moderator", "User" })
         {
-            admin = new ApplicationUser
+            if (!await roleMgr.RoleExistsAsync(role))
             {
-                UserName = adminUserName,
-                Email = adminEmail,
-                EmailConfirmed = true,
-                DisplayName = "Admin",
-                DisplayNameLastApprovedAtUtc = DateTime.UtcNow,
-                PresenceStatus = UserPresenceStatus.Offline,
-                IsInvisible = false
-            };
-            var result = await userMgr.CreateAsync(admin, adminPassword);
-            if (!result.Succeeded)
-            {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                throw new InvalidOperationException($"Failed to create default admin user: {errors}");
-            }
-        }
-        else
-        {
-            if (!admin.EmailConfirmed)
-            {
-                admin.EmailConfirmed = true;
-                adminStateChanged = true;
-            }
-
-            if (admin.UserName != adminUserName)
-            {
-                admin.UserName = adminUserName;
-                adminStateChanged = true;
-            }
-
-            if (admin.Email != adminEmail)
-            {
-                admin.Email = adminEmail;
-                adminStateChanged = true;
-            }
-
-            if (!await userMgr.CheckPasswordAsync(admin, adminPassword))
-            {
-                var token = await userMgr.GeneratePasswordResetTokenAsync(admin);
-                var reset = await userMgr.ResetPasswordAsync(admin, token, adminPassword);
-                if (!reset.Succeeded)
+                var result = await roleMgr.CreateAsync(new IdentityRole(role));
+                if (!result.Succeeded)
                 {
-                    var errors = string.Join(", ", reset.Errors.Select(e => e.Description));
-                    throw new InvalidOperationException($"Failed to reset default admin password: {errors}");
+                    throw new InvalidOperationException(
+                        $"Failed to create role '{role}': {string.Join(", ", result.Errors.Select(e => e.Code))}");
                 }
             }
         }
 
-        if (!await userMgr.IsInRoleAsync(admin, "Admin"))
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        if (!configuration.GetValue<bool>("BootstrapAdmin:Enabled"))
         {
-            await userMgr.AddToRoleAsync(admin, "Admin");
+            return;
         }
 
-        if (!await userMgr.IsInRoleAsync(admin, "User"))
+        var userName = configuration["BootstrapAdmin:UserName"];
+        var email = configuration["BootstrapAdmin:Email"];
+        if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(email))
         {
-            await userMgr.AddToRoleAsync(admin, "User");
+            throw new InvalidOperationException(
+                "Administrator bootstrap requires BootstrapAdmin:UserName and BootstrapAdmin:Email.");
         }
 
-
-        if (admin.LockoutEnabled)
+        // Bootstrap creates a new account only. Existing accounts retain their
+        // passwords, roles, lockout, moderation and presence settings.
+        var existing = await userMgr.FindByNameAsync(userName) ?? await userMgr.FindByEmailAsync(email);
+        if (existing is not null)
         {
-            admin.LockoutEnabled = false;
-            adminStateChanged = true;
+            return;
         }
 
-        if (admin.LockoutEnd.HasValue || admin.AccessFailedCount > 0 || admin.IsBlocked)
+        var password = configuration["BootstrapAdmin:Password"];
+        if (string.IsNullOrWhiteSpace(password))
         {
-            admin.LockoutEnd = null;
-            admin.AccessFailedCount = 0;
-            admin.IsBlocked = false;
-            admin.BlockReason = null;
-            adminStateChanged = true;
+            throw new InvalidOperationException(
+                "Administrator bootstrap requires BootstrapAdmin:Password from local configuration or the environment.");
         }
 
-        if (admin.PresenceStatus != UserPresenceStatus.Offline)
+        var admin = new ApplicationUser
         {
-            admin.PresenceStatus = UserPresenceStatus.Offline;
-            adminStateChanged = true;
+            UserName = userName,
+            Email = email,
+            EmailConfirmed = true,
+            DisplayName = "Admin",
+            DisplayNameLastApprovedAtUtc = DateTime.UtcNow,
+            PresenceStatus = UserPresenceStatus.Offline,
+            IsInvisible = false
+        };
+
+        var created = await userMgr.CreateAsync(admin, password);
+        if (!created.Succeeded)
+        {
+            throw new InvalidOperationException(
+                $"Failed to create bootstrap administrator: {string.Join(", ", created.Errors.Select(e => e.Code))}");
         }
 
-        if (admin.IsInvisible)
+        var assigned = await userMgr.AddToRolesAsync(admin, new[] { "Admin", "User" });
+        if (!assigned.Succeeded)
         {
-            admin.IsInvisible = false;
-            adminStateChanged = true;
-        }
-
-        if (adminStateChanged)
-        {
-            await userMgr.UpdateAsync(admin);
+            throw new InvalidOperationException(
+                $"Failed to assign bootstrap administrator roles: {string.Join(", ", assigned.Errors.Select(e => e.Code))}");
         }
     }
 }

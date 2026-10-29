@@ -47,7 +47,9 @@ dotnet run --project Bgp.Web --launch-profile https
 
 The HTTPS launch profile uses **https://localhost:7222**. On a development machine, trust the local HTTPS certificate with `dotnet dev-certs https --trust`.
 
-Database migrations run during startup. The current initializer also contains development administrator bootstrap logic. Its fixed password is shorter than the configured minimum password length, so a fresh database can fail during administrator creation. Review and correct that bootstrap before treating this as a reproducible demo or exposing the application.
+Database migrations run during startup. Automatic administrator creation is disabled by default. For a local administrator, explicitly set `BootstrapAdmin__Enabled=true`, `BootstrapAdmin__UserName`, `BootstrapAdmin__Email` and `BootstrapAdmin__Password` in the process environment before starting the host. The password must satisfy the configured Identity policy. Remove the bootstrap settings after the first successful account creation.
+
+Bootstrap creates a new account only; it does not reset existing passwords, remove blocks or promote an existing regular user.
 
 Configuration sections include `ConnectionStrings`, `Jwt`, `Smtp`, `Branding` and `HomeContent`. Supply real credentials through environment variables or an untracked local configuration file.
 
