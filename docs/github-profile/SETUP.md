@@ -1,20 +1,15 @@
-# Completing the GitHub profile
+# Maintaining the GitHub profile
 
-The sibling `README.md` is a prepared profile introduction. It is stored here as a draft; GitHub will not display it on the profile from this location.
+The public profile repository [rafalowskaa/rafalowskaa](https://github.com/rafalowskaa/rafalowskaa) is already configured. Its root README is the source of truth for the profile introduction.
 
-1. Create a public repository named exactly `rafalowskaa` under the `rafalowskaa` account.
-2. Copy the sibling `README.md` to that repository's root.
-3. Set the profile display name to `Natalia` if desired.
-4. Suggested bio: `C# / .NET · ASP.NET Core & WPF · Building practical tools and game platforms`.
-5. Pin public repositories in this order: BrowserGamesPlatform, GamePlatform, CountdownApp, HangmanConsoleGame.
+## Files to edit
 
-Suggested repository descriptions:
+- `README.md`: English introduction, technical focus, project links and accessible image descriptions.
+- `assets/portfolio-header.svg`: the green-and-brown C# and .NET header.
+- `assets/projects/*.svg`: compact project cards.
 
-| Repository | Description | Topics |
-| --- | --- | --- |
-| BrowserGamesPlatform | PlayGrid — an ASP.NET Core browser game platform with rankings, moderation and SignalR chat. | csharp, dotnet, aspnet-core, signalr, entity-framework-core, webgl |
-| GamePlatform | A WPF desktop game platform with MVVM, SQLite persistence and WebView2. | csharp, dotnet, wpf, mvvm, sqlite, webview2 |
-| CountdownApp | A personalised Windows countdown with GIF support and saved local settings. | csharp, dotnet, wpf, desktop-app, countdown |
-| HangmanConsoleGame | A Polish/English console Hangman game with local multiplayer, rankings and audio. | csharp, dotnet, console-game, hangman |
+Keep project descriptions consistent with their source and README files. PlayGrid is the browser application; GamePlatform is the separate Windows WPF application; Hangman is the console game.
 
-Do not make private repositories public as part of this profile setup. Review their contents and ownership separately.
+For repository descriptions and pinned projects, use the settings on GitHub. Profile display name and bio are account settings rather than files in this repository.
+
+Review links and image rendering on the [public profile](https://github.com/rafalowskaa) after an update. The [portfolio index](../../PORTFOLIO.md) links to the four public application repositories.

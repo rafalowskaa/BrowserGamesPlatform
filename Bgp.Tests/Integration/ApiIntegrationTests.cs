@@ -21,15 +21,6 @@ public sealed class ApiIntegrationTests : IClassFixture<IntegrationTestWebApplic
     }
 
     [Fact]
-    public async Task IT_API_01_Register_Profile_Workflow_Template()
-    {
-        // Template test: in this app register/login are MVC + anti-forgery.
-        // Use Swagger/Postman for now, then automate by parsing anti-forgery token from /Account/Register.
-        await Task.CompletedTask;
-        Assert.True(true);
-    }
-
-    [Fact]
     public async Task IT_API_02_Protected_Endpoint_Requires_Auth_And_Allows_With_Auth()
     {
         var gameId = await SeedApprovedGameAsync();
@@ -156,14 +147,6 @@ public sealed class ApiIntegrationTests : IClassFixture<IntegrationTestWebApplic
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var count = await db.Scores.CountAsync(s => s.MatchSessionId == sessionId);
         Assert.Equal(1, count);
-    }
-
-    [Fact]
-    public async Task IT_API_09_Profile_History_Template()
-    {
-        // Template: bind to Dashboard profile/history UI endpoint in this codebase.
-        await Task.CompletedTask;
-        Assert.True(true);
     }
 
     [Fact]

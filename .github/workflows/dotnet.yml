@@ -16,6 +16,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+      - name: Check repository metadata and assets
+        run: python3 scripts/check_repository.py
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'

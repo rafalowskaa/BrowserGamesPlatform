@@ -68,7 +68,7 @@ npx playwright install chromium
 npx playwright test
 ```
 
-The default browser test URL is `http://localhost:5024`; override `E2E_BASE_URL` for another local instance. Some scenarios expect prepared users and approved games. Some .NET tests are explicitly marked as templates and do not verify behaviour; the presence of a test file does not imply complete coverage.
+The default browser test URL is `http://localhost:5024`; override `E2E_BASE_URL` for another local instance. Some scenarios expect prepared users and approved games. The complete MVC registration/login flow and profile-history pages do not yet have dedicated automated tests; the suite does not claim full coverage.
 
 ## Demo walkthrough
 
